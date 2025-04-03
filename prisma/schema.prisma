@@ -1,0 +1,145 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model ApiKey {
+  id            String         @id @default(dbgenerated("uuid_generate_v4()"))
+  name          String
+  provider      String
+  key           String
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  lastUsed      DateTime?
+  validatorKeys ValidatorKey[]
+
+  @@index([provider, isActive])
+}
+
+model ValidatorKey {
+  id          String    @id @default(uuid())
+  validatorId String
+  apiKeyId    String
+  createdAt   DateTime  @default(now())
+  apiKey      ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  validator   Validator @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+
+  @@unique([validatorId, apiKeyId])
+}
+
+model Validator {
+  id            String              @id @default(uuid())
+  profileName   String
+  provider      String
+  modelName     String
+  publicKey     String
+  isLeader      Boolean             @default(false)
+  active        Boolean             @default(true)
+  description   String?
+  avatarUrl     String?
+  validatorType String?
+  reliability   Float?              @default(0.0)
+  totalVotes    Int                 @default(0)
+  correctVotes  Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  graphEdges    GraphEdge[]         @relation("ValidatorEdges")
+  apiKeys       ValidatorKey[]
+  responses     ValidatorResponse[]
+
+  @@index([provider])
+  @@index([active])
+}
+
+model VoteSession {
+  id                 String              @id @default(uuid())
+  queryText          String
+  context            String?
+  timestamp          DateTime            @default(now())
+  isConsensusReached Boolean
+  consensusValue     Boolean?
+  votesYes           Int                 @default(0)
+  votesNo            Int                 @default(0)
+  notVoted           Int                 @default(0)
+  leaderId           String?
+  txHash             String?
+  blockchainNetwork  String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  graphEdges         GraphEdge[]         @relation("VoteSessionEdges")
+  threads            Thread[]
+  validatorResponses ValidatorResponse[]
+
+  @@index([timestamp])
+  @@index([consensusValue])
+  @@index([isConsensusReached])
+}
+
+model ValidatorResponse {
+  id                 String      @id @default(uuid())
+  vote               String
+  rationale          String
+  confidence         Float?      @default(0.5)
+  rationaleEmbedding String?
+  latency            Int?
+  matchedConsensus   Boolean?
+  voteSessionId      String
+  validatorId        String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  error              String?
+  validator          Validator   @relation(fields: [validatorId], references: [id])
+  voteSession        VoteSession @relation(fields: [voteSessionId], references: [id])
+
+  @@index([vote])
+  @@index([voteSessionId])
+  @@index([validatorId])
+  @@index([matchedConsensus])
+}
+
+model GraphEdge {
+  id            String       @id @default(uuid())
+  sourceType    String
+  targetType    String
+  sourceId      String
+  targetId      String
+  relationship  String
+  weight        Float?
+  properties    String
+  createdAt     DateTime     @default(now())
+  validatorId   String?
+  voteSessionId String?
+  voteSession   VoteSession? @relation("VoteSessionEdges", fields: [voteSessionId], references: [id])
+  validator     Validator?   @relation("ValidatorEdges", fields: [validatorId], references: [id])
+
+  @@index([sourceType, sourceId])
+  @@index([targetType, targetId])
+  @@index([relationship])
+}
+
+model Thread {
+  id            String      @id @default(uuid())
+  title         String
+  body          String
+  upvotes       Int         @default(0)
+  downvotes     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  voteSessionId String
+  replies       Reply[]
+  voteSession   VoteSession @relation(fields: [voteSessionId], references: [id], onDelete: Cascade)
+}
+
+model Reply {
+  id        String   @id @default(uuid())
+  body      String
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  threadId  String
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+}
