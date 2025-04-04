@@ -85,11 +85,27 @@ May not need, but run in case of issues.
      ```bash
      supabase link --project-ref dmrylpiaazevwqxcucsr
      ```
+     ⚠️ You have to be logged in with: `supabase login` if you have not.
+     note: You will see the project ref in the dashboard if you go to https://supabase.com/dashboard and then click on the testnet-demo project in there it will be in the url like: `https://supabase.com/dashboard/project/dmrylpiaazevwqxcucsr`
    - Pull the schema from remote to local (if needed):
      ```bash
      supabase db pull
      ```
    - Update `.env` with the team’s `DATABASE_URL` (see "ENV File" below).
+   - Creates or updates supabase/migrations/ with files like 20230404123456_remote_schema.sql.
+
+  Check local to make sure tables are there: http://127.0.0.1:54323/project/default/database/tables
+
+  If not there run:
+  ```
+  supabase migration up
+  ```
+
+  Check local dashboard Studio URL: http://127.0.0.1:54323/project/default/database/tables
+
+  If you want to use the local database instead of the rmote, change the .env file to:
+
+  `DATABASE_URL=postgresql://postgres:postgres@localhost:54322/postgres`
 
 #### 9. **Run Prisma Setup**:
    - Sync the schema with Supabase:
