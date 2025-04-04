@@ -130,6 +130,100 @@ May not need, but run in case of issues.
     - Requires `npm run dev` running. Tests endpoints like `/api/broadcast` and `/api/admin/health-check`.
 
 -----
+
+## Deployment
+
+
+#### 1. Install Vercel CLI (If Not Done):
+
+```bash
+npm install -g vercel
+```
+
+#### 2. Verify install and version
+
+```bash
+vercel --version
+```
+
+#### 3. Vercel login
+
+```bash
+vercel login
+```
+
+* Follow prompts to log in with your Vercel account (or team account if applicable).
+
+
+#### 4. Set Up Environment Variables Locally:
+
+```bash
+DATABASE_URL=postgresql://postgres:[your-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
+ENCRYPTION_KEY=your-32-char-key  # From openssl rand -hex 16
+ENCRYPTION_IV=your-16-char-iv    # From openssl rand -hex 8
+OPENAI_API_KEY=your-openai-key
+ANTHROPIC_API_KEY=your-anthropic-key
+GROK_API_KEY=your-grok-key
+GEMINI_API_KEY=your-gemini-key
+```
+* Ensure .env is complete
+
+#### 5. Deploy to Vercel
+
+```
+vercel
+```
+
+#### Prompts:
+* Project name: testnet-demo (or accept default).
+* Scope: Your account or team.
+* Directory: . (root).
+
+Output:
+
+```bash
+Vercel CLI X.X.X
+> Deploying testnet-demo
+> Building project...
+> Deployed to https://testnet-demo.vercel.app
+```
+
+#### 6. Set Environment Variables in Vercel:
+Why: Ensure production uses the same vars as local.
+
+```bash
+vercel env pull .env  # Pulls existing vars (if any)
+vercel env add DATABASE_URL
+vercel env add ENCRYPTION_KEY
+vercel env add ENCRYPTION_IV
+vercel env add OPENAI_API_KEY
+vercel env add ANTHROPIC_API_KEY
+vercel env add GROK_API_KEY
+vercel env add GEMINI_API_KEY
+```
+
+#### 7. Test Deployed Endpoints:
+
+* https://testnet-demo.vercel.app
+
+* Health Check:
+```bash
+curl https://testnet-demo.vercel.app/api/admin/health-check
+```
+
+* Diagnose keys
+```bash
+curl https://testnet-demo.vercel.app/api/admin/diagnose-keys
+```
+
+* Broadcast
+```bash
+curl -X POST -H "Content-Type: application/json" -d '{"queryText":"Is the sky blue?"}' https://testnet-demo.vercel.app/api/broadcast
+```
+
+* https://testnet-demo.vercel.app
+
+-----
 ## Helpful urls used with Supabase
 
 ### Local development
