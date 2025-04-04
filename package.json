@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
+    "qa": "ts-node --project tsconfig.scripts.json test/test-qa.ts",
     "start": "next start",
     "lint": "next lint",
     "prisma:generate": "prisma generate",
