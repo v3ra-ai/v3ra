@@ -1,0 +1,10 @@
+DATABASE_URL=postgresql://postgres:[supabase team acct. db password]@db.dmrylpiaazevwqxcucsr.supabase.co:6543/postgres?pgbouncer=true
+REDIS_URL=redis://localhost:6379
+OPENAI_API_KEY=your-key
+ANTHROPIC_API_KEY=your-key
+GROK_API_KEY=your-key
+GEMINI_API_KEY=your-key
+ENCRYPTION_KEY=your-32-character-key-here...  create with CLI: "openssl rand -hex 16"
+ENCRYPTION_IV=your-16-character-iv-here... CLI: "openssl rand -hex 8"
+
+

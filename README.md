@@ -1,12 +1,186 @@
 # testnet-demo
 Testnet Vercel/Supabase migration
 
+## Quick Start
+
+This guide helps you set up the Verafy Testnet Demo locally or deploy it to Vercel with Supabase. It assumes you’re starting fresh after cloning the repository. The app is a Next.js frontend with a broadcaster and validator services, using Supabase (PostgreSQL) for storage and Redis for real-time communication.
+
+### Prerequisites
+- **Node.js**: v18+ (v22.14.0 recommended, as used in development).
+- **npm**: v9+ (bundled with Node.js).
+- **Git**: For cloning the repo.
+- **Supabase CLI**: For local Supabase setup (optional for Vercel).
+- **Vercel CLI**: For deployment (optional).
+- **OpenSSL**: For generating encryption keys (optional, pre-installed on most systems).
+
+### Local Setup
+
+#### 1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/VerafyTechnologies/testnet-demo.git
+   ```
+
+#### 2. **Switch to Project Folder**
+   ```bash
+   cd testnet-demo
+   ```
+
+#### 3. **Install Node Dependencies**
+   ```bash
+   npm install
+   ```
+
+#### 4. **Install Legacy Node Dependencies**
+May not need, but run in case of issues.
+
+   ```bash
+   npm install --legacy-peer-deps
+   npm install axios openai --legacy-peer-deps
+   ```
+
+  **Note**: A few libraries require `--legacy-peer-deps` due to a conflict between `react@19.1.0` and `vaul@0.9.9`
+
+  ⚠️ If you hit any other conflicts adding future libraries this should fix it:
+    `npm install <library with conflict> --legacy-peer-deps`
+
+
+#### 5. **Set Up Environment Variables**:
+   - Copy the example `.env` file:
+     ```bash
+     cp .envExample .env
+     ```
+   - Edit `.env` with your keys (see "ENV File" section below). For local testing:
+     - Generate encryption keys:
+       ```bash
+       openssl rand -hex 16  # Outputs ENCRYPTION_KEY (32 chars)
+       openssl rand -hex 8   # Outputs ENCRYPTION_IV (16 chars)
+       ```
+     - Use your Supabase `DATABASE_URL` and AI provider API keys.
+
+#### 6. **Install Supabase CLI (Optional for Local DB)**:
+   - If not already installed:
+     ```bash
+     npm install -g supabase
+     ```
+  * Other useful Supabase CLI commands:
+     ```
+     supabase -v
+     supabase start
+     supabase status
+     supabase stop
+     ```
+
+
+#### 7. **Start Local Supabase**:
+   - For local database testing:
+     ```bash
+     supabase start
+     ```
+   - Copy the local `DATABASE_URL` from the output (e.g., `postgresql://postgres:postgres@localhost:54322/postgres`) into `.env` if not using the remote DB.
+
+#### 8. **Connect to Remote Supabase (Recommended)**:
+   - Set the remote DB (replace with your team’s Supabase URL Project ref.):
+     ```bash
+     supabase link --project-ref dmrylpiaazevwqxcucsr
+     ```
+   - Pull the schema from remote to local (if needed):
+     ```bash
+     supabase db pull
+     ```
+   - Update `.env` with the team’s `DATABASE_URL` (see "ENV File" below).
+
+#### 9. **Run Prisma Setup**:
+   - Sync the schema with Supabase:
+     ```bash
+     npx prisma db push --schema prisma/schema.prisma
+     ```
+
+#### 10. **Start the Application**:
+   ```bash
+   npm run dev
+   ```
+   - Access at http://localhost:3000
+   - View the Local Studio url: http://127.0.0.1:54323
+   - This gives Database views, SQL editor, logs and more.
+
+#### 11. **Run QA Tests**
+
+  - In a separate terminal:
+      ```bash
+      npm run qa
+      ```
+    - Requires `npm run dev` running. Tests endpoints like `/api/broadcast` and `/api/admin/health-check`.
+
+-----
+## Helpful urls used with Supabase
+
+### Local development
+
+```
+         API URL: http://127.0.0.1:54321
+     GraphQL URL: http://127.0.0.1:54321/graphql/v1
+  S3 Storage URL: http://127.0.0.1:54321/storage/v1/s3
+          DB URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      Studio URL: http://127.0.0.1:54323
+    Inbucket URL: http://127.0.0.1:54324
+```
+
+### Remote development
+-----
+
+### ENV file (local)
+
+For local dev, deployed dev may be set in teh team Vercel account.
+note: DATABASE_URL= should use the team account one, this is a sample
+
+
+```
+DATABASE_URL=postgresql://postgres:[supabase team acct. db password]@db.dmrylpiaazevwqxcucsr.supabase.co:6543/postgres?pgbouncer=true
+REDIS_URL=redis://localhost:6379
+OPENAI_API_KEY=your-key
+ANTHROPIC_API_KEY=your-key
+GROK_API_KEY=your-key
+GEMINI_API_KEY=your-key
+ENCRYPTION_KEY=your-32-character-key-here...  create with CLI: "openssl rand -hex 16"
+ENCRYPTION_IV=your-16-character-iv-here... CLI: "openssl rand -hex 8"
+```
+
+
+
+## API Endpoints
+
+### Broadcaster Service
+
+- `POST /broadcast`: Trigger a broadcast with a random query
+- `POST /broadcast/query`: Broadcast a specific query
+- `POST /start`: Start automatic broadcasting
+- `POST /stop`: Stop automatic broadcasting
+- `GET /status`: Get broadcaster status
+
+### Validator Service
+
+- `POST /vote`: Process a vote request (used by leader)
+- `GET /status`: Get validator status
+
+### Web Application
+
+- `GET /api/network`: Get network state
+- `POST /api/broadcast`: Broadcast a new query to validators
+
+## Consensus Mechanism
+
+1. Queries are broadcast via Redis pub/sub to all validators
+2. The leader validator (determined via Redis) collects votes from all validators
+3. Consensus is calculated based on simple majority (customizable)
+4. Results are stored in PostgreSQL for persistence
+5. Leadership rotates after each consensus completion
+
 
 ## Overview
 
 This is migration is from @jbrace02's repo here: https://github.com/VerafyTechnologies/VerafyTestnet-J1
 
-note: There is flow, testing and troubleshooting detailed below.
+note: There is flow, testing and testing/troubleshooting detailed below.
 
 The Verafy Testnet Demo is a modular system where the UI (Next.js) serves as the entry point, sending queries to the broadcaster service.
 
@@ -16,9 +190,11 @@ The Verafy Testnet Demo is a modular system where the UI (Next.js) serves as the
 * Admin tools monitor and repair the system.
 * This flow ensures a scalable, verifiable AI validation network.
 
-The system was created on Docker originally and worked great locally, however we hit some problems with deployments and setup time. Also we wanted to take advantage of Postgres Supabase integration with Vercel for easier deployments, features, monitoring, etc.
+The system was created on Docker originally and worked great locally.
+However there were some problems with deployments and setup time.
+Also we wanted to take advantage of Postgres Supabase integration with Vercel for easier deployments, features, monitoring, etc.
 
-It is in the process of being migrated to Vercel/Supabase.
+* This repo is in the process of being migrated to Vercel/Supabase.
 
 Reasons for migration:
 
@@ -231,7 +407,10 @@ This flow ensures a query moves efficiently from user input to validator consens
 
 ### Test script
 
-From root you can run a variety of test below.
+You can run this script from `npm run qa` (make sure to do in a new terminal apart from where you are running `npm run dev`)
+
+
+Or manually run the script from your root directory to run a variety of tests below.
 
 ```
 npx ts-node --project ./tsconfig.scripts.json test/test-qa.ts
