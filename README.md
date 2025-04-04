@@ -3,7 +3,9 @@ Testnet Vercel/Supabase migration
 
 ## Quick Start
 
-This guide helps you set up the Verafy Testnet Demo locally or deploy it to Vercel with Supabase. It assumes you’re starting fresh after cloning the repository. The app is a Next.js frontend with a broadcaster and validator services, using Supabase (PostgreSQL) for storage and Redis for real-time communication.
+This guide helps you set up the Verafy Testnet Demo locally or deploy it to Vercel with Supabase. It assumes you’re starting fresh after cloning the repository. The app is a Next.js frontend with a broadcaster and validator services, using Supabase (PostgreSQL) for storage and for real-time communication.
+
+This migration is from @jbrace02's original repo here: https://github.com/VerafyTechnologies/VerafyTestnet-J1
 
 ### Prerequisites
 - **Node.js**: v18+ (v22.14.0 recommended, as used in development).
@@ -131,7 +133,7 @@ May not need, but run in case of issues.
 ### ENV file (local)
 
 For local dev, deployed dev may be set in teh team Vercel account.
-note: DATABASE_URL= should use the team account one, this is a sample
+note: DATABASE_URL= should use the team account one, the `dmrylpiaazevwqxcucsr` is a sample, that is the project reference given by Supabase, each team acct. has a different one, so find out yours and replace that with yours.
 
 
 ```
@@ -178,7 +180,7 @@ ENCRYPTION_IV=your-16-character-iv-here... CLI: "openssl rand -hex 8"
 
 ## Overview
 
-This is migration is from @jbrace02's repo here: https://github.com/VerafyTechnologies/VerafyTestnet-J1
+This migration is from @jbrace02's repo here: https://github.com/VerafyTechnologies/VerafyTestnet-J1
 
 note: There is flow, testing and testing/troubleshooting detailed below.
 
