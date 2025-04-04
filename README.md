@@ -6,6 +6,8 @@ Testnet Vercel/Supabase migration
 
 This is migration is from @jbrace02's repo here: https://github.com/VerafyTechnologies/VerafyTestnet-J1
 
+note: There is flow, testing and troubleshooting detailed below.
+
 The Verafy Testnet Demo is a modular system where the UI (Next.js) serves as the entry point, sending queries to the broadcaster service.
 
 * The broadcaster distribute queries to validators, which vote using their AI models.
@@ -223,7 +225,58 @@ This flow ensures a query moves efficiently from user input to validator consens
 
 
 
-## Troubleshooting
+## Troubleshooting and Testing
+
+⚠️ IMPORTANT: Make sure the app is running locally `npm run dev`. Also, if testing local data (not remote) then make sure that is in the .env and/or available for what you need.
+
+### Test script
+
+From root you can run a variety of test below.
+
+```
+npx ts-node --project ./tsconfig.scripts.json test/test-qa.ts
+```
+
+This should give you output like:
+```
+$ npx ts-node --project ./tsconfig.scripts.json test/test-qa.ts
+Testing /api/admin/health-check...
+Health Check: 200 {
+  status: 'error',
+  message: 'API key decryption is failing',
+  details: {
+    apiKeysCount: 4,
+    activeValidatorsCount: 4,
+    validatorsWithKeysCount: 4,
+    lastVoteTimestamp: '2025-04-04T19:42:31.826Z',
+    decryptionSuccess: false
+  }
+}
+Testing /api/vote-history?limit=10...
+Vote History: 200 10 sessions
+Testing /api/vote-history?limit=5...
+Vote History: 200 5 sessions
+Testing /api/vote-history...
+Vote History: 200 10 sessions
+Testing /api/broadcast with query: "Is the sky blue?"...
+Broadcast: 200 {
+  id: 'dda7ce9c-6f44-4c60-96cb-706fe60b642b',
+  isConsensusReached: true,
+  consensusValue: false,
+  queryText: 'Is the sky blue?',
+  validatorResponses: [
+    {
+      id: '31a0275e-0703-493a-8a2e-b58ab117b92a',
+      provider: 'Google',
+      profileName: 'GEMINI Validator',
+      vote: 'NO',
+      rationale: 'Error: Gemini API error: [GoogleGenerativeAI Error]: Error fetching from https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent: [400 Bad Request] API key not valid. Please pass a valid API key. [{"@type":"type.googleapis.com/google.rpc.ErrorInfo","reason":"API_KEY_INVALID","domain":"googleapis.com","metadata":{"service":"generativelanguage.googleapis.com"}},{"@type":"type.googleapis.com/google.rpc.LocalizedMessage","locale":"en-US","message":"API key not valid. Please pass a valid API key."}]'
+    },
+```
+
+If you get "undefined" for several or all tests, it may mean your app is not running.
+
+### Manual Testing
 
 #### Health Check Endpoint
 
