@@ -182,3 +182,5 @@ next-env.d.ts
 
 dev.db
 dump.sql
+*code_snapshot*
+get_code-snapshot*

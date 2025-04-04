@@ -26,7 +26,7 @@ Reasons for migration:
 
 * Integrated advanced PostgreSQL database. Supabase provides hosted, versioned Postgres with REST and GraphQL APIs.
 
-* Supports easily changing the database, for example to other instances like toggling between bdev and prod depending on emv variable deploys.
+* Supports easily changing the database, for example to other instances like toggling between dev and prod depending on env variable deploys.
 
 * Real-time updates. Supabase supports subscriptions for live data sync, useful for validator results.
 
