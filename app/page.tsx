@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useRef } from "react"
 import { NetworkStats } from "@/components/network-stats"
 import { ValidatorList } from "@/components/validator-list"
 import { VoteHistory } from "@/components/vote-history"
@@ -22,7 +22,7 @@ export default function Home() {
   const [selectedValidator, setSelectedValidator] = useState<Validator | null>(null)
   const [showCustomQuery, setShowCustomQuery] = useState(true)
   const [showValidatorAdmin, setShowValidatorAdmin] = useState(false)
-  
+
   // Track if we've loaded vote history
   const voteHistoryLoaded = useRef(false)
 
@@ -42,7 +42,7 @@ export default function Home() {
     try {
       const response = await fetch("/api/vote-history?limit=10")
       const data = await response.json()
-      
+
       if (Array.isArray(data)) {
         setVoteHistory(data)
         voteHistoryLoaded.current = true
@@ -51,7 +51,7 @@ export default function Home() {
       console.error("Failed to fetch vote history:", error)
     }
   }
-  
+
   const handleCustomQuery = async (query: string) => {
     try {
       const result = await broadcastCustomQuery(query)
@@ -59,12 +59,12 @@ export default function Home() {
         console.error("Failed to broadcast custom query:", result.error)
         return
       }
-      
+
       setLastVoteResult(result as VoteResult)
-      
+
       // Add the new vote to history and update state
       setVoteHistory((prevHistory: VoteResult[]) => [result as VoteResult, ...prevHistory].slice(0, 10))
-      
+
       fetchNetworkState()
     } catch (error) {
       console.error("Failed to broadcast custom query:", error)
@@ -73,7 +73,7 @@ export default function Home() {
 
   React.useEffect(() => {
     fetchNetworkState()
-    
+
     // Only fetch vote history once when component mounts
     if (!voteHistoryLoaded.current) {
       fetchVoteHistory()
@@ -159,28 +159,28 @@ export default function Home() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Custom Query Form */}
-        <CustomQueryForm 
-          onSubmit={handleCustomQuery} 
+        <CustomQueryForm
+          onSubmit={handleCustomQuery}
           isOpen={showCustomQuery}
           onToggle={() => setShowCustomQuery(!showCustomQuery)}
         />
-        
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left column - Network visualization */}
           <div className="lg:col-span-2">
-            <NetworkVisualization 
-              validators={networkState.validators} 
-              currentLeaderIndex={networkState.currentLeaderIndex} 
+            <NetworkVisualization
+              validators={networkState.validators}
+              currentLeaderIndex={networkState.currentLeaderIndex}
               onClick={(validator) => setSelectedValidator(validator)}
             />
           </div>
-          
+
           {/* Right column - Consensus status */}
           <div className="lg:col-span-1">
             <ConsensusVisualization voteResult={lastVoteResult} isVoting={networkState.isVoting} />
           </div>
         </div>
-        
+
         {/* Network stats and current state */}
         <div className="mt-6 grid grid-cols-1 gap-6">
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
@@ -193,7 +193,7 @@ export default function Home() {
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <NetworkStats networkState={networkState} />
-                
+
                 <div className="col-span-2">
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
                     Validator Network
@@ -203,7 +203,7 @@ export default function Home() {
               </div>
             </div>
           </div>
-          
+
           {/* Vote Results if available */}
           {lastVoteResult && (
             <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
@@ -217,7 +217,7 @@ export default function Home() {
               </div>
             </div>
           )}
-          
+
           {/* Vote History Section */}
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
             <div className="p-4 border-b border-gray-200 dark:border-gray-800">
@@ -232,16 +232,16 @@ export default function Home() {
           </div>
         </div>
       </main>
-      
+
       {/* Validator detail modal */}
       {selectedValidator && (
-        <ValidatorDetail 
-          validator={selectedValidator} 
+        <ValidatorDetail
+          validator={selectedValidator}
           isLeader={networkState.validators.indexOf(selectedValidator) === networkState.currentLeaderIndex}
-          onClose={() => setSelectedValidator(null)} 
+          onClose={() => setSelectedValidator(null)}
         />
       )}
-      
+
       {/* Validator Admin Modal */}
       <ValidatorAdmin
         isOpen={showValidatorAdmin}

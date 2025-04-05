@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { validatorService } from "@/lib/services/validatorService";
-import { validatorRegistry } from "@/lib/validators/registry";
-import { aiValidatorToUiValidator } from "@/lib/validators/types";
+// import { validatorRegistry } from "@/lib/validators/registry";
+// import { aiValidatorToUiValidator } from "@/lib/validators/types";
 import { NetworkState } from "@/lib/types";
 import { prisma } from "@/lib/db/client";
 
@@ -23,22 +23,22 @@ export async function GET() {
       lastConsensusAchieved: null,
       lastVoteTimestamp: null
     };
-    
+
     // Try to get real validators from the validator service
     const dbValidators = await validatorService.getActiveValidators();
-    
+
     // If we have active validators in the database, use those
     if (dbValidators && dbValidators.length > 0) {
       console.log(`Found ${dbValidators.length} active validators in the database`);
-      
+
       // Get the real validators from the registry to ensure we have full objects
-      const registryValidators = await validatorRegistry.getActiveValidators();
-      
+      // const registryValidators = await validatorRegistry.getActiveValidators();
+
       // Map to UI validators
       const uiValidators = dbValidators.map(dbValidator => {
         // Try to find the validator in the registry for additional info
-        const registryValidator = registryValidators.find(rv => rv.id === dbValidator.id);
-        
+        // const registryValidator = registryValidators.find(rv => rv.id === dbValidator.id);
+
         return {
           id: dbValidator.id,
           publicKey: dbValidator.id,
@@ -55,13 +55,13 @@ export async function GET() {
           isLeader: false
         };
       });
-      
+
       if (uiValidators.length > 0) {
         // Set the first validator as the leader
         uiValidators[0].isLeader = true;
         networkState.validators = uiValidators;
       }
-      
+
       // Try to get the most recent vote session to update last query/response info
       try {
         const latestVoteSession = await prisma.voteSession.findFirst({
@@ -74,13 +74,13 @@ export async function GET() {
             }
           }
         });
-        
+
         if (latestVoteSession) {
           networkState.lastQuery = latestVoteSession.queryText;
           networkState.lastConsensusValue = latestVoteSession.consensusValue;
           networkState.lastConsensusAchieved = latestVoteSession.isConsensusReached;
           networkState.lastVoteTimestamp = latestVoteSession.timestamp.toISOString();
-          
+
           // Update validator votes based on the latest session
           for (const response of latestVoteSession.validatorResponses) {
             const validator = networkState.validators.find(v => v.id === response.validatorId);
@@ -90,7 +90,7 @@ export async function GET() {
               validator.lastResponse = response.vote === "YES" ? "Voted YES" : "Voted NO";
             }
           }
-          
+
           // Create network response summary
           networkState.lastNetworkResponse = latestVoteSession.validatorResponses
             .map(r => `${r.validator.profileName}: ${r.rationale}`)
@@ -102,7 +102,7 @@ export async function GET() {
     } else {
       console.log("No active validators found in the database");
     }
-    
+
     return NextResponse.json(networkState);
   } catch (error) {
     console.error("Network state error:", error);

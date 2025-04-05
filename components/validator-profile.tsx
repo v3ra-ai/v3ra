@@ -23,21 +23,21 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
   const reliabilityColor = getReliabilityColor(validator.reliability)
 
   // Prevent event bubbling
-  const handleContentClick = (e: any) => {
+  const handleContentClick = (e: React.MouseEvent) => {
     e.stopPropagation();
   };
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50 backdrop-blur-sm"
       onClick={onClose}
     >
-      <div 
+      <div
         className="relative w-full max-w-md bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden transform transition-all"
         onClick={handleContentClick}
       >
         {/* Close button */}
-        <button 
+        <button
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-10"
         >
@@ -45,17 +45,17 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
           </svg>
         </button>
-        
+
         {/* Header with image */}
         <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
           <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
             <div className="h-32 w-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-white flex items-center justify-center">
               {validator.avatarUrl ? (
-                <Image 
-                  src={validator.avatarUrl} 
-                  alt={validator.profileName} 
-                  width={128} 
-                  height={128} 
+                <Image
+                  src={validator.avatarUrl}
+                  alt={validator.profileName}
+                  width={128}
+                  height={128}
                   className="object-cover"
                 />
               ) : (
@@ -64,7 +64,7 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
             </div>
           </div>
         </div>
-        
+
         {/* Content */}
         <div className="pt-20 pb-8 px-6">
           <div className="text-center mb-4">
@@ -73,7 +73,7 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
               {validator.provider} {validator.modelName ? `• ${validator.modelName}` : ""}
             </p>
           </div>
-          
+
           {/* Validator Type Badge - Apple-style elegant pill */}
           {validator.validatorType && (
             <div className="mx-auto max-w-fit mb-6 text-center">
@@ -84,7 +84,7 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
               </div>
             </div>
           )}
-          
+
           {validator.reliability && (
             <div className="flex justify-center mt-3 mb-4">
               <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${reliabilityColor.bg} ${reliabilityColor.text}`}>
@@ -93,7 +93,7 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
               </div>
             </div>
           )}
-          
+
           {validator.description && (
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">About</h3>
@@ -102,38 +102,38 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
               </p>
             </div>
           )}
-          
+
           <div className="mt-6 space-y-3">
             <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Stats</h3>
-            
+
             <div className="flex justify-between items-center border-b pb-2 border-gray-100 dark:border-gray-700">
               <span className="text-sm text-gray-500 dark:text-gray-400">Last Vote</span>
               <span className={`text-sm font-medium ${
-                validator.lastVote === true 
-                  ? "text-green-600 dark:text-green-400" 
-                  : validator.lastVote === false 
-                    ? "text-red-600 dark:text-red-400" 
+                validator.lastVote === true
+                  ? "text-green-600 dark:text-green-400"
+                  : validator.lastVote === false
+                    ? "text-red-600 dark:text-red-400"
                     : "text-gray-600 dark:text-gray-400"
               }`}>
-                {validator.lastVote === true 
-                  ? "Yes" 
-                  : validator.lastVote === false 
-                    ? "No" 
+                {validator.lastVote === true
+                  ? "Yes"
+                  : validator.lastVote === false
+                    ? "No"
                     : "N/A"}
               </span>
             </div>
-            
+
             <div className="flex justify-between items-center border-b pb-2 border-gray-100 dark:border-gray-700">
               <span className="text-sm text-gray-500 dark:text-gray-400">Leadership Status</span>
               <span className={`text-sm font-medium ${
-                validator.isLeader 
-                  ? "text-blue-600 dark:text-blue-400" 
+                validator.isLeader
+                  ? "text-blue-600 dark:text-blue-400"
                   : "text-gray-600 dark:text-gray-400"
               }`}>
                 {validator.isLeader ? "Leader" : "Member"}
               </span>
             </div>
-            
+
             <div className="flex justify-between items-center border-b pb-2 border-gray-100 dark:border-gray-700">
               <span className="text-sm text-gray-500 dark:text-gray-400">Public Key</span>
               <span className="text-sm font-mono text-gray-600 dark:text-gray-400 truncate max-w-[180px]">
@@ -141,13 +141,13 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
               </span>
             </div>
           </div>
-          
+
           {validator.lastRationale && (
             <div className="mt-6">
               <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Recent Reasoning</h3>
               <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <p className="text-sm italic text-gray-600 dark:text-gray-300">
-                  "{validator.lastRationale}"
+                  &ldquo;{validator.lastRationale}&rdquo;
                 </p>
               </div>
             </div>

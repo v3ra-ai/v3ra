@@ -5,12 +5,12 @@ import * as validators from '../../../../lib/db/validators';
 export async function GET() {
   try {
     const activeValidators = await validators.getActiveValidators();
-    
+
     // Convert DB validators to JSON-friendly format
     const formattedValidators = activeValidators.map(validator => {
       // Use type assertion to handle Prisma's complex types
-      const dbValidator = validator as any;
-      
+      const dbValidator = validator;
+
       return {
         id: dbValidator.id,
         name: dbValidator.profileName,
@@ -23,7 +23,7 @@ export async function GET() {
         // Omit the validate function as it's added client-side
       };
     });
-    
+
     return NextResponse.json(formattedValidators);
   } catch (error) {
     console.error('Error getting active validators:', error);

@@ -133,6 +133,8 @@ May not need, but run in case of issues.
 
 ## Deployment
 
+* **Tip:** Run `npm run build` to detect issues before deploy. Many problems deploying are due to errors/warning during build.
+
 
 #### 1. Install Vercel CLI (If Not Done):
 

@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client";
 
 import * as React from 'react';
@@ -23,7 +22,7 @@ interface HealthCheckProps {
 
 /**
  * ValidatorHealthCheck component
- * 
+ *
  * This component monitors the health of validators and API keys,
  * showing real-time status and helping prevent issues like the ones we fixed.
  */
@@ -32,30 +31,19 @@ export function ValidatorHealthCheck({ onHealthIssue, className = '' }: HealthCh
   const [loading, setLoading] = React.useState<boolean>(false);
   const [expanded, setExpanded] = React.useState<boolean>(false);
 
-  // Fetch health data when component mounts
-  React.useEffect(() => {
-    checkHealth();
-    
-    // Set up interval to check health every 30 seconds
-    const interval = setInterval(checkHealth, 30000);
-    
-    // Clean up interval on unmount
-    return () => clearInterval(interval);
-  }, []);
-
   // Function to check validator and API key health
-  const checkHealth = async () => {
+  const checkHealth = React.useCallback(async () => {
     setLoading(true);
-    
+
     try {
       const response = await fetch('/api/admin/health-check');
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
       }
-      
+
       const data = await response.json();
       setHealth(data);
-      
+
       // If there's an issue, call the onHealthIssue callback
       if (data.status === 'error' && onHealthIssue) {
         onHealthIssue(data.message);
@@ -72,14 +60,25 @@ export function ValidatorHealthCheck({ onHealthIssue, className = '' }: HealthCh
           decryptionSuccess: false
         }
       });
-      
+
       if (onHealthIssue) {
         onHealthIssue('Failed to check validator health');
       }
     } finally {
       setLoading(false);
     }
-  };
+  }, [onHealthIssue]);
+
+  // Fetch health data when component mounts
+  React.useEffect(() => {
+    checkHealth();
+
+    // Set up interval to check health every 30 seconds
+    const interval = setInterval(checkHealth, 30000);
+
+    // Clean up interval on unmount
+    return () => clearInterval(interval);
+  }, [checkHealth]);
 
   // Function to toggle expanded state
   const toggleExpanded = () => {
@@ -105,10 +104,10 @@ export function ValidatorHealthCheck({ onHealthIssue, className = '' }: HealthCh
 
   return (
     <div className={`overflow-hidden transition-all duration-300 ${className}`} data-testid="validator-health-check">
-      <div 
+      <div
         className={`p-3 mb-1 rounded-md cursor-pointer flex items-center justify-between ${
-          health.status === 'healthy' ? 'bg-gray-800 hover:bg-gray-700' : 
-          health.status === 'warning' ? 'bg-yellow-900 hover:bg-yellow-800' : 
+          health.status === 'healthy' ? 'bg-gray-800 hover:bg-gray-700' :
+          health.status === 'warning' ? 'bg-yellow-900 hover:bg-yellow-800' :
           'bg-red-900 hover:bg-red-800'
         }`}
         onClick={toggleExpanded}
@@ -119,13 +118,13 @@ export function ValidatorHealthCheck({ onHealthIssue, className = '' }: HealthCh
             {health.message}
           </span>
         </div>
-        
+
         <div className="flex items-center">
-          <button 
+          <button
             onClick={(e) => {
               e.stopPropagation();
               checkHealth();
-            }} 
+            }}
             className="text-xs text-gray-400 hover:text-gray-200 mr-2"
             title="Refresh health check"
           >
@@ -133,66 +132,67 @@ export function ValidatorHealthCheck({ onHealthIssue, className = '' }: HealthCh
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
-          
-          <svg 
-            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${expanded ? 'transform rotate-180' : ''}`} 
-            fill="none" 
-            stroke="currentColor" 
+
+          <svg
+            className={`w-4 h-4 text-gray-400 transition-transform duration-300 ${expanded ? 'transform rotate-180' : ''}`}
+            fill="none"
+            stroke="currentColor"
             viewBox="0 0 24 24"
           >
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
           </svg>
         </div>
       </div>
-      
+
       {expanded && health.details && (
         <div className="p-3 bg-gray-800 rounded-md shadow-inner text-sm text-gray-300 space-y-2 border border-gray-700">
           <div className="flex justify-between">
-            <span>API Keys:</span> 
+            <span>API Keys:</span>
             <span className={health.details.apiKeysCount === 0 ? 'text-red-400' : 'text-green-400'}>
               {health.details.apiKeysCount}
             </span>
           </div>
-          
+
+
           <div className="flex justify-between">
-            <span>Active Validators:</span> 
+            <span>Active Validators:</span>
             <span className={health.details.activeValidatorsCount === 0 ? 'text-red-400' : 'text-green-400'}>
               {health.details.activeValidatorsCount}
             </span>
           </div>
-          
+
           <div className="flex justify-between">
-            <span>Validators with Keys:</span> 
+            <span>Validators with Keys:</span>
             <span className={health.details.validatorsWithKeysCount !== health.details.activeValidatorsCount ? 'text-red-400' : 'text-green-400'}>
               {health.details.validatorsWithKeysCount} / {health.details.activeValidatorsCount}
             </span>
           </div>
-          
+
           <div className="flex justify-between">
-            <span>API Key Decryption:</span> 
+            <span>API Key Decryption:</span>
             <span className={health.details.decryptionSuccess ? 'text-green-400' : 'text-red-400'}>
               {health.details.decryptionSuccess ? 'Working' : 'Failed'}
             </span>
           </div>
-          
+
           {health.details.lastVoteTimestamp && (
             <div className="flex justify-between">
-              <span>Last Vote:</span> 
+              <span>Last Vote:</span>
               <span>{new Date(health.details.lastVoteTimestamp).toLocaleString()}</span>
             </div>
           )}
-          
+
           {health.status !== 'healthy' && (
             <div className="mt-3 pt-3 border-t border-gray-700">
               <div className="flex space-x-2">
-                <button 
+                <button
                   onClick={() => window.open('/api/admin/diagnose-keys', '_blank')}
                   className="text-xs px-2 py-1 rounded bg-blue-600 hover:bg-blue-700 text-white"
                 >
                   Diagnose API Keys
                 </button>
-                
-                <button 
+
+                <button
                   onClick={() => window.open('/api/admin/repair-keys', '_blank')}
                   className="text-xs px-2 py-1 rounded bg-yellow-600 hover:bg-yellow-700 text-white"
                 >

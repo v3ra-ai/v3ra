@@ -1,4 +1,3 @@
-// @ts-nocheck
 "use client"
 
 // Fixing React imports
@@ -36,8 +35,8 @@ export function ValidatorDetail({ validator, isLeader, onClose }: ValidatorDetai
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-800">
             <div className="flex items-center space-x-4">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                isLeader 
-                  ? 'bg-gradient-to-br from-amber-300 to-amber-500 dark:from-amber-500 dark:to-amber-700' 
+                isLeader
+                  ? 'bg-gradient-to-br from-amber-300 to-amber-500 dark:from-amber-500 dark:to-amber-700'
                   : 'bg-gray-100 dark:bg-gray-800'
               }`}>
                 {isLeader ? (
@@ -130,11 +129,11 @@ export function ValidatorDetail({ validator, isLeader, onClose }: ValidatorDetai
                 <p className="text-sm text-gray-500 dark:text-gray-400">
                   Recent votes and rationales from this validator:
                 </p>
-                
+
                 <div className="space-y-3">
                   {/* This would be populated with actual vote history */}
                   {[1, 2, 3].map((_, index) => (
-                    <div 
+                    <div
                       key={index}
                       className="border border-gray-200 dark:border-gray-800 rounded-lg p-3 bg-gray-50 dark:bg-gray-800"
                     >
@@ -143,15 +142,15 @@ export function ValidatorDetail({ validator, isLeader, onClose }: ValidatorDetai
                           Is AI development progressing too quickly?
                         </div>
                         <div className={`text-xs font-semibold px-2 py-1 rounded-full ${
-                          index % 2 === 0 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300' 
+                          index % 2 === 0
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
                             : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300'
                         }`}>
                           {index % 2 === 0 ? 'YES' : 'NO'}
                         </div>
                       </div>
                       <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-                        {index % 2 === 0 
+                        {index % 2 === 0
                           ? "After analyzing the query, I believe AI development is indeed progressing at a rate that outpaces regulatory frameworks and ethical considerations."
                           : "Based on my analysis, AI development is proceeding at an appropriate pace with sufficient guardrails and ethical considerations in place."}
                       </p>

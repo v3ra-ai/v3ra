@@ -2,6 +2,32 @@ import { PrismaClient, Prisma } from '@prisma/client';
 import OpenAI from 'openai';
 import { Validator, VoteResult } from './types';
 
+// Type definitions
+type GraphEdgeCreateInput = {
+  sourceType: string;
+  sourceId: string;
+  targetType: string;
+  targetId: string;
+  relationship: string;
+  weight?: number | null;
+  properties: string;
+  validatorId?: string | null;
+  voteSessionId?: string | null;
+};
+
+type SearchResult = {
+  id: string;
+  vote: string;
+  rationale: string;
+  voteSessionId: string;
+  queryText: string;
+  consensusValue: string;
+  timestamp: Date;
+  profileName: string;
+  provider: string;
+  distance: number;
+};
+
 // Initialize Prisma client
 export const prisma = new PrismaClient();
 
@@ -86,7 +112,7 @@ export async function storeEmbeddingsInVectorDB(
     await prisma.validatorResponse.update({
       where: { id: validatorResponseId },
       data: {
-        rationaleEmbedding: embedding as any, // Using 'any' due to pgvector typing
+        rationaleEmbedding: JSON.stringify(embedding),
       },
     });
 
@@ -105,18 +131,18 @@ export async function createGraphEdge(
   targetId: string,
   relationship: string,
   weight?: number,
-  properties?: Record<string, any>
+  properties?: string
 ): Promise<boolean> {
   try {
     // Determine which optional foreign keys to set based on entity types
-    const data: any = {
+    const data: GraphEdgeCreateInput = {
       sourceType,
       sourceId,
       targetType,
       targetId,
       relationship,
-      weight,
-      properties: properties ? properties : undefined,
+      weight: weight ?? null,
+      properties: properties || '',
     };
 
     // Set optional relations for easier querying
@@ -227,7 +253,7 @@ export async function persistVoteSession(
 export async function searchVoteSessions(
   query: string,
   limit: number = 5
-): Promise<any[]> {
+): Promise<SearchResult[]> {
   try {
     // Generate embeddings for the search query
     const queryEmbedding = await getEmbeddingForText(query);
@@ -251,7 +277,7 @@ export async function searchVoteSessions(
     `;
 
     // Cast the result to any[] to ensure TypeScript compatibility
-    return results as any[];
+    return results as SearchResult[];
   } catch (error) {
     console.error('Search error:', error);
     return [];
@@ -263,7 +289,12 @@ export async function queryGraphRelationships(
   sourceType: string,
   sourceId: string,
   relationship: string
-): Promise<any[]> {
+): Promise<Prisma.GraphEdgeGetPayload<{
+  include: {
+    validator: true;
+    voteSession: true;
+  };
+}>[]> {
   try {
     const edges = await prisma.graphEdge.findMany({
       where: {

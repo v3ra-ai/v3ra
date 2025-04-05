@@ -10,8 +10,8 @@ interface ConsensusVisualizationProps {
 }
 
 export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisualizationProps) {
-  const [animateVotes, setAnimateVotes] = useState(false)
-  
+  const [, setAnimateVotes] = useState(false)
+
   useEffect(() => {
     if (isVoting) {
       setAnimateVotes(true)
@@ -20,9 +20,9 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
     }
   }, [isVoting])
 
-  const totalVotes = voteResult?.votingResult ? 
+  const totalVotes = voteResult?.votingResult ?
     (voteResult.votingResult.yes ?? 0) + (voteResult.votingResult.no ?? 0) + (voteResult.votingResult.notVoted ?? 0) : 0
-    
+
   const yesPercentage = voteResult?.votingResult ? ((voteResult.votingResult.yes ?? 0) / totalVotes) * 100 : 0
   const noPercentage = voteResult?.votingResult ? ((voteResult.votingResult.no ?? 0) / totalVotes) * 100 : 0
   const notVotedPercentage = voteResult?.votingResult ? ((voteResult.votingResult.notVoted ?? 0) / totalVotes) * 100 : 0
@@ -34,7 +34,7 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
           Consensus Status
         </h2>
       </div>
-      
+
       <div className="p-6 space-y-6">
         {/* Current query */}
         <div>
@@ -47,7 +47,7 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
             </p>
           </div>
         </div>
-        
+
         {/* Vote meter */}
         <div>
           <div className="flex justify-between mb-2">
@@ -65,10 +65,10 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
               </span>
             )}
           </div>
-          
+
           <div className="h-8 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             {/* Yes votes */}
-            <motion.div 
+            <motion.div
               className="h-full bg-green-500 float-left flex items-center justify-center"
               initial={{ width: "0%" }}
               animate={{ width: `${yesPercentage}%` }}
@@ -78,9 +78,9 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
                 <span className="text-xs font-bold text-white px-2">YES</span>
               )}
             </motion.div>
-            
+
             {/* No votes */}
-            <motion.div 
+            <motion.div
               className="h-full bg-red-500 float-left flex items-center justify-center"
               initial={{ width: "0%" }}
               animate={{ width: `${noPercentage}%` }}
@@ -90,9 +90,9 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
                 <span className="text-xs font-bold text-white px-2">NO</span>
               )}
             </motion.div>
-            
+
             {/* Not voted */}
-            <motion.div 
+            <motion.div
               className="h-full bg-gray-400 float-left flex items-center justify-center"
               initial={{ width: "0%" }}
               animate={{ width: `${notVotedPercentage}%` }}
@@ -103,27 +103,27 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
               )}
             </motion.div>
           </div>
-          
+
           <div className="flex justify-between mt-2 text-xs text-gray-500 dark:text-gray-400">
             <div>Yes: {voteResult?.votingResult?.yes ?? 0}</div>
             <div>No: {voteResult?.votingResult?.no ?? 0}</div>
             <div>Pending: {voteResult?.votingResult?.notVoted ?? 0}</div>
           </div>
         </div>
-        
+
         {/* Final result */}
         {voteResult?.isConsensusReached && !isVoting && (
           <div className="mt-4">
             <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">
               Consensus Result
             </h3>
-            
-            <motion.div 
+
+            <motion.div
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               className={`flex items-center justify-center p-4 rounded-lg ${
-                voteResult?.consensusValue 
-                  ? "bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-800" 
+                voteResult?.consensusValue
+                  ? "bg-green-100 dark:bg-green-900 border border-green-200 dark:border-green-800"
                   : "bg-red-100 dark:bg-red-900 border border-red-200 dark:border-red-800"
               }`}
             >
@@ -133,8 +133,8 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
                 {voteResult?.consensusValue ? "✓" : "✗"}
               </span>
               <span className={`font-bold text-lg ${
-                voteResult?.consensusValue 
-                  ? "text-green-700 dark:text-green-300" 
+                voteResult?.consensusValue
+                  ? "text-green-700 dark:text-green-300"
                   : "text-red-700 dark:text-red-300"
               }`}>
                 {voteResult?.consensusValue ? "YES" : "NO"}
@@ -142,7 +142,7 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
             </motion.div>
           </div>
         )}
-        
+
         {/* Simulated votes (when in voting state) */}
         {isVoting && (
           <div className="grid grid-cols-5 gap-2 mt-4">
