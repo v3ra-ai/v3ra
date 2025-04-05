@@ -13,7 +13,7 @@ import { Validator, ValidatorKey } from '@prisma/client'
 
 type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] }
 
-export async function broadcastCustomQuery(query: string) { // Ensure 'export' is present
+export async function broadcastCustomQuery(query: string) {
   try {
     console.log("Processing custom query:", query)
 
