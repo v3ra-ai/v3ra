@@ -1,9 +1,7 @@
-// @ts-nocheck
 import * as React from 'react';
 import { KeyManager } from './key-manager';
 import { Switch } from '@headlessui/react';
 
-// Validator interface 
 interface Validator {
   id: string;
   provider: string;
@@ -13,7 +11,6 @@ interface Validator {
   validatorType?: string;
 }
 
-// API Key interface
 interface ApiKey {
   id: string;
   name: string;
@@ -21,17 +18,12 @@ interface ApiKey {
   value: string;
 }
 
-// Props interface
 interface ValidatorAdminProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-/**
- * ValidatorAdmin component for managing validator profiles
- */
 export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
-  // State management 
   const [validators, setValidators] = React.useState<Validator[]>([]);
   const [loading, setLoading] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -40,28 +32,24 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
   const [newKeyId, setNewKeyId] = React.useState('');
   const [availableKeys, setAvailableKeys] = React.useState<ApiKey[]>([]);
   const [showKeyManager, setShowKeyManager] = React.useState(false);
-  
-  // Load validators when modal opens
+
   React.useEffect(() => {
     if (isOpen) {
       loadValidators();
       loadAvailableKeys();
     }
   }, [isOpen]);
-  
-  // Load validators from API
+
   const loadValidators = async () => {
     setLoading(true);
     setError(null);
-    
     try {
       const response = await fetch('/api/admin/validators');
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-      
       const data = await response.json();
-      setValidators(data.validators);
+      setValidators(data || []);
     } catch (err) {
       const errorMessage = `Failed to load validators: ${err instanceof Error ? err.message : String(err)}`;
       setError(errorMessage);
@@ -70,51 +58,63 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
       setLoading(false);
     }
   };
-  
-  // Load available API keys
+
   const loadAvailableKeys = async () => {
     try {
       const response = await fetch('/api/admin/keys');
       if (!response.ok) {
         throw new Error(`Error ${response.status}: ${response.statusText}`);
       }
-      
       const data = await response.json();
-      setAvailableKeys(data.keys);
+      // Handle both possible structures
+      const keys = Array.isArray(data)
+        ? data.map(k => ({
+            id: k.id,
+            name: k.name,
+            provider: k.provider,
+            value: k.key
+          }))
+        : (data.keys || []).map(k => ({
+            id: k.id,
+            name: k.name,
+            provider: k.provider,
+            value: k.value || k.key  // Handle both 'value' and 'key'
+          }));
+      setAvailableKeys(keys);
     } catch (err) {
       console.error(`Failed to load API keys: ${err instanceof Error ? err.message : String(err)}`);
+      setAvailableKeys([]);
     }
   };
-  
+
   // Add new validator
   const handleAddValidator = async () => {
     if (!newProvider || !newModelName) {
       setError('Provider and model name are required');
       return;
     }
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/admin/validators/add', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           provider: newProvider,
           modelName: newModelName,
           keyId: newKeyId || undefined
         })
       });
-      
+
       if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.message || `Error ${response.status}`);
+        const text = await response.text();
+        throw new Error(`Error ${response.status}: ${text}`);
       }
-      
-      // Reset form fields and reload validators
+
+      const data = await response.json();
+      console.log("Validator added:", data.validator);  // Use data
       setNewProvider('OpenAI');
       setNewModelName('');
       setNewKeyId('');
@@ -127,12 +127,12 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
       setLoading(false);
     }
   };
-  
+
   // Toggle validator active state
   const handleToggleValidator = async (id: string, active: boolean) => {
     setLoading(true);
     setError(null);
-    
+
     try {
       const response = await fetch('/api/admin/validators/toggle', {
         method: 'POST',
@@ -141,12 +141,12 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
         },
         body: JSON.stringify({ id, active })
       });
-      
+
       if (!response.ok) {
         const data = await response.json();
         throw new Error(data.message || `Error ${response.status}`);
       }
-      
+
       // Reload validators to reflect the change
       await loadValidators();
     } catch (err) {
@@ -157,23 +157,23 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
       setLoading(false);
     }
   };
-  
+
   // Remove validator
   const handleRemoveValidator = async (id: string) => {
     if (window.confirm('Are you sure you want to remove this validator?')) {
       setLoading(true);
       setError(null);
-      
+
       try {
         const response = await fetch(`/api/admin/validators/remove?id=${id}`, {
           method: 'DELETE'
         });
-        
+
         if (!response.ok) {
           const data = await response.json();
           throw new Error(data.message || `Error ${response.status}`);
         }
-        
+
         // Reload validators after deletion
         await loadValidators();
       } catch (err) {
@@ -185,7 +185,7 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
       }
     }
   };
-  
+
   // Remove all inactive validators
   const handleRemoveInactiveValidators = async () => {
     const inactiveValidators = validators.filter((v: Validator) => !v.active);
@@ -193,25 +193,25 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
       setError('No inactive validators to remove');
       return;
     }
-    
+
     if (window.confirm(`Are you sure you want to remove all ${inactiveValidators.length} inactive validators?`)) {
       setLoading(true);
       setError(null);
-      
+
       try {
         // Call the API endpoint to remove all inactive validators
         const response = await fetch('/api/admin/validators/remove-inactive', {
           method: 'POST'
         });
-        
+
         if (!response.ok) {
           const data = await response.json();
           throw new Error(data.message || `Error ${response.status}`);
         }
-        
+
         const result = await response.json();
         console.log(result.message);
-        
+
         // Reload validators after deletion
         await loadValidators();
       } catch (err) {
@@ -223,52 +223,52 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
       }
     }
   };
-  
+
   // Toggle key manager
   const handleToggleKeyManager = () => {
     setShowKeyManager(!showKeyManager);
   };
-  
+
   // Handle key manager close
   const handleKeyManagerClose = () => {
     setShowKeyManager(false);
     // Reload available keys after key manager is closed
     loadAvailableKeys();
   };
-  
+
   // Handle input change for provider
   const handleProviderChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setNewProvider(e.target.value);
   };
-  
+
   // Handle input change for model name
   const handleModelNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewModelName(e.target.value);
   };
-  
+
   // Handle input change for API key
   const handleKeyIdChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setNewKeyId(e.target.value);
   };
-  
+
   // Get available keys filtered by provider
   const getFilteredKeys = () => {
     return availableKeys.filter((key: ApiKey) => key.provider === newProvider);
   };
-  
+
   // If modal is not open, don't render anything
   if (!isOpen) {
     return null;
   }
-  
+
   const filteredKeys = getFilteredKeys();
-  
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-gray-800 rounded-xl shadow-xl w-full max-w-3xl p-6 max-h-[90vh] overflow-auto border border-gray-700">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-gray-200">Manage Validators</h2>
-          <button 
+          <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-200"
           >
@@ -277,15 +277,15 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
             </svg>
           </button>
         </div>
-        
+
         {error && (
           <div className="mb-4 p-3 bg-red-900 text-red-200 rounded-md">
             {error}
           </div>
         )}
-        
+
         <div className="flex justify-between mb-6">
-          <button 
+          <button
             onClick={handleAddValidator}
             disabled={loading || !newKeyId || !newModelName || !newProvider}
             className={`px-4 py-2 rounded ${
@@ -296,7 +296,7 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
           >
             {loading ? 'Adding...' : 'Add New Validator'}
           </button>
-          
+
           <button
             onClick={handleRemoveInactiveValidators}
             disabled={loading || validators.filter((v: Validator) => !v.active).length === 0}
@@ -309,10 +309,10 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
             {loading ? 'Removing...' : 'Remove All Inactive'}
           </button>
         </div>
-        
+
         <div className="mb-6 p-4 border rounded-lg bg-gray-700 border-gray-600">
           <h3 className="text-lg font-medium mb-4 text-gray-200">Add New Validator</h3>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
@@ -329,7 +329,7 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
                 <option value="Grok">Grok</option>
               </select>
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 Model Name
@@ -342,7 +342,7 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
                 className="w-full p-2 border bg-gray-600 text-gray-200 border-gray-600 rounded-md"
               />
             </div>
-            
+
             <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
                 API Key
@@ -372,8 +372,8 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
               </div>
             </div>
           </div>
-          
-          <button 
+
+          <button
             onClick={handleAddValidator}
             disabled={loading}
             className="w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:bg-gray-600"
@@ -381,7 +381,7 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
             {loading ? 'Adding...' : 'Add Validator'}
           </button>
         </div>
-        
+
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-700">
             <thead className="bg-gray-700">
@@ -464,7 +464,7 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
             </tbody>
           </table>
         </div>
-        
+
         <div className="mt-6 text-center text-sm text-gray-400">
           <p>Validators can be hot-swapped at runtime without restarting the server.</p>
           <div className="mt-4">
@@ -483,7 +483,7 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
           </div>
         </div>
       </div>
-      
+
       {showKeyManager && (
         <KeyManager onClose={handleKeyManagerClose} />
       )}
