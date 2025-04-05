@@ -80,6 +80,20 @@ May not need, but run in case of issues.
      ```
    - Copy the local `DATABASE_URL` from the output (e.g., `postgresql://postgres:postgres@localhost:54322/postgres`) into `.env` if not using the remote DB.
 
+  Recommended to have in your .env (also a sample .env is in .envExample and below)
+
+  ```bash
+# set your current db url (dev, Default): export DATABASE_URL=$LOCAL_DATABASE_URL
+# set your current db url (prod): export DATABASE_URL=$REMOTE_DATABASE_URL
+# verify your current db url (if blank uses default local): echo $DATABASE_URL
+
+LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
+REMOTE_DATABASE_URL=postgresql://postgres:[your-db-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default to local, if not set manually
+
+
+  ```
+
 #### 8. **Connect to Remote Supabase (Recommended)**:
    - Set the remote DB (replace with your team’s Supabase URL Project ref.):
      ```bash
@@ -87,11 +101,11 @@ May not need, but run in case of issues.
      ```
      ⚠️ You have to be logged in with: `supabase login` if you have not.
      note: You will see the project ref in the dashboard if you go to https://supabase.com/dashboard and then click on the testnet-demo project in there it will be in the url like: `https://supabase.com/dashboard/project/dmrylpiaazevwqxcucsr`
-   - Pull the schema from remote to local (if needed):
+   - Pull the schema from remote to local (if you want to refresh your local DB with the remote one ):
      ```bash
      supabase db pull
      ```
-   - Update `.env` with the team’s `DATABASE_URL` (see "ENV File" below).
+   - Update `.env` with the database url you are using with export `DATABASE_URL` (see "ENV File" below).
    - Creates or updates supabase/migrations/ with files like 20230404123456_remote_schema.sql.
 
   Check local to make sure tables are there: http://127.0.0.1:54323/project/default/database/tables
@@ -160,7 +174,15 @@ vercel login
 #### 4. Set Up Environment Variables Locally:
 
 ```bash
-DATABASE_URL=postgresql://postgres:[your-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
+# set your current db url (dev, Default): export DATABASE_URL=$LOCAL_DATABASE_URL
+# set your current db url (prod): export DATABASE_URL=$REMOTE_DATABASE_URL
+# verify your current db url (if blank uses default local): echo $DATABASE_URL
+
+LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
+REMOTE_DATABASE_URL=postgresql://postgres:[your-db-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default to local, if not set manually
+
+REDIS_URL=redis://localhost:6379
 ENCRYPTION_KEY=your-32-char-key  # From openssl rand -hex 16
 ENCRYPTION_IV=your-16-char-iv    # From openssl rand -hex 8
 OPENAI_API_KEY=your-openai-key

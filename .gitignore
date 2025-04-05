@@ -184,3 +184,5 @@ dev.db
 dump.sql
 *code_snapshot*
 get_code-snapshot*
+prisma_migrations_backup
+dump-postgres.sql

@@ -1,4 +1,11 @@
-DATABASE_URL=postgresql://postgres:[supabase team acct. db password]@db.dmrylpiaazevwqxcucsr.supabase.co:6543/postgres?pgbouncer=true
+# set your current db url (dev, Default): export DATABASE_URL=$LOCAL_DATABASE_URL
+# set your current db url (prod): export DATABASE_URL=$REMOTE_DATABASE_URL
+# verify your current db url (if blank uses default local): echo $DATABASE_URL
+
+LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
+REMOTE_DATABASE_URL=postgresql://postgres:[your-db-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default to local, if not set manually
+
 REDIS_URL=redis://localhost:6379
 OPENAI_API_KEY=your-key
 ANTHROPIC_API_KEY=your-key
