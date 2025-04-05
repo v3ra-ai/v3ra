@@ -1,26 +1,25 @@
+// app/api/validators/active/route.ts
 import { NextResponse } from 'next/server';
-import * as validators from '../../../../lib/db/validators';
+import { validatorRegistry } from '@/lib/validators/registry';
+import { AIValidator } from '@/lib/validators/types';
 
 // GET /api/validators/active - Get active validators
 export async function GET() {
   try {
-    const activeValidators = await validators.getActiveValidators();
+    const activeValidators = await validatorRegistry.getActiveValidators(); // Line 7: Fixed
 
-    // Convert DB validators to JSON-friendly format
-    const formattedValidators = activeValidators.map(validator => {
-      // Use type assertion to handle Prisma's complex types
-      const dbValidator = validator;
-
+    // Convert AIValidators to JSON-friendly format
+    const formattedValidators = activeValidators.map((validator: AIValidator) => { // Line 10: Typed
       return {
-        id: dbValidator.id,
-        name: dbValidator.profileName,
-        provider: dbValidator.provider,
-        modelName: dbValidator.modelName || 'unknown',
-        description: dbValidator.description || undefined,
-        validatorType: dbValidator.validatorType || undefined,
-        active: dbValidator.active !== undefined ? dbValidator.active : true,
-        keyId: dbValidator.apiKeys && dbValidator.apiKeys[0]?.apiKeyId,
-        // Omit the validate function as it's added client-side
+        id: validator.id,
+        name: validator.name,
+        provider: validator.provider,
+        modelName: validator.modelName || 'unknown',
+        description: validator.description || undefined,
+        validatorType: validator.validatorType || undefined,
+        active: validator.active !== undefined ? validator.active : true,
+        keyId: validator.keyId || undefined, // AIValidator uses keyId directly
+        // validate function omitted as it’s not serializable
       };
     });
 

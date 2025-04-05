@@ -1,3 +1,4 @@
+// app/actions.ts
 "use server"
 
 import type { VoteResult } from "../lib/types"
@@ -8,13 +9,15 @@ import { AnthropicValidator } from "@/lib/validators/providers/anthropic"
 import { GrokValidator } from "@/lib/validators/providers/grok"
 import { GeminiValidator } from "@/lib/validators/providers/gemini"
 import { validatorService } from "@/lib/services/validatorService"
+import { Validator, ValidatorKey } from '@prisma/client'
 
-export async function broadcastCustomQuery(query: string) {
+type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] }
+
+export async function broadcastCustomQuery(query: string) { // Ensure 'export' is present
   try {
     console.log("Processing custom query:", query)
 
-    // Get all active validators from the database
-    const dbValidators = await validatorService.getActiveValidators()
+    const dbValidators: DbValidatorWithKeys[] = await validatorService.getActiveDbValidators()
 
     if (!dbValidators || dbValidators.length === 0) {
       console.warn("No active validators found in the database")
@@ -23,15 +26,13 @@ export async function broadcastCustomQuery(query: string) {
 
     console.log(`Found ${dbValidators.length} active validators in the registry`)
 
-    // Create session ID for this vote
     const sessionId = uuidv4()
 
-    // Create a vote session in the database
     const voteSession = await prisma.voteSession.create({
       data: {
         id: sessionId,
         queryText: query,
-        isConsensusReached: false, // Will be updated after votes are collected
+        isConsensusReached: false,
         timestamp: new Date(),
         votesYes: 0,
         votesNo: 0,
@@ -39,12 +40,9 @@ export async function broadcastCustomQuery(query: string) {
       }
     })
 
-    // Initialize arrays to collect validator responses
     const validatorResponsePromises = []
 
-    // For each validator, send the query and collect responses
     for (const dbValidator of dbValidators) {
-      // Create validator instance based on provider
       let validator
 
       if (dbValidator.provider === "OpenAI") {
@@ -52,6 +50,7 @@ export async function broadcastCustomQuery(query: string) {
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active
         })
       } else if (dbValidator.provider === "Anthropic") {
@@ -60,6 +59,7 @@ export async function broadcastCustomQuery(query: string) {
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active
         })
       } else if (dbValidator.provider === "Grok") {
@@ -68,6 +68,7 @@ export async function broadcastCustomQuery(query: string) {
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active
         })
       } else if (dbValidator.provider === "Google") {
@@ -76,19 +77,17 @@ export async function broadcastCustomQuery(query: string) {
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active
         })
       } else {
-        // Skip unsupported validator types
         console.warn(`Validator provider ${dbValidator.provider} not supported yet`)
         continue
       }
 
-      // Process the validation asynchronously
       const validationPromise = validator.validate({
         statement: query
       }).then(async (response) => {
-        // Record validator response in database
         await validatorService.recordValidatorResponse({
           validatorId: dbValidator.id,
           voteSessionId: sessionId,
@@ -99,7 +98,6 @@ export async function broadcastCustomQuery(query: string) {
           error: response.error
         })
 
-        // Return response for UI processing
         return {
           id: dbValidator.id,
           provider: dbValidator.provider,
@@ -121,20 +119,16 @@ export async function broadcastCustomQuery(query: string) {
       validatorResponsePromises.push(validationPromise)
     }
 
-    // Wait for all validator responses to complete
     const validatorResponses = await Promise.all(validatorResponsePromises)
 
-    // Calculate voting results
     const yesVotes = validatorResponses.filter(r => r.vote === "YES").length
     const noVotes = validatorResponses.filter(r => r.vote === "NO").length
     const notVoted = validatorResponses.filter(r => r.vote === "ERROR").length
 
-    // Determine consensus
     const totalValidVotes = yesVotes + noVotes
     const isConsensusReached = totalValidVotes > 0
     const consensusValue = totalValidVotes > 0 ? (yesVotes > noVotes) : null
 
-    // Update vote session with results
     await prisma.voteSession.update({
       where: { id: sessionId },
       data: {
@@ -147,12 +141,11 @@ export async function broadcastCustomQuery(query: string) {
       }
     })
 
-    // Return vote result for the UI
     const result: VoteResult = {
       id: sessionId,
       isConsensusReached,
       consensusValue,
-      queryText: voteSession.queryText, // removed "query", us if needed
+      queryText: voteSession.queryText,
       validatorResponses,
       votingResult: {
         yes: yesVotes,

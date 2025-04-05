@@ -18,6 +18,14 @@ interface ApiKey {
   value: string;
 }
 
+type RawKey = {
+  id: string;
+  name: string;
+  provider: string;
+  key?: string;
+  value?: string;
+};
+
 interface ValidatorAdminProps {
   isOpen: boolean;
   onClose: () => void;
@@ -68,18 +76,18 @@ export function ValidatorAdmin({ isOpen, onClose }: ValidatorAdminProps) {
       const data = await response.json();
       // Handle both possible structures
       const keys = Array.isArray(data)
-        ? data.map(k => ({
-            id: k.id,
-            name: k.name,
-            provider: k.provider,
-            value: k.key
-          }))
-        : (data.keys || []).map(k => ({
-            id: k.id,
-            name: k.name,
-            provider: k.provider,
-            value: k.value || k.key  // Handle both 'value' and 'key'
-          }));
+      ? data.map((k: RawKey) => ({
+          id: k.id,
+          name: k.name,
+          provider: k.provider,
+          value: k.key || ''
+        }))
+      : (data.keys || []).map((k: RawKey) => ({
+          id: k.id,
+          name: k.name,
+          provider: k.provider,
+          value: k.value || k.key || ''
+        }));
       setAvailableKeys(keys);
     } catch (err) {
       console.error(`Failed to load API keys: ${err instanceof Error ? err.message : String(err)}`);

@@ -3,7 +3,7 @@ import { AIValidator } from '../validators/types';
 
 /**
  * Schema adapter for Prisma types
- * 
+ *
  * This file provides helpers to convert between our application types
  * and Prisma database types, ensuring proper type safety.
  */
@@ -70,19 +70,19 @@ export function aiValidatorToDbValidator(validator: AIValidator): ValidatorCreat
  */
 export function createValidatorInclude(include: ValidatorInclude) {
   // Use type assertion to match Prisma's expected structure
-  const result: any = {};
-  
+  const result:  Record<string, unknown> = {};
+
   if (include.apiKeys) {
     result.apiKeys = true;
   }
-  
+
   if (include.responses) {
     result.responses = true;
   }
-  
+
   if (include.graphEdges) {
     result.graphEdges = true;
   }
-  
+
   return result as Prisma.ValidatorInclude;
 }

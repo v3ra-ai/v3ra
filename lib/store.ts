@@ -1,8 +1,9 @@
 "use server"
 
 import type { NetworkState, VoteResult } from "./types"
-import { createValidators, rotateLeader, simulateValidatorResponse, calculateConsensus } from "./validators"
+import { createValidators, rotateLeader, simulateValidatorResponse } from "./validators"
 import { prisma, initDatabase, seedValidators, persistVoteSession } from "./database"
+import { VoteSession, ValidatorResponse, Validator } from '@prisma/client'
 
 // Sample queries that will be broadcast to the network
 const SAMPLE_QUERIES = [
@@ -20,13 +21,13 @@ const SAMPLE_QUERIES = [
 
 // Initialize the network state with a small number of validators
 const initialState: NetworkState = {
-  validators: createValidators(8), // Create 8 validators with predefined profiles
+  validators: createValidators(8),
   currentLeaderIndex: 0,
   isVoting: false,
   lastQuery: null,
   lastNetworkResponse: null,
   lastConsensusValue: null,
-  lastConsensusThreshold: 0.5, // Default consensus threshold (50%)
+  lastConsensusThreshold: 0.5,
   lastConsensusAchieved: null,
   lastVoteTimestamp: null,
 }
@@ -36,20 +37,17 @@ let networkState = { ...initialState }
 // Initialize the database and seed validators if necessary
 export async function initializeSystem(): Promise<boolean> {
   try {
-    // Initialize database connection
-    const dbInitialized = await initDatabase();
+    const dbInitialized = await initDatabase()
     if (!dbInitialized) {
-      console.error("Failed to initialize database");
-      return false;
+      console.error("Failed to initialize database")
+      return false
     }
-    
-    // Seed validators from our predefined list
-    await seedValidators(networkState.validators);
-    
-    return true;
+
+    await seedValidators(networkState.validators)
+    return true
   } catch (error) {
-    console.error("System initialization error:", error);
-    return false;
+    console.error("System initialization error:", error)
+    return false
   }
 }
 
@@ -75,44 +73,37 @@ export async function broadcastQuery(): Promise<VoteResult> {
   networkState.lastQuery = query
 
   try {
-    // Process each validator's response asynchronously, in parallel
-    const validatorResponsePromises = networkState.validators.map(validator => 
+    const validatorResponsePromises = networkState.validators.map(validator =>
       simulateValidatorResponse(validator, query)
     )
-    
-    // Wait for all validator responses
+
     networkState.validators = await Promise.all(validatorResponsePromises)
 
-    // Calculate votes
     let yesCount = 0
     let noCount = 0
     let notVotedCount = 0
 
     networkState.validators.forEach(validator => {
       if (validator.lastVote === true) {
-        yesCount++;
+        yesCount++
       } else if (validator.lastVote === false) {
-        noCount++;
+        noCount++
       } else {
-        notVotedCount++;
+        notVotedCount++
       }
-    });
+    })
 
-    // Determine consensus with explicit tie handling
-    const totalVoted = yesCount + noCount;
-    const isConsensusReached = totalVoted > 0;
-    
-    // Handle ties explicitly
-    let finalOutcome: boolean | null = null;
+    const totalVoted = yesCount + noCount
+    const isConsensusReached = totalVoted > 0
+    let finalOutcome: boolean | null = null
     if (yesCount > noCount) {
-      finalOutcome = true;
+      finalOutcome = true
     } else if (noCount > yesCount) {
-      finalOutcome = false;
+      finalOutcome = false
     } else {
-      finalOutcome = null; // Explicit tie
+      finalOutcome = null
     }
 
-    // Create structured validator responses
     const validatorResponses = networkState.validators
       .filter(v => v.lastVote !== null)
       .map(v => ({
@@ -121,20 +112,21 @@ export async function broadcastQuery(): Promise<VoteResult> {
         profileName: v.profileName,
         vote: v.lastVote ? "YES" : "NO",
         rationale: v.lastRationale || ""
-      }));
+      }))
 
-    // Create aggregated response for internal use
     const responses = networkState.validators
       .filter(v => v.lastRationale)
       .map(v => `${v.profileName} (${v.provider}): ${v.lastRationale}`)
-      .join("\n\n");
+      .join("\n\n")
 
-    const aggregatedResponse = `Query: "${query}"\n\n${responses}`;
+    const aggregatedResponse = `Query: "${query}"\n\n${responses}`
 
-    // Create vote result
     const voteResult: VoteResult = {
+      id: crypto.randomUUID(),
+      queryText: query,
       isConsensusReached,
       consensusValue: finalOutcome,
+      timestamp: new Date().toISOString(),
       validatorResponses,
       votingResult: {
         yes: yesCount,
@@ -143,58 +135,48 @@ export async function broadcastQuery(): Promise<VoteResult> {
       }
     }
 
-    // Update network state with results
-    networkState.lastNetworkResponse = aggregatedResponse;
-    networkState.lastConsensusValue = finalOutcome;
-    networkState.lastConsensusAchieved = isConsensusReached;
-    networkState.lastVoteTimestamp = new Date().toISOString();
+    networkState.lastNetworkResponse = aggregatedResponse
+    networkState.lastConsensusValue = finalOutcome
+    networkState.lastConsensusAchieved = isConsensusReached
+    networkState.lastVoteTimestamp = String(voteResult.timestamp ?? '');
 
-    // Rotate leader
+
+
     networkState.currentLeaderIndex = rotateLeader(
-      networkState.validators, 
+      networkState.validators,
       networkState.currentLeaderIndex
-    );
+    )
 
-    // Reset voting state
-    networkState.isVoting = false;
+    networkState.isVoting = false
 
-    // ADDED: Persist vote results to database
     try {
-      await persistVoteSession(voteResult, query, networkState.validators);
-      console.log("Vote session persisted to database successfully");
+      await persistVoteSession(voteResult, query, networkState.validators)
+      console.log("Vote session persisted to database successfully")
     } catch (dbError) {
-      // Log database persistence error but don't fail the overall operation
-      console.error("Failed to persist vote session:", dbError);
+      console.error("Failed to persist vote session:", dbError)
     }
 
-    return voteResult;
+    return voteResult
   } catch (error) {
-    // Handle errors
-    console.error("Error during broadcast:", error);
-    
-    // Reset voting state
-    networkState.isVoting = false;
-    
-    throw error;
+    console.error("Error during broadcast:", error)
+    networkState.isVoting = false
+    throw error
   }
 }
 
 // Reset the network state (for testing)
 export async function resetNetwork(): Promise<void> {
-  networkState = { ...initialState, validators: createValidators(8) };
-  
-  // Optionally reset database for testing purposes
+  networkState = { ...initialState, validators: createValidators(8) }
+
   try {
-    // This could clear certain tables or reset specific data
-    // await prisma.voteSession.deleteMany({});
-    console.log("Network reset (in-memory only, database preserved)");
+    console.log("Network reset (in-memory only, database preserved)")
   } catch (error) {
-    console.error("Database reset error:", error);
+    console.error("Database reset error:", error)
   }
 }
 
 // Get historical vote sessions from the database
-export async function getHistoricalVoteSessions(limit: number = 10): Promise<any[]> {
+export async function getHistoricalVoteSessions(limit: number = 10): Promise<VoteResult[]> {
   try {
     const sessions = await prisma.voteSession.findMany({
       take: limit,
@@ -206,50 +188,56 @@ export async function getHistoricalVoteSessions(limit: number = 10): Promise<any
           }
         }
       }
-    });
-    
-    // Transform database records to match the expected VoteResult interface
-    return sessions.map(session => {
-      // Count yes/no votes from validatorResponses
-      const yesCount = session.validatorResponses.filter(r => r.vote === 'YES').length;
-      const noCount = session.validatorResponses.filter(r => r.vote === 'NO').length;
-      const notVotedCount = session.validatorResponses.filter(r => !r.vote || r.vote === 'ABSTAIN').length;
-      
-      // Map validator responses to expected format with defensive coding
+    })
+
+    return sessions.map((session: VoteSession & { validatorResponses: (ValidatorResponse & { validator: Validator })[] }) => {
+      const yesCount = session.validatorResponses.filter(r => r.vote === 'YES').length
+      const noCount = session.validatorResponses.filter(r => r.vote === 'NO').length
+      const notVotedCount = session.validatorResponses.filter(r => !r.vote || r.vote === 'ABSTAIN').length
+
       const validatorResponses = session.validatorResponses.map(response => ({
         id: response.validator?.id || response.validatorId || 'unknown',
         provider: response.validator?.provider || 'unknown',
         profileName: response.validator?.profileName || 'Unknown Validator',
         vote: response.vote || 'ABSTAIN',
         rationale: response.rationale || 'No rationale provided'
-      }));
-      
-      // Return properly formatted VoteResult object
+      }))
+
       return {
         id: session.id,
         isConsensusReached: Boolean(session.isConsensusReached),
         consensusValue: session.consensusValue,
         queryText: session.queryText || 'Unknown query',
-        timestamp: session.timestamp || new Date().toISOString(),
+        timestamp: session.timestamp.toISOString(),
         validatorResponses,
         votingResult: {
           yes: yesCount,
           no: noCount,
           notVoted: notVotedCount
         }
-      };
-    });
+      }
+    })
   } catch (error) {
-    console.error("Failed to retrieve historical vote sessions:", error);
-    return [];
+    console.error("Failed to retrieve historical vote sessions:", error)
+    return []
   }
 }
 
 // Search vote sessions by semantic similarity
-export async function searchVoteSessions(query: string, limit: number = 5): Promise<any[]> {
+interface VoteSessionSearchResult {
+  id: string;
+  queryText: string;
+  isConsensusReached: boolean;
+  consensusValue: boolean | null;
+  timestamp: Date;
+  rationale: string;
+  profileName: string;
+}
+
+export async function searchVoteSessions(query: string, limit: number = 5): Promise<VoteSessionSearchResult[]> {
   try {
     const sessions = await prisma.$queryRaw`
-      SELECT vs.id, vs."queryText", vs."isConsensusReached", vs."consensusValue", 
+      SELECT vs.id, vs."queryText", vs."isConsensusReached", vs."consensusValue",
              vs."timestamp", vr.rationale, v."profileName"
       FROM "VoteSession" vs
       JOIN "ValidatorResponse" vr ON vr."voteSessionId" = vs.id
@@ -257,10 +245,10 @@ export async function searchVoteSessions(query: string, limit: number = 5): Prom
       WHERE vs."queryText" ILIKE ${`%${query}%`}
       ORDER BY vs."timestamp" DESC
       LIMIT ${limit};
-    `;
-    return sessions;
+    `
+    return sessions as VoteSessionSearchResult[]
   } catch (error) {
-    console.error("Failed to search vote sessions:", error);
-    return [];
+    console.error("Failed to search vote sessions:", error)
+    return []
   }
 }

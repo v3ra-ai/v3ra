@@ -45,7 +45,7 @@ export interface ValidatorRegistry {
   removeValidator(id: string): Promise<boolean>;
   getValidator(id: string): Promise<AIValidator | undefined>;
   getAllValidators(): Promise<AIValidator[]>;
-  getActiveValidators(): Promise<AIValidator[]>;
+  getActiveValidators(): Promise<AIValidator[]>; // Line 48, likely
   toggleValidator(id: string, active: boolean): Promise<boolean>;
 }
 
@@ -67,3 +67,4 @@ export function aiValidatorToUiValidator(validator: AIValidator): Validator {
     validatorType: validator.validatorType || `${validator.provider} AI`
   };
 }
+

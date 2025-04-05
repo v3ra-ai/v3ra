@@ -4,6 +4,9 @@
  */
 import { AIValidator, ValidationRequest, AIValidationResponse } from './types';
 
+// Type for API response (AIValidator without validate)
+type ValidatorApiResponse = Omit<AIValidator, 'validate'>;
+
 // Mock validators for initial client-side rendering
 const MOCK_VALIDATORS: AIValidator[] = [
   {
@@ -41,14 +44,12 @@ const MOCK_VALIDATORS: AIValidator[] = [
 // Client-side validator functions
 export async function getValidators(): Promise<AIValidator[]> {
   try {
-    // Try to fetch from API
     const response = await fetch('/api/validators');
     if (!response.ok) throw new Error('Failed to fetch validators');
-    
+
     const data = await response.json();
-    
-    // Add validate function to each validator
-    return data.map((validator: any) => ({
+
+    return data.map((validator: ValidatorApiResponse) => ({
       ...validator,
       validate: createValidateFunction(validator)
     }));
@@ -60,14 +61,12 @@ export async function getValidators(): Promise<AIValidator[]> {
 
 export async function getActiveValidators(): Promise<AIValidator[]> {
   try {
-    // Try to fetch from API
     const response = await fetch('/api/validators/active');
     if (!response.ok) throw new Error('Failed to fetch active validators');
-    
+
     const data = await response.json();
-    
-    // Add validate function to each validator
-    return data.map((validator: any) => ({
+
+    return data.map((validator: ValidatorApiResponse) => ({
       ...validator,
       validate: createValidateFunction(validator)
     }));
@@ -84,7 +83,7 @@ export async function toggleValidatorStatus(id: string, active: boolean): Promis
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ active })
     });
-    
+
     if (!response.ok) throw new Error('Failed to toggle validator status');
     return true;
   } catch (error) {
@@ -94,7 +93,7 @@ export async function toggleValidatorStatus(id: string, active: boolean): Promis
 }
 
 // Client-side validation function
-function createValidateFunction(validator: AIValidator) {
+function createValidateFunction(validator: { id: string }): (request: ValidationRequest) => Promise<AIValidationResponse> {
   return async (request: ValidationRequest): Promise<AIValidationResponse> => {
     try {
       const response = await fetch('/api/validate', {
@@ -106,13 +105,13 @@ function createValidateFunction(validator: AIValidator) {
           context: request.context
         })
       });
-      
+
       if (!response.ok) throw new Error('Validation request failed');
       return await response.json();
     } catch (error) {
       console.error('Error in validate function:', error);
       return {
-        vote: Math.random() > 0.5, // Random fallback
+        vote: Math.random() > 0.5,
         confidence: 0.5,
         rationale: `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
       };

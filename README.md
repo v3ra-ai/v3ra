@@ -149,6 +149,7 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default
 
 * **Tip:** Run `npm run build` to detect issues before deploy. Many problems deploying are due to errors/warning during build.
 
+* **Tip":** Run `npx tsc --noEmit` to get build errors. These need to be fixed before deploying.
 
 #### 1. Install Vercel CLI (If Not Done):
 

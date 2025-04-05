@@ -6,6 +6,16 @@ import { validatorService } from "@/lib/services/validatorService";
 import { NetworkState } from "@/lib/types";
 import { prisma } from "@/lib/db/client";
 
+type DbValidator = {
+  id: string;
+  profileName: string;
+  modelName: string;
+  provider: string;
+  validatorType?: string | null;
+  description?: string | null;
+};
+
+
 export async function GET() {
   // Force dynamic rendering
   headers();
@@ -25,7 +35,9 @@ export async function GET() {
     };
 
     // Try to get real validators from the validator service
-    const dbValidators = await validatorService.getActiveValidators();
+    const dbValidators: DbValidator[] = await validatorService.getActiveDbValidators();
+
+
 
     // If we have active validators in the database, use those
     if (dbValidators && dbValidators.length > 0) {

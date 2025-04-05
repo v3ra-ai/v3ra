@@ -1,20 +1,19 @@
+// app/api/broadcast/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { broadcastCustomQuery } from "@/app/actions";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const { queryText } = body || { queryText: "Is artificial intelligence beneficial for society?" }; // Default query if none provided
+    const { queryText } = await request.json();
 
-    // Use the real implementation that interacts with validators
+    if (!queryText) {
+      return NextResponse.json({ error: "Missing queryText" }, { status: 400 });
+    }
+
     const result = await broadcastCustomQuery(queryText);
-    
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error broadcasting query:", error);
-    return NextResponse.json(
-      { error: "Failed to broadcast query", message: (error as Error).message },
-      { status: 500 }
-    );
+    console.error("Error in broadcast API:", error);
+    return NextResponse.json({ error: "Failed to broadcast query" }, { status: 500 });
   }
 }

@@ -4,6 +4,7 @@ import { encryptApiKey, decryptApiKey } from './setup';
 /**
  * Add a new API key to the database
  */
+
 export async function addApiKey(data: {
   name: string;
   provider: string;
@@ -26,9 +27,9 @@ export async function getApiKey(id: string) {
   const apiKey = await prisma.apiKey.findUnique({
     where: { id }
   });
-  
+
   if (!apiKey) return null;
-  
+
   // Don't decrypt here - only decrypt when needed for API calls
   return apiKey;
 }
@@ -40,15 +41,15 @@ export async function getApiKeyValue(id: string): Promise<string | null> {
   const apiKey = await prisma.apiKey.findUnique({
     where: { id }
   });
-  
+
   if (!apiKey) return null;
-  
+
   // Update last used timestamp
   await prisma.apiKey.update({
     where: { id },
     data: { lastUsed: new Date() }
   });
-  
+
   return decryptApiKey(apiKey.key);
 }
 
@@ -57,9 +58,9 @@ export async function getApiKeyValue(id: string): Promise<string | null> {
  */
 export async function getApiKeysByProvider(provider: string) {
   return prisma.apiKey.findMany({
-    where: { 
+    where: {
       provider,
-      isActive: true 
+      isActive: true
     }
   });
 }
@@ -83,12 +84,12 @@ export async function updateApiKey(id: string, data: {
   isActive?: boolean;
   key?: string;
 }) {
-  const updates: any = {};
-  
+  const updates: Record<string, unknown> = {};
+
   if (data.name) updates.name = data.name;
   if (data.isActive !== undefined) updates.isActive = data.isActive;
   if (data.key) updates.key = encryptApiKey(data.key);
-  
+
   return prisma.apiKey.update({
     where: { id },
     data: updates

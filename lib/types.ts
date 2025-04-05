@@ -16,6 +16,28 @@ export interface Validator {
   validatorType?: string
 }
 
+type ApiKey = {
+  id: string
+  name: string
+  provider: string
+  key: string
+  isActive: boolean
+  createdAt: Date
+  updatedAt: Date
+  lastUsed?: Date
+  validatorKeys: ValidatorKey[]
+}
+
+
+export type ValidatorKey = {
+  id: string
+  validatorId: string
+  apiKeyId: string
+  createdAt: Date
+  apiKey: ApiKey
+  validator: Validator
+}
+
 export interface LlmResponse {
   decision: boolean
   rationale: string

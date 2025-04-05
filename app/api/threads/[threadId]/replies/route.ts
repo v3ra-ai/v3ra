@@ -1,71 +1,36 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// GET /api/threads/[threadId]/replies - List replies for a thread
-export async function GET(
-  request: Request,
-  { params }: { params: { threadId: string } }
-) {
-  const { threadId } = params;
+export async function POST(req: NextRequest) {
+  // Extract replyId directly from the request URL segment
+  const replyId = req.nextUrl.pathname.split('/').pop();
 
-  if (!threadId) {
-    return NextResponse.json({ error: 'Thread ID is required' }, { status: 400 });
+  if (!replyId) {
+    return NextResponse.json({ error: 'Reply ID is required' }, { status: 400 });
   }
 
   try {
-    const replies = await prisma.reply.findMany({
-      where: { threadId },
-      orderBy: { createdAt: 'asc' }, // Show oldest replies first
-      // Include author if you implement authentication
-      // include: { author: { select: { id: true, name: true } } }
+    const reply = await prisma.reply.findUnique({
+      where: { id: replyId },
     });
-    return NextResponse.json(replies);
-  } catch (error) {
-    console.error('Error fetching replies:', error);
-    return NextResponse.json({ error: 'Failed to fetch replies' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
-  }
-}
 
-// POST /api/threads/[threadId]/replies - Create a new reply
-export async function POST(
-  request: Request,
-  { params }: { params: { threadId: string } }
-) {
-  const { threadId } = params;
-
-  if (!threadId) {
-    return NextResponse.json({ error: 'Thread ID is required' }, { status: 400 });
-  }
-
-  try {
-    const { body } = await request.json();
-    // TODO: Get authorId from session/auth context if implemented
-
-    if (!body) {
-      return NextResponse.json({ error: 'Reply body is required' }, { status: 400 });
+    if (!reply) {
+      return NextResponse.json({ error: 'Reply not found' }, { status: 404 });
     }
 
-    // Check if thread exists (optional but good practice)
-    const threadExists = await prisma.thread.findUnique({ where: { id: threadId } });
-    if (!threadExists) {
-      return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
-    }
-
-    const newReply = await prisma.reply.create({
+    const updatedReply = await prisma.reply.update({
+      where: { id: replyId },
       data: {
-        body,
-        threadId,
-        // authorId: authorId, // Add this if auth is implemented
+        upvotes: { increment: 1 },
       },
     });
-    return NextResponse.json(newReply, { status: 201 });
+
+    return NextResponse.json(updatedReply);
   } catch (error) {
-    console.error('Error creating reply:', error);
-    return NextResponse.json({ error: 'Failed to create reply' }, { status: 500 });
+    console.error('Error upvoting reply:', error);
+    return NextResponse.json({ error: 'Failed to upvote reply' }, { status: 500 });
   } finally {
     await prisma.$disconnect();
   }

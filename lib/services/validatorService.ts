@@ -1,175 +1,81 @@
-import { prisma } from '../db/client';
+// lib/services/validatorService.ts
+import { PrismaClient, Validator, ValidatorKey } from '@prisma/client';
 import { AIValidator } from '../validators/types';
-import { keyService } from './keyService';
+import { dbValidatorToAIValidator } from '../db/validators';
 import { v4 as uuidv4 } from 'uuid';
 
-/**
- * Service for managing validators in the database
- */
-export class ValidatorService {
-  /**
-   * Add a new validator to the database
-   */
+const prisma = new PrismaClient();
+
+type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
+
+export const validatorService = {
+  async getAllValidators(): Promise<DbValidatorWithKeys[]> {
+    return prisma.validator.findMany({
+      include: { apiKeys: true }
+    });
+  },
+
+  async getActiveDbValidators(): Promise<DbValidatorWithKeys[]> {
+    return prisma.validator.findMany({
+      where: { active: true },
+      include: { apiKeys: true }
+    });
+  },
+
   async addValidator(validator: AIValidator): Promise<AIValidator> {
-    // Create the validator in the database
     const dbValidator = await prisma.validator.create({
       data: {
-        id: validator.id || uuidv4(),
+        id: validator.id,
         profileName: validator.name,
         provider: validator.provider,
         modelName: validator.modelName,
-        publicKey: validator.id,
-        description: validator.description || undefined, // Convert null to undefined
-        validatorType: validator.validatorType || undefined, // Convert null to undefined
+        publicKey: validator.id, // Or generate a proper key
         active: validator.active,
-        // If a keyId is provided, create the relationship
-        ...(validator.keyId && {
-          apiKeys: {
-            create: {
-              apiKeyId: validator.keyId
-            }
-          }
-        })
-      },
-      include: {
-        apiKeys: true
+        description: validator.description,
+        validatorType: validator.validatorType,
+        reliability: 0,
+        totalVotes: 0,
+        correctVotes: 0
       }
     });
+    return dbValidatorToAIValidator(dbValidator);
+  },
 
-    return {
-      id: dbValidator.id,
-      name: dbValidator.profileName,
-      provider: dbValidator.provider,
-      modelName: dbValidator.modelName,
-      description: dbValidator.description || undefined,  // Convert null to undefined
-      validatorType: dbValidator.validatorType || undefined,  // Convert null to undefined
-      active: dbValidator.active,
-      keyId: dbValidator.apiKeys[0]?.apiKeyId,
-      // We don't implement validate here since that's model-specific
-      validate: validator.validate
-    };
-  }
-
-  /**
-   * Update a validator's active status
-   */
-  async toggleValidator(id: string, active: boolean): Promise<boolean> {
-    try {
-      await prisma.validator.update({
-        where: { id },
-        data: { active }
-      });
-      return true;
-    } catch (error) {
-      console.error(`Error toggling validator ${id}:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Remove a validator from the database
-   */
   async removeValidator(id: string): Promise<boolean> {
-    try {
-      await prisma.validator.delete({
-        where: { id }
-      });
-      return true;
-    } catch (error) {
-      console.error(`Error removing validator ${id}:`, error);
-      return false;
-    }
-  }
+    await prisma.validator.delete({ where: { id } });
+    return true;
+  },
 
-  /**
-   * Get all validators from the database
-   */
-  async getAllValidators(): Promise<any[]> {
-    return prisma.validator.findMany({
-      include: {
-        apiKeys: true
-      },
-      orderBy: {
-        createdAt: 'desc'
-      }
+  async toggleValidator(id: string, active: boolean): Promise<boolean> {
+    await prisma.validator.update({
+      where: { id },
+      data: { active }
     });
-  }
+    return true;
+  },
 
-  /**
-   * Get active validators from the database
-   */
-  async getActiveValidators(): Promise<any[]> {
-    return prisma.validator.findMany({
-      where: {
-        active: true
-      },
-      include: {
-        apiKeys: true
-      }
-    });
-  }
-
-  /**
-   * Associate an API key with a validator
-   */
-  async associateKeyWithValidator(validatorId: string, apiKeyId: string): Promise<boolean> {
-    try {
-      await prisma.validatorKey.create({
-        data: {
-          validatorId,
-          apiKeyId
-        }
-      });
-      return true;
-    } catch (error) {
-      console.error(`Error associating key with validator:`, error);
-      return false;
-    }
-  }
-
-  /**
-   * Record a validator response to a query
-   */
-  async recordValidatorResponse({
-    validatorId,
-    voteSessionId,
-    vote, 
-    rationale,
-    confidence,
-    latency,
-    error
-  }: {
+  async recordValidatorResponse(response: {
     validatorId: string;
     voteSessionId: string;
     vote: boolean;
     rationale: string;
-    confidence: number;
+    confidence?: number;
     latency?: number;
     error?: string;
   }): Promise<void> {
     await prisma.validatorResponse.create({
       data: {
-        validatorId,
-        voteSessionId,
-        vote: vote ? "YES" : "NO",
-        rationale,
-        confidence,
-        latency,
-        error
-      }
-    });
-
-    // Update validator's vote statistics
-    await prisma.validator.update({
-      where: { id: validatorId },
-      data: {
-        totalVotes: {
-          increment: 1
-        }
+        id: uuidv4(),
+        validatorId: response.validatorId,
+        voteSessionId: response.voteSessionId,
+        vote: response.vote ? "YES" : "NO",
+        rationale: response.rationale,
+        confidence: response.confidence ?? 0.5, // Default if undefined
+        latency: response.latency,
+        error: response.error,
+        createdAt: new Date(),
+        updatedAt: new Date()
       }
     });
   }
-}
-
-// Export singleton instance
-export const validatorService = new ValidatorService();
+};

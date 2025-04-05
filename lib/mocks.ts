@@ -94,6 +94,7 @@ export const mockNetworkState: NetworkState = {
 
 // Mock vote result
 export const mockVoteResult: VoteResult = {
+  id: 'mock-vote-session-1',
   isConsensusReached: true,
   consensusValue: true,
   queryText: 'Is artificial intelligence beneficial for society?',
@@ -146,8 +147,9 @@ export function generateMockVoteResult(query: string): VoteResult {
   const yesVotes = Math.floor(Math.random() * 5) + 1; // 1-5 yes votes
   const noVotes = 5 - yesVotes;
   const isConsensus = yesVotes >= 3 || noVotes >= 3; // Consensus if 3+ votes on either side
-  
+
   return {
+    id: `mock-${Date.now()}`,
     isConsensusReached: isConsensus,
     consensusValue: yesVotes > noVotes,
     queryText: query,
@@ -158,7 +160,7 @@ export function generateMockVoteResult(query: string): VoteResult {
         provider: validator.provider,
         profileName: validator.profileName,
         vote,
-        rationale: vote === 'YES' 
+        rationale: vote === 'YES'
           ? `As ${validator.provider}, I believe this statement is true based on available evidence.`
           : `As ${validator.provider}, I cannot confirm this statement based on available evidence.`,
       };

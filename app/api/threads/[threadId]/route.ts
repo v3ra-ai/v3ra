@@ -1,14 +1,12 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
 // GET /api/threads/[threadId] - Fetch a single thread by ID
-export async function GET(
-  request: Request,
-  { params }: { params: { threadId: string } }
-) {
-  const { threadId } = params;
+export async function GET(req: NextRequest) {
+  // Extract threadId from the URL
+  const threadId = req.nextUrl.pathname.split('/').pop();
 
   if (!threadId) {
     return NextResponse.json({ error: 'Thread ID is required' }, { status: 400 });

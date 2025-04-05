@@ -4,6 +4,7 @@ import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
 import { ValidatorInitializer } from "@/components/validator-initializer"
 import { ValidatorHealthCheck } from "@/components/validator-health-check"
+import type { ReactNode } from "react";
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -16,7 +17,7 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: {
-  children: JSX.Element
+  children: ReactNode
 }) {
   return (
     <html lang="en">
