@@ -1,32 +1,36 @@
 // app/actions.ts
-"use server"
+"use server";
 
-import type { VoteResult } from "../lib/types"
-import { prisma } from "../lib/db/client"
-import { v4 as uuidv4 } from 'uuid'
-import { OpenAIValidator } from "@/lib/validators/providers/openai"
-import { AnthropicValidator } from "@/lib/validators/providers/anthropic"
-import { GrokValidator } from "@/lib/validators/providers/grok"
-import { GeminiValidator } from "@/lib/validators/providers/gemini"
-import { validatorService } from "@/lib/services/validatorService"
-import { Validator, ValidatorKey } from '@prisma/client'
+import type { VoteResult } from "../lib/types";
+import { prisma } from "../lib/db/client";
+import { v4 as uuidv4 } from "uuid";
+import { OpenAIValidator } from "@/lib/validators/providers/openai";
+import { AnthropicValidator } from "@/lib/validators/providers/anthropic";
+import { GrokValidator } from "@/lib/validators/providers/grok";
+import { GeminiValidator } from "@/lib/validators/providers/gemini";
+import { validatorService } from "@/lib/services/validatorService";
+import { Validator, ValidatorKey } from "@prisma/client";
+import { VOTE_YES, VOTE_NO, VOTE_ERROR } from "@/lib/constants";
 
-type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] }
+type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
 export async function broadcastCustomQuery(query: string) {
   try {
-    console.log("Processing custom query:", query)
+    console.log("Processing custom query:", query);
 
-    const dbValidators: DbValidatorWithKeys[] = await validatorService.getActiveDbValidators()
+    const dbValidators: DbValidatorWithKeys[] =
+      await validatorService.getActiveDbValidators();
 
     if (!dbValidators || dbValidators.length === 0) {
-      console.warn("No active validators found in the database")
-      return { error: "No active validators found" }
+      console.warn("No active validators found in the database");
+      return { error: "No active validators found" };
     }
 
-    console.log(`Found ${dbValidators.length} active validators in the registry`)
+    console.log(
+      `Found ${dbValidators.length} active validators in the registry`
+    );
 
-    const sessionId = uuidv4()
+    const sessionId = uuidv4();
 
     const voteSession = await prisma.voteSession.create({
       data: {
@@ -37,13 +41,13 @@ export async function broadcastCustomQuery(query: string) {
         votesYes: 0,
         votesNo: 0,
         notVoted: 0,
-      }
-    })
+      },
+    });
 
-    const validatorResponsePromises = []
+    const validatorResponsePromises = [];
 
     for (const dbValidator of dbValidators) {
-      let validator
+      let validator;
 
       if (dbValidator.provider === "OpenAI") {
         validator = new OpenAIValidator({
@@ -51,83 +55,98 @@ export async function broadcastCustomQuery(query: string) {
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
-        })
+          active: dbValidator.active,
+        });
       } else if (dbValidator.provider === "Anthropic") {
-        console.log(`Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`)
+        console.log(
+          `Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+        );
         validator = new AnthropicValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
-        })
+          active: dbValidator.active,
+        });
       } else if (dbValidator.provider === "Grok") {
-        console.log(`Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`)
+        console.log(
+          `Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+        );
         validator = new GrokValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
-        })
+          active: dbValidator.active,
+        });
       } else if (dbValidator.provider === "Google") {
-        console.log(`Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`)
+        console.log(
+          `Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+        );
         validator = new GeminiValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
-        })
+          active: dbValidator.active,
+        });
       } else {
-        console.warn(`Validator provider ${dbValidator.provider} not supported yet`)
-        continue
+        console.warn(
+          `Validator provider ${dbValidator.provider} not supported yet`
+        );
+        continue;
       }
 
-      const validationPromise = validator.validate({
-        statement: query
-      }).then(async (response) => {
-        await validatorService.recordValidatorResponse({
-          validatorId: dbValidator.id,
-          voteSessionId: sessionId,
-          vote: response.vote,
-          rationale: response.rationale,
-          confidence: response.confidence,
-          latency: response.latency,
-          error: response.error
+      const validationPromise = validator
+        .validate({
+          statement: query,
         })
+        .then(async (response) => {
+          await validatorService.recordValidatorResponse({
+            validatorId: dbValidator.id,
+            voteSessionId: sessionId,
+            vote: response.vote,
+            rationale: response.rationale,
+            confidence: response.confidence,
+            latency: response.latency,
+            error: response.error,
+          });
 
-        return {
-          id: dbValidator.id,
-          provider: dbValidator.provider,
-          profileName: dbValidator.profileName,
-          vote: response.vote ? "YES" : "NO",
-          rationale: response.rationale
-        }
-      }).catch(error => {
-        console.error(`Error processing validator ${dbValidator.id}:`, error)
-        return {
-          id: dbValidator.id,
-          provider: dbValidator.provider,
-          profileName: dbValidator.profileName,
-          vote: "ERROR",
-          rationale: `Error: ${error.message}`
-        }
-      })
+          return {
+            id: dbValidator.id,
+            provider: dbValidator.provider,
+            profileName: dbValidator.profileName,
+            vote: response.vote ? VOTE_YES : VOTE_NO,
+            rationale: response.rationale,
+          };
+        })
+        .catch((error) => {
+          console.error(`Error processing validator ${dbValidator.id}:`, error);
+          return {
+            id: dbValidator.id,
+            provider: dbValidator.provider,
+            profileName: dbValidator.profileName,
+            vote: VOTE_ERROR,
+            rationale: `Error: ${error.message}`,
+          };
+        });
 
-      validatorResponsePromises.push(validationPromise)
+      validatorResponsePromises.push(validationPromise);
     }
 
-    const validatorResponses = await Promise.all(validatorResponsePromises)
+    const validatorResponses = await Promise.all(validatorResponsePromises);
 
-    const yesVotes = validatorResponses.filter(r => r.vote === "YES").length
-    const noVotes = validatorResponses.filter(r => r.vote === "NO").length
-    const notVoted = validatorResponses.filter(r => r.vote === "ERROR").length
+    const yesVotes = validatorResponses.filter(
+      (r) => r.vote === VOTE_YES
+    ).length;
+    const noVotes = validatorResponses.filter((r) => r.vote === VOTE_NO).length;
+    const notVoted = validatorResponses.filter(
+      (r) => r.vote === VOTE_ERROR
+    ).length;
 
-    const totalValidVotes = yesVotes + noVotes
-    const isConsensusReached = totalValidVotes > 0
-    const consensusValue = totalValidVotes > 0 ? (yesVotes > noVotes) : null
+    const totalValidVotes = yesVotes + noVotes;
+    const isConsensusReached = totalValidVotes > 0;
+    const consensusValue = totalValidVotes > 0 ? yesVotes > noVotes : null;
 
     await prisma.voteSession.update({
       where: { id: sessionId },
@@ -137,9 +156,9 @@ export async function broadcastCustomQuery(query: string) {
         votesYes: yesVotes,
         votesNo: noVotes,
         notVoted,
-        updatedAt: new Date()
-      }
-    })
+        updatedAt: new Date(),
+      },
+    });
 
     const result: VoteResult = {
       id: sessionId,
@@ -150,14 +169,14 @@ export async function broadcastCustomQuery(query: string) {
       votingResult: {
         yes: yesVotes,
         no: noVotes,
-        notVoted
+        notVoted,
       },
-      timestamp: new Date().toISOString()
-    }
+      timestamp: new Date().toISOString(),
+    };
 
-    return result
+    return result;
   } catch (error) {
-    console.error("Error broadcasting custom query:", error)
-    return { error: (error as Error).message }
+    console.error("Error broadcasting custom query:", error);
+    return { error: (error as Error).message };
   }
 }
