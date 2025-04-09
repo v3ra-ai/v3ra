@@ -616,6 +616,76 @@ The Verafy Testnet is a modular system where the UI (Next.js) serves as the entr
 
 This flow ensures a query moves efficiently from user input to validator consensus and back to the UI, leveraging Redis for real-time communication and PostgreSQL for persistence.
 
+## Backups
+
+You may need to backup either remote or local.
+
+Supabase has automated backups for a cost, including various levels like PITR (Point in Time).
+
+However, you can also manually backup the remote to local.
+
+### REMOTE DB to LOCAL FILESYTEM backup
+
+This produces a dump file of the entire database.
+
+1. First make sure you have Postgres and pg_dump installed locally.
+
+MacOS instructions.
+
+```bash
+brew install postgresql@15
+brew --prefix postgresql@15
+```
+
+You may need to change this if the atrget server has a different version. As of most recent update this was the correct version.
+
+Updates your path just for this terminal session only
+
+```
+export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
+```
+
+Verify:
+
+```bash
+pg_dump --version
+```
+
+Run it (you may need to change variables, this was accurate at some point).
+If you are unsure go to the supabase dashboard "connect" circular issues from foreign keys, you may see a warning but we're already following the advice.
+
+```bash
+PGPASSWORD="your_password" pg_dump \
+  -h aws-0-us-west-1.pooler.supabase.com \
+  -U postgres.dmrylpiaazevwqxcucsr \
+  -p 5432 \
+  -d postgres \
+  -F c \
+  -f remote_supabase_backup.dump
+
+```
+
+or (may need to update variables)
+
+```bash
+pg_dump -h aws-0-us-west-1.pooler.supabase.com -U postgres.dmrylpiaazevwqxcucsr -p 5432 -d postgres -F c -f remote_supabase_backup.dump
+```
+
+Restore (only use if db is new in anothe location):
+
+```bash
+pg_restore --disable-triggers --clean --create --no-owner -U your_local_postgres_user -d your_target_db supabase_backup.dump
+
+```
+
+Optional: Make PostgreSQL 15 the default
+
+```bash
+brew unlink postgresql@14
+brew link postgresql@15 --force
+```
+
+
 ## Troubleshooting and Testing
 
 ⚠️ IMPORTANT: Make sure the app is running locally `npm run dev`. Also, if testing local data (not remote) then make sure that is in the .env and/or available for what you need.
