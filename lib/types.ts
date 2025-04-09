@@ -1,5 +1,5 @@
 // Network state and validator interfaces
-
+import { ApiKey } from '@prisma/client';
 export interface Validator {
   id: string;
   publicKey: string;
@@ -16,17 +16,19 @@ export interface Validator {
   validatorType?: string;
 }
 
-type ApiKey = {
+export interface ValidatorResponse {
   id: string;
-  name: string;
   provider: string;
-  key: string;
-  isActive: boolean;
-  createdAt: Date;
-  updatedAt: Date;
-  lastUsed?: Date;
-  validatorKeys: ValidatorKey[];
-};
+  profileName: string;
+  vote?: "YES" | "NO" | "ERROR";
+  rationale?: string;
+  modelName?: string;
+  validatorType?: string;
+  active?: boolean;
+  hasKey?: boolean;
+  keyIds?: string[];
+}
+
 
 export type ValidatorKey = {
   id: string;
@@ -72,4 +74,15 @@ export interface VoteResult {
     notVoted: number;
   };
   timestamp?: string | number;
+}
+
+export interface VoteValidatorResponse extends ValidatorResponse {
+  vote: "YES" | "NO" | "ERROR"; // Required here
+  rationale: string; // Required here
+}
+
+export interface ExtendedApiKey extends ApiKey {
+  decryptable: boolean;
+  keyPattern: string | null;
+  linkedValidators: number;
 }
