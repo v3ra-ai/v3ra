@@ -27,7 +27,7 @@ export async function broadcastCustomQuery(query: string) {
     }
 
     console.log(
-      `Found ${dbValidators.length} active validators in the registry`
+      `Found ${dbValidators.length} active validators in the registry`,
     );
 
     const sessionId = uuidv4();
@@ -59,7 +59,7 @@ export async function broadcastCustomQuery(query: string) {
         });
       } else if (dbValidator.provider === "Anthropic") {
         console.log(
-          `Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+          `Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`,
         );
         validator = new AnthropicValidator({
           id: dbValidator.id,
@@ -70,7 +70,7 @@ export async function broadcastCustomQuery(query: string) {
         });
       } else if (dbValidator.provider === "Grok") {
         console.log(
-          `Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+          `Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`,
         );
         validator = new GrokValidator({
           id: dbValidator.id,
@@ -81,7 +81,7 @@ export async function broadcastCustomQuery(query: string) {
         });
       } else if (dbValidator.provider === "Google") {
         console.log(
-          `Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+          `Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`,
         );
         validator = new GeminiValidator({
           id: dbValidator.id,
@@ -92,7 +92,7 @@ export async function broadcastCustomQuery(query: string) {
         });
       } else {
         console.warn(
-          `Validator provider ${dbValidator.provider} not supported yet`
+          `Validator provider ${dbValidator.provider} not supported yet`,
         );
         continue;
       }
@@ -137,11 +137,11 @@ export async function broadcastCustomQuery(query: string) {
     const validatorResponses = await Promise.all(validatorResponsePromises);
 
     const yesVotes = validatorResponses.filter(
-      (r) => r.vote === VOTE_YES
+      (r) => r.vote === VOTE_YES,
     ).length;
     const noVotes = validatorResponses.filter((r) => r.vote === VOTE_NO).length;
     const notVoted = validatorResponses.filter(
-      (r) => r.vote === VOTE_ERROR
+      (r) => r.vote === VOTE_ERROR,
     ).length;
 
     const totalValidVotes = yesVotes + noVotes;

@@ -1,100 +1,104 @@
-"use client"
+"use client";
 
-import React, { useState, useRef } from "react"
-import { NetworkStats } from "@/components/network-stats"
-import { ValidatorList } from "@/components/validator-list"
-import { VoteHistory } from "@/components/vote-history"
-import { VoteResults } from "@/components/vote-results"
-import { NetworkVisualization } from "@/components/network-visualization"
-import { ConsensusVisualization } from "@/components/consensus-visualization"
-import { ValidatorDetail } from "@/components/validator-detail"
-import { CustomQueryForm } from "@/components/custom-query-form"
-import { ValidatorAdmin } from "@/components/validator-admin"
-import { broadcastCustomQuery } from "@/app/actions"
-import type { NetworkState, VoteResult, Validator } from "@/lib/types"
+import React, { useState, useRef } from "react";
+import { NetworkStats } from "@/components/network-stats";
+import { ValidatorList } from "@/components/validator-list";
+import { VoteHistory } from "@/components/vote-history";
+import { VoteResults } from "@/components/vote-results";
+import { NetworkVisualization } from "@/components/network-visualization";
+import { ConsensusVisualization } from "@/components/consensus-visualization";
+import { ValidatorDetail } from "@/components/validator-detail";
+import { CustomQueryForm } from "@/components/custom-query-form";
+import { ValidatorAdmin } from "@/components/validator-admin";
+import { broadcastCustomQuery } from "@/app/actions";
+import type { NetworkState, VoteResult, Validator } from "@/lib/types";
 
 export default function Home() {
-  const [networkState, setNetworkState] = useState<NetworkState | null>(null)
-  const [lastVoteResult, setLastVoteResult] = useState<VoteResult | null>(null)
-  const [voteHistory, setVoteHistory] = useState<VoteResult[]>([])
-  const [isLoading, setIsLoading] = useState(true)
-  const [autoRefresh, setAutoRefresh] = useState(false)
-  const [selectedValidator, setSelectedValidator] = useState<Validator | null>(null)
-  const [showCustomQuery, setShowCustomQuery] = useState(true)
-  const [showValidatorAdmin, setShowValidatorAdmin] = useState(false)
+  const [networkState, setNetworkState] = useState<NetworkState | null>(null);
+  const [lastVoteResult, setLastVoteResult] = useState<VoteResult | null>(null);
+  const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [selectedValidator, setSelectedValidator] = useState<Validator | null>(
+    null,
+  );
+  const [showCustomQuery, setShowCustomQuery] = useState(true);
+  const [showValidatorAdmin, setShowValidatorAdmin] = useState(false);
 
   // Track if we've loaded vote history
-  const voteHistoryLoaded = useRef(false)
+  const voteHistoryLoaded = useRef(false);
 
   const fetchNetworkState = async () => {
     try {
-      const response = await fetch("/api/network")
-      const data = await response.json()
-      setNetworkState(data)
+      const response = await fetch("/api/network");
+      const data = await response.json();
+      setNetworkState(data);
     } catch (error) {
-      console.error("Failed to fetch network state:", error)
+      console.error("Failed to fetch network state:", error);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   const fetchVoteHistory = async () => {
     try {
-      const response = await fetch("/api/vote-history?limit=10")
-      const data = await response.json()
+      const response = await fetch("/api/vote-history?limit=10");
+      const data = await response.json();
 
       if (Array.isArray(data)) {
-        setVoteHistory(data)
-        voteHistoryLoaded.current = true
+        setVoteHistory(data);
+        voteHistoryLoaded.current = true;
       }
     } catch (error) {
-      console.error("Failed to fetch vote history:", error)
+      console.error("Failed to fetch vote history:", error);
     }
-  }
+  };
 
   const handleCustomQuery = async (query: string) => {
     try {
-      const result = await broadcastCustomQuery(query)
-      if ('error' in result) {
-        console.error("Failed to broadcast custom query:", result.error)
-        return
+      const result = await broadcastCustomQuery(query);
+      if ("error" in result) {
+        console.error("Failed to broadcast custom query:", result.error);
+        return;
       }
 
-      setLastVoteResult(result as VoteResult)
+      setLastVoteResult(result as VoteResult);
 
       // Add the new vote to history and update state
-      setVoteHistory((prevHistory: VoteResult[]) => [result as VoteResult, ...prevHistory].slice(0, 10))
+      setVoteHistory((prevHistory: VoteResult[]) =>
+        [result as VoteResult, ...prevHistory].slice(0, 10),
+      );
 
-      fetchNetworkState()
+      fetchNetworkState();
     } catch (error) {
-      console.error("Failed to broadcast custom query:", error)
+      console.error("Failed to broadcast custom query:", error);
     }
-  }
+  };
 
   React.useEffect(() => {
-    fetchNetworkState()
+    fetchNetworkState();
 
     // Only fetch vote history once when component mounts
     if (!voteHistoryLoaded.current) {
-      fetchVoteHistory()
+      fetchVoteHistory();
     }
 
     // Set up auto-refresh if enabled
-    let intervalId: NodeJS.Timeout | null = null
+    let intervalId: NodeJS.Timeout | null = null;
 
     if (autoRefresh) {
       intervalId = setInterval(() => {
-        fetchNetworkState()
-        fetchVoteHistory() // Also refresh vote history periodically
-      }, 5000) // Refresh every 5 seconds
+        fetchNetworkState();
+        fetchVoteHistory(); // Also refresh vote history periodically
+      }, 5000); // Refresh every 5 seconds
     }
 
     return () => {
       if (intervalId) {
-        clearInterval(intervalId)
+        clearInterval(intervalId);
       }
-    }
-  }, [autoRefresh])
+    };
+  }, [autoRefresh]);
 
   if (isLoading) {
     return (
@@ -104,7 +108,7 @@ export default function Home() {
           <p className="mt-4 text-lg">Loading Verafy Testnet Explorer...</p>
         </div>
       </div>
-    )
+    );
   }
 
   if (!networkState) {
@@ -120,7 +124,7 @@ export default function Home() {
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -130,8 +134,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-3">
-              <div className="bg-purple-600 text-white rounded-lg p-2 w-10 h-10 flex items-center justify-center text-xl font-bold">V</div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Verafy Explorer</h1>
+              <div className="bg-purple-600 text-white rounded-lg p-2 w-10 h-10 flex items-center justify-center text-xl font-bold">
+                V
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                Verafy Explorer
+              </h1>
             </div>
             <div className="flex items-center space-x-6">
               <button
@@ -145,10 +153,15 @@ export default function Home() {
                   type="checkbox"
                   id="auto-refresh"
                   checked={autoRefresh}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setAutoRefresh(e.target.checked)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setAutoRefresh(e.target.checked)
+                  }
                   className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
                 />
-                <label htmlFor="auto-refresh" className="text-sm text-gray-700 dark:text-gray-300">
+                <label
+                  htmlFor="auto-refresh"
+                  className="text-sm text-gray-700 dark:text-gray-300"
+                >
                   Auto-refresh (5s)
                 </label>
               </div>
@@ -177,7 +190,10 @@ export default function Home() {
 
           {/* Right column - Consensus status */}
           <div className="lg:col-span-1">
-            <ConsensusVisualization voteResult={lastVoteResult} isVoting={networkState.isVoting} />
+            <ConsensusVisualization
+              voteResult={lastVoteResult}
+              isVoting={networkState.isVoting}
+            />
           </div>
         </div>
 
@@ -198,7 +214,10 @@ export default function Home() {
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
                     Validator Network
                   </h3>
-                  <ValidatorList validators={networkState.validators} currentLeaderIndex={networkState.currentLeaderIndex} />
+                  <ValidatorList
+                    validators={networkState.validators}
+                    currentLeaderIndex={networkState.currentLeaderIndex}
+                  />
                 </div>
               </div>
             </div>
@@ -237,7 +256,10 @@ export default function Home() {
       {selectedValidator && (
         <ValidatorDetail
           validator={selectedValidator}
-          isLeader={networkState.validators.indexOf(selectedValidator) === networkState.currentLeaderIndex}
+          isLeader={
+            networkState.validators.indexOf(selectedValidator) ===
+            networkState.currentLeaderIndex
+          }
           onClose={() => setSelectedValidator(null)}
         />
       )}
@@ -248,5 +270,5 @@ export default function Home() {
         onClose={() => setShowValidatorAdmin(false)}
       />
     </div>
-  )
+  );
 }

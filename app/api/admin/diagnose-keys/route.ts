@@ -99,7 +99,7 @@ export async function GET() {
           results.summary.decryptableKeys++;
           keyResult.keyPattern = `${decryptedKey.substring(
             0,
-            3
+            3,
           )}...${decryptedKey.substring(decryptedKey.length - 3)}`;
         }
       } catch (error) {
@@ -120,7 +120,7 @@ export async function GET() {
     });
     results.summary.totalValidators = validators.length;
     results.summary.activeValidators = validators.filter(
-      (v) => v.active
+      (v) => v.active,
     ).length;
 
     for (const validator of validators) {

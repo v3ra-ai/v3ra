@@ -14,6 +14,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error in broadcast API:", error);
-    return NextResponse.json({ error: "Failed to broadcast query" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to broadcast query" },
+      { status: 500 },
+    );
   }
 }

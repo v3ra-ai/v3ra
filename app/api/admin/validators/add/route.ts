@@ -1,7 +1,7 @@
 // app/api/admin/validators/add/route.ts
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/client';
-import { randomUUID } from 'crypto';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db/client";
+import { randomUUID } from "crypto";
 
 export async function POST(request: Request) {
   try {
@@ -9,8 +9,8 @@ export async function POST(request: Request) {
 
     if (!provider || !modelName) {
       return NextResponse.json(
-        { message: 'Provider and model name are required' },
-        { status: 400 }
+        { message: "Provider and model name are required" },
+        { status: 400 },
       );
     }
 
@@ -25,21 +25,21 @@ export async function POST(request: Request) {
           apiKeys: {
             create: {
               apiKeyId: keyId,
-            }
-          }
-        })
-      }
+            },
+          },
+        }),
+      },
     });
 
     return NextResponse.json({
-      message: 'Validator added successfully',
-      validator
+      message: "Validator added successfully",
+      validator,
     });
   } catch (error) {
     console.error("Error adding validator:", error);
     return NextResponse.json(
-      { message: (error as Error).message || 'Failed to add validator' },
-      { status: 500 }
+      { message: (error as Error).message || "Failed to add validator" },
+      { status: 500 },
     );
   }
 }

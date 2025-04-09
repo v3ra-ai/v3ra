@@ -1,22 +1,22 @@
-"use server"
+"use server";
 
-import type { NetworkState, VoteResult } from "./types"
-import { mockNetworkState, generateMockVoteResult } from "./mocks"
+import type { NetworkState, VoteResult } from "./types";
+import { mockNetworkState, generateMockVoteResult } from "./mocks";
 
 // Get the current network state using mock data
 export async function getNetworkState(): Promise<NetworkState> {
-  return { ...mockNetworkState }
+  return { ...mockNetworkState };
 }
 
 // Broadcast a query to all validators and collect votes using mock data
 export async function broadcastQuery(): Promise<VoteResult> {
   // Use a random query from our sample list
-  const query = getRandomQuery()
-  
+  const query = getRandomQuery();
+
   // Generate a mock vote result for the query
-  const result = generateMockVoteResult(query)
-  
-  return result
+  const result = generateMockVoteResult(query);
+
+  return result;
 }
 
 // Sample queries that will be broadcast to the network
@@ -31,10 +31,10 @@ const SAMPLE_QUERIES = [
   "Is the current reward distribution fair?",
   "Should we change the consensus algorithm?",
   "Is the network decentralized enough?",
-]
+];
 
 // Get a random query from the sample list
 function getRandomQuery(): string {
-  const index = Math.floor(Math.random() * SAMPLE_QUERIES.length)
-  return SAMPLE_QUERIES[index]
+  const index = Math.floor(Math.random() * SAMPLE_QUERIES.length);
+  return SAMPLE_QUERIES[index];
 }

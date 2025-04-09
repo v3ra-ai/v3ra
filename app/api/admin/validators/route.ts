@@ -1,6 +1,6 @@
 // app/api/admin/validators/route.ts
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/client';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db/client";
 
 export async function GET() {
   try {
@@ -14,22 +14,23 @@ export async function GET() {
         active: true,
         apiKeys: {
           select: {
-            apiKey: {  // Navigate to ApiKey through ValidatorKey
+            apiKey: {
+              // Navigate to ApiKey through ValidatorKey
               select: {
                 id: true,
-                provider: true
-              }
-            }
-          }
-        }
-      }
+                provider: true,
+              },
+            },
+          },
+        },
+      },
     });
     return NextResponse.json(validators);
   } catch (error) {
     console.error("Error fetching validators:", error);
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

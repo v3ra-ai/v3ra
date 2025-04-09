@@ -1,26 +1,30 @@
-import React from "react"
-import { Validator } from "@/lib/types"
-import Image from "next/image"
+import React from "react";
+import { Validator } from "@/lib/types";
+import Image from "next/image";
 
 interface ValidatorProfileProps {
-  validator: Validator | null
-  isOpen: boolean
-  onClose: () => void
+  validator: Validator | null;
+  isOpen: boolean;
+  onClose: () => void;
 }
 
-export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfileProps) {
-  if (!isOpen || !validator) return null
+export function ValidatorProfile({
+  validator,
+  isOpen,
+  onClose,
+}: ValidatorProfileProps) {
+  if (!isOpen || !validator) return null;
 
   // Create reliability color based on score
   const getReliabilityColor = (score?: number) => {
-    if (!score) return { text: "text-gray-500", bg: "bg-gray-100" }
-    if (score >= 95) return { text: "text-green-700", bg: "bg-green-50" }
-    if (score >= 90) return { text: "text-blue-700", bg: "bg-blue-50" }
-    if (score >= 80) return { text: "text-yellow-700", bg: "bg-yellow-50" }
-    return { text: "text-orange-700", bg: "bg-orange-50" }
-  }
+    if (!score) return { text: "text-gray-500", bg: "bg-gray-100" };
+    if (score >= 95) return { text: "text-green-700", bg: "bg-green-50" };
+    if (score >= 90) return { text: "text-blue-700", bg: "bg-blue-50" };
+    if (score >= 80) return { text: "text-yellow-700", bg: "bg-yellow-50" };
+    return { text: "text-orange-700", bg: "bg-orange-50" };
+  };
 
-  const reliabilityColor = getReliabilityColor(validator.reliability)
+  const reliabilityColor = getReliabilityColor(validator.reliability);
 
   // Prevent event bubbling
   const handleContentClick = (e: React.MouseEvent) => {
@@ -41,8 +45,19 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
           onClick={onClose}
           className="absolute right-4 top-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 z-10"
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M6 18L18 6M6 6l12 12"
+            />
           </svg>
         </button>
 
@@ -59,7 +74,9 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
                   className="object-cover"
                 />
               ) : (
-                <div className="text-5xl font-bold text-gray-300">{validator.profileName.charAt(0)}</div>
+                <div className="text-5xl font-bold text-gray-300">
+                  {validator.profileName.charAt(0)}
+                </div>
               )}
             </div>
           </div>
@@ -68,9 +85,12 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
         {/* Content */}
         <div className="pt-20 pb-8 px-6">
           <div className="text-center mb-4">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">{validator.profileName}</h2>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+              {validator.profileName}
+            </h2>
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              {validator.provider} {validator.modelName ? `• ${validator.modelName}` : ""}
+              {validator.provider}{" "}
+              {validator.modelName ? `• ${validator.modelName}` : ""}
             </p>
           </div>
 
@@ -87,7 +107,9 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
 
           {validator.reliability && (
             <div className="flex justify-center mt-3 mb-4">
-              <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${reliabilityColor.bg} ${reliabilityColor.text}`}>
+              <div
+                className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${reliabilityColor.bg} ${reliabilityColor.text}`}
+              >
                 <span className="mr-1">Reliability</span>
                 <span className="font-bold">{validator.reliability}%</span>
               </div>
@@ -96,7 +118,9 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
 
           {validator.description && (
             <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">About</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                About
+              </h3>
               <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed">
                 {validator.description}
               </p>
@@ -104,17 +128,23 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
           )}
 
           <div className="mt-6 space-y-3">
-            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Stats</h3>
+            <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+              Stats
+            </h3>
 
             <div className="flex justify-between items-center border-b pb-2 border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Last Vote</span>
-              <span className={`text-sm font-medium ${
-                validator.lastVote === true
-                  ? "text-green-600 dark:text-green-400"
-                  : validator.lastVote === false
-                    ? "text-red-600 dark:text-red-400"
-                    : "text-gray-600 dark:text-gray-400"
-              }`}>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Last Vote
+              </span>
+              <span
+                className={`text-sm font-medium ${
+                  validator.lastVote === true
+                    ? "text-green-600 dark:text-green-400"
+                    : validator.lastVote === false
+                      ? "text-red-600 dark:text-red-400"
+                      : "text-gray-600 dark:text-gray-400"
+                }`}
+              >
                 {validator.lastVote === true
                   ? "Yes"
                   : validator.lastVote === false
@@ -124,18 +154,24 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
             </div>
 
             <div className="flex justify-between items-center border-b pb-2 border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Leadership Status</span>
-              <span className={`text-sm font-medium ${
-                validator.isLeader
-                  ? "text-blue-600 dark:text-blue-400"
-                  : "text-gray-600 dark:text-gray-400"
-              }`}>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Leadership Status
+              </span>
+              <span
+                className={`text-sm font-medium ${
+                  validator.isLeader
+                    ? "text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-gray-400"
+                }`}
+              >
                 {validator.isLeader ? "Leader" : "Member"}
               </span>
             </div>
 
             <div className="flex justify-between items-center border-b pb-2 border-gray-100 dark:border-gray-700">
-              <span className="text-sm text-gray-500 dark:text-gray-400">Public Key</span>
+              <span className="text-sm text-gray-500 dark:text-gray-400">
+                Public Key
+              </span>
               <span className="text-sm font-mono text-gray-600 dark:text-gray-400 truncate max-w-[180px]">
                 {validator.publicKey}
               </span>
@@ -144,7 +180,9 @@ export function ValidatorProfile({ validator, isOpen, onClose }: ValidatorProfil
 
           {validator.lastRationale && (
             <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">Recent Reasoning</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-2">
+                Recent Reasoning
+              </h3>
               <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <p className="text-sm italic text-gray-600 dark:text-gray-300">
                   &ldquo;{validator.lastRationale}&rdquo;

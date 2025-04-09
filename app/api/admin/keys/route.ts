@@ -29,7 +29,7 @@ export async function GET() {
     console.error("Error fetching keys:", error);
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

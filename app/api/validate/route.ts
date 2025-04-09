@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 // import { validatorService } from "@/lib/services/validatorService";
 import { validatorRegistry } from "@/lib/validators/registry";
-import { ValidationRequest, AIValidationResponse } from "@/lib/validators/types";
+import {
+  ValidationRequest,
+  AIValidationResponse,
+} from "@/lib/validators/types";
 
 export async function POST(request: NextRequest) {
   try {
@@ -10,7 +13,7 @@ export async function POST(request: NextRequest) {
     if (!body.validatorId || !body.statement) {
       return NextResponse.json(
         { error: "Missing required fields: validatorId, statement" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -23,17 +26,20 @@ export async function POST(request: NextRequest) {
     if (!validator) {
       return NextResponse.json(
         { error: "Validator not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     try {
-      const result: AIValidationResponse = await validator.validate(validationRequest);
+      const result: AIValidationResponse =
+        await validator.validate(validationRequest);
       return NextResponse.json(result);
     } catch (validationError) {
       console.error("Error during validation:", validationError);
       const errorMessage =
-        validationError instanceof Error ? validationError.message : "Unknown error";
+        validationError instanceof Error
+          ? validationError.message
+          : "Unknown error";
       return NextResponse.json({
         vote: false,
         confidence: 0.5,
@@ -44,7 +50,7 @@ export async function POST(request: NextRequest) {
     console.error("Error processing validation request:", error);
     return NextResponse.json(
       { error: "Failed to process validation request" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

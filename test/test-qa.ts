@@ -19,7 +19,7 @@ async function testHealthCheck() {
     console.error(
       "Health Check Error:",
       axiosError.response?.status,
-      axiosError.message
+      axiosError.message,
     );
   }
 }
@@ -35,7 +35,7 @@ async function testVoteHistory(limit?: number) {
     console.error(
       "Vote History Error:",
       axiosError.response?.status,
-      axiosError.message
+      axiosError.message,
     );
   }
 }
@@ -48,7 +48,7 @@ async function testBroadcast(queryText: string) {
       { queryText },
       {
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
     console.log("Broadcast:", res.status, res.data);
   } catch (error) {
@@ -56,7 +56,7 @@ async function testBroadcast(queryText: string) {
     console.error(
       "Broadcast Error:",
       axiosError.response?.status,
-      axiosError.response?.data || axiosError.message
+      axiosError.response?.data || axiosError.message,
     );
   }
 }
@@ -71,7 +71,7 @@ async function testNetwork() {
     console.error(
       "Network Error:",
       axiosError.response?.status,
-      axiosError.message
+      axiosError.message,
     );
   }
 }

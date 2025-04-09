@@ -4,7 +4,7 @@ const nextConfig: NextConfig = {
   webpack: (config) => {
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': __dirname,
+      "@": __dirname,
     };
     return config;
   },

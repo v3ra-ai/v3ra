@@ -58,7 +58,8 @@ export function NetworkVisualization({
     const positionsChanged =
       newPositions.length !== positions.length ||
       newPositions.some(
-        (pos, i) => !positions[i] || pos.x !== positions[i].x || pos.y !== positions[i].y
+        (pos, i) =>
+          !positions[i] || pos.x !== positions[i].x || pos.y !== positions[i].y,
       );
 
     if (positionsChanged) {

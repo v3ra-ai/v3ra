@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -7,12 +7,12 @@ const prisma = new PrismaClient();
 export async function GET(req: NextRequest) {
   try {
     // Extract voteSessionId from the URL
-    const voteSessionId = req.nextUrl.pathname.split('/')[3]; // Assuming path is /api/vote-sessions/{id}
+    const voteSessionId = req.nextUrl.pathname.split("/")[3]; // Assuming path is /api/vote-sessions/{id}
 
     if (!voteSessionId) {
       return NextResponse.json(
-        { error: 'Vote Session ID is required' },
-        { status: 400 }
+        { error: "Vote Session ID is required" },
+        { status: 400 },
       );
     }
 
@@ -24,17 +24,17 @@ export async function GET(req: NextRequest) {
 
     if (!voteSession) {
       return NextResponse.json(
-        { error: 'Vote Session not found' },
-        { status: 404 }
+        { error: "Vote Session not found" },
+        { status: 404 },
       );
     }
 
     return NextResponse.json(voteSession);
   } catch (error) {
-    console.error('Error fetching vote session:', error);
+    console.error("Error fetching vote session:", error);
     return NextResponse.json(
-      { error: 'Failed to fetch vote session' },
-      { status: 500 }
+      { error: "Failed to fetch vote session" },
+      { status: 500 },
     );
   } finally {
     await prisma.$disconnect();

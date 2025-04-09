@@ -86,7 +86,7 @@ export class GeminiValidator implements AIValidator {
       const waitTime = Math.min(
         errorTracking.backoffTime *
           Math.pow(2, errorTracking.consecutiveErrors - 1),
-        30000
+        30000,
       );
       const timeElapsed = now - errorTracking.lastErrorTime;
 
@@ -106,7 +106,7 @@ export class GeminiValidator implements AIValidator {
     const envKey = process.env.GEMINI_API_KEY;
     console.log(
       "Checking for Gemini API key:",
-      envKey ? "Found key in environment" : "No key in environment variable"
+      envKey ? "Found key in environment" : "No key in environment variable",
     );
     if (envKey) {
       console.log("Using Gemini API key from environment variable");
@@ -129,7 +129,7 @@ export class GeminiValidator implements AIValidator {
     console.log("Attempting to get first active key for Google provider");
     const firstKey = await keyService.getFirstActiveKeyForProvider("Google");
     console.log(
-      firstKey ? "Found active Google key" : "No active Google keys found"
+      firstKey ? "Found active Google key" : "No active Google keys found",
     );
     return firstKey;
   }
@@ -142,8 +142,8 @@ export class GeminiValidator implements AIValidator {
     console.log(
       `[GEMINI] Starting validation for: "${request.statement.substring(
         0,
-        50
-      )}..."`
+        50,
+      )}..."`,
     );
 
     try {
@@ -168,7 +168,7 @@ export class GeminiValidator implements AIValidator {
           vote: false,
           confidence: 0,
           rationale: `Service temporarily unavailable (${Math.round(
-            backoffStatus.waitTime / 1000
+            backoffStatus.waitTime / 1000,
           )}s backoff)`,
           error: "SERVICE_BACKOFF",
         };
@@ -178,7 +178,7 @@ export class GeminiValidator implements AIValidator {
       // Get API key
       const apiKey = await this.getApiKey();
       console.log(
-        `[GEMINI] API key retrieval result: ${apiKey ? "Success" : "Failed"}`
+        `[GEMINI] API key retrieval result: ${apiKey ? "Success" : "Failed"}`,
       );
       if (!apiKey) {
         throw new Error("No API key available for Gemini");
@@ -186,7 +186,7 @@ export class GeminiValidator implements AIValidator {
 
       // Initialize the Google Generative AI client
       console.log(
-        `[GEMINI] Initializing GoogleGenerativeAI with model: ${this.modelName}`
+        `[GEMINI] Initializing GoogleGenerativeAI with model: ${this.modelName}`,
       );
       const genAI = new GoogleGenerativeAI(apiKey);
 
@@ -195,7 +195,7 @@ export class GeminiValidator implements AIValidator {
       if (!modelName || modelName === "gemini") {
         modelName = "gemini-1.5-flash";
         console.log(
-          `[GEMINI] Invalid model name detected, using ${modelName} instead`
+          `[GEMINI] Invalid model name detected, using ${modelName} instead`,
         );
       }
 
@@ -207,11 +207,11 @@ export class GeminiValidator implements AIValidator {
                       Is this statement factually accurate? "${
                         request.statement
                       }"${
-        request.context ? `\nContext: ${request.context}` : ""
-      }`;
+                        request.context ? `\nContext: ${request.context}` : ""
+                      }`;
 
       console.log(
-        `[GEMINI] Sending request with prompt: ${prompt.substring(0, 100)}...`
+        `[GEMINI] Sending request with prompt: ${prompt.substring(0, 100)}...`,
       );
 
       try {
@@ -251,7 +251,7 @@ export class GeminiValidator implements AIValidator {
         // Parse the response
         const { vote, confidence, rationale } = this.parseResponse(text);
         console.log(
-          `[GEMINI] Parsed response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`
+          `[GEMINI] Parsed response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`,
         );
 
         return {
@@ -331,13 +331,13 @@ export class GeminiValidator implements AIValidator {
     // Look for YES/NO indicators with flexible pattern matching
     if (
       /^yes\b|^i believe this is accurate|^this statement is accurate|^this is accurate|^the statement is correct|^correct\b|^true\b/i.test(
-        lowerResponse
+        lowerResponse,
       )
     ) {
       vote = true;
     } else if (
       /^no\b|^i believe this is inaccurate|^this statement is inaccurate|^this is inaccurate|^the statement is incorrect|^incorrect\b|^false\b/i.test(
-        lowerResponse
+        lowerResponse,
       )
     ) {
       vote = false;
@@ -428,8 +428,8 @@ export class GeminiValidator implements AIValidator {
     console.log(
       `[GEMINI] Parsed result: Vote=${vote}, Confidence=${confidence}, Rationale=${rationale.substring(
         0,
-        50
-      )}...`
+        50,
+      )}...`,
     );
     return { vote, confidence, rationale };
   }

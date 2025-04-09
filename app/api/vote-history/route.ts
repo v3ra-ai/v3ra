@@ -58,32 +58,38 @@ export async function GET(request: Request) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const limit = searchParams.get("limit") ? parseInt(searchParams.get("limit") || "10", 10) : 10;
+    const limit = searchParams.get("limit")
+      ? parseInt(searchParams.get("limit") || "10", 10)
+      : 10;
 
     // Get historical vote sessions from the database
     try {
       const historicalVotes = await getHistoricalVoteSessions(limit);
 
       if (historicalVotes && historicalVotes.length > 0) {
-        const voteHistory: VoteHistoryEntry[] = historicalVotes.map(session => ({
-          id: session.id,
-          isConsensusReached: session.isConsensusReached,
-          consensusValue: session.consensusValue,
-          queryText: session.queryText,
-          validatorResponses: session.validatorResponses.map(res => ({
-            id: res.id,
-            provider: res.provider,
-            profileName: res.profileName,
-            vote: res.vote,
-            rationale: res.rationale,
-          })),
-          votingResult: {
-            yes: session.votingResult.yes,
-            no: session.votingResult.no,
-            notVoted: session.votingResult.notVoted,
-          },
-          timestamp: session.timestamp ? new Date(session.timestamp).toISOString() : new Date().toISOString(),
-        }));
+        const voteHistory: VoteHistoryEntry[] = historicalVotes.map(
+          (session) => ({
+            id: session.id,
+            isConsensusReached: session.isConsensusReached,
+            consensusValue: session.consensusValue,
+            queryText: session.queryText,
+            validatorResponses: session.validatorResponses.map((res) => ({
+              id: res.id,
+              provider: res.provider,
+              profileName: res.profileName,
+              vote: res.vote,
+              rationale: res.rationale,
+            })),
+            votingResult: {
+              yes: session.votingResult.yes,
+              no: session.votingResult.no,
+              notVoted: session.votingResult.notVoted,
+            },
+            timestamp: session.timestamp
+              ? new Date(session.timestamp).toISOString()
+              : new Date().toISOString(),
+          }),
+        );
         return NextResponse.json(voteHistory);
       } else {
         return NextResponse.json([]);
@@ -91,15 +97,18 @@ export async function GET(request: Request) {
     } catch (dbError) {
       console.error("Failed to get historical votes from DB:", dbError);
       return NextResponse.json(
-        { status: "error", message: "Database error: " + (dbError as Error).message },
-        { status: 500 }
+        {
+          status: "error",
+          message: "Database error: " + (dbError as Error).message,
+        },
+        { status: 500 },
       );
     }
   } catch (error) {
     console.error("Vote history error:", error);
     return NextResponse.json(
       { status: "error", message: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

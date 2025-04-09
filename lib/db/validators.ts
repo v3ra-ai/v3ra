@@ -1,7 +1,7 @@
 // lib/db/validators.ts
-import { prisma } from '@/lib/db/client';
-import { Validator } from '@prisma/client';
-import { AIValidator } from '../validators/types';
+import { prisma } from "@/lib/db/client";
+import { Validator } from "@prisma/client";
+import { AIValidator } from "../validators/types";
 
 export function dbValidatorToAIValidator(validator: Validator): AIValidator {
   return {
@@ -13,22 +13,30 @@ export function dbValidatorToAIValidator(validator: Validator): AIValidator {
     validatorType: validator.validatorType || undefined,
     active: validator.active,
     keyId: undefined,
-    validate: async () => ({ vote: false, confidence: 0, rationale: 'Not implemented' })
+    validate: async () => ({
+      vote: false,
+      confidence: 0,
+      rationale: "Not implemented",
+    }),
   };
 }
 
 export async function updateValidatorMetrics(
   validatorId: string,
   vote: boolean,
-  matchedConsensus: boolean
+  matchedConsensus: boolean,
 ): Promise<void> {
-  const validator = await prisma.validator.findUnique({ where: { id: validatorId } });
+  const validator = await prisma.validator.findUnique({
+    where: { id: validatorId },
+  });
   if (!validator) {
     throw new Error(`Validator with ID ${validatorId} not found`);
   }
 
   const newTotalVotes = validator.totalVotes + 1;
-  const newCorrectVotes = matchedConsensus ? validator.correctVotes + 1 : validator.correctVotes;
+  const newCorrectVotes = matchedConsensus
+    ? validator.correctVotes + 1
+    : validator.correctVotes;
   const newReliability = newCorrectVotes / newTotalVotes;
 
   await prisma.validator.update({
@@ -36,7 +44,7 @@ export async function updateValidatorMetrics(
     data: {
       totalVotes: newTotalVotes,
       correctVotes: newCorrectVotes,
-      reliability: newReliability
-    }
+      reliability: newReliability,
+    },
   });
 }

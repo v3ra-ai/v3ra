@@ -1,8 +1,8 @@
 // lib/services/validatorService.ts
-import { PrismaClient, Validator, ValidatorKey } from '@prisma/client';
-import { AIValidator } from '../validators/types';
-import { dbValidatorToAIValidator } from '../db/validators';
-import { v4 as uuidv4 } from 'uuid';
+import { PrismaClient, Validator, ValidatorKey } from "@prisma/client";
+import { AIValidator } from "../validators/types";
+import { dbValidatorToAIValidator } from "../db/validators";
+import { v4 as uuidv4 } from "uuid";
 
 const prisma = new PrismaClient();
 
@@ -11,14 +11,14 @@ type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 export const validatorService = {
   async getAllValidators(): Promise<DbValidatorWithKeys[]> {
     return prisma.validator.findMany({
-      include: { apiKeys: true }
+      include: { apiKeys: true },
     });
   },
 
   async getActiveDbValidators(): Promise<DbValidatorWithKeys[]> {
     return prisma.validator.findMany({
       where: { active: true },
-      include: { apiKeys: true }
+      include: { apiKeys: true },
     });
   },
 
@@ -35,8 +35,8 @@ export const validatorService = {
         validatorType: validator.validatorType,
         reliability: 0,
         totalVotes: 0,
-        correctVotes: 0
-      }
+        correctVotes: 0,
+      },
     });
     return dbValidatorToAIValidator(dbValidator);
   },
@@ -49,7 +49,7 @@ export const validatorService = {
   async toggleValidator(id: string, active: boolean): Promise<boolean> {
     await prisma.validator.update({
       where: { id },
-      data: { active }
+      data: { active },
     });
     return true;
   },
@@ -74,8 +74,8 @@ export const validatorService = {
         latency: response.latency,
         error: response.error,
         createdAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
-  }
+  },
 };

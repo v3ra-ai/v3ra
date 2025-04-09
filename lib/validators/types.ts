@@ -1,4 +1,4 @@
-import { Validator } from '../types';
+import { Validator } from "../types";
 
 // Response from an AI model validator
 export interface AIValidationResponse {
@@ -60,11 +60,12 @@ export function aiValidatorToUiValidator(validator: AIValidator): Validator {
     lastVote: null,
     lastResponse: null,
     lastRationale: null,
-    modelName: validator.modelName || 'unknown',
-    description: validator.description || `${validator.provider} ${validator.modelName} AI model`,
+    modelName: validator.modelName || "unknown",
+    description:
+      validator.description ||
+      `${validator.provider} ${validator.modelName} AI model`,
     avatarUrl: undefined, // Optional avatar URL
     reliability: undefined, // Optional reliability score
-    validatorType: validator.validatorType || `${validator.provider} AI`
+    validatorType: validator.validatorType || `${validator.provider} AI`,
   };
 }
-
