@@ -46,6 +46,12 @@ interface DiagnoseKeysResponse {
   summary: Summary;
 }
 
+function areEncryptionEnvVarsValid(): boolean {
+  const keyLength = process.env.ENCRYPTION_KEY?.length || 0;
+  const ivLength = process.env.ENCRYPTION_IV?.length || 0;
+  return keyLength >= 32 && ivLength >= 16;
+}
+
 /**
  * API endpoint to diagnose API key issues
  *
@@ -150,15 +156,12 @@ export async function GET() {  // Remove unused 'request'
         : `${results.summary.totalKeys - results.summary.decryptableKeys} of ${results.summary.totalKeys} keys cannot be decrypted`
     });
 
-    const envKeyLength = process.env.ENCRYPTION_KEY?.length || 0;
-    const envIvLength = process.env.ENCRYPTION_IV?.length || 0;
-    const envVarsConfigured = envKeyLength >= 32 && envIvLength >= 16;
     results.tests.push({
       name: "Encryption environment variables",
-      passed: envVarsConfigured,
-      details: envVarsConfigured
+      passed: areEncryptionEnvVarsValid(),
+      details: areEncryptionEnvVarsValid()
         ? "Encryption environment variables are properly configured"
-        : `Encryption variables may be misconfigured: Key length=${envKeyLength}, IV length=${envIvLength}`
+        : `Encryption variables may be misconfigured: Key length=${process.env.ENCRYPTION_KEY?.length || 0}, IV length=${process.env.ENCRYPTION_IV?.length || 0}`
     });
 
     return NextResponse.json(results);
