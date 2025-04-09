@@ -8,6 +8,8 @@
     "qa": "ts-node --project tsconfig.scripts.json test/test-qa.ts",
     "start": "next start",
     "lint": "next lint",
+    "format": "prettier --write \"**/*.{js,ts,tsx,css,json,md}\"",
+    "check-format": "prettier --check \"**/*.{js,ts,tsx,css,json,md}\"",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:studio": "prisma studio",
