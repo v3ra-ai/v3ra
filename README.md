@@ -281,6 +281,49 @@ curl -X POST -H "Content-Type: application/json" -d '{"queryText":"Is the sky bl
     Inbucket URL: http://127.0.0.1:54324
 ```
 
+---------
+
+### Linting and Prettifying
+
+You can run format (writing) or check-format (non-writing) ot format the code to the default prettier style.
+
+Prettier: https://prettier.io/docs/
+
+```json
+{
+  "scripts": {
+    "format": "prettier --write \"**/*.{js,ts,tsx,css,json,md}\"",
+    "check-format": "prettier --check \"**/*.{js,ts,tsx,css,json,md}\""
+  }
+}
+```
+
+Examples:
+
+
+Using the npm script above:
+
+```bash
+npm run format
+npm run check-format
+```
+
+Without npm:
+
+```bash
+npx prettier --write "**/*.{js,ts,tsx,css,json,md}"
+```
+
+
+**Default Settings:** If you later want custom settings (e.g., 4-space indentation), add a .`prettierrc` file:
+
+```json
+{
+  "tabWidth": 4,
+  "singleQuote": true
+}
+```
+
 ### Remote development
 
 ---
