@@ -14,4 +14,4 @@ GEMINI_API_KEY=your-key
 ENCRYPTION_KEY=your-32-character-key-here...  create with CLI: "openssl rand -hex 16"
 ENCRYPTION_IV=your-16-character-iv-here... CLI: "openssl rand -hex 8"
 
-
+NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS=your_solana_public_key_here (where user payment goes)

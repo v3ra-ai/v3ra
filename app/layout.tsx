@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { ValidatorInitializer } from "@/components/validator-initializer";
 import { ValidatorHealthCheck } from "@/components/validator-health-check";
 import type { ReactNode } from "react";
+import { SolanaProvider } from "@/components/solana-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -29,7 +30,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <div className="fixed bottom-4 right-4 z-50 w-72">
             <ValidatorHealthCheck />
           </div>
-          {children}
+          <SolanaProvider>{children}</SolanaProvider>
         </ThemeProvider>
       </body>
     </html>

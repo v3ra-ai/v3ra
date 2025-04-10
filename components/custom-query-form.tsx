@@ -2,6 +2,15 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import {
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
+import { Ban, Check, CircleCheckBig } from "lucide-react";
 
 interface CustomQueryFormProps {
   onSubmit: (query: string) => Promise<void>;
@@ -16,15 +25,63 @@ export function CustomQueryForm({
 }: CustomQueryFormProps) {
   const [query, setQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isWalletEnabled, setIsWalletEnabled] = useState(false);
+  const [hasPaid, setHasPaid] = useState(false);
+
+  const { connection } = useConnection();
+  const { publicKey, sendTransaction } = useWallet();
+
+  // Payment recipient address from environment variable
+  const PAYMENT_RECEIVER_ADDRESS =
+    process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
+  if (!PAYMENT_RECEIVER_ADDRESS) {
+    throw new Error(
+      "NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS environment variable is not set"
+    );
+  }
+  const PAYMENT_RECIPIENT = new PublicKey(PAYMENT_RECEIVER_ADDRESS);
+  const PAYMENT_AMOUNT = 0.01 * LAMPORTS_PER_SOL; // 0.01 SOL
+
+  const handlePayment = async () => {
+    if (!publicKey || !sendTransaction) {
+      alert("Please connect your wallet first");
+      return;
+    }
+
+    try {
+      const transaction = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: publicKey,
+          toPubkey: PAYMENT_RECIPIENT,
+          lamports: PAYMENT_AMOUNT,
+        })
+      );
+
+      const signature = await sendTransaction(transaction, connection);
+      await connection.confirmTransaction(signature, "confirmed");
+
+      setHasPaid(true);
+      alert("Payment was successful!");
+    } catch (error) {
+      console.error("Payment failed:", error);
+      alert("Payment failed. Please try again.");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!query.trim()) return;
 
+    if (isWalletEnabled && !hasPaid) {
+      alert("Please make a payment of 0.01 SOL first");
+      return;
+    }
+
     setIsSubmitting(true);
     try {
       await onSubmit(query);
       setQuery("");
+      if (isWalletEnabled) setHasPaid(false); // Reset payment status after successful submission
     } catch (error) {
       console.error("Error submitting query:", error);
     } finally {
@@ -66,29 +123,99 @@ export function CustomQueryForm({
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-800">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label
-                htmlFor="custom-query"
-                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
-              >
-                Ask the validator network a yes/no question
-              </label>
+              <div className="flex justify-between items-center mb-2">
+                <div className="flex">
+                <label
+                  htmlFor="custom-query"
+                  className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+                >
+                  Ask the validator network a yes/no question
+                </label>
+                {!hasPaid && isWalletEnabled ? (
+                  <div className="flex ml-2 my-auto">
+                    <label
+                      className="flex px-2 rounded text-xs text-red-700
+                    dark:text-red-300 bg-gray-300 dark:bg-gray-800 my-auto"
+                    >
+                      <Ban size="14" className="mr-1"/> Payment required
+                    </label>
+                  </div>
+                ) : !hasPaid && isWalletEnabled ? (
+                  <div className="flex ml-2 my-auto">
+                    <label
+                      className="flex px-2 rounded text-xs text-green-700
+                    dark:text-green-300 bg-gray-300 dark:bg-gray-800 my-auto">
+
+                      <CircleCheckBig size="14" className="mr-1"/> Paid .01 SOL
+                    </label>
+                  </div>
+                ): ``}
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="wallet-toggle"
+                    checked={isWalletEnabled}
+                    onChange={(e) => setIsWalletEnabled(e.target.checked)}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  />
+                  <label
+                    htmlFor="wallet-toggle"
+                    className="text-sm text-gray-700 dark:text-gray-300"
+                  >
+                    Pay with SOL
+                  </label>
+                </div>
+              </div>
               <textarea
                 id="custom-query"
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+                className={`w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 disabled:opacity-50 disabled:cursor-not-allowed`}
                 placeholder="Is artificial intelligence beneficial for society?"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
+                disabled={isWalletEnabled && !hasPaid} // Disable when payment is required but not made
               />
             </div>
-            <div className="flex justify-end">
+            <div className="flex justify-end space-x-2">
+              {isWalletEnabled && (
+                <>
+                  {!hasPaid &&  <WalletMultiButton
+                    style={{
+                      backgroundColor: "#9333ea", // Tailwind purple-600
+                      color: "white",
+                      padding: "8px 16px",
+                      borderRadius: "0.375rem",
+                      fontSize: "0.875rem",
+                    }}
+                  />}
+                   {!hasPaid &&
+                  <button
+                    type="button"
+                    onClick={handlePayment}
+                    disabled={!publicKey || hasPaid}
+                    className={`px-4 py-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 ${
+                      !publicKey || hasPaid
+                        ? "bg-purple-400 cursor-not-allowed"
+                        : "bg-purple-600 hover:bg-purple-700"
+                    }`}
+                  >
+                    {"Pay 0.01 SOL"}
+                  </button>}
+                </>
+              )}
               <button
                 type="submit"
-                disabled={isSubmitting || !query.trim()}
-                className={`px-4 py-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 ${
-                  isSubmitting || !query.trim()
-                    ? "bg-purple-400 cursor-not-allowed"
-                    : "bg-purple-600 hover:bg-purple-700"
+                disabled={
+                  isSubmitting || !query.trim() || (isWalletEnabled && !hasPaid)
+                }
+                className={`px-4 py-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center justify-center ${
+                  isWalletEnabled && !hasPaid
+                    ? "bg-red-600 cursor-not-allowed"
+                    : isSubmitting || !query.trim()
+                      ? "bg-silver-00 cursor-not-allowed"
+                      : "bg-blue-600 hover:bg-purple-700"
                 }`}
               >
                 {isSubmitting ? (
@@ -97,7 +224,25 @@ export function CustomQueryForm({
                     Broadcasting...
                   </>
                 ) : (
-                  "Broadcast Query"
+                  <>
+                    {isWalletEnabled && !hasPaid && (
+                      <svg
+                        className="w-5 h-5 mr-2"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 11V7m0 10v-2m-4-2H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v6a2 2 0 01-2 2h-2m-4 0h-2"
+                        />
+                      </svg>
+                    )}
+                    {!query.trim() && hasPaid ? `` : `Ask Question`}
+                  </>
                 )}
               </button>
             </div>
