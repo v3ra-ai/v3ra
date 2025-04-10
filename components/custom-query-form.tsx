@@ -10,7 +10,7 @@ import {
   SystemProgram,
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
-import { Ban, Check, CircleCheckBig } from "lucide-react";
+import { Ban, CircleCheckBig } from "lucide-react";
 
 interface CustomQueryFormProps {
   onSubmit: (query: string) => Promise<void>;
