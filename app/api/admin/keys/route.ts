@@ -1,6 +1,6 @@
 // app/api/admin/keys/route.ts
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/client';
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db/client";
 
 export async function GET() {
   try {
@@ -13,22 +13,23 @@ export async function GET() {
         isActive: true,
         validatorKeys: {
           select: {
-            validator: {  // Navigate to Validator through ValidatorKey
+            validator: {
+              // Navigate to Validator through ValidatorKey
               select: {
                 id: true,
-                profileName: true
-              }
-            }
-          }
-        }
-      }
+                profileName: true,
+              },
+            },
+          },
+        },
+      },
     });
     return NextResponse.json(keys);
   } catch (error) {
     console.error("Error fetching keys:", error);
     return NextResponse.json(
       { error: (error as Error).message },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

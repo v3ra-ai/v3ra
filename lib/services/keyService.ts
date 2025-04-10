@@ -1,10 +1,11 @@
-import { prisma } from '../db/client';
-import * as crypto from 'crypto';
+import { prisma } from "../db/client";
+import * as crypto from "crypto";
 
 // Encryption key and IV - in production, these would be in environment variables
 // IMPORTANT: In a real production app, use a proper secret management system
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'verafy-default-encryption-key-32chars';
-const ENCRYPTION_IV = process.env.ENCRYPTION_IV || 'verafy-default-iv';
+const ENCRYPTION_KEY =
+  process.env.ENCRYPTION_KEY || "verafy-default-encryption-key-32chars";
+const ENCRYPTION_IV = process.env.ENCRYPTION_IV || "verafy-default-iv";
 
 // Define interfaces for better type safety
 export interface ApiKey {
@@ -31,12 +32,12 @@ export class KeyService {
    */
   private encryptKey(key: string): string {
     const cipher = crypto.createCipheriv(
-      'aes-256-cbc', 
-      Buffer.from(ENCRYPTION_KEY), 
-      Buffer.from(ENCRYPTION_IV, 'utf8').slice(0, 16)
+      "aes-256-cbc",
+      Buffer.from(ENCRYPTION_KEY),
+      Buffer.from(ENCRYPTION_IV, "utf8").slice(0, 16),
     );
-    let encrypted = cipher.update(key, 'utf8', 'hex');
-    encrypted += cipher.final('hex');
+    let encrypted = cipher.update(key, "utf8", "hex");
+    encrypted += cipher.final("hex");
     return encrypted;
   }
 
@@ -45,12 +46,12 @@ export class KeyService {
    */
   private decryptKey(encryptedKey: string): string {
     const decipher = crypto.createDecipheriv(
-      'aes-256-cbc', 
-      Buffer.from(ENCRYPTION_KEY), 
-      Buffer.from(ENCRYPTION_IV, 'utf8').slice(0, 16)
+      "aes-256-cbc",
+      Buffer.from(ENCRYPTION_KEY),
+      Buffer.from(ENCRYPTION_IV, "utf8").slice(0, 16),
     );
-    let decrypted = decipher.update(encryptedKey, 'hex', 'utf8');
-    decrypted += decipher.final('utf8');
+    let decrypted = decipher.update(encryptedKey, "hex", "utf8");
+    decrypted += decipher.final("utf8");
     return decrypted;
   }
 
@@ -59,22 +60,22 @@ export class KeyService {
    */
   async addKey(data: ApiKeyInput): Promise<ApiKey> {
     const encryptedKey = this.encryptKey(data.value);
-    
+
     const apiKey = await prisma.apiKey.create({
       data: {
         name: data.name,
         provider: data.provider,
         key: encryptedKey,
-        isActive: data.active !== undefined ? data.active : true
-      }
+        isActive: data.active !== undefined ? data.active : true,
+      },
     });
-    
+
     return {
       id: apiKey.id,
       name: apiKey.name,
       provider: apiKey.provider,
       active: apiKey.isActive,
-      createdAt: apiKey.createdAt
+      createdAt: apiKey.createdAt,
     };
   }
 
@@ -84,16 +85,16 @@ export class KeyService {
   async getAllKeys(): Promise<ApiKey[]> {
     const keys = await prisma.apiKey.findMany({
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
-    
-    return keys.map(key => ({
+
+    return keys.map((key) => ({
       id: key.id,
       name: key.name,
       provider: key.provider,
       active: key.isActive,
-      createdAt: key.createdAt
+      createdAt: key.createdAt,
     }));
   }
 
@@ -102,7 +103,7 @@ export class KeyService {
    */
   async getKey(id: string) {
     return prisma.apiKey.findUnique({
-      where: { id }
+      where: { id },
     });
   }
 
@@ -111,17 +112,17 @@ export class KeyService {
    */
   async getKeyValue(id: string): Promise<string | null> {
     const key = await prisma.apiKey.findUnique({
-      where: { id }
+      where: { id },
     });
-    
+
     if (!key) return null;
-    
+
     // Update last used timestamp
     await prisma.apiKey.update({
       where: { id },
-      data: { lastUsed: new Date() }
+      data: { lastUsed: new Date() },
     });
-    
+
     return this.decryptKey(key.key);
   }
 
@@ -136,13 +137,13 @@ export class KeyService {
         provider: true,
         isActive: true,
         createdAt: true,
-        lastUsed: true
+        lastUsed: true,
       },
       orderBy: {
-        createdAt: 'desc'
-      }
+        createdAt: "desc",
+      },
     });
-    
+
     return keys;
   }
 
@@ -151,9 +152,9 @@ export class KeyService {
    */
   async getKeysByProvider(provider: string) {
     return prisma.apiKey.findMany({
-      where: { 
+      where: {
         provider,
-        isActive: true
+        isActive: true,
       },
       select: {
         id: true,
@@ -161,8 +162,8 @@ export class KeyService {
         provider: true,
         isActive: true,
         createdAt: true,
-        lastUsed: true
-      }
+        lastUsed: true,
+      },
     });
   }
 
@@ -172,11 +173,11 @@ export class KeyService {
   async removeKey(id: string): Promise<boolean> {
     try {
       await prisma.apiKey.delete({
-        where: { id }
+        where: { id },
       });
       return true;
     } catch (error) {
-      console.error('Error deleting key:', error);
+      console.error("Error deleting key:", error);
       return false;
     }
   }
@@ -188,13 +189,13 @@ export class KeyService {
     const key = await prisma.apiKey.findFirst({
       where: {
         provider,
-        isActive: true
+        isActive: true,
       },
       orderBy: {
-        lastUsed: 'asc' // Use the least recently used key for load balancing
-      }
+        lastUsed: "asc", // Use the least recently used key for load balancing
+      },
     });
-    
+
     return key ? this.decryptKey(key.key) : null;
   }
 }

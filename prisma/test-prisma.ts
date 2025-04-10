@@ -1,4 +1,4 @@
-import { prisma } from '../lib/db/client.js';
+import { prisma } from "../lib/db/client.js";
 
 async function test() {
   try {
@@ -11,10 +11,10 @@ async function test() {
     const newValidator = await prisma.validator.create({
       data: {
         id: uniqueId, // Use a unique ID each run
-        profileName: 'Test Validator',
-        provider: 'Test',
-        modelName: 'TestModel',
-        publicKey: 'test-public-key',
+        profileName: "Test Validator",
+        provider: "Test",
+        modelName: "TestModel",
+        publicKey: "test-public-key",
       },
     });
     console.log("Created Validator:", newValidator);

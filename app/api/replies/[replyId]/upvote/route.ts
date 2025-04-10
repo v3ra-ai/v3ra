@@ -1,14 +1,17 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 export async function POST(req: NextRequest) {
   // Extract replyId directly from the request URL segment
-  const replyId = req.nextUrl.pathname.split('/').pop();
+  const replyId = req.nextUrl.pathname.split("/").pop();
 
   if (!replyId) {
-    return NextResponse.json({ error: 'Reply ID is required' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Reply ID is required" },
+      { status: 400 },
+    );
   }
 
   try {
@@ -17,7 +20,7 @@ export async function POST(req: NextRequest) {
     });
 
     if (!reply) {
-      return NextResponse.json({ error: 'Reply not found' }, { status: 404 });
+      return NextResponse.json({ error: "Reply not found" }, { status: 404 });
     }
 
     const updatedReply = await prisma.reply.update({
@@ -29,8 +32,11 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(updatedReply);
   } catch (error) {
-    console.error('Error upvoting reply:', error);
-    return NextResponse.json({ error: 'Failed to upvote reply' }, { status: 500 });
+    console.error("Error upvoting reply:", error);
+    return NextResponse.json(
+      { error: "Failed to upvote reply" },
+      { status: 500 },
+    );
   } finally {
     await prisma.$disconnect();
   }

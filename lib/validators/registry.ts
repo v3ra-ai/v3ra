@@ -1,12 +1,12 @@
-import { AIValidator, ValidatorRegistry } from './types';
-import { dbValidatorToAIValidator } from '../db/validators';
-import { OpenAIValidator } from './providers/openai';
-import { AnthropicValidator } from './providers/anthropic';
-import { GeminiValidator } from './providers/gemini';
-import { validatorService } from '../services/validatorService';
-import { Validator, ValidatorKey } from '@prisma/client';
+import { AIValidator, ValidatorRegistry } from "./types";
+import { dbValidatorToAIValidator } from "../db/validators";
+import { OpenAIValidator } from "./providers/openai";
+import { AnthropicValidator } from "./providers/anthropic";
+import { GeminiValidator } from "./providers/gemini";
+import { validatorService } from "../services/validatorService";
+import { Validator, ValidatorKey } from "@prisma/client";
 
-const isServer = typeof window === 'undefined';
+const isServer = typeof window === "undefined";
 
 interface WindowWithValidatorRegistry extends Window {
   validatorRegistry: ValidatorRegistryImpl;
@@ -33,7 +33,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
     if (isServer) {
       return validatorService.addValidator(validator);
     } else {
-      console.warn('Adding validators from client is not fully implemented yet');
+      console.warn(
+        "Adding validators from client is not fully implemented yet",
+      );
       this.validators.set(validator.id, validator);
       return validator;
     }
@@ -48,7 +50,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       }
       return true;
     } catch (error) {
-      console.error('Failed to remove validator:', error);
+      console.error("Failed to remove validator:", error);
       return false;
     }
   }
@@ -61,62 +63,64 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
 
       if (isServer) {
         const dbValidators = await validatorService.getAllValidators();
-        const dbValidator = dbValidators.find(v => v.id === id);
+        const dbValidator = dbValidators.find((v) => v.id === id);
         if (!dbValidator) return undefined;
         return this.createValidatorImplementation(dbValidator);
       } else {
         const validators = await this.getAllValidators();
-        return validators.find(v => v.id === id);
+        return validators.find((v) => v.id === id);
       }
     } catch (error) {
-      console.error('Failed to get validator:', error);
+      console.error("Failed to get validator:", error);
       return undefined;
     }
   }
 
-  private async createValidatorImplementation(validator: DbValidatorWithKeys): Promise<AIValidator> {
+  private async createValidatorImplementation(
+    validator: DbValidatorWithKeys,
+  ): Promise<AIValidator> {
     const aiValidator = dbValidatorToAIValidator(validator);
 
     switch (validator.provider) {
-      case 'OpenAI': {
+      case "OpenAI": {
         const openaiValidator = new OpenAIValidator({
           id: validator.id,
           name: validator.profileName,
           modelName: validator.modelName,
           keyId: validator.apiKeys?.[0]?.apiKeyId,
-          active: validator.active
+          active: validator.active,
         });
         return {
           ...aiValidator,
-          validate: openaiValidator.validate.bind(openaiValidator)
+          validate: openaiValidator.validate.bind(openaiValidator),
         };
       }
 
-      case 'Anthropic': {
+      case "Anthropic": {
         const anthropicValidator = new AnthropicValidator({
           id: validator.id,
           name: validator.profileName,
           modelName: validator.modelName,
           keyId: validator.apiKeys?.[0]?.apiKeyId,
-          active: validator.active
+          active: validator.active,
         });
         return {
           ...aiValidator,
-          validate: anthropicValidator.validate.bind(anthropicValidator)
+          validate: anthropicValidator.validate.bind(anthropicValidator),
         };
       }
 
-      case 'Google': {
+      case "Google": {
         const geminiValidator = new GeminiValidator({
           id: validator.id,
           name: validator.profileName,
           modelName: validator.modelName,
           keyId: validator.apiKeys?.[0]?.apiKeyId,
-          active: validator.active
+          active: validator.active,
         });
         return {
           ...aiValidator,
-          validate: geminiValidator.validate.bind(geminiValidator)
+          validate: geminiValidator.validate.bind(geminiValidator),
         };
       }
 
@@ -130,18 +134,20 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       if (isServer) {
         const dbValidators = await validatorService.getAllValidators();
         const aiValidators = await Promise.all(
-          dbValidators.map(validator => this.createValidatorImplementation(validator))
+          dbValidators.map((validator) =>
+            this.createValidatorImplementation(validator),
+          ),
         );
         return aiValidators;
       } else {
         const validators = await Promise.resolve<AIValidator[]>([]);
-        validators.forEach(validator => {
+        validators.forEach((validator) => {
           this.validators.set(validator.id, validator);
         });
         return validators;
       }
     } catch (error) {
-      console.error('Failed to get all validators:', error);
+      console.error("Failed to get all validators:", error);
       return [];
     }
   }
@@ -151,18 +157,20 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       if (isServer) {
         const dbValidators = await validatorService.getActiveDbValidators();
         const aiValidators = await Promise.all(
-          dbValidators.map(validator => this.createValidatorImplementation(validator))
+          dbValidators.map((validator) =>
+            this.createValidatorImplementation(validator),
+          ),
         );
         return aiValidators;
       } else {
         const validators = await Promise.resolve<AIValidator[]>([]);
-        validators.forEach(validator => {
+        validators.forEach((validator) => {
           this.validators.set(validator.id, validator);
         });
         return validators;
       }
     } catch (error) {
-      console.error('Failed to get active validators:', error);
+      console.error("Failed to get active validators:", error);
       return [];
     }
   }
@@ -180,7 +188,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
         return true;
       }
     } catch (error) {
-      console.error('Failed to toggle validator:', error);
+      console.error("Failed to toggle validator:", error);
       return false;
     }
   }
@@ -188,6 +196,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
 
 export const validatorRegistry = ValidatorRegistryImpl.getInstance();
 
-if (typeof window !== 'undefined') {
-  (window as unknown as WindowWithValidatorRegistry).validatorRegistry = validatorRegistry;
+if (typeof window !== "undefined") {
+  (window as unknown as WindowWithValidatorRegistry).validatorRegistry =
+    validatorRegistry;
 }

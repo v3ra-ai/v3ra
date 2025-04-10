@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { OpenAIValidator } from '../../../lib/validators/providers/openai';
-import { AnthropicValidator } from '../../../lib/validators/providers/anthropic';
+import { NextRequest, NextResponse } from "next/server";
+import { OpenAIValidator } from "../../../lib/validators/providers/openai";
+import { AnthropicValidator } from "../../../lib/validators/providers/anthropic";
 
 // Define the structure of the validation response (adjust based on actual validator output)
 interface AIValidationResponse {
-  vote: boolean;       // Changed to boolean to match validator output
+  vote: boolean; // Changed to boolean to match validator output
   rationale: string;
   confidence: number;
   latency?: number;
@@ -15,7 +15,7 @@ interface AIValidationResponse {
 interface TestResult {
   provider: string;
   model: string;
-  result?: AIValidationResponse;  // Use the correct type
+  result?: AIValidationResponse; // Use the correct type
   error?: string;
 }
 
@@ -36,60 +36,66 @@ export async function POST(request: NextRequest) {
 
     if (!body.statement) {
       return NextResponse.json(
-        { error: 'Missing required field: statement' },
-        { status: 400 }
+        { error: "Missing required field: statement" },
+        { status: 400 },
       );
     }
 
     const statement: string = body.statement;
-    const context: string = body.context || '';
+    const context: string = body.context || "";
     const results: TestResult[] = [];
 
     // Test OpenAI validator
     try {
-      console.log('Testing OpenAI validator...');
+      console.log("Testing OpenAI validator...");
       const openaiValidator = new OpenAIValidator({
-        name: 'GPT-4o Test',
-        modelName: 'gpt-4o'
+        name: "GPT-4o Test",
+        modelName: "gpt-4o",
         // Removed validatorType since it’s not in the constructor type
       });
 
-      const openaiResult = await openaiValidator.validate({ statement, context });
+      const openaiResult = await openaiValidator.validate({
+        statement,
+        context,
+      });
       results.push({
-        provider: 'OpenAI',
-        model: 'gpt-4o',
-        result: openaiResult
+        provider: "OpenAI",
+        model: "gpt-4o",
+        result: openaiResult,
       });
     } catch (error) {
-      console.error('Error testing OpenAI validator:', error);
+      console.error("Error testing OpenAI validator:", error);
       results.push({
-        provider: 'OpenAI',
-        model: 'gpt-4o',
-        error: error instanceof Error ? error.message : String(error)
+        provider: "OpenAI",
+        model: "gpt-4o",
+        error: error instanceof Error ? error.message : String(error),
       });
     }
 
     // Test Anthropic validator
     try {
-      console.log('Testing Anthropic validator...');
+      console.log("Testing Anthropic validator...");
       const anthropicValidator = new AnthropicValidator({
-        name: 'Claude Opus Test',
-        modelName: 'claude-3-opus'
+        name: "Claude Opus Test",
+        modelName: "claude-3-opus",
         // Removed validatorType since it’s not in the constructor type
       });
 
-      const anthropicResult = await anthropicValidator.validate({ statement, context });
+      const anthropicResult = await anthropicValidator.validate({
+        statement,
+        context,
+      });
       results.push({
-        provider: 'Anthropic',
-        model: 'claude-3-opus',
-        result: anthropicResult
+        provider: "Anthropic",
+        model: "claude-3-opus",
+        result: anthropicResult,
       });
     } catch (error) {
-      console.error('Error testing Anthropic validator:', error);
+      console.error("Error testing Anthropic validator:", error);
       results.push({
-        provider: 'Anthropic',
-        model: 'claude-3-opus',
-        error: error instanceof Error ? error.message : String(error)
+        provider: "Anthropic",
+        model: "claude-3-opus",
+        error: error instanceof Error ? error.message : String(error),
       });
     }
 
@@ -97,13 +103,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       statement,
       context,
-      results
+      results,
     });
   } catch (error) {
-    console.error('Error in test validators route:', error);
+    console.error("Error in test validators route:", error);
     return NextResponse.json(
-      { error: 'Server error testing validators' },
-      { status: 500 }
+      { error: "Server error testing validators" },
+      { status: 500 },
     );
   }
 }

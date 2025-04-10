@@ -1,6 +1,6 @@
-import { PrismaClient, Prisma } from '@prisma/client';
-import OpenAI from 'openai';
-import { Validator, VoteResult } from './types';
+import { PrismaClient, Prisma } from "@prisma/client";
+import OpenAI from "openai";
+import { Validator, VoteResult } from "./types";
 
 // Type definitions
 type GraphEdgeCreateInput = {
@@ -40,13 +40,13 @@ const openai = process.env.OPENAI_API_KEY
 export async function initDatabase(): Promise<boolean> {
   try {
     // Create any necessary extensions (pgvector should be enabled in the schema)
-    console.log('Initializing database connection...');
+    console.log("Initializing database connection...");
     await prisma.$connect();
-    console.log('Database connection established');
+    console.log("Database connection established");
 
     return true;
   } catch (error) {
-    console.error('Database initialization failed:', error);
+    console.error("Database initialization failed:", error);
     return false;
   }
 }
@@ -56,7 +56,7 @@ export async function seedValidators(validators: Validator[]): Promise<void> {
   // Check if validators already exist
   const count = await prisma.validator.count();
   if (count > 0) {
-    console.log('Validators already exist, skipping seed');
+    console.log("Validators already exist, skipping seed");
     return;
   }
 
@@ -69,33 +69,37 @@ export async function seedValidators(validators: Validator[]): Promise<void> {
           provider: validator.provider,
           publicKey: validator.publicKey,
           isLeader: validator.isLeader || false,
-          modelName: validator.modelName || "" // add new
+          modelName: validator.modelName || "", // add new
         },
       });
     }
     console.log(`Seeded ${validators.length} validators successfully`);
   } catch (error) {
-    console.error('Failed to seed validators:', error);
+    console.error("Failed to seed validators:", error);
   }
 }
 
 // Generate embeddings for a given text using OpenAI
-export async function getEmbeddingForText(text: string): Promise<number[] | null> {
+export async function getEmbeddingForText(
+  text: string,
+): Promise<number[] | null> {
   try {
     if (!openai || !process.env.OPENAI_API_KEY) {
-      console.warn('No OpenAI API key found, returning simulated embeddings');
+      console.warn("No OpenAI API key found, returning simulated embeddings");
       // Return simulated embedding (dimensionality should match your pgvector setup)
-      return Array(1536).fill(0).map(() => Math.random() - 0.5);
+      return Array(1536)
+        .fill(0)
+        .map(() => Math.random() - 0.5);
     }
 
     const response = await openai.embeddings.create({
-      model: 'text-embedding-ada-002',
+      model: "text-embedding-ada-002",
       input: text,
     });
 
     return response.data[0].embedding;
   } catch (error) {
-    console.error('Error generating embeddings:', error);
+    console.error("Error generating embeddings:", error);
     return null;
   }
 }
@@ -103,7 +107,7 @@ export async function getEmbeddingForText(text: string): Promise<number[] | null
 // Store embeddings for a validator response
 export async function storeEmbeddingsInVectorDB(
   embedding: number[],
-  validatorResponseId: string
+  validatorResponseId: string,
 ): Promise<boolean> {
   try {
     if (!embedding) return false;
@@ -118,7 +122,7 @@ export async function storeEmbeddingsInVectorDB(
 
     return true;
   } catch (error) {
-    console.error('Failed to store embedding:', error);
+    console.error("Failed to store embedding:", error);
     return false;
   }
 }
@@ -131,7 +135,7 @@ export async function createGraphEdge(
   targetId: string,
   relationship: string,
   weight?: number,
-  properties?: string
+  properties?: string,
 ): Promise<boolean> {
   try {
     // Determine which optional foreign keys to set based on entity types
@@ -142,26 +146,26 @@ export async function createGraphEdge(
       targetId,
       relationship,
       weight: weight ?? null,
-      properties: properties || '',
+      properties: properties || "",
     };
 
     // Set optional relations for easier querying
-    if (sourceType === 'Validator') {
+    if (sourceType === "Validator") {
       data.validatorId = sourceId;
-    } else if (sourceType === 'VoteSession') {
+    } else if (sourceType === "VoteSession") {
       data.voteSessionId = sourceId;
     }
 
-    if (targetType === 'Validator') {
+    if (targetType === "Validator") {
       data.validatorId = targetId;
-    } else if (targetType === 'VoteSession') {
+    } else if (targetType === "VoteSession") {
       data.voteSessionId = targetId;
     }
 
     await prisma.graphEdge.create({ data });
     return true;
   } catch (error) {
-    console.error('Failed to create graph edge:', error);
+    console.error("Failed to create graph edge:", error);
     return false;
   }
 }
@@ -170,7 +174,7 @@ export async function createGraphEdge(
 export async function persistVoteSession(
   voteResult: VoteResult,
   query: string,
-  validators: Validator[]
+  validators: Validator[],
 ): Promise<boolean> {
   // Use a transaction to ensure all operations succeed or fail together
   try {
@@ -184,7 +188,7 @@ export async function persistVoteSession(
           votesYes: voteResult.votingResult.yes,
           votesNo: voteResult.votingResult.no,
           notVoted: voteResult.votingResult.notVoted,
-          leaderId: validators.find(v => v.isLeader)?.id,
+          leaderId: validators.find((v) => v.isLeader)?.id,
         },
       });
 
@@ -195,13 +199,18 @@ export async function persistVoteSession(
           where: {
             OR: [
               { publicKey: response.id },
-              { provider: response.provider, profileName: response.profileName }
-            ]
+              {
+                provider: response.provider,
+                profileName: response.profileName,
+              },
+            ],
           },
         });
 
         if (!validator) {
-          console.warn(`Validator not found for ${response.profileName} (${response.provider})`);
+          console.warn(
+            `Validator not found for ${response.profileName} (${response.provider})`,
+          );
           continue;
         }
 
@@ -227,13 +236,13 @@ export async function persistVoteSession(
         // 4. Create graph edges
         await tx.graphEdge.create({
           data: {
-            sourceType: 'Validator',
+            sourceType: "Validator",
             sourceId: validator.id,
-            targetType: 'VoteSession',
+            targetType: "VoteSession",
             targetId: voteSession.id,
-            relationship: 'VOTED_IN',
-            weight: response.vote.toUpperCase() === 'YES' ? 1 : 0,
-            properties: response.rationale.substring(0, 100),  // Changed from object to string
+            relationship: "VOTED_IN",
+            weight: response.vote.toUpperCase() === "YES" ? 1 : 0,
+            properties: response.rationale.substring(0, 100), // Changed from object to string
 
             validatorId: validator.id,
             voteSessionId: voteSession.id,
@@ -244,7 +253,7 @@ export async function persistVoteSession(
       return true;
     });
   } catch (error) {
-    console.error('Failed to persist vote session:', error);
+    console.error("Failed to persist vote session:", error);
     return false;
   }
 }
@@ -252,7 +261,7 @@ export async function persistVoteSession(
 // Query vote sessions with semantic search based on a query
 export async function searchVoteSessions(
   query: string,
-  limit: number = 5
+  limit: number = 5,
 ): Promise<SearchResult[]> {
   try {
     // Generate embeddings for the search query
@@ -279,7 +288,7 @@ export async function searchVoteSessions(
     // Cast the result to any[] to ensure TypeScript compatibility
     return results as SearchResult[];
   } catch (error) {
-    console.error('Search error:', error);
+    console.error("Search error:", error);
     return [];
   }
 }
@@ -288,13 +297,15 @@ export async function searchVoteSessions(
 export async function queryGraphRelationships(
   sourceType: string,
   sourceId: string,
-  relationship: string
-): Promise<Prisma.GraphEdgeGetPayload<{
-  include: {
-    validator: true;
-    voteSession: true;
-  };
-}>[]> {
+  relationship: string,
+): Promise<
+  Prisma.GraphEdgeGetPayload<{
+    include: {
+      validator: true;
+      voteSession: true;
+    };
+  }>[]
+> {
   try {
     const edges = await prisma.graphEdge.findMany({
       where: {
@@ -310,7 +321,7 @@ export async function queryGraphRelationships(
 
     return edges;
   } catch (error) {
-    console.error('Failed to query graph relationships:', error);
+    console.error("Failed to query graph relationships:", error);
     return [];
   }
 }

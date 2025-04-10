@@ -15,6 +15,6 @@
       "@/*": ["./*"]
     }
   },
-  "include": ["scripts/**/*","prisma/**/*"],
+  "include": ["scripts/**/*", "prisma/**/*"],
   "exclude": ["node_modules"]
 }

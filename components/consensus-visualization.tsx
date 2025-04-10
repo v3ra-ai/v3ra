@@ -1,31 +1,43 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { motion } from "framer-motion"
-import type { VoteResult } from "@/lib/types"
+import { useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import type { VoteResult } from "@/lib/types";
 
 interface ConsensusVisualizationProps {
-  voteResult: VoteResult | null
-  isVoting: boolean
+  voteResult: VoteResult | null;
+  isVoting: boolean;
 }
 
-export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisualizationProps) {
-  const [, setAnimateVotes] = useState(false)
+export function ConsensusVisualization({
+  voteResult,
+  isVoting,
+}: ConsensusVisualizationProps) {
+  const [, setAnimateVotes] = useState(false);
 
   useEffect(() => {
     if (isVoting) {
-      setAnimateVotes(true)
+      setAnimateVotes(true);
     } else {
-      setAnimateVotes(false)
+      setAnimateVotes(false);
     }
-  }, [isVoting])
+  }, [isVoting]);
 
-  const totalVotes = voteResult?.votingResult ?
-    (voteResult.votingResult.yes ?? 0) + (voteResult.votingResult.no ?? 0) + (voteResult.votingResult.notVoted ?? 0) : 0
+  const totalVotes = voteResult?.votingResult
+    ? (voteResult.votingResult.yes ?? 0) +
+      (voteResult.votingResult.no ?? 0) +
+      (voteResult.votingResult.notVoted ?? 0)
+    : 0;
 
-  const yesPercentage = voteResult?.votingResult ? ((voteResult.votingResult.yes ?? 0) / totalVotes) * 100 : 0
-  const noPercentage = voteResult?.votingResult ? ((voteResult.votingResult.no ?? 0) / totalVotes) * 100 : 0
-  const notVotedPercentage = voteResult?.votingResult ? ((voteResult.votingResult.notVoted ?? 0) / totalVotes) * 100 : 0
+  const yesPercentage = voteResult?.votingResult
+    ? ((voteResult.votingResult.yes ?? 0) / totalVotes) * 100
+    : 0;
+  const noPercentage = voteResult?.votingResult
+    ? ((voteResult.votingResult.no ?? 0) / totalVotes) * 100
+    : 0;
+  const notVotedPercentage = voteResult?.votingResult
+    ? ((voteResult.votingResult.notVoted ?? 0) / totalVotes) * 100
+    : 0;
 
   return (
     <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
@@ -99,7 +111,9 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
               transition={{ duration: 1 }}
             >
               {notVotedPercentage > 15 && (
-                <span className="text-xs font-bold text-white px-2">PENDING</span>
+                <span className="text-xs font-bold text-white px-2">
+                  PENDING
+                </span>
               )}
             </motion.div>
           </div>
@@ -127,16 +141,20 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
                   : "bg-red-100 dark:bg-red-900 border border-red-200 dark:border-red-800"
               }`}
             >
-              <span className={`text-xl mr-2 ${
-                voteResult?.consensusValue ? "text-green-500" : "text-red-500"
-              }`}>
+              <span
+                className={`text-xl mr-2 ${
+                  voteResult?.consensusValue ? "text-green-500" : "text-red-500"
+                }`}
+              >
                 {voteResult?.consensusValue ? "✓" : "✗"}
               </span>
-              <span className={`font-bold text-lg ${
-                voteResult?.consensusValue
-                  ? "text-green-700 dark:text-green-300"
-                  : "text-red-700 dark:text-red-300"
-              }`}>
+              <span
+                className={`font-bold text-lg ${
+                  voteResult?.consensusValue
+                    ? "text-green-700 dark:text-green-300"
+                    : "text-red-700 dark:text-red-300"
+                }`}
+              >
                 {voteResult?.consensusValue ? "YES" : "NO"}
               </span>
             </motion.div>
@@ -154,14 +172,14 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
                   backgroundColor: [
                     "rgb(209 213 219)", // gray-300
                     Math.random() > 0.5 ? "rgb(34 197 94)" : "rgb(239 68 68)", // green-500 or red-500
-                    "rgb(209 213 219)" // back to gray-300
-                  ]
+                    "rgb(209 213 219)", // back to gray-300
+                  ],
                 }}
                 transition={{
                   duration: 1.5,
                   delay: i * 0.5,
                   repeat: Infinity,
-                  repeatDelay: 2
+                  repeatDelay: 2,
                 }}
               />
             ))}
@@ -169,5 +187,5 @@ export function ConsensusVisualization({ voteResult, isVoting }: ConsensusVisual
         )}
       </div>
     </div>
-  )
+  );
 }

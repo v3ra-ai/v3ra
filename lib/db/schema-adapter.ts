@@ -1,5 +1,5 @@
-import { Prisma } from '@prisma/client';
-import { AIValidator } from '../validators/types';
+import { Prisma } from "@prisma/client";
+import { AIValidator } from "../validators/types";
 
 /**
  * Schema adapter for Prisma types
@@ -48,7 +48,9 @@ export interface ValidatorInclude {
 /**
  * Convert AIValidator to database validator format
  */
-export function aiValidatorToDbValidator(validator: AIValidator): ValidatorCreateInput {
+export function aiValidatorToDbValidator(
+  validator: AIValidator,
+): ValidatorCreateInput {
   return {
     profileName: validator.name,
     provider: validator.provider,
@@ -61,7 +63,7 @@ export function aiValidatorToDbValidator(validator: AIValidator): ValidatorCreat
     validatorType: validator.validatorType || null,
     reliability: 0,
     totalVotes: 0,
-    correctVotes: 0
+    correctVotes: 0,
   };
 }
 
@@ -70,7 +72,7 @@ export function aiValidatorToDbValidator(validator: AIValidator): ValidatorCreat
  */
 export function createValidatorInclude(include: ValidatorInclude) {
   // Use type assertion to match Prisma's expected structure
-  const result:  Record<string, unknown> = {};
+  const result: Record<string, unknown> = {};
 
   if (include.apiKeys) {
     result.apiKeys = true;

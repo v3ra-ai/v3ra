@@ -1,5 +1,5 @@
-import { prisma } from './client';
-import { encryptApiKey, decryptApiKey } from './setup';
+import { prisma } from "./client";
+import { encryptApiKey, decryptApiKey } from "./setup";
 
 /**
  * Add a new API key to the database
@@ -15,8 +15,8 @@ export async function addApiKey(data: {
       name: data.name,
       provider: data.provider,
       key: encryptApiKey(data.key),
-      isActive: true
-    }
+      isActive: true,
+    },
   });
 }
 
@@ -25,7 +25,7 @@ export async function addApiKey(data: {
  */
 export async function getApiKey(id: string) {
   const apiKey = await prisma.apiKey.findUnique({
-    where: { id }
+    where: { id },
   });
 
   if (!apiKey) return null;
@@ -39,7 +39,7 @@ export async function getApiKey(id: string) {
  */
 export async function getApiKeyValue(id: string): Promise<string | null> {
   const apiKey = await prisma.apiKey.findUnique({
-    where: { id }
+    where: { id },
   });
 
   if (!apiKey) return null;
@@ -47,7 +47,7 @@ export async function getApiKeyValue(id: string): Promise<string | null> {
   // Update last used timestamp
   await prisma.apiKey.update({
     where: { id },
-    data: { lastUsed: new Date() }
+    data: { lastUsed: new Date() },
   });
 
   return decryptApiKey(apiKey.key);
@@ -60,8 +60,8 @@ export async function getApiKeysByProvider(provider: string) {
   return prisma.apiKey.findMany({
     where: {
       provider,
-      isActive: true
-    }
+      isActive: true,
+    },
   });
 }
 
@@ -71,19 +71,22 @@ export async function getApiKeysByProvider(provider: string) {
 export async function getAllApiKeys() {
   return prisma.apiKey.findMany({
     orderBy: {
-      provider: 'asc'
-    }
+      provider: "asc",
+    },
   });
 }
 
 /**
  * Update an API key
  */
-export async function updateApiKey(id: string, data: {
-  name?: string;
-  isActive?: boolean;
-  key?: string;
-}) {
+export async function updateApiKey(
+  id: string,
+  data: {
+    name?: string;
+    isActive?: boolean;
+    key?: string;
+  },
+) {
   const updates: Record<string, unknown> = {};
 
   if (data.name) updates.name = data.name;
@@ -92,7 +95,7 @@ export async function updateApiKey(id: string, data: {
 
   return prisma.apiKey.update({
     where: { id },
-    data: updates
+    data: updates,
   });
 }
 
@@ -101,30 +104,36 @@ export async function updateApiKey(id: string, data: {
  */
 export async function deleteApiKey(id: string) {
   return prisma.apiKey.delete({
-    where: { id }
+    where: { id },
   });
 }
 
 /**
  * Associate an API key with a validator
  */
-export async function assignApiKeyToValidator(apiKeyId: string, validatorId: string) {
+export async function assignApiKeyToValidator(
+  apiKeyId: string,
+  validatorId: string,
+) {
   return prisma.validatorKey.create({
     data: {
       apiKeyId,
-      validatorId
-    }
+      validatorId,
+    },
   });
 }
 
 /**
  * Remove API key association from validator
  */
-export async function removeApiKeyFromValidator(apiKeyId: string, validatorId: string) {
+export async function removeApiKeyFromValidator(
+  apiKeyId: string,
+  validatorId: string,
+) {
   return prisma.validatorKey.deleteMany({
     where: {
       apiKeyId,
-      validatorId
-    }
+      validatorId,
+    },
   });
 }

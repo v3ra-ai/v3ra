@@ -1,17 +1,20 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
 // POST /api/threads/[threadId]/downvote - Increment downvotes for a thread
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ threadId: string }> }
+  { params }: { params: Promise<{ threadId: string }> },
 ) {
   const { threadId } = await params;
 
   if (!threadId) {
-    return NextResponse.json({ error: 'Thread ID is required' }, { status: 400 });
+    return NextResponse.json(
+      { error: "Thread ID is required" },
+      { status: 400 },
+    );
   }
 
   try {
@@ -21,7 +24,7 @@ export async function POST(
     });
 
     if (!thread) {
-      return NextResponse.json({ error: 'Thread not found' }, { status: 404 });
+      return NextResponse.json({ error: "Thread not found" }, { status: 404 });
     }
 
     // Atomically increment the downvotes
@@ -36,9 +39,12 @@ export async function POST(
 
     return NextResponse.json(updatedThread);
   } catch (error) {
-    console.error('Error downvoting thread:', error);
+    console.error("Error downvoting thread:", error);
     // Handle potential errors like concurrent updates if necessary
-    return NextResponse.json({ error: 'Failed to downvote thread' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to downvote thread" },
+      { status: 500 },
+    );
   } finally {
     await prisma.$disconnect();
   }

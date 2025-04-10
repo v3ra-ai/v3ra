@@ -1,33 +1,37 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { motion } from "framer-motion"
+import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface CustomQueryFormProps {
-  onSubmit: (query: string) => Promise<void>
-  isOpen: boolean
-  onToggle: () => void
+  onSubmit: (query: string) => Promise<void>;
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
-export function CustomQueryForm({ onSubmit, isOpen, onToggle }: CustomQueryFormProps) {
-  const [query, setQuery] = useState("")
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  
+export function CustomQueryForm({
+  onSubmit,
+  isOpen,
+  onToggle,
+}: CustomQueryFormProps) {
+  const [query, setQuery] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!query.trim()) return
-    
-    setIsSubmitting(true)
+    e.preventDefault();
+    if (!query.trim()) return;
+
+    setIsSubmitting(true);
     try {
-      await onSubmit(query)
-      setQuery("")
+      await onSubmit(query);
+      setQuery("");
     } catch (error) {
-      console.error("Error submitting query:", error)
+      console.error("Error submitting query:", error);
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
-  
+  };
+
   return (
     <div className="mb-6">
       <button
@@ -35,21 +39,26 @@ export function CustomQueryForm({ onSubmit, isOpen, onToggle }: CustomQueryFormP
         className="flex items-center text-sm text-purple-600 dark:text-purple-400 hover:text-purple-800 dark:hover:text-purple-300 mb-2"
       >
         <span className="mr-1">{isOpen ? "Hide" : "Show"} validator query</span>
-        <svg 
+        <svg
           className={`w-4 h-4 transition-transform ${isOpen ? "rotate-180" : ""}`}
-          fill="none" 
-          stroke="currentColor" 
+          fill="none"
+          stroke="currentColor"
           viewBox="0 0 24 24"
         >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M19 9l-7 7-7-7"
+          />
         </svg>
       </button>
-      
+
       <motion.div
         initial={{ height: 0, opacity: 0 }}
-        animate={{ 
+        animate={{
           height: isOpen ? "auto" : 0,
-          opacity: isOpen ? 1 : 0 
+          opacity: isOpen ? 1 : 0,
         }}
         transition={{ duration: 0.3 }}
         className="overflow-hidden"
@@ -57,7 +66,10 @@ export function CustomQueryForm({ onSubmit, isOpen, onToggle }: CustomQueryFormP
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-800">
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
-              <label htmlFor="custom-query" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              <label
+                htmlFor="custom-query"
+                className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
+              >
                 Ask the validator network a yes/no question
               </label>
               <textarea
@@ -93,5 +105,5 @@ export function CustomQueryForm({ onSubmit, isOpen, onToggle }: CustomQueryFormP
         </div>
       </motion.div>
     </div>
-  )
+  );
 }

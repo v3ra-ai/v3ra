@@ -1,6 +1,8 @@
+// app/api/admin/diagnose-keys/route.ts
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db/client';
 import { keyService } from '@/lib/services/keyService';
+import { ValidatorResponse } from '@/lib/types'; // Import the consolidated type
 
 // Define types for the response structure
 interface ApiKeyResult {
@@ -11,17 +13,6 @@ interface ApiKeyResult {
   decryptable: boolean;
   keyPattern: string | null;  // Allow string or null
   linkedValidators: number;
-}
-
-interface ValidatorResult {
-  id: string;
-  name: string;
-  provider: string;
-  modelName: string;
-  validatorType: string;
-  active: boolean;
-  hasKey: boolean;
-  keyIds: string[];
 }
 
 interface TestResult {
@@ -41,24 +32,12 @@ interface Summary {
 
 interface DiagnoseKeysResponse {
   apiKeys: ApiKeyResult[];
-  validators: ValidatorResult[];
+  validators: ValidatorResponse[]; // Using consolidated type
   tests: TestResult[];
   summary: Summary;
 }
 
-function areEncryptionEnvVarsValid(): boolean {
-  const keyLength = process.env.ENCRYPTION_KEY?.length || 0;
-  const ivLength = process.env.ENCRYPTION_IV?.length || 0;
-  return keyLength >= 32 && ivLength >= 16;
-}
-
-/**
- * API endpoint to diagnose API key issues
- *
- * This endpoint performs a comprehensive diagnostic on API keys,
- * checking encryption, validator links, and more.
- */
-export async function GET() {  // Remove unused 'request'
+export async function GET() {
   try {
     const results: DiagnoseKeysResponse = {
       apiKeys: [],
@@ -117,10 +96,10 @@ export async function GET() {  // Remove unused 'request'
     results.summary.activeValidators = validators.filter(v => v.active).length;
 
     for (const validator of validators) {
-      const validatorResult: ValidatorResult = {
+      const validatorResponse: ValidatorResponse = {
         id: validator.id,
-        name: validator.profileName,
         provider: validator.provider,
+        profileName: validator.profileName, // Renamed from 'name' to match ValidatorResponse
         modelName: validator.modelName || 'unknown',
         validatorType: validator.validatorType || 'Standard',
         active: validator.active,
@@ -132,7 +111,7 @@ export async function GET() {  // Remove unused 'request'
         results.summary.validatorsWithKeys++;
       }
 
-      results.validators.push(validatorResult);
+      results.validators.push(validatorResponse);
     }
 
     // Diagnostic Tests
@@ -156,12 +135,15 @@ export async function GET() {  // Remove unused 'request'
         : `${results.summary.totalKeys - results.summary.decryptableKeys} of ${results.summary.totalKeys} keys cannot be decrypted`
     });
 
+    const envKeyLength = process.env.ENCRYPTION_KEY?.length || 0;
+    const envIvLength = process.env.ENCRYPTION_IV?.length || 0;
+    const envVarsConfigured = envKeyLength >= 32 && envIvLength >= 16;
     results.tests.push({
       name: "Encryption environment variables",
-      passed: areEncryptionEnvVarsValid(),
-      details: areEncryptionEnvVarsValid()
+      passed: envVarsConfigured,
+      details: envVarsConfigured
         ? "Encryption environment variables are properly configured"
-        : `Encryption variables may be misconfigured: Key length=${process.env.ENCRYPTION_KEY?.length || 0}, IV length=${process.env.ENCRYPTION_IV?.length || 0}`
+        : `Encryption variables may be misconfigured: Key length=${envKeyLength}, IV length=${envIvLength}`
     });
 
     return NextResponse.json(results);
