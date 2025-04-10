@@ -140,7 +140,7 @@ export function CustomQueryForm({
                       <Ban size="14" className="mr-1"/> Payment required
                     </label>
                   </div>
-                ) : !hasPaid && isWalletEnabled ? (
+                ) : hasPaid && isWalletEnabled ? (
                   <div className="flex ml-2 my-auto">
                     <label
                       className="flex px-2 rounded text-xs text-green-700
@@ -212,9 +212,9 @@ export function CustomQueryForm({
                 }
                 className={`px-4 py-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center justify-center ${
                   isWalletEnabled && !hasPaid
-                    ? "bg-red-600 cursor-not-allowed"
+                    ? "bg-silver-500 cursor-not-allowed"
                     : isSubmitting || !query.trim()
-                      ? "bg-silver-00 cursor-not-allowed"
+                      ? "bg-silver-400 cursor-not-allowed"
                       : "bg-blue-600 hover:bg-purple-700"
                 }`}
               >
@@ -225,22 +225,9 @@ export function CustomQueryForm({
                   </>
                 ) : (
                   <>
-                    {isWalletEnabled && !hasPaid && (
-                      <svg
-                        className="w-5 h-5 mr-2"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M12 11V7m0 10v-2m-4-2H6a2 2 0 01-2-2V7a2 2 0 012-2h12a2 2 0 012 2v6a2 2 0 01-2 2h-2m-4 0h-2"
-                        />
-                      </svg>
-                    )}
+                    {/* {isWalletEnabled && !hasPaid && (
+                     <></>
+                    )} */}
                     {!query.trim() && hasPaid ? `` : `Ask Question`}
                   </>
                 )}
