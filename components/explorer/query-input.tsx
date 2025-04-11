@@ -53,7 +53,7 @@ export function QueryInput({
             htmlFor="wallet-toggle"
             className="text-sm text-gray-700 dark:text-gray-300"
           >
-            Pay with SOL
+            Pay with Devnet SOL
           </label>
         </div>
       </div>
