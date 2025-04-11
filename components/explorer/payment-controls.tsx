@@ -88,7 +88,7 @@ export function PaymentControls({ hasPaid, setHasPaid }: PaymentControlsProps) {
                 Processing...
               </>
             ) : (
-              "Pay 0.01 SOL"
+              "Pay 0.01 Devnet SOL"
             )}
           </button>
         </>

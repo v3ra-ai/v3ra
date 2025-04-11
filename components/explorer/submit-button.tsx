@@ -19,9 +19,9 @@ export function SubmitButton({
       disabled={isSubmitting || !query.trim() || (isWalletEnabled && !hasPaid)}
       className={`px-4 py-2 rounded-md text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 flex items-center justify-center ${
         isWalletEnabled && !hasPaid
-          ? "bg-silver-500 cursor-not-allowed"
+          ? "bg-silver-500 cursor-not-allowed text-gray-600 dark:text-gray-400"
           : isSubmitting || !query.trim()
-          ? "bg-silver-400 cursor-not-allowed"
+          ? "bg-silver-400 cursor-not-allowed text-gray-600 dark:text-gray-400"
           : "bg-blue-600 hover:bg-purple-700"
       }`}
     >
