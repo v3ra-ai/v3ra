@@ -13,6 +13,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQueryStore } from "./query-store";
+import { WalletToggle } from "./wallet-toggle";
+import { PaymentControls } from "./payment-controls";
 
 type QueryMode = "factCheck" | "predict" | "create";
 
@@ -21,23 +23,44 @@ export default function AskForm() {
   const [queryMode, setQueryMode] = useState<QueryMode>("factCheck");
   const [queryAmount, setQueryAmount] = useState<number>(4);
   const [question, setQuestion] = useState<string>("");
+  const [isWalletEnabled, setIsWalletEnabled] = useState(false);
+  const [hasPaid, setHasPaid] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const queryCost = (queryAmount * 0.025).toFixed(2);
+  const solCost = (queryAmount * 0.02).toFixed(2); // Calculate SOL cost for alert
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!question.trim()) return;
+
     if (queryAmount > totalQueries) {
-      console.error("Not enough queries available");
+      alert("Not enough queries available");
       return;
     }
-    console.log({
-      mode: queryMode,
-      question,
-      queryAmount,
-    });
-    decrementQueries(queryAmount);
-    setQuestion("");
-    setQueryAmount(4);
+
+    if (isWalletEnabled && !hasPaid) {
+      alert(`Please make a payment of ${solCost} SOL first`);
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      console.log({
+        mode: queryMode,
+        question,
+        queryAmount,
+      });
+      decrementQueries(queryAmount);
+      setQuestion("");
+      setQueryAmount(4);
+      if (isWalletEnabled) setHasPaid(false);
+    } catch (error) {
+      console.error("Error submitting query:", error);
+      alert("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleQueryAmountChange = (newAmount: number) => {
@@ -48,7 +71,7 @@ export default function AskForm() {
   return (
     <div className="w-full max-w-3xl">
       <h1 className="text-center text-2xl font-bold text-white mb-6 md:text-3xl">
-        Ask up to <span className="text-[#00FF00]">[{totalQueries}]</span> AI&apos;s a question
+        Ask up to <span className="text-[#00FF00]">[{totalQueries}]</span> AIs a question
       </h1>
 
       <form onSubmit={handleSubmit}>
@@ -60,6 +83,11 @@ export default function AskForm() {
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1">
+                <WalletToggle
+                  isWalletEnabled={isWalletEnabled}
+                  setIsWalletEnabled={setIsWalletEnabled}
+                  queryAmount={queryAmount} // Pass queryAmount to WalletToggle
+                />
                 <Input
                   className="bg-black border-[#00FF00] text-white h-32 resize-none p-3"
                   placeholder="Enter your question here..."
@@ -127,13 +155,22 @@ export default function AskForm() {
                     </div>
                   </div>
 
-                  <Button
-                    type="submit"
-                    className="bg-black border-[#00FF00] text-white hover:bg-[#00FF00]/20"
-                    disabled={queryAmount > totalQueries}
-                  >
-                    Submit
-                  </Button>
+                  <div className="flex items-center space-x-2">
+                    {isWalletEnabled && (
+                      <PaymentControls
+                        hasPaid={hasPaid}
+                        setHasPaid={setHasPaid}
+                        queryAmount={queryAmount} // Pass queryAmount to PaymentControls
+                      />
+                    )}
+                    <Button
+                      type="submit"
+                      className="bg-black border-[#00FF00] text-white hover:bg-[#00FF00]/20"
+                      disabled={isSubmitting || queryAmount > totalQueries}
+                    >
+                      {isSubmitting ? "Submitting..." : "Submit"}
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
