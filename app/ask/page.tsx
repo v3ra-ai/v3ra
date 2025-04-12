@@ -1,4 +1,4 @@
-import VerafyAsk from "@/components/ask/ask-form";
+import VerafyAsk from "@/app/ask/ask-form";
 import { TopNav } from "./top-nav";
 
 export default function Ask() {
