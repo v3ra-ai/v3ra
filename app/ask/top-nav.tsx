@@ -1,3 +1,4 @@
+// app/ask/top-nav.tsx
 "use client";
 
 import React from 'react';
@@ -9,16 +10,16 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useQueryStore } from './query-store';
 
 export function TopNav() {
-  // Simulate logged-in state (replace with actual auth logic later)
-  const isLoggedIn = false; // Set to true to test the avatar
+  const { totalQueries } = useQueryStore();
+  const isLoggedIn = false;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-black text-white shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
-        {/* Logo on the far left */}
-        <div className="flex items-center">
+        <div className="flex items-center space-x-4">
           <Image
             src="/verafy-logo.png"
             alt="Verafy Logo"
@@ -26,12 +27,13 @@ export function TopNav() {
             height={40}
             className="object-contain"
           />
+          <span className="text-white text-sm font-medium">
+            Queries: {totalQueries} (stake to get more)
+          </span>
         </div>
 
-        {/* Right side: Conditional rendering based on login state */}
         <div className="flex items-center space-x-4">
           {isLoggedIn ? (
-            // Show Avatar with Dropdown if logged in
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer h-9 w-9">
@@ -52,7 +54,6 @@ export function TopNav() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            // Show Sign in/Sign up buttons if not logged in
             <>
               <button className="text-white text-sm font-medium hover:text-gray-300 transition-colors">
                 Sign in

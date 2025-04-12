@@ -1,62 +1,64 @@
-"use client"
+// app/ask/ask-form.tsx
+"use client";
 
-import type React from "react"
+import type React from "react";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useQueryStore } from "./query-store";
 
-import { useState } from "react"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+type QueryMode = "factCheck" | "predict" | "create";
 
-interface AskFormProps {
-  availableQueries: number
-}
+export default function AskForm() {
+  const { totalQueries, decrementQueries } = useQueryStore();
+  const [queryMode, setQueryMode] = useState<QueryMode>("factCheck");
+  const [queryAmount, setQueryAmount] = useState<number>(4);
+  const [question, setQuestion] = useState<string>("");
 
-type QueryMode = "factCheck" | "predict" | "create"
-
-export default function AskForm({ availableQueries }: AskFormProps) {
-  const [queryMode, setQueryMode] = useState<QueryMode>("factCheck")
-  const [queryAmount, setQueryAmount] = useState<number>(4)
-  const [queryAmountAvailable,] = useState<number>(10)
-  const [question, setQuestion] = useState<string>("")
-
-  // Calculate cost based on query amount (example calculation)
-  const queryCost = (queryAmount * 0.025).toFixed(2)
+  const queryCost = (queryAmount * 0.025).toFixed(2);
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
+    if (queryAmount > totalQueries) {
+      console.error("Not enough queries available");
+      return;
+    }
     console.log({
       mode: queryMode,
       question,
       queryAmount,
-    })
-    // Handle submission logic here
-  }
+    });
+    decrementQueries(queryAmount);
+    setQuestion("");
+    setQueryAmount(4);
+  };
 
   const handleQueryAmountChange = (newAmount: number) => {
-    // Ensure amount is between 1 and 10
-    const clampedAmount = Math.max(1, Math.min(10, newAmount))
-    setQueryAmount(clampedAmount)
-  }
+    const clampedAmount = Math.max(1, Math.min(10, newAmount));
+    setQueryAmount(clampedAmount);
+  };
 
   return (
     <div className="w-full max-w-3xl">
-      {/* Header */}
       <h1 className="text-center text-2xl font-bold text-white mb-6 md:text-3xl">
-        Ask up to <span className="text-[#00FF00]">[{availableQueries}]</span> AI&apos;s a question
+        Ask up to <span className="text-[#00FF00]">[{totalQueries}]</span> AI&apos;s a question
       </h1>
 
-      {/* Main Card */}
       <form onSubmit={handleSubmit}>
         <Card className="bg-black border-[#00FF00] border-2 shadow-[0_0_10px_rgba(0,255,0,0.3)] relative">
-          {/* Cut corner effect */}
           <div className="absolute top-0 right-0 w-6 h-6 bg-black">
             <div className="absolute top-0 right-0 w-12 h-12 bg-black transform rotate-45 translate-x-6 -translate-y-6 border-b-2 border-[#00FF00]"></div>
           </div>
 
           <CardContent className="p-6">
             <div className="flex flex-col md:flex-row gap-4">
-              {/* Middle - Input Area */}
               <div className="flex-1">
                 <Input
                   className="bg-black border-[#00FF00] text-white h-32 resize-none p-3"
@@ -66,9 +68,7 @@ export default function AskForm({ availableQueries }: AskFormProps) {
                 />
 
                 <div className="flex items-center justify-between mt-4">
-                  {/* Mode Dropdown and Query Amount in one row */}
                   <div className="flex items-center gap-4">
-                    {/* Mode Dropdown */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button
@@ -100,7 +100,6 @@ export default function AskForm({ availableQueries }: AskFormProps) {
                       </DropdownMenuContent>
                     </DropdownMenu>
 
-                    {/* Query Amount Selector */}
                     <div className="flex items-center gap-2">
                       <Button
                         type="button"
@@ -128,8 +127,11 @@ export default function AskForm({ availableQueries }: AskFormProps) {
                     </div>
                   </div>
 
-                  {/* Submit Button */}
-                  <Button type="submit" className="bg-black border-[#00FF00] text-white hover:bg-[#00FF00]/20">
+                  <Button
+                    type="submit"
+                    className="bg-black border-[#00FF00] text-white hover:bg-[#00FF00]/20"
+                    disabled={queryAmount > totalQueries}
+                  >
                     Submit
                   </Button>
                 </div>
@@ -142,11 +144,11 @@ export default function AskForm({ availableQueries }: AskFormProps) {
               <div>
                 Cost to query [{queryAmount}] AI: ${queryCost}
               </div>
-              <div>Queries Left: {queryAmountAvailable-queryAmount} (stake to get more)</div>
+              <div>Queries Left: {totalQueries - queryAmount} (stake to get more)</div>
             </div>
           </CardFooter>
         </Card>
       </form>
     </div>
-  )
+  );
 }
