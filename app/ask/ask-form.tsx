@@ -17,7 +17,7 @@ type QueryMode = "factCheck" | "predict" | "create"
 export default function AskForm({ availableQueries }: AskFormProps) {
   const [queryMode, setQueryMode] = useState<QueryMode>("factCheck")
   const [queryAmount, setQueryAmount] = useState<number>(4)
-  const [queryAmountAvailable, setQueryAmountAvailable] = useState<number>(10)
+  const [queryAmountAvailable,] = useState<number>(10)
   const [question, setQuestion] = useState<string>("")
 
   // Calculate cost based on query amount (example calculation)
