@@ -648,7 +648,7 @@ brew --prefix postgresql@15
 
 You may need to change this if the atrget server has a different version. As of most recent update this was the correct version.
 
-Updates your path just for this terminal session only
+⚠️ Update your path just for this terminal session only
 
 ```
 export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"
@@ -670,14 +670,14 @@ PGPASSWORD="your_password" pg_dump \
   -p 5432 \
   -d postgres \
   -F c \
-  -f remote_supabase_backup.dump
+  -f 20250413-remote_supabase_backup.dump
 
 ```
 
 or (may need to update variables)
 
 ```bash
-pg_dump -h aws-0-us-west-1.pooler.supabase.com -U postgres.dmrylpiaazevwqxcucsr -p 5432 -d postgres -F c -f remote_supabase_backup.dump
+pg_dump -h aws-0-us-west-1.pooler.supabase.com -U postgres.dmrylpiaazevwqxcucsr -p 5432 -d postgres -F c -f 20250413-remote_supabase_backup.dump
 ```
 
 Restore (only use if db is new in anothe location):
