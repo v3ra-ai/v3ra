@@ -76,6 +76,63 @@ async function testNetwork() {
   }
 }
 
+async function testCreditAssignment(walletPublicKey: string, creditAmount: number, email?: string) {
+  console.log(`Testing ${BASE_URL}/api/credits/assign...`);
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/api/credits/assign`,
+      { walletPublicKey, creditAmount, email },
+      { headers: { "Content-Type": "application/json" } },
+    );
+    console.log("Credit Assignment:", res.status, res.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "Credit Assignment Error:",
+      axiosError.response?.status,
+      axiosError.response?.data || axiosError.message,
+    );
+  }
+}
+
+async function testCreditAssignmentInvalidJSON() {
+  console.log(`Testing ${BASE_URL}/api/credits/assign with invalid JSON...`);
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/api/credits/assign`,
+      "{invalid}",
+      { headers: { "Content-Type": "application/json" } },
+    );
+    console.log("Credit Assignment Invalid JSON:", res.status, res.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "Credit Assignment Invalid JSON Error:",
+      axiosError.response?.status,
+      axiosError.response?.data || axiosError.message,
+    );
+  }
+}
+
+async function testCreditAssignmentInvalidKey() {
+  console.log(`Testing ${BASE_URL}/api/credits/assign with invalid key...`);
+  try {
+    const res = await axios.post(
+      `${BASE_URL}/api/credits/assign`,
+      { walletPublicKey: "invalid-key", creditAmount: 10, email: "test@example.com" },
+      { headers: { "Content-Type": "application/json" } },
+    );
+    console.log("Credit Assignment Invalid Key:", res.status, res.data);
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    console.error(
+      "Credit Assignment Invalid Key Error:",
+      axiosError.response?.status,
+      axiosError.response?.data || axiosError.message,
+    );
+  }
+}
+
 async function runTests() {
   await testHealthCheck();
   await testVoteHistory(10);
@@ -85,6 +142,13 @@ async function runTests() {
   await testBroadcast(""); // Empty query
   await testBroadcast(undefined as never); // Missing queryText
   await testNetwork();
+  await testCreditAssignmentInvalidJSON();
+  await testCreditAssignmentInvalidKey();
+  // public key does not match
+  await testCreditAssignment("GFY1U36t5HjVv8Gtq33bCdepUnPURtX46mPQXdAPaM4d", 25, "csjcode@gmail");
+    // optional email missing
+  await testCreditAssignment("9sLgc1jMhhvSQ7TWcD4HLbnqvLm4sir7yktjA9WfkQPE", 5)
+  await testCreditAssignment("9sLgc1jMhhvSQ7TWcD4HLbnqvLm4sir7yktjA9WfkQPE", 5, "test@example.com")
 }
 
 runTests().catch(console.error);

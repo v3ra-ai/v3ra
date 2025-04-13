@@ -1,139 +1,128 @@
-// components/credit-slider.tsx
-"use client";
-
-import { useState } from "react";
-import * as Slider from "@radix-ui/react-slider";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import {
-  PublicKey,
-  SystemProgram,
-  Transaction,
-  LAMPORTS_PER_SOL,
-} from "@solana/web3.js";
+// components/CreditSlider.tsx
+import { useState, useCallback, useEffect } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { Slider } from "@radix-ui/react-slider";
 import { toast } from "sonner";
+import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
-const CREDIT_PRICE_SOL = 0.001;
-const VERAFY_WALLET_PUBLIC_KEY = "GFY1U36t5HjVv8Gtq33bCdepUnPURtX46mPQXdAPaM4d";
+const connection = new Connection("https://api.testnet.solana.com", "confirmed");
 
 export default function CreditSlider() {
-  const [credits, setCredits] = useState(0);
-  const { connection } = useConnection();
-  const { publicKey, sendTransaction } = useWallet();
-  const [isLoading, setIsLoading] = useState(false);
+  const { publicKey } = useWallet();
+  const [creditAmount, setCreditAmount] = useState(1);
+  const [creditBalance, setCreditBalance] = useState(0);
+  const [solBalance, setSolBalance] = useState(0);
+  const [email, setEmail] = useState(""); // New state for email
 
-  const solCost = credits * CREDIT_PRICE_SOL;
+  useEffect(() => {
+    if (publicKey) {
+      connection.getBalance(publicKey).then((balance) => {
+        setSolBalance(balance / LAMPORTS_PER_SOL);
+      });
+    }
+  }, [publicKey]);
 
-  const handlePayment = async () => {
+  const requiredSol = creditAmount * 0.001;
+  const hasEnoughSol = solBalance >= requiredSol;
+  const isValid = creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
+  const isEmailValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); // Basic email validation
+
+  const handlePayment = useCallback(async () => {
     if (!publicKey) {
-      toast.error("Please connect your wallet");
+      toast.error("Wallet not connected");
       return;
     }
-
-    if (credits === 0) {
-      toast.error("Please select at least 1 credit");
+    if (!hasEnoughSol) {
+      toast.error(`Insufficient SOL: Need ${requiredSol}, have ${solBalance}`);
       return;
     }
-
-    setIsLoading(true);
+    if (email && !isEmailValid) {
+      toast.error("Invalid email address");
+      return;
+    }
 
     try {
-      const lamports = Math.round(solCost * LAMPORTS_PER_SOL);
-      const transaction = new Transaction().add(
-        SystemProgram.transfer({
-          fromPubkey: publicKey,
-          toPubkey: new PublicKey(VERAFY_WALLET_PUBLIC_KEY),
-          lamports,
-        })
-      );
-
-      const { blockhash } = await connection.getLatestBlockhash();
-      transaction.recentBlockhash = blockhash;
-      transaction.feePayer = publicKey;
-
-      const signature = await sendTransaction(transaction, connection);
-      const confirmation = await connection.confirmTransaction(signature, "confirmed");
-
-      if (confirmation.value.err) {
-        throw new Error("Transaction failed");
-      }
-
       const response = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          transaction: Buffer.from(transaction.serialize()).toString("base64"),
-          credits,
-          userWallet: publicKey.toBase58(),
+          walletPublicKey: publicKey.toBase58(),
+          creditAmount,
         }),
       });
 
-      const result = await response.json();
-
-      if (response.ok) {
-        toast.success(`Purchased ${credits} credits for ${solCost.toFixed(3)} SOL!`);
-      } else {
-        throw new Error(result.error || "Payment processing failed");
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Payment failed");
       }
-    } catch (error) {
-      console.error("Payment error:", error);
-      toast.error(error instanceof Error ? error.message : "Payment failed");
-    } finally {
-      setIsLoading(false);
+
+      const paymentData = await response.json();
+      if (paymentData.success) {
+        const assignResponse = await fetch("/api/credits/assign", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            walletPublicKey: publicKey.toBase58(),
+            creditAmount,
+            email: email || undefined, // Include email if provided
+          }),
+        });
+
+        if (!assignResponse.ok) throw new Error("Credit assignment failed");
+
+        const assignData = await assignResponse.json();
+        setCreditBalance(assignData.credits);
+        toast.success(`${creditAmount} credits added! New balance: ${assignData.credits}`);
+      }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (error: any) {
+      toast.error(error.message.includes("retries") ? "Payment failed after retries" : "Error processing payment");
+      console.error(error);
     }
-  };
+  }, [publicKey, creditAmount, hasEnoughSol, email, isEmailValid]);
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-        Purchase Credits
-      </h2>
-      <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">
-          {credits}
-        </span>
-      </div>
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Select Credits
-        </label>
-        <div className="relative">
-          <Slider.Root
-            className="relative flex items-center select-none touch-none w-full h-5"
-            value={[credits]}
-            onValueChange={(value) => setCredits(value[0])}
-            min={0}
-            max={100}
-            step={1}
-          >
-            <Slider.Track className="bg-gray-300 dark:bg-gray-600 relative grow rounded-full h-1">
-              <Slider.Range className="absolute bg-blue-500 dark:bg-blue-400 rounded-full h-full" />
-            </Slider.Track>
-            <Slider.Thumb
-              className="block w-5 h-5 bg-blue-500 dark:bg-blue-400 rounded-full hover:bg-blue-600 dark:hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              aria-label="Credits"
-            />
-          </Slider.Root>
-          <div className="flex justify-between mt-2 text-sm text-gray-700 dark:text-gray-300">
-            <span>Min. (0)</span>
-            <span>Max. (100)</span>
-          </div>
-        </div>
-      </div>
-      <div className="mb-6">
-        <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
-          Cost: {solCost.toFixed(3)} SOL
+    <div className="p-4">
+      <Slider
+        value={[creditAmount]}
+        onValueChange={(value) => setCreditAmount(Math.round(value[0]))}
+        min={1}
+        max={100}
+        step={1}
+        className="w-full"
+      />
+      <p className="mt-2 text-sm">
+        Credits: {creditAmount} (Cost: {requiredSol} SOL)
+      </p>
+      {!isValid && (
+        <p className="mt-2 text-sm text-red-500">
+          Please select a whole number between 1 and 100 credits.
         </p>
-      </div>
+      )}
+      {!hasEnoughSol && (
+        <p className="mt-2 text-sm text-red-500">
+          Insufficient SOL: Need {requiredSol}, have {solBalance}.
+        </p>
+      )}
+      <input
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        placeholder="Email (optional)"
+        className="mt-2 w-full p-2 border border-input rounded text-sm"
+      />
+      {!isEmailValid && email && (
+        <p className="mt-2 text-sm text-red-500">
+          Please enter a valid email or leave blank.
+        </p>
+      )}
+      <p className="mt-2 text-sm">Current Balance: {creditBalance} credits</p>
       <button
         onClick={handlePayment}
-        disabled={isLoading || !publicKey}
-        className={`w-full py-2 px-4 rounded-md font-medium text-white ${
-          isLoading || !publicKey
-            ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
-            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
-        }`}
+        disabled={!publicKey || !isValid || !hasEnoughSol || !isEmailValid}
+        className="mt-4 bg-primary text-primary-foreground px-4 py-2 rounded disabled:opacity-50"
       >
-        {isLoading ? "Processing..." : publicKey ? "Pay Now" : "Connect Wallet"}
+        Pay
       </button>
     </div>
   );

@@ -813,6 +813,19 @@ Expected: `{"error":"Query text is required"} `(add this check if missing).
 
 Expected: `{"validators":[...],"currentLeaderIndex":X,"isVoting":false,...} `(depends on implementation).
 
+
+#### Credits
+
+* ⚠️ note: You must input a valid wallet public key for this to work in the spot where it says: "your-test-public-key""
+
+```bash
+curl -X POST http://localhost:3000/api/credits/assign \
+-H "Content-Type: application/json" \
+-d '{"walletPublicKey":"your-test-public-key","creditAmount":10,"email":"test@example.com"}'
+```
+
+
+
 ---
 ------------------------------------
 ## Diagnostics

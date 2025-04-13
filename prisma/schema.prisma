@@ -154,3 +154,12 @@ model PaymentLog {
   error           String?
   createdAt       DateTime  @default(now())
 }
+
+model UserCredit {
+  id              String    @id @default(uuid())
+  walletPublicKey String    @unique
+  email           String?   // Optional email field
+  credits         Int       @default(0)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
