@@ -19,7 +19,6 @@ import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 const CREDIT_PRICE_SOL = 0.001;
 
-// Use environment variable for Verafy wallet
 const VERAFY_WALLET_PUBLIC_KEY = process.env.NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY;
 let VERAFY_WALLET: PublicKey;
 try {
@@ -32,7 +31,6 @@ try {
   throw error;
 }
 
-// Retry utility for sending transaction
 async function sendTransactionWithRetry(
   connection: Connection,
   publicKey: PublicKey,
@@ -44,7 +42,6 @@ async function sendTransactionWithRetry(
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
-      // Create fresh transaction
       const transaction = new Transaction();
       transaction.add(
         ComputeBudgetProgram.setComputeUnitLimit({
@@ -60,7 +57,6 @@ async function sendTransactionWithRetry(
         }),
       );
 
-      // Set recent blockhash and fee payer
       const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
       transaction.recentBlockhash = blockhash;
       transaction.feePayer = publicKey;
@@ -85,22 +81,18 @@ async function sendTransactionWithRetry(
         feePayer: transaction.feePayer?.toBase58(),
       });
 
-      // Sign transaction
       const signedTx = await signTransaction(transaction);
 
-      // Verify signature
       if (!signedTx.signatures.length || !signedTx.verifySignatures()) {
         throw new Error("Transaction signature invalid");
       }
 
-      // Send transaction
       const signature = await connection.sendRawTransaction(signedTx.serialize(), {
         skipPreflight: false,
         preflightCommitment: "confirmed",
       });
       console.log(`Transaction sent, attempt ${attempt}, signature: ${signature}`);
 
-      // Confirm transaction
       await connection.confirmTransaction(
         { signature, blockhash, lastValidBlockHeight },
         "confirmed",
@@ -136,7 +128,6 @@ export default function CreditSlider() {
   const [creditAmount, setCreditAmount] = useState(0);
   const [creditBalance, setCreditBalance] = useState(0);
   const [solBalance, setSolBalance] = useState(0);
-  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -150,7 +141,6 @@ export default function CreditSlider() {
   const requiredSol = creditAmount * CREDIT_PRICE_SOL;
   const hasEnoughSol = solBalance >= requiredSol;
   const isValid = creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
-  const isEmailValid = !email || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
   const handlePayment = useCallback(async () => {
     if (!publicKey || !signTransaction) {
@@ -165,15 +155,10 @@ export default function CreditSlider() {
       toast.error(`Insufficient SOL: Need ${requiredSol.toFixed(3)}, have ${solBalance.toFixed(3)}`);
       return;
     }
-    if (email && !isEmailValid) {
-      toast.error("Invalid email address");
-      return;
-    }
 
     setIsLoading(true);
 
     try {
-      // Send transaction and get signed transaction
       const { signature, signedTx } = await sendTransactionWithRetry(
         connection,
         publicKey,
@@ -190,7 +175,6 @@ export default function CreditSlider() {
         })),
       });
 
-      // Send to payment API
       const response = await fetch("/api/payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -209,14 +193,12 @@ export default function CreditSlider() {
 
       const paymentData = await response.json();
       if (paymentData.status === "success") {
-        // Assign credits
         const assignResponse = await fetch("/api/credits/assign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             walletPublicKey: publicKey.toBase58(),
             creditAmount,
-            email: email || undefined,
           }),
         });
 
@@ -245,7 +227,7 @@ export default function CreditSlider() {
     } finally {
       setIsLoading(false);
     }
-  }, [publicKey, signTransaction, creditAmount, hasEnoughSol, email, isEmailValid, solBalance]);
+  }, [publicKey, signTransaction, creditAmount, hasEnoughSol, solBalance, isValid, requiredSol]);
 
   return (
     <div className="max-w-md mx-auto p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
@@ -295,20 +277,20 @@ export default function CreditSlider() {
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Email (optional)"
         className="mb-6 w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-      /> */}
+      />
       {!isEmailValid && email && (
         <p className="mb-4 text-sm text-red-500 dark:text-red-400">
           Please enter a valid email or leave blank.
         </p>
-      )}
+      )} */}
       <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
         Current Balance: {creditBalance} credits
       </p>
       <button
         onClick={handlePayment}
-        disabled={isLoading || !publicKey || !isValid || !hasEnoughSol || !isEmailValid}
+        disabled={isLoading || !publicKey || !isValid || !hasEnoughSol}
         className={`w-full py-2 px-4 rounded-md font-medium text-white ${
-          isLoading || !publicKey || !isValid || !hasEnoughSol || !isEmailValid
+          isLoading || !publicKey || !isValid || !hasEnoughSol
             ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
             : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
         }`}
