@@ -1,14 +1,22 @@
 // app/credits/page.tsx
 import CreditSlider from "@/components/credit-slider";
-import { TopNav
+import StakeSlider from "@/components/stake-slider";
+import { TopNav } from "@/components/top-nav";
 
- } from "@/components/top-nav";
 export default function CreditsPage() {
   return (
-    <div className="min-h-screen bg-black flex flex-col">
+    <div className="w-full max-w-4xl mx-auto p-6">
       <TopNav />
-      <div className="flex-grow flex items-center justify-center">
-        <CreditSlider />
+      <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-gray-100 mb-8 mt-16">
+        Get Credits
+      </h1>
+      <div className="flex flex-row gap-6">
+        <div className="flex-1">
+          <CreditSlider />
+        </div>
+        <div className="flex-1">
+          <StakeSlider />
+        </div>
       </div>
     </div>
   );

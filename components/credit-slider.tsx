@@ -289,13 +289,13 @@ export default function CreditSlider() {
           Cost: {requiredSol.toFixed(3)} SOL
         </p>
       </div>
-      <input
+      {/* <input
         type="email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
         placeholder="Email (optional)"
         className="mb-6 w-full p-2 border border-gray-300 dark:border-gray-600 rounded text-sm text-gray-900 dark:text-gray-100 bg-white dark:bg-gray-700"
-      />
+      /> */}
       {!isEmailValid && email && (
         <p className="mb-4 text-sm text-red-500 dark:text-red-400">
           Please enter a valid email or leave blank.
