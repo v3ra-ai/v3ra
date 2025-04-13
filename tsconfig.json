@@ -30,6 +30,6 @@
     "prisma/test-prisma.js",
     "prisma/migrate.js",
     "prisma/archived/migrate"
-  ],
+, "test/generate-transaction.mjs"  ],
   "exclude": ["node_modules"]
 }

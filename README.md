@@ -773,6 +773,19 @@ If you get "undefined" for several or all tests, it may mean your app is not run
 
 ### Manual Testing
 
+
+#### Test directory
+
+The test directory has some scripts.
+
+For .ts files you may need to run:
+
+`node --experimental-specifier-resolution=node test-transaction.mjs`
+
+Others are .js files so run normally.
+
+Also `npm run qa` runs some qa tests.
+
 #### Health Check Endpoint
 
 `curl http://localhost:3000/api/admin/health-check`
