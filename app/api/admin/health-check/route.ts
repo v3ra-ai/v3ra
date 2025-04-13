@@ -7,7 +7,7 @@ export async function GET() {
   try {
     console.log("Attempting database connection...");
     const validators = await prisma.validator.findMany({ take: 1 });
-    console.log("Query result:", validators);
+    // console.log("Query result:", validators);
     return NextResponse.json({ status: "healthy", count: validators.length });
   } catch (error) {
     console.error("Health check failed:", error);

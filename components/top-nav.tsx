@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useQueryStore } from '@/app/ask/query-store';
 
-export function TopNav() {
+export default function TopNav() {
   const { totalQueries } = useQueryStore();
   const isLoggedIn = false;
 

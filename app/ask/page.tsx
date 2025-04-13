@@ -3,7 +3,7 @@
 
 import AskForm from "./ask-form";
 import { SolanaProvider } from "../../components/solana-provider";
-import { TopNav } from "@/components/top-nav";
+import TopNav from "@/components/top-nav";
 
 export default function Ask() {
   return (
