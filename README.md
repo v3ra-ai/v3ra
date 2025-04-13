@@ -161,6 +161,28 @@ npm run dev
 
 ---
 
+## Prisma notes
+
+There are some weird things I've run into with Prisma, be aware of them so you do not waste time trying to debug.
+
+### A typical pattern: you need a new field or table.
+
+#### Add/remove table/fields Workflow:
+
+1. Update the prisma/prisma.schema.
+2. `npx prisma db push` for remote database sync.
+3. With Supabase+Prisma you have to use the "direct" DB connection, not the pgBouncer we use in the normal (used for performance)
+4. So temporarily use the format of PRISMA_DATABASE_URL (see in the .envExample if you do not have it in .env) as the DATABASE_URL (copy it in place of that, put int he password too). We use this url only for the push and then revert back to the original.
+5. `npx prisma db push`
+6. Confirm that worked on the remote database (go to supabase dashboard or use psql).
+7. Switch back to the original DATABASE_URL.
+8. We need to generate types with: `npx prisma generate`
+9. If they do not update go into `node_modules/.prisma` and remove or rename `index.d.ts` and `index.js`
+10. Do `npx prisma generate` again, it should fix it.
+
+
+---
+
 ## Deployment
 
 - **Tip:** Run `npm run build` to detect issues before deploy. Many problems deploying are due to errors/warning during build.
@@ -680,7 +702,7 @@ or (may need to update variables)
 pg_dump -h aws-0-us-west-1.pooler.supabase.com -U postgres.dmrylpiaazevwqxcucsr -p 5432 -d postgres -F c -f 20250413-remote_supabase_backup.dump
 ```
 
-Restore (only use if db is new in anothe location):
+Restore (only use if db is new in another location):
 
 ```bash
 pg_restore --disable-triggers --clean --create --no-owner -U your_local_postgres_user -d your_target_db supabase_backup.dump
