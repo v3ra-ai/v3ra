@@ -138,6 +138,9 @@ If you want to use the local database instead of the rmote, change the .env file
   npx prisma db push --schema prisma/schema.prisma
   ```
 
+  note: If you do a remote prisma push (to change the Supabase remote database), you need to use the "direct db url":
+  example of how it looks: postgresql://postgres.dmrylpiaazevwqxcucsr:<your password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres
+
 #### 10. **Start the Application**:
 
 ```bash
@@ -180,6 +183,12 @@ vercel --version
 
 ```bash
 vercel login
+```
+
+#### 4. Vercel deploy a local build (for faster deploy)
+
+```bash
+vercel --prebuilt
 ```
 
 - Follow prompts to log in with your Vercel account (or team account if applicable).

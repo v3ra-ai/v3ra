@@ -1,3 +1,4 @@
+// app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -6,7 +7,7 @@ import { ValidatorInitializer } from "@/components/validator-initializer";
 import { ValidatorHealthCheck } from "@/components/validator-health-check";
 import type { ReactNode } from "react";
 import { SolanaProvider } from "@/components/solana-provider";
-import { Toaster } from "sonner"; // Added for toast notifications
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -32,7 +33,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
           <SolanaProvider>
             {children}
-            <Toaster richColors position="top-right" /> {/* Added Toaster */}
+            <Toaster richColors position="top-right" />
           </SolanaProvider>
         </ThemeProvider>
       </body>

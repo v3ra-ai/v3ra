@@ -4,7 +4,11 @@
 
 LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
 REMOTE_DATABASE_URL=postgresql://postgres:[your-db-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
-DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default to local, if not set manually
+
+DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&noPrepare=true&connection_limit=1
+
+PRISMA_DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres
+
 
 REDIS_URL=redis://localhost:6379
 OPENAI_API_KEY=your-key
