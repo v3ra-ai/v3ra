@@ -11,7 +11,7 @@ interface CreditAssignment {
     signedTx: Transaction,
     credits: number,
     userWallet: PublicKey,
-  ) => Promise<void>;
+  ) => Promise<number>;
   isAssigning: boolean;
   error: string | null;
 }
@@ -62,13 +62,14 @@ export const useCreditAssignment = (): CreditAssignment => {
         }
 
         const assignData = await assignResponse.json();
-        console.log("Assigned credits:", assignData.credits); // Debug log
         toast.success(`${credits} credits added! New balance: ${assignData.credits}`);
+        return assignData.credits || 0;
       } catch (err) {
         const message = err instanceof Error ? err.message : "Error processing payment";
         setError(message);
         toast.error(message);
         console.error("Credit assignment error:", err);
+        throw err;
       } finally {
         setIsAssigning(false);
       }

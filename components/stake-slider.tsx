@@ -11,7 +11,7 @@ export default function StakeSlider() {
   return (
     <div className="max-w-md mx-auto p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
       <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
-        Stake to Get Credits
+        Stake for Credits
       </h2>
       <div className="text-center mb-6">
         <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">{stakeAmount}</span>

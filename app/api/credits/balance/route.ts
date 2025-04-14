@@ -8,6 +8,8 @@ export async function POST(request: Request) {
   try {
     const { walletPublicKey } = await request.json();
 
+    // console.log(walletPublicKey);
+
     if (!walletPublicKey) {
       return NextResponse.json({ error: "Wallet public key is required" }, { status: 400 });
     }
