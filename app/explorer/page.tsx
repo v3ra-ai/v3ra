@@ -1,7 +1,6 @@
-// app/explorer/page.tsx
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { NetworkStats } from "@/components/network-stats";
 import { ValidatorList } from "@/components/validator-list";
 import { VoteHistory } from "@/components/vote-history";
@@ -12,45 +11,18 @@ import { ValidatorDetail } from "@/components/validator-detail";
 import { CustomQueryForm } from "@/components/custom-query-form";
 import { ValidatorAdmin } from "@/components/validator-admin";
 import { broadcastCustomQuery } from "@/app/actions";
-import type { NetworkState, VoteResult, Validator } from "@/lib/types";
+import { useNetworkState } from "@/hooks/useNetworkState";
+import { useVoteHistory } from "@/hooks/useVoteHistory";
+import type { VoteResult, Validator } from "@/lib/types";
 
 const Explorer: React.FC = () => {
-  const [networkState, setNetworkState] = useState<NetworkState | null>(null);
+  const { networkState, isLoading, error: networkError, refetch } = useNetworkState();
+  const { voteHistory, setVoteHistory, error: voteHistoryError, fetchVoteHistory } = useVoteHistory();
   const [lastVoteResult, setLastVoteResult] = useState<VoteResult | null>(null);
-  const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [selectedValidator, setSelectedValidator] = useState<Validator | null>(null);
   const [showCustomQuery, setShowCustomQuery] = useState(true);
   const [showValidatorAdmin, setShowValidatorAdmin] = useState(false);
-
-  const voteHistoryLoaded = useRef(false);
-
-  const fetchNetworkState = async () => {
-    try {
-      const response = await fetch("/api/network");
-      const data = await response.json();
-      setNetworkState(data);
-    } catch (error) {
-      console.error("Failed to fetch network state:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchVoteHistory = async () => {
-    try {
-      const response = await fetch("/api/vote-history?limit=10");
-      const data = await response.json();
-
-      if (Array.isArray(data)) {
-        setVoteHistory(data);
-        voteHistoryLoaded.current = true;
-      }
-    } catch (error) {
-      console.error("Failed to fetch vote history:", error);
-    }
-  };
 
   const handleCustomQuery = async (query: string) => {
     try {
@@ -65,24 +37,20 @@ const Explorer: React.FC = () => {
         [result as VoteResult, ...prevHistory].slice(0, 10),
       );
 
-      fetchNetworkState();
-    } catch (error) {
+      refetch();
+      fetchVoteHistory();
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
       console.error("Failed to broadcast custom query:", error);
     }
   };
 
-  React.useEffect(() => {
-    fetchNetworkState();
-
-    if (!voteHistoryLoaded.current) {
-      fetchVoteHistory();
-    }
-
+  useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
 
     if (autoRefresh) {
       intervalId = setInterval(() => {
-        fetchNetworkState();
+        refetch();
         fetchVoteHistory();
       }, 5000);
     }
@@ -92,7 +60,7 @@ const Explorer: React.FC = () => {
         clearInterval(intervalId);
       }
     };
-  }, [autoRefresh]);
+  }, [autoRefresh, refetch, fetchVoteHistory]);
 
   if (isLoading) {
     return (
@@ -105,13 +73,13 @@ const Explorer: React.FC = () => {
     );
   }
 
-  if (!networkState) {
+  if (networkError || !networkState) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
           <p className="text-lg text-red-500">Failed to load network state</p>
           <button
-            onClick={fetchNetworkState}
+            onClick={refetch}
             className="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
           >
             Retry
@@ -233,7 +201,11 @@ const Explorer: React.FC = () => {
               </h2>
             </div>
             <div className="p-6">
-              <VoteHistory voteHistory={voteHistory} />
+              {voteHistoryError ? (
+                <p className="text-red-500">Failed to load vote history</p>
+              ) : (
+                <VoteHistory voteHistory={voteHistory} />
+              )}
             </div>
           </div>
         </div>
