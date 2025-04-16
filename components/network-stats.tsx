@@ -18,7 +18,7 @@ export function NetworkStats({ networkState }: NetworkStatsProps) {
       : null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="space-y-2">
         <h3 className="text-lg font-medium">Network Status</h3>
         <div className="space-y-2">
@@ -48,8 +48,7 @@ export function NetworkStats({ networkState }: NetworkStatsProps) {
           )}
         </div>
       </div>
-
-      <div className="space-y-2">
+      <div className="space-y-2 ml-4">
         <h3 className="text-lg font-medium">Leader Information</h3>
         {leader ? (
           <div className="space-y-2">

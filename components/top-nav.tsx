@@ -10,7 +10,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useQueryStore } from '@/app/ask/query-store';
+import { useQueryStore } from '@/app/ask-wire/query-store';
 
 export default function TopNav() {
   const { totalQueries } = useQueryStore();

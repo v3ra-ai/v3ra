@@ -90,12 +90,11 @@ const Explorer: React.FC = () => {
               </h2>
             </div>
             <div className="p-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex flex-col gap-6">
                 <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
                   <NetworkStats networkState={networkState} />
                 </div>
-
-                <div className="col-span-2">
+                <div>
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
                     Validator Network
                   </h3>

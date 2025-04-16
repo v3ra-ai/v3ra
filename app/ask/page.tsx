@@ -1,19 +1,14 @@
-// app/ask/page.tsx
-"use client";
-
-import AskForm from "./ask-form";
+import Navbar from "@/components/ask/navbar"
+import QueryInterface from "@/components/ask/query-interface"
 import { SolanaProvider } from "../../components/solana-provider";
-import TopNav from "@/components/top-nav";
 
-export default function Ask() {
+export default function Home() {
   return (
     <SolanaProvider>
-      <div className="min-h-screen bg-black text-white">
-         <TopNav />
-        <div className="pt-16 flex items-center justify-center min-h-screen">
-          <AskForm />
-        </div>
-      </div>
+    <main className="min-h-screen bg-white">
+      <Navbar />
+      <QueryInterface />
+    </main>
     </SolanaProvider>
-  );
+  )
 }
