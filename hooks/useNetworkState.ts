@@ -13,11 +13,15 @@ export function useNetworkState(): NetworkStateResult {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const fetchNetworkState = useCallback(async () => {
+  const fetchNetworkState = useCallback(async (isInitialLoad: boolean = false) => {
     try {
-      setIsLoading(true);
+      if (isInitialLoad) {
+        setIsLoading(true);
+      }
       setError(null);
-      const response = await fetch("/api/network");
+      // Add cache-busting timestamp for refetch
+      const url = isInitialLoad ? "/api/network" : `/api/network?t=${Date.now()}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(`Network fetch failed: ${response.statusText}`);
       }
@@ -29,13 +33,17 @@ export function useNetworkState(): NetworkStateResult {
       setError(error);
       setNetworkState(null);
     } finally {
-      setIsLoading(false);
+      if (isInitialLoad) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    fetchNetworkState();
+    fetchNetworkState(true);
   }, [fetchNetworkState]);
 
-  return { networkState, isLoading, error, refetch: fetchNetworkState };
+  const refetch = useCallback(() => fetchNetworkState(false), [fetchNetworkState]);
+
+  return { networkState, isLoading, error, refetch };
 }

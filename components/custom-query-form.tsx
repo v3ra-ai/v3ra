@@ -12,6 +12,7 @@ interface CustomQueryFormProps {
   isOpen: boolean;
   onToggle: () => void;
 }
+
 export function CustomQueryForm({
   onSubmit,
   isOpen,
@@ -21,23 +22,31 @@ export function CustomQueryForm({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isWalletEnabled, setIsWalletEnabled] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!query.trim()) return;
+    e.stopPropagation(); // Extra safeguard against event bubbling
+    if (!query.trim()) {
+      setError("Query cannot be empty");
+      return;
+    }
 
     if (isWalletEnabled && !hasPaid) {
-      alert("Please make a payment of 0.01 SOL first");
+      setError("Please make a payment of 0.01 SOL first");
       return;
     }
 
     setIsSubmitting(true);
+    setError(null);
     try {
       await onSubmit(query);
       setQuery("");
       if (isWalletEnabled) setHasPaid(false);
-    } catch (error) {
-      console.error("Error submitting query:", error);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
+      console.error("Error submitting query:", errorMessage);
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -53,12 +62,17 @@ export function CustomQueryForm({
         className="overflow-hidden"
       >
         <div className="bg-white dark:bg-gray-900 p-4 rounded-lg shadow border border-gray-200 dark:border-gray-800">
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} noValidate>
+            {error && (
+              <p className="text-red-500 text-sm mb-2" role="alert">
+                {error}
+              </p>
+            )}
             <QueryInput
               query={query}
               setQuery={setQuery}
               isWalletEnabled={isWalletEnabled}
-              setIsWalletEnabled={setIsWalletEnabled} // Pass setter to QueryInput
+              setIsWalletEnabled={setIsWalletEnabled}
               hasPaid={hasPaid}
             />
             <div className="flex justify-end space-x-2">

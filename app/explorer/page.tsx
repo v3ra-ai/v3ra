@@ -10,9 +10,9 @@ import { ConsensusVisualization } from "@/components/consensus-visualization";
 import { ValidatorDetail } from "@/components/validator-detail";
 import { CustomQueryForm } from "@/components/custom-query-form";
 import { ValidatorAdmin } from "@/components/validator-admin";
-import { broadcastCustomQuery } from "@/app/actions";
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { useVoteHistory } from "@/hooks/useVoteHistory";
+import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import type { VoteResult, Validator } from "@/lib/types";
 
 const Explorer: React.FC = () => {
@@ -24,26 +24,12 @@ const Explorer: React.FC = () => {
   const [showCustomQuery, setShowCustomQuery] = useState(true);
   const [showValidatorAdmin, setShowValidatorAdmin] = useState(false);
 
-  const handleCustomQuery = async (query: string) => {
-    try {
-      const result = await broadcastCustomQuery(query);
-      if ("error" in result) {
-        console.error("Failed to broadcast custom query:", result.error);
-        return;
-      }
-
-      setLastVoteResult(result as VoteResult);
-      setVoteHistory((prevHistory: VoteResult[]) =>
-        [result as VoteResult, ...prevHistory].slice(0, 10),
-      );
-
-      refetch();
-      fetchVoteHistory();
-    } catch (err: unknown) {
-      const error = err instanceof Error ? err : new Error(String(err));
-      console.error("Failed to broadcast custom query:", error);
-    }
-  };
+  const { broadcastQuery } = useBroadcastQuery(
+    setVoteHistory,
+    setLastVoteResult,
+    refetch,
+    fetchVoteHistory,
+  );
 
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null;
@@ -133,7 +119,7 @@ const Explorer: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <CustomQueryForm
-          onSubmit={handleCustomQuery}
+          onSubmit={broadcastQuery}
           isOpen={showCustomQuery}
           onToggle={() => setShowCustomQuery(!showCustomQuery)}
         />
