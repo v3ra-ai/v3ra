@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { NetworkStats } from "@/components/network-stats";
 import { ValidatorList } from "@/components/validator-list";
 import { VoteHistory } from "@/components/vote-history";
@@ -13,6 +13,7 @@ import { ValidatorAdmin } from "@/components/validator-admin";
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
+import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import type { VoteResult, Validator } from "@/lib/types";
 
 const Explorer: React.FC = () => {
@@ -31,22 +32,11 @@ const Explorer: React.FC = () => {
     fetchVoteHistory,
   );
 
-  useEffect(() => {
-    let intervalId: NodeJS.Timeout | null = null;
-
-    if (autoRefresh) {
-      intervalId = setInterval(() => {
-        refetch();
-        fetchVoteHistory();
-      }, 5000);
-    }
-
-    return () => {
-      if (intervalId) {
-        clearInterval(intervalId);
-      }
-    };
-  }, [autoRefresh, refetch, fetchVoteHistory]);
+  useAutoRefresh({
+    isEnabled: autoRefresh,
+    intervalMs: 5000,
+    fetchFunctions: [refetch, fetchVoteHistory],
+  });
 
   if (isLoading) {
     return (
@@ -151,7 +141,9 @@ const Explorer: React.FC = () => {
             </div>
             <div className="p-6">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <NetworkStats networkState={networkState} />
+                <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+                  <NetworkStats networkState={networkState} />
+                </div>
 
                 <div className="col-span-2">
                   <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3">
