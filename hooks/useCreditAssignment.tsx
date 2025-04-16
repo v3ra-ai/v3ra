@@ -3,7 +3,8 @@
 
 import { useState, useCallback } from "react";
 import { toast } from "sonner";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
+import { CREDIT_PRICE_SOL } from "../lib/solana-constants";
 
 interface CreditAssignment {
   assignCredits: (
@@ -26,6 +27,28 @@ export const useCreditAssignment = (): CreditAssignment => {
       setError(null);
 
       try {
+        // Find SystemProgram.transfer instruction
+        const transferInstruction = signedTx.instructions.find(
+          (instr) => instr.programId.equals(SystemProgram.programId),
+        );
+        if (!transferInstruction) {
+          throw new Error("No SystemProgram.transfer instruction found");
+        }
+
+        // Safely read lamports (data should be at least 12 bytes: 4 for instruction, 8 for lamports)
+        if (transferInstruction.data.length < 12) {
+          throw new Error("Invalid instruction data: too short to contain lamports");
+        }
+        const lamports = transferInstruction.data.readBigInt64LE(4); // Lamports at offset 4
+        const expectedLamports = BigInt(credits * CREDIT_PRICE_SOL * 1_000_000_000);
+        console.log("Validating transaction:", { lamports, expectedLamports, credits });
+
+        if (lamports !== expectedLamports) {
+          throw new Error(
+            `Invalid amount: expected ${expectedLamports} lamports, got ${lamports}`,
+          );
+        }
+
         const response = await fetch("/api/payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },

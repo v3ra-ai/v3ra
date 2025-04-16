@@ -1,4 +1,4 @@
-// hooks/use-solana-transaction.ts
+// hooks/useSolanaTransaction.ts
 import { useState, useCallback } from "react";
 import {
   PublicKey,
@@ -11,7 +11,7 @@ import { connection } from "../lib/solana-constants";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 
 interface TransactionResult {
-  sendTransaction: (credits: number, destination: PublicKey) => Promise<void>;
+  sendTransaction: (credits: number, destination: PublicKey) => Promise<{ signature: string; signedTx: Transaction }>;
   isSending: boolean;
   error: string | null;
   signature: string | null;
@@ -31,7 +31,7 @@ export const useSolanaTransaction = (
     async (credits: number, destination: PublicKey) => {
       if (!publicKey || !signTransaction) {
         setError("Wallet not connected or cannot sign");
-        return;
+        throw new Error("Wallet not connected or cannot sign");
       }
 
       setIsSending(true);
@@ -104,7 +104,7 @@ export const useSolanaTransaction = (
           setSignature(sig);
           setSignedTx(signed);
           setIsSending(false);
-          return;
+          return { signature: sig, signedTx: signed };
         } catch (err) {
           lastError = err;
           if (err instanceof SendTransactionError) {

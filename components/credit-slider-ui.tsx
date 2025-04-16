@@ -1,5 +1,6 @@
 // components/credit-slider-ui.tsx
 import * as Slider from "@radix-ui/react-slider";
+import { Square } from "lucide-react";
 
 interface CreditSliderUIProps {
   creditAmount: number;
@@ -72,17 +73,27 @@ export default function CreditSliderUI({
       </p>
       <button
         onClick={onPay}
-        disabled={isLoading || (!isWalletConnected ? false : !isValid || !hasEnoughSol)}
+        disabled={isLoading || creditAmount === 0 || (!isWalletConnected ? false : !isValid || !hasEnoughSol)}
         className={`w-full py-2 px-4 rounded-md font-medium text-white ${
-          isLoading || (!isWalletConnected ? false : !isValid || !hasEnoughSol)
+          isLoading || creditAmount === 0 || (!isWalletConnected ? false : !isValid || !hasEnoughSol)
             ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
             : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
         }`}
       >
-        {isLoading ? "Processing..." : isWalletConnected ? "Pay Now" : "Connect Wallet"}
+        {isLoading
+          ? "Processing..."
+          : creditAmount === 0
+            ? "Select Credits"
+            : isWalletConnected
+              ? "Pay Now"
+              : "Connect Wallet"}
       </button>
       {isWalletConnected && (
-        <div className="text-center mt-2">
+        <div className="text-center mt-2 flex items-center justify-center gap-2">
+          <Square
+            className="h-4 w-4"
+            fill={isWalletConnected ? "#22c55e" : "#ef4444"}
+          />
           <button
             onClick={onChangeWallet}
             className="text-sm text-blue-500 dark:text-blue-400 hover:underline"
