@@ -3,7 +3,7 @@
 import React from "react";
 import Link from "next/link";
 import { VoteResult, Validator } from "@/lib/types";
-import { ValidatorProfile } from "./validator-profile";
+import { ValidatorProfile } from "@/components/validator-profile";
 
 interface VoteHistoryProps {
   voteHistory: VoteResult[];

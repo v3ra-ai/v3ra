@@ -2,10 +2,10 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ToggleHeader } from "./explorer/toggle-header";
-import { QueryInput } from "./explorer/query-input";
-import { PaymentControls } from "./explorer/payment-controls";
-import { SubmitButton } from "./explorer/submit-button";
+import { ToggleHeader } from "@/components/explorer/toggle-header";
+import { QueryInput } from "@/components/explorer/query-input";
+import { PaymentControls } from "@/components/explorer/payment-controls";
+import { SubmitButton } from "@/components/explorer/submit-button";
 
 interface CustomQueryFormProps {
   onSubmit: (query: string) => Promise<void>;

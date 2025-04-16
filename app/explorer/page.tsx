@@ -2,14 +2,17 @@
 
 import React, { useState } from "react";
 import { NetworkStats } from "@/components/network-stats";
-import { ValidatorList } from "@/components/validator-list";
-import { VoteHistory } from "@/components/vote-history";
-import { VoteResults } from "@/components/vote-results";
-import { NetworkVisualization } from "@/components/network-visualization";
-import { ConsensusVisualization } from "@/components/consensus-visualization";
-import { ValidatorDetail } from "@/components/validator-detail";
-import { CustomQueryForm } from "@/components/custom-query-form";
-import { ValidatorAdmin } from "@/components/validator-admin";
+import { ValidatorList } from "@/components/explorer/validator-list";
+import { VoteHistory } from "@/components/explorer/vote-history";
+import { VoteResults } from "@/components/explorer/vote-results";
+import { NetworkVisualization } from "@/components/explorer/network-visualization";
+import { ConsensusVisualization } from "@/components/explorer/consensus-visualization";
+import { ValidatorDetail } from "@/components/explorer/validator-detail";
+import { CustomQueryForm } from "@/components/explorer/custom-query-form";
+import { ValidatorAdmin } from "@/components/explorer/validator-admin";
+import { ExplorerHeader } from "@/components/explorer/explorer-header";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { ErrorDisplay } from "@/components/error-display";
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
@@ -39,73 +42,20 @@ const Explorer: React.FC = () => {
   });
 
   if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
-          <p className="mt-4 text-lg">Loading Verafy Testnet Explorer...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   if (networkError || !networkState) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-lg text-red-500">Failed to load network state</p>
-          <button
-            onClick={refetch}
-            className="mt-4 px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
+    return <ErrorDisplay onRetry={refetch} />;
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-950">
-      <header className="bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-3">
-              <div className="bg-purple-600 text-white rounded-lg p-2 w-10 h-10 flex items-center justify-center text-xl font-bold">
-                V
-              </div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Verafy Explorer
-              </h1>
-            </div>
-            <div className="flex items-center space-x-6">
-              <button
-                onClick={() => setShowValidatorAdmin(true)}
-                className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 transition-colors"
-              >
-                Manage Validators
-              </button>
-              <div className="flex items-center">
-                <input
-                  type="checkbox"
-                  id="auto-refresh"
-                  checked={autoRefresh}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                    setAutoRefresh(e.target.checked)
-                  }
-                  className="mr-2 h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                />
-                <label
-                  htmlFor="auto-refresh"
-                  className="text-sm text-gray-700 dark:text-gray-300"
-                >
-                  Auto-refresh (5s)
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      <ExplorerHeader
+        autoRefresh={autoRefresh}
+        setAutoRefresh={setAutoRefresh}
+        onManageValidators={() => setShowValidatorAdmin(true)}
+      />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <CustomQueryForm

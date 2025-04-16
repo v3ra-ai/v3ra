@@ -1,5 +1,5 @@
 import * as React from "react";
-import { KeyManager } from "./key-manager";
+import { KeyManager } from "@/components/key-manager";
 import { Switch } from "@headlessui/react";
 
 interface Validator {

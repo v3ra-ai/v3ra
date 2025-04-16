@@ -1,6 +1,6 @@
 import React from "react";
 import type { Validator } from "@/lib/types";
-import { ValidatorProfile } from "./validator-profile";
+import { ValidatorProfile } from "@/components/validator-profile";
 
 interface ValidatorListProps {
   validators: Validator[];
