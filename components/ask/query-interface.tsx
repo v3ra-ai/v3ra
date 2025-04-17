@@ -29,8 +29,9 @@ export default function QueryInterface() {
 
   // Constants
   const queryCost = 0.002; // Cost per query in SOL
-  const initialAvailableQueries = 5;
+  const initialAvailableQueries = 10;
   const initialAiQueryAmountRequested = 4;
+  const allowedAmountQueries = 20;
 
   // Calculate costs
   const availableQueries = Math.max(0, initialAvailableQueries-userAiQueryAmountRequested); // Queries left
@@ -44,7 +45,7 @@ export default function QueryInterface() {
   }, []);
 
   const handleQueryAmountChange = (newAmount: number) => {
-    const clampedAmount = Math.max(1, Math.min(10, newAmount));
+    const clampedAmount = Math.max(1, Math.min(allowedAmountQueries, newAmount));
     setUserAiQueryAmountRequested(clampedAmount);
   };
 
@@ -190,7 +191,7 @@ export default function QueryInterface() {
               <Button
                 className="border-gray-300 bg-gray-200 text-gray-700 h-8 w-8 p-0 hover:bg-gray-200 cursor-pointer"
                 onClick={() => handleQueryAmountChange(userAiQueryAmountRequested + 1)}
-                disabled={userAiQueryAmountRequested >= 10}
+                disabled={userAiQueryAmountRequested >= allowedAmountQueries}
               >
                 +
               </Button>
