@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { RefreshCw } from "lucide-react";
@@ -26,6 +26,13 @@ export default function QueryInterface() {
   // Calculate costs
   const queryCost = (queryAmount * 0.025).toFixed(2);
   const solCost = (queryAmount * 0.02).toFixed(2);
+
+  // Initialize totalQueries based on initial queryAmount
+  useEffect(() => {
+    const initialQueryAmount = 4; // Match initial queryAmount
+    const initialTotalQueries = 10 - initialQueryAmount; // 10 - 4 = 6
+    incrementQueries(initialTotalQueries - totalQueries); // Adjust to 6
+  }, []); // Run once on mount
 
   const handleQueryAmountChange = (newAmount: number) => {
     const clampedAmount = Math.max(1, Math.min(10, newAmount));
@@ -53,6 +60,7 @@ export default function QueryInterface() {
         // Handle wallet payment
       }
       decrementQueries(queryAmount);
+      setQueryAmount(0); // Reset queryAmount after submission
       setQuestion(""); // Clear question after submission
     } catch (error) {
       console.error("Submission failed:", error);
