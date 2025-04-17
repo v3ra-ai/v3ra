@@ -34,15 +34,15 @@ export default function QueryInterface() {
   const allowedAmountQueries = 20;
 
   // Calculate costs
-  const availableQueries = Math.max(0, initialAvailableQueries-userAiQueryAmountRequested); // Queries left
+  const availableQueries = Math.max(0, initialAvailableQueries - userAiQueryAmountRequested); // Queries left
   const queriesNeeded = Math.max(0, userAiQueryAmountRequested - initialAvailableQueries); // Queries to pay for
   const costToQuery = (queriesNeeded * queryCost).toFixed(3); // Cost for additional queries
 
-  // Initialize totalQueries to 5
+  // Initialize totalQueries to 10
   useEffect(() => {
     const initialTotalQueries = initialAvailableQueries - initialAiQueryAmountRequested;
     incrementQueries(initialTotalQueries - totalQueries);
-  }, []);
+  }, [incrementQueries, totalQueries]);
 
   const handleQueryAmountChange = (newAmount: number) => {
     const clampedAmount = Math.max(1, Math.min(allowedAmountQueries, newAmount));
@@ -98,11 +98,11 @@ export default function QueryInterface() {
           </button>
         </div>
       </div>
-      <h1 className="text-zinc-900 text-4xl font-bold text-center mb-8">
+      <h1 className="text-zinc-900 dark:text-zinc-200 text-4xl font-bold text-center mb-8 mt-2">
         How can we help you?
       </h1>
 
-      <div className="bg-white rounded-3xl shadow-lg/20 p-6 max-w-4xl mx-auto">
+      <div className="bg-white dark:bg-gray-50 rounded-3xl shadow-lg/20 p-6 max-w-4xl mx-auto">
         {/* Pay with Wallet Toggle */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -248,11 +248,11 @@ export default function QueryInterface() {
       </div>
 
       {/* Footer Text */}
-      <p className="text-center text-gray-700 mt-6 max-w-4xl mx-auto">
+      <p className="text-center text-gray-700 dark:text-gray-300 mt-6 max-w-4xl mx-auto">
         Submit Questions to the network intelligence,{" "}
         <span className="font-medium">(187)</span> will compete to respond.
       </p>
-      <p className="text-center text-gray-700 max-w-4xl mx-auto">
+      <p className="text-center text-gray-700 dark:text-gray-300 max-w-4xl mx-auto">
         Stake to unlock more queries and earn{" "}
         <span className="font-medium">11%</span> yield
       </p>

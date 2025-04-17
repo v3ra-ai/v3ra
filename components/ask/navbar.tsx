@@ -1,16 +1,14 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 
 export default function Navbar() {
-
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme } = useTheme(); // Ensure setTheme is destructured
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
@@ -21,24 +19,31 @@ export default function Navbar() {
 
   // Toggle between light and dark themes
   const toggleTheme = () => {
+    console.log("Toggling theme from", theme); // Debug log
     setTheme(theme === "light" ? "dark" : "light");
   };
 
   // Disable toggle on /credits due to forced light theme
   const isCreditsPage = pathname === "/credits";
 
+  // Select logo based on theme
+  const logoSrc = mounted
+    ? theme === "dark"
+      ? "/verafy_logo_white.svg"
+      : "/verafy_logo_black.svg"
+    : "/verafy_logo_black.svg"; // Default to black logo before mounting
+
   return (
     <div className="w-full dark:bg-zinc-900">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/" className="flex items-center">
-            <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
-              VERAFY
-            </span>
-            <span className="text-xl font-normal text-teal-500 ml-2">
-              SWARM EXPLORER
-            </span>
+          <Link href="/ask" className="flex items-center cursor-pointer">
+            <img
+              src={logoSrc}
+              alt="Verafy Logo"
+              className="h-8 w-auto"
+            />
           </Link>
         </div>
 
@@ -72,8 +77,6 @@ export default function Navbar() {
 
         {/* Right Side - Theme Toggle, Login, Connect Wallet */}
         <div className="flex items-center space-x-4">
-
-
           <Link
             href="/login"
             className="text-gray-800 font-medium dark:text-gray-200"
@@ -81,9 +84,19 @@ export default function Navbar() {
             Login
           </Link>
 
-          <Button className="bg-teal-500 hover:bg-teal-600 text-white rounded-full px-4 py-2 dark:bg-teal-600 dark:hover:bg-teal-700">
-            Connect to Wallet
-          </Button>
+          <WalletMultiButton
+            style={{
+              backgroundColor: "#2dd4bf",
+              color: "#fff",
+              padding: "10px 12px",
+              borderRadius: "0.375rem",
+              fontSize: "0.95rem",
+              fontWeight: "normal",
+              height: "2rem",
+              margin: "0 0rem",
+              border: "1px solid #d1d5db",
+            }}
+          />
 
           {mounted && (
             <button
@@ -102,8 +115,6 @@ export default function Navbar() {
           )}
         </div>
       </div>
-
-
     </div>
   );
 }

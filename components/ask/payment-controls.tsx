@@ -92,7 +92,7 @@ export function PaymentControls({ hasPaid, setHasPaid, solCost, totalQueries, us
             onClick={handlePayment}
             disabled={!publicKey || hasPaid || isProcessing || totalQueries >= userAiQueryAmountRequested}
             className={`px-4 py-[6px] rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center text-sm border ${
-              !publicKey || hasPaid || isProcessing || totalQueries >= userAiQueryAmountRequested
+              !publicKey || hasPaid || isProcessing || solCost == 0
                 ? "bg-gray-200 text-zinc-900 cursor-not-allowed"
                 : "bg-blue-500 text-white hover:bg-blue-500 cursor-pointer"
             }`}
