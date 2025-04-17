@@ -56,10 +56,10 @@ export default function Navbar() {
             Home
           </Link>
           <Link
-            href="/how-it-works"
+            href="/explorer"
             className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
           >
-            How it works
+            Explorer
           </Link>
           <Link
             href="/become-validator"

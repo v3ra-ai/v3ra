@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { Sun, Moon } from "lucide-react";
+import Link from "next/link";
 
 interface ExplorerHeaderProps {
   title?: string;
@@ -50,6 +51,12 @@ export function ExplorerHeader({
             </h1>
           </div>
           <div className="flex items-center space-x-6">
+          <Link
+            href="/ask/"
+            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
+          >
+            Ask
+          </Link>
             <button
               onClick={onManageValidators}
               className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
