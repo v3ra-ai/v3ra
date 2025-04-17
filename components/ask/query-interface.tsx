@@ -26,6 +26,7 @@ export default function QueryInterface() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<"standard" | "expert">("standard");
   const [hasPaid, setHasPaid] = useState(false); // New state for payment status
+  const [placeholderText, setPlaceholderText] = useState<string>("Ask the validator network a yes/no question");
 
   // Constants
   const queryCost = 0.002; // Cost per query in SOL
@@ -54,6 +55,26 @@ export default function QueryInterface() {
       }
     }
   }, []);
+
+  // Update placeholder text based on queryMode
+  useEffect(() => {
+    switch (queryMode) {
+      case "factCheck":
+        setPlaceholderText("Ask the validator network a yes/no question");
+        break;
+      case "shop":
+        setPlaceholderText("Find me the best deals on sneakers");
+        break;
+      case "predict":
+        setPlaceholderText("What will the weather be like tomorrow?");
+        break;
+      case "create":
+        setPlaceholderText("Generate a short story about a robot");
+        break;
+      default:
+        setPlaceholderText("Ask the validator network a yes/no question");
+    }
+  }, [queryMode]);
 
   const handleQueryAmountChange = (newAmount: number) => {
     const clampedAmount = Math.max(1, Math.min(allowedAmountQueries, newAmount));
@@ -143,12 +164,12 @@ export default function QueryInterface() {
 
         {/* Question Input */}
         <div className="mb-8">
-        <textarea
-  className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-600 dark:placeholder-gray-500 text-lg"
-  placeholder="Ask the validator network a yes/no question"
-  value={question}
-  onChange={(e) => setQuestion(e.target.value)}
-/>
+          <textarea
+            className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-600 dark:placeholder-gray-500 text-lg"
+            placeholder={placeholderText}
+            value={question}
+            onChange={(e) => setQuestion(e.target.value)}
+          />
         </div>
 
         {/* Controls */}
