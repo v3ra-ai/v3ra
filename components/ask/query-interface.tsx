@@ -130,7 +130,7 @@ export default function QueryInterface() {
           </button>
         </div>
       </div>
-      <h1 className="text-zinc-900 dark:text-zinc-200 text-3xl font-bold text-center mb-8 mt-2">
+      <h1 className="text-zinc-900 dark:text-zinc-200 text-2xl font-bold text-center mb-8 mt-2">
         How can we help you?
       </h1>
 
