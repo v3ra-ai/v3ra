@@ -44,6 +44,17 @@ export default function QueryInterface() {
     incrementQueries(initialTotalQueries - totalQueries);
   }, [incrementQueries, totalQueries]);
 
+  // Set queryMode based on URL query string
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      if (q === "shop") {
+        setQueryMode("shop");
+      }
+    }
+  }, []);
+
   const handleQueryAmountChange = (newAmount: number) => {
     const clampedAmount = Math.max(1, Math.min(allowedAmountQueries, newAmount));
     setUserAiQueryAmountRequested(clampedAmount);
