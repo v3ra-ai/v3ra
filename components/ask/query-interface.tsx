@@ -15,7 +15,7 @@ import Link from "next/link";
 import { PaymentControls } from "@/components/ask/payment-controls"; // Adjust path as needed
 
 // Define QueryMode type
-type QueryMode = "factCheck" | "predict" | "create";
+type QueryMode = "factCheck" | "predict" | "create" | "shop";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
@@ -152,10 +152,18 @@ export default function QueryInterface() {
                     ? "Predict"
                     : queryMode === "create"
                     ? "Create"
+                    : queryMode === "shop"
+                    ? "Shop"
                     : "Fact Check"}
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent className="bg-black border-gray-300">
+                <DropdownMenuItem
+                  className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+                  onSelect={() => setQueryMode("shop")}
+                >
+                  Shop
+                </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
                   onSelect={() => setQueryMode("predict")}
