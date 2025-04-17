@@ -143,12 +143,12 @@ export default function QueryInterface() {
 
         {/* Question Input */}
         <div className="mb-8">
-          <textarea
-            className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 placeholder-gray-400"
-            placeholder="Ask the validator network a yes/no question"
-            value={question}
-            onChange={(e) => setQuestion(e.target.value)}
-          />
+        <textarea
+  className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-600 dark:placeholder-gray-500 text-lg"
+  placeholder="Ask the validator network a yes/no question"
+  value={question}
+  onChange={(e) => setQuestion(e.target.value)}
+/>
         </div>
 
         {/* Controls */}
