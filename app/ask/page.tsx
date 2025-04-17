@@ -1,6 +1,6 @@
 import Navbar from "@/components/ask/navbar";
 import QueryInterface from "@/components/ask/query-interface";
-import { SolanaProvider } from "../../components/solana-provider";
+import { SolanaProvider } from "@/components/solana-provider";
 
 export default function Home() {
   return (

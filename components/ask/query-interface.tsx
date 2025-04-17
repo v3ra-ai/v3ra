@@ -11,60 +11,58 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQueryStore } from "@/store/query-store";
-import Link from 'next/link'
-
+import Link from "next/link";
+import { PaymentControls } from "@/components/ask/payment-controls"; // Adjust path as needed
 
 // Define QueryMode type
 type QueryMode = "factCheck" | "predict" | "create";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
-  const [queryAmount, setQueryAmount] = useState<number>(4);
+  const [userAiQueryAmountRequested, setUserAiQueryAmountRequested] = useState<number>(4);
   const { totalQueries, decrementQueries, incrementQueries } = useQueryStore();
   const [queryMode, setQueryMode] = useState<QueryMode>("factCheck");
   const [question, setQuestion] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<"standard" | "expert">("standard");
+  const [hasPaid, setHasPaid] = useState(false); // New state for payment status
+
+  // Constants
+  const queryCost = 0.002; // Cost per query in SOL
+  const initialAvailableQueries = 5;
+  const initialAiQueryAmountRequested = 4;
 
   // Calculate costs
-  const queryCost = (queryAmount * 0.0025).toFixed(2);
-  const solCost = (queryAmount * 0.002).toFixed(2);
+  const availableQueries = Math.max(0, initialAvailableQueries-userAiQueryAmountRequested); // Queries left
+  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - initialAvailableQueries); // Queries to pay for
+  const costToQuery = (queriesNeeded * queryCost).toFixed(3); // Cost for additional queries
 
-  // Initialize totalQueries based on initial queryAmount
+  // Initialize totalQueries to 5
   useEffect(() => {
-    const initialQueryAmount = 4; // Match initial queryAmount
-    const initialTotalQueries = 10 - initialQueryAmount; // 10 - 4 = 6
-    incrementQueries(initialTotalQueries - totalQueries); // Adjust to 6
-  }, []); // Run once on mount
+    const initialTotalQueries = initialAvailableQueries - initialAiQueryAmountRequested;
+    incrementQueries(initialTotalQueries - totalQueries);
+  }, []);
 
   const handleQueryAmountChange = (newAmount: number) => {
     const clampedAmount = Math.max(1, Math.min(10, newAmount));
-    const difference = clampedAmount - queryAmount;
-
-    if (difference > 0 && totalQueries >= difference) {
-      // Incrementing queryAmount, decrement totalQueries
-      decrementQueries(difference);
-      setQueryAmount(clampedAmount);
-    } else if (difference < 0) {
-      // Decrementing queryAmount, increment totalQueries
-      incrementQueries(-difference);
-      setQueryAmount(clampedAmount);
-    }
+    setUserAiQueryAmountRequested(clampedAmount);
   };
 
   const handleSubmit = async () => {
-    if (!question.trim() || totalQueries < queryAmount) return;
+    if (!question.trim()) return;
+    if (userAiQueryAmountRequested > totalQueries && payWithWallet && !hasPaid) return; // Prevent submission if payment is required but not made
+    if (totalQueries > 0 && totalQueries < userAiQueryAmountRequested) return; // Prevent submission if not enough queries
 
     setIsSubmitting(true);
     try {
       // Implement your submit logic here
-      // For example: await submitQuery({ question, queryMode, queryAmount, payWithWallet });
-      if (payWithWallet) {
-        // Handle wallet payment
+      if (payWithWallet && userAiQueryAmountRequested > totalQueries) {
+        // Payment was required and made
       }
-      decrementQueries(queryAmount);
-      setQueryAmount(0); // Reset queryAmount after submission
-      setQuestion(""); // Clear question after submission
+      decrementQueries(userAiQueryAmountRequested);
+      setUserAiQueryAmountRequested(initialAiQueryAmountRequested);
+      setQuestion("");
+      setHasPaid(false); // Reset payment status after submission
     } catch (error) {
       console.error("Submission failed:", error);
     } finally {
@@ -113,9 +111,19 @@ export default function QueryInterface() {
               className="switch data-[state=checked]:bg-[#46BBA6]"
             />
             <span className="font-medium text-gray-500">
-              Pay with Wallet ({solCost} SOL)
+              Pay with Wallet ({costToQuery} SOL)
             </span>
+            {payWithWallet && (
+              <PaymentControls
+                hasPaid={hasPaid}
+                setHasPaid={setHasPaid}
+                solCost={parseFloat(costToQuery)} // Pass costToQuery as a number
+                totalQueries={totalQueries} // Pass totalQueries
+                userAiQueryAmountRequested={userAiQueryAmountRequested} // Pass userAiQueryAmountRequested
+              />
+            )}
           </div>
+
           <Button variant="ghost" className="text-gray-500">
             <RefreshCw size={20} />
           </Button>
@@ -171,33 +179,39 @@ export default function QueryInterface() {
             <div className="flex items-center gap-2 bg-white rounded-md">
               <Button
                 className="border-gray-300 bg-gray-200 text-gray-700 h-8 w-8 p-0 hover:bg-gray-200 cursor-pointer"
-                onClick={() => handleQueryAmountChange(queryAmount - 1)}
-                disabled={queryAmount <= 1}
+                onClick={() => handleQueryAmountChange(userAiQueryAmountRequested - 1)}
+                disabled={userAiQueryAmountRequested <= 1}
               >
                 -
               </Button>
               <div className="border border-gray-300 text-gray-700 px-4 py-1 rounded-md min-w-[60px] text-center bg-white">
-                {queryAmount}
+                {userAiQueryAmountRequested}
               </div>
               <Button
                 className="border-gray-300 bg-gray-200 text-gray-700 h-8 w-8 p-0 hover:bg-gray-200 cursor-pointer"
-                onClick={() => handleQueryAmountChange(queryAmount + 1)}
-                disabled={queryAmount >= 10 || totalQueries === 0}
+                onClick={() => handleQueryAmountChange(userAiQueryAmountRequested + 1)}
+                disabled={userAiQueryAmountRequested >= 10}
               >
                 +
               </Button>
             </div>
 
-            <span className="text-gray-500">AIs will be queried</span>
+            <span className="text-gray-500">AIs queried</span>
           </div>
 
-          <Button
-            className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer"
-            onClick={handleSubmit}
-            disabled={isSubmitting || !question.trim() || totalQueries < queryAmount}
-          >
-            {isSubmitting ? "Submitting..." : "Submit"}
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button
+              className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer"
+              onClick={handleSubmit}
+              disabled={
+                isSubmitting ||
+                !question.trim() ||
+                (totalQueries > 0 && totalQueries < userAiQueryAmountRequested && (!payWithWallet || !hasPaid))
+              }
+            >
+              {isSubmitting ? "Submitting..." : "Submit"}
+            </Button>
+          </div>
         </div>
 
         {/* Stats */}
@@ -205,29 +219,29 @@ export default function QueryInterface() {
           <div className="flex items-center gap-2">
             <span className="text-gray-700">Queries left</span>
             <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700">
-              {totalQueries}
+              {availableQueries}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            <span className="text-gray-700">Cost to query: ({queryAmount})</span>
+            <span className="text-gray-700">Cost to query: ({queriesNeeded})</span>
             <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700">
-              {queryCost} SOL
+              {costToQuery} SOL
             </span>
           </div>
           <Link href="/credits">
-          <Button
-            className="rounded-md bg-gray-100 border border-gray-300 pl-2 py-1 text-gray-700 hover:bg-gray-50 cursor-pointer"
-          >
-            Stake to get more
-          </Button>
+            <Button
+              className="rounded-md bg-gray-100 border border-gray-300 pl-2 py-1 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            >
+              Stake to get more
+            </Button>
           </Link>
           <Link href="/credits">
-          <Button
-            className="rounded-md bg-gray-100 border border-gray-300 pl-2 py-1 text-gray-700 hover:bg-gray-50 cursor-pointer"
-          >
-           Buy Credits
-          </Button>
+            <Button
+              className="rounded-md bg-gray-100 border border-gray-300 pl-2 py-1 text-gray-700 hover:bg-gray-50 cursor-pointer"
+            >
+              Buy Credits
+            </Button>
           </Link>
         </div>
       </div>
