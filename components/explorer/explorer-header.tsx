@@ -57,6 +57,12 @@ export function ExplorerHeader({
           >
             Ask
           </Link>
+          <Link
+            href="/ask/?q=shop"
+            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
+          >
+            Shop
+          </Link>
             <button
               onClick={onManageValidators}
               className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"

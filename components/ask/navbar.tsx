@@ -73,6 +73,12 @@ export default function Navbar() {
           >
             Stake
           </Link>
+          <Link
+            href="/ask/?q=shop"
+            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
+          >
+            Shop
+          </Link>
         </div>
 
         {/* Right Side - Theme Toggle, Login, Connect Wallet */}
