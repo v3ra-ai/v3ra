@@ -76,6 +76,15 @@ export default function QueryInterface() {
     }
   }, [queryMode]);
 
+  // Automatically toggle payWithWallet based on queriesNeeded
+  useEffect(() => {
+    if (queriesNeeded > 0) {
+      setPayWithWallet(true);
+    } else {
+      setPayWithWallet(false);
+    }
+  }, [queriesNeeded]);
+
   const handleQueryAmountChange = (newAmount: number) => {
     const clampedAmount = Math.max(1, Math.min(allowedAmountQueries, newAmount));
     setUserAiQueryAmountRequested(clampedAmount);
