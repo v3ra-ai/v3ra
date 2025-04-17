@@ -11,6 +11,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useQueryStore } from "@/store/query-store";
+import Link from 'next/link'
+
 
 // Define QueryMode type
 type QueryMode = "factCheck" | "predict" | "create";
@@ -22,10 +24,11 @@ export default function QueryInterface() {
   const [queryMode, setQueryMode] = useState<QueryMode>("factCheck");
   const [question, setQuestion] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mode, setMode] = useState<"standard" | "expert">("standard");
 
   // Calculate costs
-  const queryCost = (queryAmount * 0.025).toFixed(2);
-  const solCost = (queryAmount * 0.02).toFixed(2);
+  const queryCost = (queryAmount * 0.0025).toFixed(2);
+  const solCost = (queryAmount * 0.002).toFixed(2);
 
   // Initialize totalQueries based on initial queryAmount
   useEffect(() => {
@@ -71,11 +74,36 @@ export default function QueryInterface() {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Mode Toggle */}
+      <div className="container mx-auto px-4 flex justify-center mt-1 mb-2">
+        <div className="inline-flex items-center bg-gray-100 rounded-full p-1 dark:bg-gray-700">
+          <button
+            onClick={() => setMode("standard")}
+            className={`px-4 py-1 rounded-full text-sm cursor-pointer ${
+              mode === "standard"
+                ? "bg-white shadow-sm text-gray-500 dark:bg-gray-600 dark:text-gray-200"
+                : "text-gray-500 dark:text-gray-300"
+            }`}
+          >
+            Standard
+          </button>
+          <button
+            onClick={() => setMode("expert")}
+            className={`px-4 py-1 rounded-full text-sm cursor-pointer ${
+              mode === "expert"
+                ? "bg-white shadow-sm text-gray-500 dark:bg-gray-600 dark:text-gray-200"
+                : "text-gray-500 dark:text-gray-300"
+            }`}
+          >
+            Expert
+          </button>
+        </div>
+      </div>
       <h1 className="text-zinc-900 text-4xl font-bold text-center mb-8">
         How can we help you?
       </h1>
 
-      <div className="bg-white rounded-3xl shadow-lg p-6 max-w-4xl mx-auto">
+      <div className="bg-white rounded-3xl shadow-lg/20 p-6 max-w-4xl mx-auto">
         {/* Pay with Wallet Toggle */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -160,11 +188,11 @@ export default function QueryInterface() {
               </Button>
             </div>
 
-            <span className="text-gray-500">AI will be queried</span>
+            <span className="text-gray-500">AIs will be queried</span>
           </div>
 
           <Button
-            className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2"
+            className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer"
             onClick={handleSubmit}
             disabled={isSubmitting || !question.trim() || totalQueries < queryAmount}
           >
@@ -184,15 +212,23 @@ export default function QueryInterface() {
           <div className="flex items-center gap-2">
             <span className="text-gray-700">Cost to query: ({queryAmount})</span>
             <span className="bg-gray-100 px-3 py-1 rounded-full text-gray-700">
-              ${queryCost}
+              {queryCost} SOL
             </span>
           </div>
-
+          <Link href="/credits">
           <Button
-            className="rounded-md bg-gray-100 border border-gray-300 px-4 py-1 text-gray-700 hover:bg-gray-50"
+            className="rounded-md bg-gray-100 border border-gray-300 pl-2 py-1 text-gray-700 hover:bg-gray-50 cursor-pointer"
           >
             Stake to get more
           </Button>
+          </Link>
+          <Link href="/credits">
+          <Button
+            className="rounded-md bg-gray-100 border border-gray-300 pl-2 py-1 text-gray-700 hover:bg-gray-50 cursor-pointer"
+          >
+           Buy Credits
+          </Button>
+          </Link>
         </div>
       </div>
 
