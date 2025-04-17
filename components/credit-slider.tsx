@@ -4,11 +4,11 @@
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import CreditSliderUI from "./credit-slider-ui";
-import { useSolanaWallet } from "../hooks/useSolanaWallet";
-import { useSolanaTransaction } from "../hooks/useSolanaTransaction";
-import { useCreditAssignment } from "../hooks/useCreditAssignment";
-import { useCreditBalance } from "../hooks/useCreditBalance";
-import { VERAFY_WALLET, CREDIT_PRICE_SOL } from "../lib/solana-constants";
+import { useSolanaWallet } from "@/hooks/useSolanaWallet";
+import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
+import { useCreditAssignment } from "@/hooks/useCreditAssignment";
+import { useCreditBalance } from "@/hooks/useCreditBalance";
+import { VERAFY_WALLET, CREDIT_PRICE_SOL } from "@/lib/solana-constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey } from "@solana/web3.js"; // Added import
@@ -16,18 +16,25 @@ import { PublicKey } from "@solana/web3.js"; // Added import
 export default function CreditSlider() {
   const [creditAmount, setCreditAmount] = useState(10);
   const { creditBalance, setCreditBalance } = useCreditBalance();
-  const { publicKey, signTransaction, solBalance, isWalletConnected } = useSolanaWallet();
-  const { sendTransaction, isSending, error: txError } = useSolanaTransaction(
-    publicKey,
-    signTransaction,
-  );
-  const { assignCredits, isAssigning, error: assignError } = useCreditAssignment();
+  const { publicKey, signTransaction, solBalance, isWalletConnected } =
+    useSolanaWallet();
+  const {
+    sendTransaction,
+    isSending,
+    error: txError,
+  } = useSolanaTransaction(publicKey, signTransaction);
+  const {
+    assignCredits,
+    isAssigning,
+    error: assignError,
+  } = useCreditAssignment();
   const { setVisible } = useWalletModal();
   const { disconnect } = useWallet();
 
   const requiredSol = creditAmount * CREDIT_PRICE_SOL;
   const hasEnoughSol = solBalance >= requiredSol;
-  const isValid = creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
+  const isValid =
+    creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
 
   const handlePayment = useCallback(async () => {
     if (!isWalletConnected) {
@@ -39,7 +46,9 @@ export default function CreditSlider() {
       return;
     }
     if (!hasEnoughSol) {
-      toast.error(`Insufficient SOL: Need ${requiredSol.toFixed(3)}, have ${solBalance.toFixed(3)}`);
+      toast.error(
+        `Insufficient SOL: Need ${requiredSol.toFixed(3)}, have ${solBalance.toFixed(3)}`,
+      );
       return;
     }
     if (!publicKey || !signTransaction) {
@@ -48,9 +57,14 @@ export default function CreditSlider() {
     }
 
     const attemptTransaction = async (attempt: number): Promise<boolean> => {
-      console.log(`Attempt ${attempt}: Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`);
+      console.log(
+        `Attempt ${attempt}: Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`,
+      );
       try {
-        const result = await sendTransaction(creditAmount, new PublicKey(VERAFY_WALLET));
+        const result = await sendTransaction(
+          creditAmount,
+          new PublicKey(VERAFY_WALLET),
+        );
         console.log("Transaction data:", {
           signature: result.signature,
           signedTx: result.signedTx ? "Transaction" : "null",
@@ -58,7 +72,10 @@ export default function CreditSlider() {
         });
 
         if (result.signature && result.signedTx && publicKey) {
-          console.log("Transaction sent, assigning credits with signature:", result.signature);
+          console.log(
+            "Transaction sent, assigning credits with signature:",
+            result.signature,
+          );
           const newBalance = await assignCredits(
             result.signature,
             result.signedTx,

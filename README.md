@@ -134,6 +134,7 @@ If you want to use the local database instead of the rmote, change the .env file
 #### 9. **Run Prisma Setup**:
 
 - Sync the schema with Supabase:
+
   ```bash
   npx prisma db push --schema prisma/schema.prisma
   ```
@@ -179,7 +180,6 @@ There are some weird things I've run into with Prisma, be aware of them so you d
 8. We need to generate types with: `npx prisma generate`
 9. If they do not update go into `node_modules/.prisma` and remove or rename `index.d.ts` and `index.js`
 10. Do `npx prisma generate` again, it should fix it.
-
 
 ---
 
@@ -312,7 +312,7 @@ curl -X POST -H "Content-Type: application/json" -d '{"queryText":"Is the sky bl
     Inbucket URL: http://127.0.0.1:54324
 ```
 
----------
+---
 
 ### Linting and Prettifying
 
@@ -331,7 +331,6 @@ Prettier: https://prettier.io/docs/
 
 Examples:
 
-
 Using the npm script above:
 
 ```bash
@@ -344,7 +343,6 @@ Without npm:
 ```bash
 npx prettier --write "**/*.{js,ts,tsx,css,json,md}"
 ```
-
 
 **Default Settings:** If you later want custom settings (e.g., 4-space indentation), add a .`prettierrc` file:
 
@@ -716,7 +714,6 @@ brew unlink postgresql@14
 brew link postgresql@15 --force
 ```
 
-
 ## Troubleshooting and Testing
 
 ⚠️ IMPORTANT: Make sure the app is running locally `npm run dev`. Also, if testing local data (not remote) then make sure that is in the .env and/or available for what you need.
@@ -772,7 +769,6 @@ Broadcast: 200 {
 If you get "undefined" for several or all tests, it may mean your app is not running.
 
 ### Manual Testing
-
 
 #### Test directory
 
@@ -848,10 +844,9 @@ Expected: `{"error":"Query text is required"} `(add this check if missing).
 
 Expected: `{"validators":[...],"currentLeaderIndex":X,"isVoting":false,...} `(depends on implementation).
 
-
 #### Credits
 
-* ⚠️ note: You must input a valid wallet public key for this to work in the spot where it says: "your-test-public-key""
+- ⚠️ note: You must input a valid wallet public key for this to work in the spot where it says: "your-test-public-key""
 
 ```bash
 curl -X POST http://localhost:3000/api/credits/assign \
@@ -859,14 +854,13 @@ curl -X POST http://localhost:3000/api/credits/assign \
 -d '{"walletPublicKey":"your-test-public-key","creditAmount":10,"email":"test@example.com"}'
 ```
 
-
+---
 
 ---
-------------------------------------
+
 ## Diagnostics
 
 ### Supabase Diagnostics
-
 
 | name                   | title                  | level | facing   | categories      | description                                                                                         | detail                                                                                                                                                  | remediation                                                                                | metadata                                                                                                             | cache_key                                                                    |
 | ---------------------- | ---------------------- | ----- | -------- | --------------- | --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |

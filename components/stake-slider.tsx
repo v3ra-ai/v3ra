@@ -14,7 +14,9 @@ export default function StakeSlider() {
         Stake for Credits
       </h2>
       <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">{stakeAmount}</span>
+        <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">
+          {stakeAmount}
+        </span>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -48,7 +50,9 @@ export default function StakeSlider() {
           Stake: {stakeSol.toFixed(3)} SOL
         </p>
       </div>
-      <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">Current Staked SOL: 0 SOL</p>
+      <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
+        Current Staked SOL: 0 SOL
+      </p>
       <button
         disabled={true}
         className="w-full py-2 px-4 rounded-md font-medium text-white bg-gray-400 dark:bg-gray-600 cursor-not-allowed"

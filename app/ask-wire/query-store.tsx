@@ -1,5 +1,5 @@
 // app/ask/query-store.ts
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface QueryStore {
   totalQueries: number;

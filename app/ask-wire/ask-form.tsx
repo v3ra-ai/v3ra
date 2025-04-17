@@ -71,7 +71,8 @@ export default function AskForm() {
   return (
     <div className="w-full max-w-3xl">
       <h1 className="text-center text-2xl font-bold text-white mb-6 md:text-3xl">
-        Ask up to <span className="text-[#00FF00]">[92]</span> AI&apos;s a question
+        Ask up to <span className="text-[#00FF00]">[92]</span> AI&apos;s a
+        question
       </h1>
 
       <form onSubmit={handleSubmit}>
@@ -103,7 +104,11 @@ export default function AskForm() {
                           variant="outline"
                           className="border-[#00FF00] text-white hover:bg-[#00FF00]/10 min-w-[100px]"
                         >
-                          {queryMode === "predict" ? "Predict" : queryMode === "create" ? "Create" : "Fact Check"}
+                          {queryMode === "predict"
+                            ? "Predict"
+                            : queryMode === "create"
+                              ? "Create"
+                              : "Fact Check"}
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="bg-black border-[#00FF00]">
@@ -181,7 +186,9 @@ export default function AskForm() {
               <div>
                 Cost to query [{queryAmount}] AI: ${queryCost}
               </div>
-              <div>Queries Left: {totalQueries - queryAmount} (stake to get more)</div>
+              <div>
+                Queries Left: {totalQueries - queryAmount} (stake to get more)
+              </div>
             </div>
           </CardFooter>
         </Card>

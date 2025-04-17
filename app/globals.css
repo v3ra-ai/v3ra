@@ -119,4 +119,13 @@
   body {
     @apply bg-background text-foreground;
   }
+
+  /* In your global CSS or component stylesheet */
+  .switch[data-state="unchecked"] {
+    background-color: #e0e0e0 !important; /* Light gray background */
+  }
+
+  .switch > .switch-thumb {
+    background-color: #666666 !important; /* Darker thumb */
+  }
 }

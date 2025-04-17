@@ -11,7 +11,10 @@ export async function POST(request: Request) {
     // console.log(walletPublicKey);
 
     if (!walletPublicKey) {
-      return NextResponse.json({ error: "Wallet public key is required" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Wallet public key is required" },
+        { status: 400 },
+      );
     }
 
     // Query the UserCredit table for the user's credit balance
@@ -25,7 +28,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ credits }, { status: 200 });
   } catch (error) {
     console.error("Error fetching credit balance:", error);
-    return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Internal server error" },
+      { status: 500 },
+    );
   } finally {
     await prisma.$disconnect();
   }

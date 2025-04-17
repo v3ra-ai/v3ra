@@ -20,11 +20,23 @@ import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import type { VoteResult, Validator } from "@/lib/types";
 
 const Explorer: React.FC = () => {
-  const { networkState, isLoading, error: networkError, refetch } = useNetworkState();
-  const { voteHistory, setVoteHistory, error: voteHistoryError, fetchVoteHistory } = useVoteHistory();
+  const {
+    networkState,
+    isLoading,
+    error: networkError,
+    refetch,
+  } = useNetworkState();
+  const {
+    voteHistory,
+    setVoteHistory,
+    error: voteHistoryError,
+    fetchVoteHistory,
+  } = useVoteHistory();
   const [lastVoteResult, setLastVoteResult] = useState<VoteResult | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
-  const [selectedValidator, setSelectedValidator] = useState<Validator | null>(null);
+  const [selectedValidator, setSelectedValidator] = useState<Validator | null>(
+    null,
+  );
   const [showCustomQuery, setShowCustomQuery] = useState(true);
   const [showValidatorAdmin, setShowValidatorAdmin] = useState(false);
 

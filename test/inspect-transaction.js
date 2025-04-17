@@ -1,19 +1,19 @@
 import { Transaction } from "@solana/web3.js";
-const myBase64Signature = "AVHmktozWz+XOUVtZ3yZvNQHw3j4vW6zneUwHD7V9peny6V5RV1dPMVVIPg8PX0oUmYhAqROVEMDN/UeXDYy0wgBAAEDmPj+nUTXhZyZjZ8F38bqxuAcGK+WaIXhjz/ySG/9z+HimH8B0QmHe6YSyK7u5+VX69sVaaN/QqgTLUuKgEL/ygAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZe+mMlDC44DLZdOsanouYZ2BGNY1L3Ul257K38vtipMBAgIAAQwCAAAAgJaYAAAAAAA="
+const myBase64Signature =
+  "AVHmktozWz+XOUVtZ3yZvNQHw3j4vW6zneUwHD7V9peny6V5RV1dPMVVIPg8PX0oUmYhAqROVEMDN/UeXDYy0wgBAAEDmPj+nUTXhZyZjZ8F38bqxuAcGK+WaIXhjz/ySG/9z+HimH8B0QmHe6YSyK7u5+VX69sVaaN/QqgTLUuKgEL/ygAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAZe+mMlDC44DLZdOsanouYZ2BGNY1L3Ul257K38vtipMBAgIAAQwCAAAAgJaYAAAAAAA=";
 
 const tx = Transaction.from(Buffer.from(myBase64Signature, "base64"));
 
 function isValidBase64Binary(str) {
   try {
-    const buf = Buffer.from(str, 'base64');
+    const buf = Buffer.from(str, "base64");
     // Check if re-encoding the buffer matches the original (ignoring padding)
-    return buf.toString('base64').replace(/=+$/, '') === str.replace(/=+$/, '');
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    return buf.toString("base64").replace(/=+$/, "") === str.replace(/=+$/, "");
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
   } catch (e) {
     return false;
   }
 }
-
 
 console.log(isValidBase64Binary(myBase64Signature)); // true or false
 

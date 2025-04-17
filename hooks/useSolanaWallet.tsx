@@ -2,13 +2,15 @@
 import { useEffect, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, VersionedTransaction } from "@solana/web3.js";
-import { connection } from "../lib/solana-constants";
+import { connection } from "@/lib/solana-constants";
 
 interface SolanaWallet {
   publicKey: PublicKey | null;
-  signTransaction: (<T extends Transaction | VersionedTransaction>(
-    transaction: T,
-  ) => Promise<T>) | null;
+  signTransaction:
+    | (<T extends Transaction | VersionedTransaction>(
+        transaction: T,
+      ) => Promise<T>)
+    | null;
   solBalance: number;
   isWalletConnected: boolean;
 }

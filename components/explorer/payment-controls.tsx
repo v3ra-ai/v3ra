@@ -2,7 +2,12 @@
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
-import { PublicKey, Transaction, SystemProgram, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  PublicKey,
+  Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
+} from "@solana/web3.js";
 import { useState } from "react";
 import { Loader2 } from "lucide-react"; // For loading animation
 import { toast } from "sonner"; // Sonner toast for notifications
@@ -17,9 +22,12 @@ export function PaymentControls({ hasPaid, setHasPaid }: PaymentControlsProps) {
   const { publicKey, sendTransaction } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false); // New loading state
 
-  const PAYMENT_RECEIVER_ADDRESS = process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
+  const PAYMENT_RECEIVER_ADDRESS =
+    process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
   if (!PAYMENT_RECEIVER_ADDRESS) {
-    throw new Error("NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS environment variable is not set");
+    throw new Error(
+      "NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS environment variable is not set",
+    );
   }
   const PAYMENT_RECIPIENT = new PublicKey(PAYMENT_RECEIVER_ADDRESS);
   const PAYMENT_AMOUNT = 0.01 * LAMPORTS_PER_SOL;
@@ -39,7 +47,7 @@ export function PaymentControls({ hasPaid, setHasPaid }: PaymentControlsProps) {
           fromPubkey: publicKey,
           toPubkey: PAYMENT_RECIPIENT,
           lamports: PAYMENT_AMOUNT,
-        })
+        }),
       );
 
       const signature = await sendTransaction(transaction, connection);

@@ -22,9 +22,11 @@ if (!VERAFY_WALLET_PUBLIC_KEY) {
 let VERAFY_WALLET: PublicKey;
 try {
   VERAFY_WALLET = new PublicKey(VERAFY_WALLET_PUBLIC_KEY);
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
 } catch (error) {
-  throw new Error("Invalid VERAFY_WALLET_PUBLIC_KEY: must be a valid base58 Solana public key");
+  throw new Error(
+    "Invalid VERAFY_WALLET_PUBLIC_KEY: must be a valid base58 Solana public key",
+  );
 }
 
 // Solana devnet connection
@@ -66,7 +68,11 @@ const paymentSchema = z.object({
 });
 
 // Retry utility
-async function withRetry<T>(fn: () => Promise<T>, maxAttempts: number = 3, delayMs: number = 1000): Promise<T> {
+async function withRetry<T>(
+  fn: () => Promise<T>,
+  maxAttempts: number = 3,
+  delayMs: number = 1000,
+): Promise<T> {
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
@@ -97,7 +103,10 @@ export async function POST(req: NextRequest) {
     const parsedBody = paymentSchema.parse({
       transaction: body.transaction,
       signature: body.signature,
-      credits: typeof body.credits === "string" ? parseInt(body.credits, 10) : body.credits,
+      credits:
+        typeof body.credits === "string"
+          ? parseInt(body.credits, 10)
+          : body.credits,
       userWallet: body.userWallet,
     });
     const { transaction, signature, credits, userWallet } = parsedBody;
@@ -154,7 +163,9 @@ export async function POST(req: NextRequest) {
     }
 
     console.log("Deserialized transaction:", {
-      signatures: tx.signatures.map((sig) => sig.signature?.toString("base64") || "null"),
+      signatures: tx.signatures.map(
+        (sig) => sig.signature?.toString("base64") || "null",
+      ),
       instructions: tx.instructions.map((instr, idx) => ({
         index: idx,
         programId: instr.programId.toBase58(),
@@ -171,14 +182,18 @@ export async function POST(req: NextRequest) {
       if (instruction.programId.equals(SystemProgram.programId)) {
         transferInstruction = instruction;
         break;
-      } else if (!instruction.programId.equals(ComputeBudgetProgram.programId)) {
+      } else if (
+        !instruction.programId.equals(ComputeBudgetProgram.programId)
+      ) {
         errorMessage = `Invalid transaction: unexpected program ID at instruction ${i}, got ${instruction.programId.toBase58()}`;
         break;
       }
     }
 
     if (!transferInstruction) {
-      errorMessage = errorMessage || "Invalid transaction: no SystemProgram.transfer instruction found";
+      errorMessage =
+        errorMessage ||
+        "Invalid transaction: no SystemProgram.transfer instruction found";
       console.log("Transaction validation failed:", {
         instructions: tx.instructions.map((instr, idx) => ({
           index: idx,
@@ -204,7 +219,8 @@ export async function POST(req: NextRequest) {
     // Validate transfer instruction
     const instruction = transferInstruction;
     if (instruction.keys.length < 2) {
-      errorMessage = "Invalid transaction: insufficient keys, expected at least 2";
+      errorMessage =
+        "Invalid transaction: insufficient keys, expected at least 2";
     } else if (!instruction.keys[1].pubkey.equals(VERAFY_WALLET)) {
       errorMessage = `Invalid transaction: incorrect recipient, expected ${VERAFY_WALLET.toBase58()}, got ${instruction.keys[1].pubkey.toBase58()}`;
     }
@@ -350,8 +366,14 @@ export async function POST(req: NextRequest) {
       data: {
         id: uuidv4(),
         walletPublicKey: body.userWallet ?? "unknown",
-        credits: body.credits && Number.isInteger(Number(body.credits)) ? Number(body.credits) : 0,
-        solAmount: (body.credits && Number.isInteger(Number(body.credits)) ? Number(body.credits) : 0) * CREDIT_PRICE_SOL,
+        credits:
+          body.credits && Number.isInteger(Number(body.credits))
+            ? Number(body.credits)
+            : 0,
+        solAmount:
+          (body.credits && Number.isInteger(Number(body.credits))
+            ? Number(body.credits)
+            : 0) * CREDIT_PRICE_SOL,
         status: "FAILED",
         error: errorMessage,
         createdAt: new Date(),

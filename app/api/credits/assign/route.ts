@@ -38,7 +38,8 @@ export async function POST(req: NextRequest) {
 
   try {
     body = (await req.json()) as RequestBody; // Cast to our interface
-    const { walletPublicKey, creditAmount, email } = assignCreditsSchema.parse(body);
+    const { walletPublicKey, creditAmount, email } =
+      assignCreditsSchema.parse(body);
 
     const updatedCredit = await prisma.userCredit.upsert({
       where: { walletPublicKey },
@@ -81,8 +82,14 @@ export async function POST(req: NextRequest) {
       data: {
         id: uuidv4(),
         walletPublicKey: body.walletPublicKey ?? "unknown", // Use ?? for undefined check
-        credits: body.creditAmount && Number.isInteger(body.creditAmount) ? body.creditAmount : 0,
-        solAmount: (body.creditAmount && Number.isInteger(body.creditAmount) ? body.creditAmount : 0) * 0.001,
+        credits:
+          body.creditAmount && Number.isInteger(body.creditAmount)
+            ? body.creditAmount
+            : 0,
+        solAmount:
+          (body.creditAmount && Number.isInteger(body.creditAmount)
+            ? body.creditAmount
+            : 0) * 0.001,
         status: "FAILED",
         error: errorMessage,
         createdAt: new Date(),

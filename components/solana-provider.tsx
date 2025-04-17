@@ -28,7 +28,7 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
   // Initialize wallet adapters (Phantom and Solflare as examples)
   const wallets = useMemo(
     () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    []
+    [],
   );
 
   return (

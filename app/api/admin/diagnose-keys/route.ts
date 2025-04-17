@@ -1,8 +1,8 @@
 // app/api/admin/diagnose-keys/route.ts
-import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/db/client';
-import { keyService } from '@/lib/services/keyService';
-import { ValidatorResponse } from '@/lib/types'; // Import the consolidated type
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db/client";
+import { keyService } from "@/lib/services/keyService";
+import { ValidatorResponse } from "@/lib/types"; // Import the consolidated type
 
 // Define types for the response structure
 interface ApiKeyResult {
@@ -11,7 +11,7 @@ interface ApiKeyResult {
   provider: string;
   isActive: boolean;
   decryptable: boolean;
-  keyPattern: string | null;  // Allow string or null
+  keyPattern: string | null; // Allow string or null
   linkedValidators: number;
 }
 
@@ -49,14 +49,14 @@ export async function GET() {
         decryptableKeys: 0,
         validatorsWithKeys: 0,
         totalValidators: 0,
-        activeValidators: 0
-      }
+        activeValidators: 0,
+      },
     };
 
     // Test API Keys
     const apiKeys = await prisma.apiKey.findMany();
     results.summary.totalKeys = apiKeys.length;
-    results.summary.activeKeys = apiKeys.filter(key => key.isActive).length;
+    results.summary.activeKeys = apiKeys.filter((key) => key.isActive).length;
 
     for (const key of apiKeys) {
       const keyResult: ApiKeyResult = {
@@ -66,7 +66,7 @@ export async function GET() {
         isActive: key.isActive,
         decryptable: false,
         keyPattern: null,
-        linkedValidators: 0
+        linkedValidators: 0,
       };
 
       try {
@@ -81,7 +81,7 @@ export async function GET() {
       }
 
       const linkedValidatorCount = await prisma.validatorKey.count({
-        where: { apiKeyId: key.id }
+        where: { apiKeyId: key.id },
       });
       keyResult.linkedValidators = linkedValidatorCount;
 
@@ -90,21 +90,23 @@ export async function GET() {
 
     // Test Validators
     const validators = await prisma.validator.findMany({
-      include: { apiKeys: true }
+      include: { apiKeys: true },
     });
     results.summary.totalValidators = validators.length;
-    results.summary.activeValidators = validators.filter(v => v.active).length;
+    results.summary.activeValidators = validators.filter(
+      (v) => v.active,
+    ).length;
 
     for (const validator of validators) {
       const validatorResponse: ValidatorResponse = {
         id: validator.id,
         provider: validator.provider,
         profileName: validator.profileName, // Renamed from 'name' to match ValidatorResponse
-        modelName: validator.modelName || 'unknown',
-        validatorType: validator.validatorType || 'Standard',
+        modelName: validator.modelName || "unknown",
+        validatorType: validator.validatorType || "Standard",
         active: validator.active,
         hasKey: validator.apiKeys.length > 0,
-        keyIds: validator.apiKeys.map(vk => vk.apiKeyId)
+        keyIds: validator.apiKeys.map((vk) => vk.apiKeyId),
       };
 
       if (validator.active && validator.apiKeys.length > 0) {
@@ -116,23 +118,24 @@ export async function GET() {
 
     // Diagnostic Tests
     const allActiveValidatorsHaveKeys = validators
-      .filter(v => v.active)
-      .every(v => v.apiKeys.length > 0);
+      .filter((v) => v.active)
+      .every((v) => v.apiKeys.length > 0);
     results.tests.push({
       name: "All active validators have API keys",
       passed: allActiveValidatorsHaveKeys,
       details: allActiveValidatorsHaveKeys
         ? "All active validators have associated API keys"
-        : "Some active validators are missing API keys"
+        : "Some active validators are missing API keys",
     });
 
-    const allKeysDecryptable = results.summary.decryptableKeys === results.summary.totalKeys;
+    const allKeysDecryptable =
+      results.summary.decryptableKeys === results.summary.totalKeys;
     results.tests.push({
       name: "API key decryption test",
       passed: allKeysDecryptable,
       details: allKeysDecryptable
         ? "All API keys can be decrypted successfully"
-        : `${results.summary.totalKeys - results.summary.decryptableKeys} of ${results.summary.totalKeys} keys cannot be decrypted`
+        : `${results.summary.totalKeys - results.summary.decryptableKeys} of ${results.summary.totalKeys} keys cannot be decrypted`,
     });
 
     const envKeyLength = process.env.ENCRYPTION_KEY?.length || 0;
@@ -143,7 +146,7 @@ export async function GET() {
       passed: envVarsConfigured,
       details: envVarsConfigured
         ? "Encryption environment variables are properly configured"
-        : `Encryption variables may be misconfigured: Key length=${envKeyLength}, IV length=${envIvLength}`
+        : `Encryption variables may be misconfigured: Key length=${envKeyLength}, IV length=${envIvLength}`,
     });
 
     return NextResponse.json(results);
@@ -151,7 +154,7 @@ export async function GET() {
     console.error("Error diagnosing API keys:", error);
     return NextResponse.json(
       { error: "Failed to diagnose API keys", details: String(error) },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

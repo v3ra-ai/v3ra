@@ -1,16 +1,16 @@
 // app/ask/top-nav.tsx
 "use client";
 
-import React from 'react';
-import Image from 'next/image';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import React from "react";
+import Image from "next/image";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { useQueryStore } from '@/app/ask-wire/query-store';
+} from "@/components/ui/dropdown-menu";
+import { useQueryStore } from "@/app/ask-wire/query-store";
 
 export default function TopNav() {
   const { totalQueries } = useQueryStore();
@@ -37,11 +37,17 @@ export default function TopNav() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Avatar className="cursor-pointer h-9 w-9">
-                  <AvatarImage src="https://github.com/shadcn.png" alt="User Avatar" />
+                  <AvatarImage
+                    src="https://github.com/shadcn.png"
+                    alt="User Avatar"
+                  />
                   <AvatarFallback>VA</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="bg-white text-black dark:bg-gray-800 dark:text-white">
+              <DropdownMenuContent
+                align="end"
+                className="bg-white text-black dark:bg-gray-800 dark:text-white"
+              >
                 <DropdownMenuItem className="cursor-pointer">
                   Settings
                 </DropdownMenuItem>

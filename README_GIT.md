@@ -1,15 +1,16 @@
 # Git Best Practices
-* These are my (@csjcode's) ideas based on how I've worked on other teams.
-* Since we didn't have anything I made this (it's a typical workflow to avoid code collisions)
-* I'm totally up to changes, but let's discuss first so we can collaborate better.
+
+- These are my (@csjcode's) ideas based on how I've worked on other teams.
+- Since we didn't have anything I made this (it's a typical workflow to avoid code collisions)
+- I'm totally up to changes, but let's discuss first so we can collaborate better.
 
 ### Branching/Updates
 
-* Make a branch from main for any modifications you make.
-* Also, I created a general "dev" branch.
-* If making modifications, make a branch off main with the date in format YYYYMMDD + feature (so it sorts better)
-* Like YYYYMMDD-add-validator-page and
-* Commit that branch with your work as needed.  (YYYYMMDD-add-validator-page)
+- Make a branch from main for any modifications you make.
+- Also, I created a general "dev" branch.
+- If making modifications, make a branch off main with the date in format YYYYMMDD + feature (so it sorts better)
+- Like YYYYMMDD-add-validator-page and
+- Commit that branch with your work as needed. (YYYYMMDD-add-validator-page)
 
 #### Example of checkout and branching
 
@@ -39,40 +40,41 @@ git push origin YYYYMMDD-feature-description
 ```
 
 Keep updated regularly:
+
 1. For remote backup
 2. So other can see what is going on (they may be working on related code)
 
 ### To push LIVE: Pull Request to make things live
 
-* Make sure your feature branch is
-(1) `npm run dev` working locally,
-(2) `npm run build` to confirm compiling on build
-(3) deploy on a test deployment url and it;s working remotely.
+- Make sure your feature branch is
+  (1) `npm run dev` working locally,
+  (2) `npm run build` to confirm compiling on build
+  (3) deploy on a test deployment url and it;s working remotely.
 
 If all good...
 
-* Push feature branch to remote.
+- Push feature branch to remote.
 
-* Go to GitHub,
+- Go to GitHub,
 
-* Create a Pull Request (PR) from `YYYYMMDD-feature-description` → `dev` (or `main` depending on what we agree for workflow).
+- Create a Pull Request (PR) from `YYYYMMDD-feature-description` → `dev` (or `main` depending on what we agree for workflow).
 
 We can discuss the best workflow for our git branching, but this is one common way:
 
-* Make a PR to merge into `dev` branch (think of it as a `dev` code review branch) which we can then review, and then merge into main.
+- Make a PR to merge into `dev` branch (think of it as a `dev` code review branch) which we can then review, and then merge into main.
 
-* `dev` branch is our review branch. You PR target should be ready to merge your feature branch into `dev`, but do not actually merge until review.
+- `dev` branch is our review branch. You PR target should be ready to merge your feature branch into `dev`, but do not actually merge until review.
 
-* Another dev should then code review the PR and approve. Reason: so we know what's going on witht he code and don't overwrite each other.
+- Another dev should then code review the PR and approve. Reason: so we know what's going on witht he code and don't overwrite each other.
 
-* Then when approved the original dev merges and closes the PR.
+- Then when approved the original dev merges and closes the PR.
 
 #### Notes
 
-* We are using `git merge` **not** `git rebase`. Don't rebase, unless as a team we decide to change merge strategy, it confuses things if people are doing it their own way.
+- We are using `git merge` **not** `git rebase`. Don't rebase, unless as a team we decide to change merge strategy, it confuses things if people are doing it their own way.
 
-* Before merging, make sure your branch is up to date with the latest changes from main or dev (whichever is the merging target). This avoids conflicts later.
-* Manually resolve conflicts
+- Before merging, make sure your branch is up to date with the latest changes from main or dev (whichever is the merging target). This avoids conflicts later.
+- Manually resolve conflicts
 
 Example merge after approval to dev or main main:
 

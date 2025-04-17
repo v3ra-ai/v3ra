@@ -1,30 +1,35 @@
 // app/actions.ts
-"use server"
+"use server";
 
 import type { VoteResult, VoteValidatorResponse } from "../lib/types";
 import { prisma } from "../lib/db/client";
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from "uuid";
 import { OpenAIValidator } from "@/lib/validators/providers/openai";
 import { AnthropicValidator } from "@/lib/validators/providers/anthropic";
 import { GrokValidator } from "@/lib/validators/providers/grok";
 import { GeminiValidator } from "@/lib/validators/providers/gemini";
 import { validatorService } from "@/lib/services/validatorService";
-import { Validator, ValidatorKey } from '@prisma/client';
+import { Validator, ValidatorKey } from "@prisma/client";
 
 type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
-export async function broadcastCustomQuery(query: string): Promise<VoteResult | { error: string }> {
+export async function broadcastCustomQuery(
+  query: string,
+): Promise<VoteResult | { error: string }> {
   try {
     console.log("Processing custom query:", query);
 
-    const dbValidators: DbValidatorWithKeys[] = await validatorService.getActiveDbValidators();
+    const dbValidators: DbValidatorWithKeys[] =
+      await validatorService.getActiveDbValidators();
 
     if (!dbValidators || dbValidators.length === 0) {
       console.warn("No active validators found in the database");
       return { error: "No active validators found" };
     }
 
-    console.log(`Found ${dbValidators.length} active validators in the registry`);
+    console.log(
+      `Found ${dbValidators.length} active validators in the registry`,
+    );
 
     const sessionId = uuidv4();
 
@@ -37,7 +42,7 @@ export async function broadcastCustomQuery(query: string): Promise<VoteResult | 
         votesYes: 0,
         votesNo: 0,
         notVoted: 0,
-      }
+      },
     });
 
     const validatorResponsePromises: Promise<VoteValidatorResponse>[] = [];
@@ -51,83 +56,98 @@ export async function broadcastCustomQuery(query: string): Promise<VoteResult | 
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
+          active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Anthropic") {
-        console.log(`Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`);
+        console.log(
+          `Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`,
+        );
         validator = new AnthropicValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
+          active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Grok") {
-        console.log(`Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`);
+        console.log(
+          `Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`,
+        );
         validator = new GrokValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
+          active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Google") {
-        console.log(`Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`);
+        console.log(
+          `Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`,
+        );
         validator = new GeminiValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
-          active: dbValidator.active
+          active: dbValidator.active,
         });
       } else {
-        console.warn(`Validator provider ${dbValidator.provider} not supported yet`);
+        console.warn(
+          `Validator provider ${dbValidator.provider} not supported yet`,
+        );
         continue;
       }
 
-      const validationPromise = validator.validate({
-        statement: query
-      }).then(async (response) => {
-        await validatorService.recordValidatorResponse({
-          validatorId: dbValidator.id,
-          voteSessionId: sessionId,
-          vote: response.vote,
-          rationale: response.rationale,
-          confidence: response.confidence,
-          latency: response.latency,
-          error: response.error
-        });
+      const validationPromise = validator
+        .validate({
+          statement: query,
+        })
+        .then(async (response) => {
+          await validatorService.recordValidatorResponse({
+            validatorId: dbValidator.id,
+            voteSessionId: sessionId,
+            vote: response.vote,
+            rationale: response.rationale,
+            confidence: response.confidence,
+            latency: response.latency,
+            error: response.error,
+          });
 
-        return {
-          id: dbValidator.id,
-          provider: dbValidator.provider,
-          profileName: dbValidator.profileName,
-          vote: response.vote ? "YES" : "NO",
-          rationale: response.rationale
-        } as VoteValidatorResponse; // Explicitly cast since vote and rationale are guaranteed
-      }).catch(error => {
-        console.error(`Error processing validator ${dbValidator.id}:`, error);
-        return {
-          id: dbValidator.id,
-          provider: dbValidator.provider,
-          profileName: dbValidator.profileName,
-          vote: "ERROR" as const,
-          rationale: `Error: ${error.message}`
-        } as VoteValidatorResponse; // Explicitly cast with required fields
-      });
+          return {
+            id: dbValidator.id,
+            provider: dbValidator.provider,
+            profileName: dbValidator.profileName,
+            vote: response.vote ? "YES" : "NO",
+            rationale: response.rationale,
+          } as VoteValidatorResponse; // Explicitly cast since vote and rationale are guaranteed
+        })
+        .catch((error) => {
+          console.error(`Error processing validator ${dbValidator.id}:`, error);
+          return {
+            id: dbValidator.id,
+            provider: dbValidator.provider,
+            profileName: dbValidator.profileName,
+            vote: "ERROR" as const,
+            rationale: `Error: ${error.message}`,
+          } as VoteValidatorResponse; // Explicitly cast with required fields
+        });
 
       validatorResponsePromises.push(validationPromise);
     }
 
-    const validatorResponses: VoteValidatorResponse[] = await Promise.all(validatorResponsePromises);
+    const validatorResponses: VoteValidatorResponse[] = await Promise.all(
+      validatorResponsePromises,
+    );
 
-    const yesVotes = validatorResponses.filter(r => r.vote === "YES").length;
-    const noVotes = validatorResponses.filter(r => r.vote === "NO").length;
-    const notVoted = validatorResponses.filter(r => r.vote === "ERROR").length;
+    const yesVotes = validatorResponses.filter((r) => r.vote === "YES").length;
+    const noVotes = validatorResponses.filter((r) => r.vote === "NO").length;
+    const notVoted = validatorResponses.filter(
+      (r) => r.vote === "ERROR",
+    ).length;
 
     const totalValidVotes = yesVotes + noVotes;
     const isConsensusReached = totalValidVotes > 0;
-    const consensusValue = totalValidVotes > 0 ? (yesVotes > noVotes) : null;
+    const consensusValue = totalValidVotes > 0 ? yesVotes > noVotes : null;
 
     await prisma.voteSession.update({
       where: { id: sessionId },
@@ -137,8 +157,8 @@ export async function broadcastCustomQuery(query: string): Promise<VoteResult | 
         votesYes: yesVotes,
         votesNo: noVotes,
         notVoted,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     const result: VoteResult = {
@@ -150,9 +170,9 @@ export async function broadcastCustomQuery(query: string): Promise<VoteResult | 
       votingResult: {
         yes: yesVotes,
         no: noVotes,
-        notVoted
+        notVoted,
       },
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     };
 
     return result;

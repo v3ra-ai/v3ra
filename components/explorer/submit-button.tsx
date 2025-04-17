@@ -21,8 +21,8 @@ export function SubmitButton({
         isWalletEnabled && !hasPaid
           ? "bg-silver-500 cursor-not-allowed text-gray-600 dark:text-gray-400"
           : isSubmitting || !query.trim()
-          ? "bg-silver-400 cursor-not-allowed text-gray-600 dark:text-gray-400"
-          : "bg-blue-600 hover:bg-purple-700"
+            ? "bg-silver-400 cursor-not-allowed text-gray-600 dark:text-gray-400"
+            : "bg-blue-600 hover:bg-purple-700"
       }`}
     >
       {isSubmitting ? (

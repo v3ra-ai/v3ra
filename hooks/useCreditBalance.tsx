@@ -25,7 +25,8 @@ export const useCreditBalance = () => {
         });
         if (!response.ok) {
           const errorData = await response.json().catch(() => ({}));
-          const errorMsg = errorData.error || response.statusText || "Unknown error";
+          const errorMsg =
+            errorData.error || response.statusText || "Unknown error";
           toast.error(`Failed to fetch credit balance: ${errorMsg}`);
           console.error("Failed to fetch credit balance:", errorMsg);
           setCreditBalance(0);
@@ -35,7 +36,8 @@ export const useCreditBalance = () => {
         console.log("Fetched credit balance:", data.credits); // Debug log
         setCreditBalance(data.credits || 0);
       } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : "Unknown error";
+        const errorMsg =
+          error instanceof Error ? error.message : "Unknown error";
         toast.error(`Error fetching credit balance: ${errorMsg}`);
         console.error("Error fetching credit balance:", error);
         setCreditBalance(0);

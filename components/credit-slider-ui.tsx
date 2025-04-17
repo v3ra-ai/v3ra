@@ -33,7 +33,9 @@ export default function CreditSliderUI({
         Purchase Credits
       </h2>
       <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">{creditAmount}</span>
+        <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">
+          {creditAmount}
+        </span>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -69,13 +71,21 @@ export default function CreditSliderUI({
       </div>
       <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
         Current Balance:{" "}
-        {isWalletConnected && creditBalance !== null ? `${creditBalance} credits` : "n/a - connect wallet"}
+        {isWalletConnected && creditBalance !== null
+          ? `${creditBalance} credits`
+          : "n/a - connect wallet"}
       </p>
       <button
         onClick={onPay}
-        disabled={isLoading || creditAmount === 0 || (!isWalletConnected ? false : !isValid || !hasEnoughSol)}
+        disabled={
+          isLoading ||
+          creditAmount === 0 ||
+          (!isWalletConnected ? false : !isValid || !hasEnoughSol)
+        }
         className={`w-full py-2 px-4 rounded-md font-medium text-white ${
-          isLoading || creditAmount === 0 || (!isWalletConnected ? false : !isValid || !hasEnoughSol)
+          isLoading ||
+          creditAmount === 0 ||
+          (!isWalletConnected ? false : !isValid || !hasEnoughSol)
             ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
             : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
         }`}

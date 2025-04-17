@@ -11,7 +11,10 @@ import { connection } from "../lib/solana-constants";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 
 interface TransactionResult {
-  sendTransaction: (credits: number, destination: PublicKey) => Promise<{ signature: string; signedTx: Transaction }>;
+  sendTransaction: (
+    credits: number,
+    destination: PublicKey,
+  ) => Promise<{ signature: string; signedTx: Transaction }>;
   isSending: boolean;
   error: string | null;
   signature: string | null;
@@ -60,7 +63,8 @@ export const useSolanaTransaction = (
             }),
           );
 
-          const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
+          const { blockhash, lastValidBlockHeight } =
+            await connection.getLatestBlockhash("confirmed");
           transaction.recentBlockhash = blockhash;
           transaction.feePayer = publicKey;
 
@@ -71,15 +75,17 @@ export const useSolanaTransaction = (
               keys: instr.keys.map((k) => k.pubkey.toBase58()),
               data: instr.data?.toString("hex") || null,
             })),
-            lamports:
-              transaction.instructions.find((instr) => instr.programId.equals(SystemProgram.programId))
-                ?.data
-                ? Number(
-                    transaction.instructions
-                      .find((instr) => instr.programId.equals(SystemProgram.programId))
-                      ?.data.readBigInt64LE(4),
-                  )
-                : null,
+            lamports: transaction.instructions.find((instr) =>
+              instr.programId.equals(SystemProgram.programId),
+            )?.data
+              ? Number(
+                  transaction.instructions
+                    .find((instr) =>
+                      instr.programId.equals(SystemProgram.programId),
+                    )
+                    ?.data.readBigInt64LE(4),
+                )
+              : null,
             recentBlockhash: transaction.recentBlockhash,
             feePayer: transaction.feePayer?.toBase58(),
           });
@@ -94,7 +100,9 @@ export const useSolanaTransaction = (
             skipPreflight: false,
             preflightCommitment: "confirmed",
           });
-          console.log(`Transaction sent, attempt ${attempt}, signature: ${sig}`);
+          console.log(
+            `Transaction sent, attempt ${attempt}, signature: ${sig}`,
+          );
 
           await connection.confirmTransaction(
             { signature: sig, blockhash, lastValidBlockHeight },
@@ -124,7 +132,9 @@ export const useSolanaTransaction = (
             setError("Failed to send transaction");
           }
           if (attempt < maxAttempts) {
-            console.log(`Attempt ${attempt} failed, retrying in ${delayMs}ms...`);
+            console.log(
+              `Attempt ${attempt} failed, retrying in ${delayMs}ms...`,
+            );
             await new Promise((resolve) => setTimeout(resolve, delayMs));
           }
         }

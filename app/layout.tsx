@@ -13,7 +13,8 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Verafy v0 Testnet",
-  description: "A simulated blockchain testnet with Solana-like leader rotation",
+  description:
+    "A simulated blockchain testnet with Solana-like leader rotation",
   generator: "v0.dev",
 };
 

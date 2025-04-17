@@ -1,10 +1,14 @@
 // lib/solana-constants.ts
 import { Connection, PublicKey } from "@solana/web3.js";
 
-export const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+export const connection = new Connection(
+  "https://api.devnet.solana.com",
+  "confirmed",
+);
 export const CREDIT_PRICE_SOL = 0.001;
 
-const VERAFY_WALLET_PUBLIC_KEY = process.env.NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY;
+const VERAFY_WALLET_PUBLIC_KEY =
+  process.env.NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY;
 let VERAFY_WALLET: PublicKey;
 
 try {

@@ -22,14 +22,19 @@ export const useCreditAssignment = (): CreditAssignment => {
   const [error, setError] = useState<string | null>(null);
 
   const assignCredits = useCallback(
-    async (signature: string, signedTx: Transaction, credits: number, userWallet: PublicKey) => {
+    async (
+      signature: string,
+      signedTx: Transaction,
+      credits: number,
+      userWallet: PublicKey,
+    ) => {
       setIsAssigning(true);
       setError(null);
 
       try {
         // Find SystemProgram.transfer instruction
-        const transferInstruction = signedTx.instructions.find(
-          (instr) => instr.programId.equals(SystemProgram.programId),
+        const transferInstruction = signedTx.instructions.find((instr) =>
+          instr.programId.equals(SystemProgram.programId),
         );
         if (!transferInstruction) {
           throw new Error("No SystemProgram.transfer instruction found");
@@ -37,11 +42,19 @@ export const useCreditAssignment = (): CreditAssignment => {
 
         // Safely read lamports (data should be at least 12 bytes: 4 for instruction, 8 for lamports)
         if (transferInstruction.data.length < 12) {
-          throw new Error("Invalid instruction data: too short to contain lamports");
+          throw new Error(
+            "Invalid instruction data: too short to contain lamports",
+          );
         }
         const lamports = transferInstruction.data.readBigInt64LE(4); // Lamports at offset 4
-        const expectedLamports = BigInt(credits * CREDIT_PRICE_SOL * 1_000_000_000);
-        console.log("Validating transaction:", { lamports, expectedLamports, credits });
+        const expectedLamports = BigInt(
+          credits * CREDIT_PRICE_SOL * 1_000_000_000,
+        );
+        console.log("Validating transaction:", {
+          lamports,
+          expectedLamports,
+          credits,
+        });
 
         if (lamports !== expectedLamports) {
           throw new Error(
@@ -85,10 +98,13 @@ export const useCreditAssignment = (): CreditAssignment => {
         }
 
         const assignData = await assignResponse.json();
-        toast.success(`${credits} credits added! New balance: ${assignData.credits}`);
+        toast.success(
+          `${credits} credits added! New balance: ${assignData.credits}`,
+        );
         return assignData.credits || 0;
       } catch (err) {
-        const message = err instanceof Error ? err.message : "Error processing payment";
+        const message =
+          err instanceof Error ? err.message : "Error processing payment";
         setError(message);
         toast.error(message);
         console.error("Credit assignment error:", err);

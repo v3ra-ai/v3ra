@@ -1,5 +1,5 @@
 // Network state and validator interfaces
-import { ApiKey } from '@prisma/client';
+import { ApiKey } from "@prisma/client";
 export interface Validator {
   id: string;
   publicKey: string;
@@ -28,7 +28,6 @@ export interface ValidatorResponse {
   hasKey?: boolean;
   keyIds?: string[];
 }
-
 
 export type ValidatorKey = {
   id: string;

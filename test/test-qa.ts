@@ -76,7 +76,11 @@ async function testNetwork() {
   }
 }
 
-async function testCreditAssignment(walletPublicKey: string, creditAmount: number, email?: string) {
+async function testCreditAssignment(
+  walletPublicKey: string,
+  creditAmount: number,
+  email?: string,
+) {
   console.log(`Testing ${BASE_URL}/api/credits/assign...`);
   try {
     const res = await axios.post(
@@ -119,7 +123,11 @@ async function testCreditAssignmentInvalidKey() {
   try {
     const res = await axios.post(
       `${BASE_URL}/api/credits/assign`,
-      { walletPublicKey: "invalid-key", creditAmount: 10, email: "test@example.com" },
+      {
+        walletPublicKey: "invalid-key",
+        creditAmount: 10,
+        email: "test@example.com",
+      },
       { headers: { "Content-Type": "application/json" } },
     );
     console.log("Credit Assignment Invalid Key:", res.status, res.data);
@@ -145,10 +153,18 @@ async function runTests() {
   await testCreditAssignmentInvalidJSON();
   await testCreditAssignmentInvalidKey();
   // public key does not match
-  await testCreditAssignment("GFY1U36t5HjVv8Gtq33bCdepUnPURtX46mPQXdAPaM4d", 25, "csjcode@gmail");
-    // optional email missing
-  await testCreditAssignment("9sLgc1jMhhvSQ7TWcD4HLbnqvLm4sir7yktjA9WfkQPE", 5)
-  await testCreditAssignment("9sLgc1jMhhvSQ7TWcD4HLbnqvLm4sir7yktjA9WfkQPE", 5, "test@example.com")
+  await testCreditAssignment(
+    "GFY1U36t5HjVv8Gtq33bCdepUnPURtX46mPQXdAPaM4d",
+    25,
+    "csjcode@gmail",
+  );
+  // optional email missing
+  await testCreditAssignment("9sLgc1jMhhvSQ7TWcD4HLbnqvLm4sir7yktjA9WfkQPE", 5);
+  await testCreditAssignment(
+    "9sLgc1jMhhvSQ7TWcD4HLbnqvLm4sir7yktjA9WfkQPE",
+    5,
+    "test@example.com",
+  );
 }
 
 runTests().catch(console.error);

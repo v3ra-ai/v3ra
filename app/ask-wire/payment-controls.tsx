@@ -38,7 +38,7 @@ export function PaymentControls({
           fromPubkey: publicKey,
           toPubkey: recipient,
           lamports: solCost * 1_000_000_000, // Convert SOL to lamports
-        })
+        }),
       );
 
       const signature = await sendTransaction(transaction, connection);

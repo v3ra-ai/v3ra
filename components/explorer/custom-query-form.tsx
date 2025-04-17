@@ -44,7 +44,8 @@ export function CustomQueryForm({
       setQuery("");
       if (isWalletEnabled) setHasPaid(false);
     } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to submit query";
       console.error("Error submitting query:", errorMessage);
       setError(errorMessage);
     } finally {
