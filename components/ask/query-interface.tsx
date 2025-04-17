@@ -83,7 +83,7 @@ export default function QueryInterface() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-4">
       {/* Mode Toggle */}
       <div className="container mx-auto px-4 flex justify-center mt-1 mb-2">
         <div className="inline-flex items-center bg-gray-100 rounded-full p-1 dark:bg-gray-700">
@@ -109,7 +109,7 @@ export default function QueryInterface() {
           </button>
         </div>
       </div>
-      <h1 className="text-zinc-900 dark:text-zinc-200 text-4xl font-bold text-center mb-8 mt-2">
+      <h1 className="text-zinc-900 dark:text-zinc-200 text-3xl font-bold text-center mb-8 mt-2">
         How can we help you?
       </h1>
 

@@ -65,10 +65,10 @@ export default function Navbar() {
             href="/become-validator"
             className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
           >
-            Become a validator
+            Start a validator
           </Link>
           <Link
-            href="/stake"
+            href="/credits"
             className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
           >
             Stake
