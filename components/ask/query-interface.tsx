@@ -12,7 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useQueryStore } from "@/store/query-store";
 import Link from "next/link";
-import { PaymentControls } from "@/components/ask/payment-controls"; // Adjust path as needed
+import { PaymentControls } from "@/components/ask/payment-controls";
+import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
+import type { VoteResult } from "@/lib/types";
 
 // Define QueryMode type
 type QueryMode = "factCheck" | "predict" | "create" | "shop";
@@ -25,8 +27,15 @@ export default function QueryInterface() {
   const [question, setQuestion] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [mode, setMode] = useState<"standard" | "expert">("standard");
-  const [hasPaid, setHasPaid] = useState(false); // New state for payment status
+  const [hasPaid, setHasPaid] = useState(false);
   const [placeholderText, setPlaceholderText] = useState<string>("Ask the validator network a yes/no question");
+  const [error, setError] = useState<string | null>(null);
+  const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
+  const [lastVoteResult, setLastVoteResult] = useState<VoteResult | null>(null);
+
+  console.log(voteHistory);
+  console.log(lastVoteResult)
+
 
   // Constants
   const queryCost = 0.002; // Cost per query in SOL
@@ -35,9 +44,9 @@ export default function QueryInterface() {
   const allowedAmountQueries = 20;
 
   // Calculate costs
-  const availableQueries = Math.max(0, initialAvailableQueries - userAiQueryAmountRequested); // Queries left
-  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - initialAvailableQueries); // Queries to pay for
-  const costToQuery = (queriesNeeded * queryCost).toFixed(3); // Cost for additional queries
+  const availableQueries = Math.max(0, initialAvailableQueries - userAiQueryAmountRequested);
+  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - initialAvailableQueries);
+  const costToQuery = (queriesNeeded * queryCost).toFixed(3);
 
   // Initialize totalQueries to 10
   useEffect(() => {
@@ -85,28 +94,45 @@ export default function QueryInterface() {
     }
   }, [queriesNeeded]);
 
+  // Broadcast query hook
+  const { broadcastQuery } = useBroadcastQuery(
+    setVoteHistory,
+    setLastVoteResult,
+    undefined, // refetchNetworkState (optional)
+    undefined, // fetchVoteHistory (optional)
+  );
+
   const handleQueryAmountChange = (newAmount: number) => {
     const clampedAmount = Math.max(1, Math.min(allowedAmountQueries, newAmount));
     setUserAiQueryAmountRequested(clampedAmount);
   };
 
   const handleSubmit = async () => {
-    if (!question.trim()) return;
-    if (userAiQueryAmountRequested > totalQueries && payWithWallet && !hasPaid) return; // Prevent submission if payment is required but not made
-    if (totalQueries > 0 && totalQueries < userAiQueryAmountRequested) return; // Prevent submission if not enough queries
+    if (!question.trim()) {
+      setError("Query cannot be empty");
+      return;
+    }
+    if (payWithWallet && queriesNeeded > 0 && !hasPaid) {
+      setError("Please make a payment first");
+      return;
+    }
+    if (totalQueries > 0 && totalQueries < userAiQueryAmountRequested) {
+      setError("Not enough queries available");
+      return;
+    }
 
     setIsSubmitting(true);
+    setError(null);
     try {
-      // Implement your submit logic here
-      if (payWithWallet && userAiQueryAmountRequested > totalQueries) {
-        // Payment was required and made
-      }
+      await broadcastQuery(question);
       decrementQueries(userAiQueryAmountRequested);
       setUserAiQueryAmountRequested(initialAiQueryAmountRequested);
       setQuestion("");
-      setHasPaid(false); // Reset payment status after submission
-    } catch (error) {
-      console.error("Submission failed:", error);
+      setHasPaid(false);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
+      setError(errorMessage);
+      console.error("Submission failed:", errorMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -144,6 +170,13 @@ export default function QueryInterface() {
       </h1>
 
       <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-lg/20 p-6 max-w-4xl mx-auto">
+        {/* Error Display */}
+        {error && (
+          <p className="text-red-500 text-sm mb-4" role="alert">
+            {error}
+          </p>
+        )}
+
         {/* Pay with Wallet Toggle */}
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
@@ -159,9 +192,9 @@ export default function QueryInterface() {
               <PaymentControls
                 hasPaid={hasPaid}
                 setHasPaid={setHasPaid}
-                solCost={parseFloat(costToQuery)} // Pass costToQuery as a number
-                totalQueries={totalQueries} // Pass totalQueries
-                userAiQueryAmountRequested={userAiQueryAmountRequested} // Pass userAiQueryAmountRequested
+                solCost={parseFloat(costToQuery)}
+                totalQueries={totalQueries}
+                userAiQueryAmountRequested={userAiQueryAmountRequested}
               />
             )}
           </div>
@@ -256,7 +289,8 @@ export default function QueryInterface() {
               disabled={
                 isSubmitting ||
                 !question.trim() ||
-                (totalQueries > 0 && totalQueries < userAiQueryAmountRequested && (!payWithWallet || !hasPaid))
+                (payWithWallet && queriesNeeded > 0 && !hasPaid) ||
+                (totalQueries > 0 && totalQueries < userAiQueryAmountRequested)
               }
             >
               {isSubmitting ? "Submitting..." : "Submit"}
