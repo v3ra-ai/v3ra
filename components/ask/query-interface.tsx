@@ -17,6 +17,7 @@ import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import type { VoteResult } from "@/lib/types";
 import ConsensusStatus from "@/components/ask/consensus-status";
 import AskResultsStandard from "@/components/ask/ask-results-standard";
+import { Dispatch, SetStateAction } from "react";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
@@ -101,10 +102,19 @@ export default function QueryInterface() {
     }
   }, [queriesNeeded]);
 
+  // Explicitly type the callbacks to match Dispatch<SetStateAction>
+  const handleSetVoteHistory: Dispatch<SetStateAction<VoteResult[]>> = (history) => {
+    setVoteHistory(history);
+  };
+
+  const handleSetLastVoteResult: Dispatch<SetStateAction<VoteResult | null>> = (result) => {
+    setLastVoteResult(result);
+  };
+
   // Broadcast query hook
   const { broadcastQuery } = useBroadcastQuery(
-    (history: VoteResult[]) => setVoteHistory(history),
-    (result: VoteResult | null) => setLastVoteResult(result),
+    handleSetVoteHistory,
+    handleSetLastVoteResult,
     undefined, // refetchNetworkState (optional)
     undefined, // fetchVoteHistory (optional)
   );
@@ -214,7 +224,7 @@ export default function QueryInterface() {
         {/* Question Input */}
         <div className="mb-8">
           <textarea
-            className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-600 dark:placeholder-gray-500 text-lg"
+            className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg"
             placeholder={placeholderText}
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
