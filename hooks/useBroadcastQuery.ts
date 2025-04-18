@@ -1,14 +1,15 @@
 import { useCallback } from "react";
 import { broadcastCustomQuery } from "@/app/actions";
 import type { VoteResult } from "@/lib/types";
+import { Dispatch, SetStateAction } from "react";
 
 interface BroadcastQueryResult {
   broadcastQuery: (query: string) => Promise<void>;
 }
 
 export function useBroadcastQuery(
-  setVoteHistory: React.Dispatch<React.SetStateAction<VoteResult[]>>,
-  setLastVoteResult: React.Dispatch<React.SetStateAction<VoteResult | null>>,
+  setVoteHistory: Dispatch<SetStateAction<VoteResult[]>>,
+  setLastVoteResult: Dispatch<SetStateAction<VoteResult | null>>,
   refetchNetworkState?: () => Promise<void>,
   fetchVoteHistory?: () => Promise<void>,
 ): BroadcastQueryResult {

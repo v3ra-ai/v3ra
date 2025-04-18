@@ -15,27 +15,34 @@ import Link from "next/link";
 import { PaymentControls } from "@/components/ask/payment-controls";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import type { VoteResult } from "@/lib/types";
-
-// Define QueryMode type
-type QueryMode = "factCheck" | "predict" | "create" | "shop";
+import ConsensusStatus from "@/components/ask/consensus-status";
+import AskResultsStandard from "@/components/ask/ask-results-standard";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
   const [userAiQueryAmountRequested, setUserAiQueryAmountRequested] = useState<number>(4);
-  const { totalQueries, decrementQueries, incrementQueries } = useQueryStore();
-  const [queryMode, setQueryMode] = useState<QueryMode>("factCheck");
   const [question, setQuestion] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [mode, setMode] = useState<"standard" | "expert">("standard");
   const [hasPaid, setHasPaid] = useState(false);
   const [placeholderText, setPlaceholderText] = useState<string>("Ask the validator network a yes/no question");
   const [error, setError] = useState<string | null>(null);
-  const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
-  const [lastVoteResult, setLastVoteResult] = useState<VoteResult | null>(null);
+
+  const {
+    totalQueries,
+    queryMode,
+    viewMode,
+    voteHistory,
+    lastVoteResult,
+    decrementQueries,
+    incrementQueries,
+    setQueryMode,
+    setViewMode,
+    setVoteHistory,
+    setLastVoteResult,
+  } = useQueryStore();
 
   console.log(voteHistory);
-  console.log(lastVoteResult)
-
+  console.log(lastVoteResult);
 
   // Constants
   const queryCost = 0.002; // Cost per query in SOL
@@ -63,7 +70,7 @@ export default function QueryInterface() {
         setQueryMode("shop");
       }
     }
-  }, []);
+  }, [setQueryMode]);
 
   // Update placeholder text based on queryMode
   useEffect(() => {
@@ -96,8 +103,8 @@ export default function QueryInterface() {
 
   // Broadcast query hook
   const { broadcastQuery } = useBroadcastQuery(
-    setVoteHistory,
-    setLastVoteResult,
+    (history: VoteResult[]) => setVoteHistory(history),
+    (result: VoteResult | null) => setLastVoteResult(result),
     undefined, // refetchNetworkState (optional)
     undefined, // fetchVoteHistory (optional)
   );
@@ -144,9 +151,9 @@ export default function QueryInterface() {
       <div className="container mx-auto px-4 flex justify-center mt-1 mb-2">
         <div className="inline-flex items-center bg-gray-100 rounded-full p-1 dark:bg-gray-700">
           <button
-            onClick={() => setMode("standard")}
+            onClick={() => setViewMode("viewStandard")}
             className={`px-4 py-1 rounded-full text-sm cursor-pointer ${
-              mode === "standard"
+              viewMode === "viewStandard"
                 ? "bg-white shadow-sm text-gray-500 dark:bg-gray-600 dark:text-gray-200"
                 : "text-gray-500 dark:text-gray-300"
             }`}
@@ -154,9 +161,9 @@ export default function QueryInterface() {
             Standard
           </button>
           <button
-            onClick={() => setMode("expert")}
+            onClick={() => setViewMode("viewExpert")}
             className={`px-4 py-1 rounded-full text-sm cursor-pointer ${
-              mode === "expert"
+              viewMode === "viewExpert"
                 ? "bg-white shadow-sm text-gray-500 dark:bg-gray-600 dark:text-gray-200"
                 : "text-gray-500 dark:text-gray-300"
             }`}
@@ -267,7 +274,7 @@ export default function QueryInterface() {
               >
                 -
               </Button>
-              <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-4 py-1 rounded-md min-w-[60px] text-center ">
+              <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-4 py-1 rounded-md min-w-[60px] text-center">
                 {userAiQueryAmountRequested}
               </div>
               <Button
@@ -315,14 +322,14 @@ export default function QueryInterface() {
           </div>
           <Link href="/credits">
             <Button
-              className="rounded-md bg-zinc-100 dark:bg-zinc-800  border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
+              className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
             >
               Stake to get more
             </Button>
           </Link>
           <Link href="/credits">
             <Button
-              className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-gray-300  hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
+              className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
             >
               Buy Credits
             </Button>
@@ -339,6 +346,11 @@ export default function QueryInterface() {
         Stake to unlock more queries and earn{" "}
         <span className="font-medium">11%</span> yield
       </p>
+
+      {/* Conditionally render based on viewMode */}
+      <div className="mt-8">
+        {viewMode === "viewExpert" ? <ConsensusStatus /> : <AskResultsStandard />}
+      </div>
     </div>
   );
 }

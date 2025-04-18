@@ -5,7 +5,7 @@ import Navbar from "@/components/ask/navbar";
 import QueryInterface from "@/components/ask/query-interface";
 import { SolanaProvider } from "@/components/solana-provider";
 import { useTheme } from "next-themes";
-import ConsensusStatus from "@/components/ask/consensus-status"
+// import ConsensusStatus from "@/components/ask/consensus-status"
 
 
 export default function Home() {
@@ -40,7 +40,8 @@ export default function Home() {
       >
         <Navbar />
         <QueryInterface />
-        <ConsensusStatus />
+        {/* <ConsensusStatus /> */}
+
       </main>
     </SolanaProvider>
   );

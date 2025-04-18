@@ -1,4 +1,3 @@
-// app/actions.ts
 "use server";
 
 import type { VoteResult, VoteValidatorResponse } from "../lib/types";
@@ -119,7 +118,7 @@ export async function broadcastCustomQuery(
             profileName: dbValidator.profileName,
             vote: response.vote ? "YES" : "NO",
             rationale: response.rationale,
-          } as VoteValidatorResponse; // Explicitly cast since vote and rationale are guaranteed
+          } as VoteValidatorResponse;
         })
         .catch((error) => {
           console.error(`Error processing validator ${dbValidator.id}:`, error);
@@ -129,7 +128,7 @@ export async function broadcastCustomQuery(
             profileName: dbValidator.profileName,
             vote: "ERROR" as const,
             rationale: `Error: ${error.message}`,
-          } as VoteValidatorResponse; // Explicitly cast with required fields
+          } as VoteValidatorResponse;
         });
 
       validatorResponsePromises.push(validationPromise);
@@ -178,6 +177,68 @@ export async function broadcastCustomQuery(
     return result;
   } catch (error) {
     console.error("Error broadcasting custom query:", error);
+    return { error: (error as Error).message };
+  }
+}
+
+export async function fetchVoteHistory(): Promise<VoteResult[] | { error: string }> {
+  try {
+    console.log("Starting fetchVoteHistory...");
+    const voteSessions = await prisma.voteSession.findMany({
+      orderBy: { timestamp: "desc" },
+      take: 10,
+      include: {
+        validatorResponses: {
+          select: {
+            id: true,
+            validatorId: true,
+            vote: true,
+            rationale: true,
+            validator: {
+              select: {
+                provider: true,
+                profileName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    console.log("Fetched vote sessions:", voteSessions);
+
+    if (!voteSessions || voteSessions.length === 0) {
+      console.log("No vote sessions found in database");
+      return [];
+    }
+
+    const voteHistory: VoteResult[] = voteSessions.map((session) => {
+      console.log(`Mapping session ID: ${session.id}`);
+      return {
+        id: session.id,
+        isConsensusReached: session.isConsensusReached,
+        consensusValue: session.consensusValue,
+        queryText: session.queryText,
+        validatorResponses: session.validatorResponses.map((response) => ({
+          id: response.validatorId,
+          provider: response.validator.provider,
+          profileName: response.validator.profileName,
+          vote: response.vote as "YES" | "NO" | "ERROR",
+          rationale: response.rationale || "No rationale provided",
+        })),
+        votingResult: {
+          yes: session.votesYes,
+          no: session.votesNo,
+          notVoted: session.notVoted,
+        },
+        timestamp: session.timestamp.toISOString(),
+      };
+    });
+
+    console.log("Returning vote history:", voteHistory);
+    return voteHistory;
+  } catch (error) {
+    console.error("Error fetching vote history:", error);
     return { error: (error as Error).message };
   }
 }
