@@ -10,7 +10,6 @@ export default function ValidatorVoteHistory() {
   const [voteHistoryError, setVoteHistoryError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedVoteId, setExpandedVoteId] = useState<number | null>(null);
-  // const [selectedValidator, setSelectedValidator] = useState<Validator | null>(null);
 
   useEffect(() => {
     async function loadVoteHistory() {
@@ -25,7 +24,8 @@ export default function ValidatorVoteHistory() {
         setVoteHistory(result);
         setVoteHistoryError(null);
       } catch (err: unknown) {
-        const errorMessage = err instanceof Error ? err.message : "Failed to load vote history";
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to load vote history";
         console.error("Error in loadVoteHistory:", errorMessage);
         setVoteHistoryError(errorMessage);
       } finally {
@@ -35,32 +35,10 @@ export default function ValidatorVoteHistory() {
     loadVoteHistory();
   }, [setVoteHistory]);
 
-  // Handle view button click to expand/collapse vote details
+  // Handle view or query click to expand/collapse vote details
   const handleViewClick = (index: number) => {
     setExpandedVoteId(expandedVoteId === index ? null : index);
   };
-
-  // // Handle click on validator name to show profile
-  // const handleValidatorClick = (validator: {
-  //   id: string;
-  //   provider: string;
-  //   profileName: string;
-  //   vote: string;
-  //   rationale?: string;
-  // }) => {
-  //   const validatorProfile: Validator = {
-  //     id: validator.id,
-  //     publicKey: validator.id,
-  //     provider: validator.provider,
-  //     profileName: validator.profileName,
-  //     isLeader: false,
-  //     lastVote: validator.vote.toLowerCase() === "yes",
-  //     lastResponse: validator.vote,
-  //     lastRationale: validator.rationale || null,
-  //     reliability: 95,
-  //   };
-  //   setSelectedValidator(validatorProfile);
-  // };
 
   // Format timestamp for display
   const formatTime = (timestamp: string | number | undefined) => {
@@ -102,7 +80,9 @@ export default function ValidatorVoteHistory() {
         <h3 className="text-lg font-medium text-gray-800 dark:text-zinc-200 mb-2">
           Validator Vote History
         </h3>
-        <p className="text-gray-500 dark:text-gray-400">No votes recorded yet</p>
+        <p className="text-gray-500 dark:text-gray-400">
+          No votes recorded yet
+        </p>
       </div>
     );
   }
@@ -188,13 +168,25 @@ export default function ValidatorVoteHistory() {
               rows.push(
                 <tr
                   key={`vote-row-${index}`}
-                  className={index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-800" : ""}
+                  className={
+                    index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-800" : ""
+                  }
                 >
                   <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
                     {formatTime(vote.timestamp)}
                   </td>
-                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200 max-w-[200px] truncate">
-                    {vote.queryText}
+                  <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200 max-w-[200px]">
+                    <span
+                      className={`cursor-pointer inline-block max-w-full ${
+                        expandedVoteId === index
+                          ? "whitespace-normal"
+                          : "truncate"
+                      }`}
+                      onClick={() => handleViewClick(index)}
+                      title={vote.queryText}
+                    >
+                      {vote.queryText}
+                    </span>
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
                     {queryMode}
@@ -220,7 +212,7 @@ export default function ValidatorVoteHistory() {
                   </td>
                   <td className="px-4 py-3 text-sm">
                     <button
-                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                      className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 cursor-pointer"
                       onClick={() => handleViewClick(index)}
                     >
                       {expandedVoteId === index ? "Hide" : "View"}
@@ -234,7 +226,7 @@ export default function ValidatorVoteHistory() {
                       Discuss
                     </Link>
                   </td>
-                </tr>,
+                </tr>
               );
 
               if (expandedVoteId === index) {
@@ -245,62 +237,55 @@ export default function ValidatorVoteHistory() {
                       className="px-4 py-4 bg-zinc-100 dark:bg-zinc-800"
                     >
                       <div className="space-y-3">
-                        <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-200">
-                          Validator Responses:
-                        </h3>
-                        <div className="grid gap-2">
-                          {vote.validatorResponses.map((validator, idx) => (
-                            <div
-                              key={`validator-${index}-${idx}`}
-                              className="p-2 rounded border border-zinc-200 dark:border-zinc-700"
-                            >
-                              <div className="flex justify-between items-center">
-                                <span className="font-medium text-sm text-gray-700 dark:text-zinc-200 flex items-center">
-                                  {validator.profileName}
-                                  <span className="text-gray-500 dark:text-gray-400 ml-1">
-                                    ({validator.provider})
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-200">
+                            Query:
+                          </h3>
+                          <p className="text-sm text-gray-700 dark:text-zinc-200">
+                            {vote.queryText}
+                          </p>
+                        </div>
+                        <div>
+                          <h3 className="text-sm font-medium text-gray-900 dark:text-zinc-200">
+                            Validator Responses:
+                          </h3>
+                          <div className="grid gap-2">
+                            {vote.validatorResponses.map((validator, idx) => (
+                              <div
+                                key={`validator-${index}-${idx}`}
+                                className="p-2 rounded border border-zinc-200 dark:border-zinc-700"
+                              >
+                                <div className="flex justify-between items-center">
+                                  <span className="font-medium text-sm text-gray-700 dark:text-zinc-200 flex items-center">
+                                    {validator.profileName}
+                                    <span className="text-gray-500 dark:text-gray-400 ml-1">
+                                      ({validator.provider})
+                                    </span>
                                   </span>
-                                  {/* Uncomment if ValidatorProfile is added */}
-                                  {/* <button
-                                    onClick={() => handleValidatorClick(validator)}
-                                    className="ml-1 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+                                  <span
+                                    className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                      validator &&
+                                      validator.vote &&
+                                      validator.vote.toLowerCase &&
+                                      validator.vote.toLowerCase() === "yes"
+                                        ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                                        : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                                    }`}
                                   >
-                                    <svg
-                                      xmlns="http://www.w3.org/2000/svg"
-                                      className="h-4 w-4 opacity-70"
-                                      viewBox="0 0 20 20"
-                                      fill="currentColor"
-                                    >
-                                      <path
-                                        fillRule="evenodd"
-                                        d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9a1 1 0 00-1-1z"
-                                        clipRule="evenodd"
-                                      />
-                                    </svg>
-                                  </button> */}
-                                </span>
-                                <span
-                                  className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                    validator &&
-                                    validator.vote &&
-                                    validator.vote.toLowerCase &&
-                                    validator.vote.toLowerCase() === "yes"
-                                      ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                                      : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                                  }`}
-                                >
-                                  {validator?.vote || "No Vote"}
-                                </span>
+                                    {validator?.vote || "No Vote"}
+                                  </span>
+                                </div>
+                                <div className="mt-2 text-sm text-gray-700 dark:text-zinc-200">
+                                  {validator?.rationale ||
+                                    "No rationale provided"}
+                                </div>
                               </div>
-                              <div className="mt-2 text-sm text-gray-700 dark:text-zinc-200">
-                                {validator?.rationale || "No rationale provided"}
-                              </div>
-                            </div>
-                          ))}
+                            ))}
+                          </div>
                         </div>
                       </div>
                     </td>
-                  </tr>,
+                  </tr>
                 );
               }
 
@@ -309,13 +294,6 @@ export default function ValidatorVoteHistory() {
           </tbody>
         </table>
       </div>
-
-      {/* Uncomment if ValidatorProfile is added */}
-      {/* <ValidatorProfile
-        validator={selectedValidator}
-        isOpen={selectedValidator !== null}
-        onClose={() => setSelectedValidator(null)}
-      /> */}
     </div>
   );
 }
