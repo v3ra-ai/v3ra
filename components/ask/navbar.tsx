@@ -1,14 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
-import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+
+// Dynamically import WalletMultiButton with SSR disabled
+const WalletMultiButton = dynamic(
+  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+  { ssr: false }
+);
 
 export default function Navbar() {
-  const { theme, setTheme } = useTheme(); // Ensure setTheme is destructured
+  const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
 
@@ -19,7 +25,7 @@ export default function Navbar() {
 
   // Toggle between light and dark themes
   const toggleTheme = () => {
-    console.log("Toggling theme from", theme); // Debug log
+    console.log("Toggling theme from", theme);
     setTheme(theme === "light" ? "dark" : "light");
   };
 

@@ -1,0 +1,131 @@
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useQueryStore } from "@/store/query-store";
+
+interface QueryFormProps {
+  question: string;
+  setQuestion: (value: string) => void;
+  placeholderText: string;
+  queryMode: "factCheck" | "predict" | "create" | "shop";
+  userAiQueryAmountRequested: number;
+  handleQueryAmountChange: (newAmount: number) => void;
+  handleSubmit: () => void;
+  isSubmitting: boolean;
+  payWithWallet: boolean;
+  queriesNeeded: number;
+  hasPaid: boolean;
+  totalQueries: number;
+}
+
+export default function QueryForm({
+  question,
+  setQuestion,
+  placeholderText,
+  queryMode,
+  userAiQueryAmountRequested,
+  handleQueryAmountChange,
+  handleSubmit,
+  isSubmitting,
+  payWithWallet,
+  queriesNeeded,
+  hasPaid,
+  totalQueries,
+}: QueryFormProps) {
+  const { setQueryMode } = useQueryStore();
+  const allowedAmountQueries = 20;
+
+  return (
+    <div>
+      <div className="mb-8">
+        <textarea
+          className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg"
+          placeholder={placeholderText}
+          value={question}
+          onChange={(e) => setQuestion(e.target.value)}
+        />
+      </div>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                className="text-white bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer"
+              >
+                {queryMode === "predict"
+                  ? "Predict"
+                  : queryMode === "create"
+                    ? "Create"
+                    : queryMode === "shop"
+                      ? "Shop"
+                      : "Fact Check"}
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="bg-black border-gray-300">
+              <DropdownMenuItem
+                className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+                onSelect={() => setQueryMode("shop")}
+              >
+                Shop
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+                onSelect={() => setQueryMode("predict")}
+              >
+                Predict
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+                onSelect={() => setQueryMode("create")}
+              >
+                Create
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+                onSelect={() => setQueryMode("factCheck")}
+              >
+                Fact Check
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md">
+            <Button
+              className="border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 h-8 w-8 p-0 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer"
+              onClick={() => handleQueryAmountChange(userAiQueryAmountRequested - 1)}
+              disabled={userAiQueryAmountRequested <= 1}
+            >
+              -
+            </Button>
+            <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-4 py-1 rounded-md min-w-[60px] text-center">
+              {userAiQueryAmountRequested}
+            </div>
+            <Button
+              className="border-zinc-300 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 h-8 w-8 p-0 hover:bg-zinc-200 text-xl cursor-pointer"
+              onClick={() => handleQueryAmountChange(userAiQueryAmountRequested + 1)}
+              disabled={userAiQueryAmountRequested >= allowedAmountQueries}
+            >
+              +
+            </Button>
+          </div>
+          <span className="text-gray-500 dark:text-gray-400">AIs queried</span>
+        </div>
+        <Button
+          className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer"
+          onClick={handleSubmit}
+          disabled={
+            isSubmitting ||
+            !question.trim() ||
+            (payWithWallet && queriesNeeded > 0 && !hasPaid) ||
+            (totalQueries > 0 && totalQueries < userAiQueryAmountRequested)
+          }
+        >
+          {isSubmitting ? "Submitting..." : "Submit"}
+        </Button>
+      </div>
+    </div>
+  );
+}
