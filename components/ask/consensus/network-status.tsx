@@ -53,13 +53,13 @@ export default function NetworkStatus() {
       <CardContent className="p-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           <Card className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
-            <CardHeader className="p-0 mb-3">
+            <CardHeader className="p-0 mb-0">
               <h4 className="text-sm font-medium text-gray-800 dark:text-zinc-200">
                 Network Overview
               </h4>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="space-y-2">
+              <div className="space-y-1">
                 <div className="flex flex-col sm:flex-row justify-between">
                   <div className="text-gray-500">Validators:</div>
                   <div className="font-medium">{validators.length}</div>
@@ -100,14 +100,14 @@ export default function NetworkStatus() {
             </CardContent>
           </Card>
           <Card className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
-            <CardHeader className="p-0 mb-3">
+            <CardHeader className="p-0 mb-0">
               <h4 className="text-sm font-medium text-gray-800 dark:text-zinc-200">
                 Leader Information
               </h4>
             </CardHeader>
             <CardContent className="p-0">
               {leader ? (
-                <div className="space-y-2">
+                <div className="space-y-1">
                   <div className="flex flex-col sm:flex-row justify-between">
                     <div className="text-gray-500">Profile:</div>
                     <div className="font-medium">{leader.profileName}</div>
