@@ -34,22 +34,22 @@ export default function VoteHistoryTable({
             </th>
             <th
               scope="col"
-              className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"
+              className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[60px]"
             >
               Mode
             </th>
             <th
-  scope="col"
-  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[80px]"
->
-  Yes
-</th>
-<th
-  scope="col"
-  className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[80px]"
->
-  No
-</th>
+              scope="col"
+              className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[80px]"
+            >
+              Yes
+            </th>
+            <th
+              scope="col"
+              className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider w-[80px]"
+            >
+              No
+            </th>
             <th
               scope="col"
               className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider"

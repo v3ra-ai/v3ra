@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { Check, TrendingUpDown, WandSparkles, ShoppingCart } from "lucide-react";
 import type { VoteResult } from "@/lib/types";
 
 interface VoteHistoryTableRowProps {
@@ -35,6 +36,13 @@ export default function VoteHistoryTableRow({
     }
   }
 
+  const modeIcon = {
+    factCheck: <Check size={16} className="text-gray-900 dark:text-zinc-200" />,
+    predict: <TrendingUpDown size={16} className="text-gray-900 dark:text-zinc-200" />,
+    create: <WandSparkles size={16} className="text-gray-900 dark:text-zinc-200" />,
+    shop: <ShoppingCart size={16} className="text-gray-900 dark:text-zinc-200" />,
+  }[queryMode] || null;
+
   const rows = [];
 
   rows.push(
@@ -46,18 +54,18 @@ export default function VoteHistoryTableRow({
         {formatTime(vote.timestamp)}
       </td>
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200 max-w-[200px]">
-  <span
-    className={`cursor-pointer inline-block max-w-full ${
-      expandedVoteId === index ? "whitespace-normal" : "truncate"
-    }`}
-    onClick={() => handleViewClick(index)}
-    title={vote.queryText.length > 45 ? `${vote.queryText.substring(0, 45)}...` : vote.queryText}
-  >
-    {vote.queryText}
-  </span>
-</td>
+        <span
+          className={`cursor-pointer inline-block max-w-full ${
+            expandedVoteId === index ? "whitespace-normal" : "truncate"
+          }`}
+          onClick={() => handleViewClick(index)}
+          title={vote.queryText.length > 45 ? `${vote.queryText.substring(0, 45)}...` : vote.queryText}
+        >
+          {vote.queryText}
+        </span>
+      </td>
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
-        {queryMode}
+        {modeIcon}
       </td>
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
         {vote?.votingResult?.yes || 0}
