@@ -17,6 +17,7 @@
     "build:services": "tsc -p tsconfig.services.json",
     "build:all": "npm run build && npm run build:services",
     "ready": "npx npx tsc --noEmit && npm run build",
+    "reset": "rm -rf .next/* && npm run dev",
     "postinstall": "prisma generate"
   },
   "dependencies": {
@@ -52,6 +53,7 @@
     "@solana/wallet-adapter-react-ui": "^0.9.36",
     "@solana/wallet-adapter-wallets": "^0.19.33",
     "@solana/web3.js": "^1.98.0",
+    "@supabase/supabase-js": "^2.49.4",
     "axios": "^1.8.4",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

@@ -1,4 +1,4 @@
-import { useQueryStore } from "@/store/query-store";
+
 import VoteHistoryTableRow from "./vote-history-table-row";
 import type { VoteResult } from "@/lib/types";
 
@@ -6,15 +6,15 @@ interface VoteHistoryTableProps {
   voteHistory: VoteResult[];
   expandedVoteId: number | null;
   handleViewClick: (index: number) => void;
+  queryMode: string; // Add queryMode prop
 }
 
 export default function VoteHistoryTable({
   voteHistory,
   expandedVoteId,
   handleViewClick,
+  queryMode, // Include queryMode in destructured props
 }: VoteHistoryTableProps) {
-  const { queryMode } = useQueryStore();
-
   return (
     <div className="overflow-x-auto">
       <table className="min-w-full divide-y divide-zinc-200 dark:divide-zinc-700">

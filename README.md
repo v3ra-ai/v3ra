@@ -714,6 +714,32 @@ brew unlink postgresql@14
 brew link postgresql@15 --force
 ```
 
+## Enabling Realtime Subscriptions in Supabase
+
+Docs: https://supabase.com/docs/guides/realtime
+
+Example (you may have to adjust based on your actual table names and schema):
+
+Go to our project
+https://supabase.com/dashboard/project/dmrylpiaazevwqxcucsr/database/publications
+
+Look for the supabase_realtime publication, which is the default for real-time features. It may show "0 tables" or list currently enabled tables.
+
+* Under the supabase_realtime publication, locate the Source or Tables section.
+* Click to edit the publication or select Source.
+* Find the VoteSession table in the list (ensure it’s in the public schema).
+* Toggle the switch next to VoteSession to enable it.
+* Confirm that Insert, Update, and Delete events are enabled for VoteSession.
+* Verify that VoteSession appears in the list of enabled tables under the publication.
+
+You can verify in SQL Editor:
+
+```sql
+SELECT * FROM pg_publication WHERE pubname = 'supabase_realtime';
+```
+
+(The above is an example, you may need to adjust based on your actual table names and schema.)
+
 ## Troubleshooting and Testing
 
 ⚠️ IMPORTANT: Make sure the app is running locally `npm run dev`. Also, if testing local data (not remote) then make sure that is in the .env and/or available for what you need.

@@ -1,11 +1,15 @@
-import NetworkVisualization from "./consensus/network-visualization";
-import CurrentQuery from "./consensus/current-query";
-import NetworkStatus from "./consensus/network-status";
-import DeepDive from "./consensus/staking-deep-dive";
-import Staking from "./consensus/staking";
-import ValidatorVoteHistory from "./consensus/vote-history";
+// components/ask/consensus/consensus-status.tsx
+import { useVoteResult } from "@/hooks/useVoteResult";
+import NetworkVisualization from "@/components/ask/consensus/network-visualization";
+import CurrentQuery from "@/components/ask/consensus/current-query";
+import NetworkStatus from "@/components/ask/consensus/network-status";
+import ValidatorResults from "@/components/ask/consensus/validator-results";
+import Staking from "@/components/ask/consensus/staking";
+import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
 
 export default function ConsensusStatus() {
+  const { voteResult } = useVoteResult();
+
   return (
     <div className="container rounded-2xl shadow-md mx-auto px-4 py-8 max-w-7xl">
       <h2 className="text-xl text-gray-800 dark:text-zinc-200 mb-6">
@@ -16,7 +20,7 @@ export default function ConsensusStatus() {
         {/* First row: Network Visualization and Current Query */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <NetworkVisualization />
-          <CurrentQuery />
+          <CurrentQuery voteResult={voteResult} />
         </div>
 
         {/* Second row: Network Status (full width) */}
@@ -29,9 +33,9 @@ export default function ConsensusStatus() {
           <ValidatorVoteHistory />
         </div>
 
-        {/* Fourth row: Deep Dive and Staking */}
+        {/* Fourth row: Validator Results and Staking */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <DeepDive />
+          <ValidatorResults />
           <Staking />
         </div>
       </div>
