@@ -1,7 +1,7 @@
 // app/credits/page.tsx
 import TopNav from "@/components/top-nav";
-import CreditSlider from "@/components/credit-slider";
-import StakeSlider from "@/components/stake-slider";
+import CreditSlider from "@/components/credits/credit-slider";
+import StakeSlider from "@/components/credits/stake-slider";
 
 export default function CreditsPage() {
   return (
