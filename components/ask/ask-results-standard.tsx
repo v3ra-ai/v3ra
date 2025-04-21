@@ -40,12 +40,16 @@ export default function AskResultsStandard() {
   };
 
   return (
-    <div className="container rounded-2xl shadow-md mx-auto px-4 py-8 max-w-6xl bg-transparent">
-      <div className="flex items-center justify-between mb-6">
+    <div className="container rounded-2xl shadow-md mx-auto px-4 py-8 max-w-6xl bg-transparent border-0 border-red-500 justify-center">
+      <div className={`flex items-center justify-center mb-6 ${
+              layoutMode === "row"
+                ? "w-full border-0 border-red-500"
+                : ""
+            }`}>
         <h2 className="text-xl text-zinc-800 dark:text-zinc-200">
           Recent Queries
         </h2>
-        <div className="flex space-x-2">
+        <div className="flex space-x-2 ml-4">
           <Grid3x3
             className={`h-5 w-5 cursor-pointer ${
               layoutMode === "grid"
@@ -73,7 +77,7 @@ export default function AskResultsStandard() {
           className={`max-w-6xl mx-auto ${
             layoutMode === "grid"
               ? "flex flex-wrap justify-center gap-4"
-              : "flex flex-col gap-4"
+              : "flex flex-col gap-4 items-center justify-center"
           }`}
         >
           {recentQueries.map((query: VoteResult) => {
@@ -87,7 +91,7 @@ export default function AskResultsStandard() {
               <Card
                 key={query.id}
                 className={`bg-white dark:bg-zinc-800 ${
-                  layoutMode === "grid" ? "w-full sm:w-[22rem]" : "w-full"
+                  layoutMode === "grid" ? "w-full sm:w-[22rem]" : "w-xl md:w-4xl"
                 }`}
               >
                 <CardHeader>
