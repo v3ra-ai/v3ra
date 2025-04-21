@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/db/client";
 import type { VoteResult } from "@/lib/types";
 
 interface VoteHistoryResult {
@@ -38,44 +37,12 @@ export function useVoteHistory(initialLimit: number = 10): VoteHistoryResult {
         setVoteHistory([]);
       }
     },
-    [initialLimit],
+    [initialLimit]
   );
 
   useEffect(() => {
     console.log("[useVoteHistory] Effect running with initialLimit:", initialLimit);
     fetchVoteHistory();
-
-    // Supabase subscription
-    console.log("[useVoteHistory] Setting up Supabase subscription for VoteSession INSERT");
-    const subscription = supabase
-      .channel("vote-session-changes")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "VoteSession" },
-        (payload) => {
-          console.log("[useVoteHistory] Received VoteSession INSERT payload:", payload);
-          console.log("[useVoteHistory] Triggering fetchVoteHistory due to subscription");
-          fetchVoteHistory();
-        }
-      )
-      .subscribe((status, error) => {
-        console.log(`[useVoteHistory] Subscription status: ${status}`, error ? `Error: ${error.message}` : "");
-        if (status === "SUBSCRIBED") {
-          console.log("[useVoteHistory] Subscription fully established");
-        }
-      });
-
-    // Polling fallback
-    const pollInterval = setInterval(() => {
-      console.log("[useVoteHistory] Polling for vote history");
-      fetchVoteHistory();
-    }, 5000);
-
-    return () => {
-      console.log("[useVoteHistory] Cleaning up subscription and polling");
-      supabase.removeChannel(subscription);
-      clearInterval(pollInterval);
-    };
   }, [fetchVoteHistory]);
 
   return { voteHistory, setVoteHistory, error, fetchVoteHistory };

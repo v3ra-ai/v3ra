@@ -3,7 +3,6 @@
 import { useState, useEffect, useRef, useMemo, memo } from "react";
 import { useQueryStore } from "@/store/query-store";
 import { fetchVoteHistory } from "@/app/actions";
-import { supabase } from "@/lib/db/client";
 import VoteHistoryHeader from "@/components/ask/consensus/vote-history-header";
 import VoteHistoryTable from "@/components/ask/consensus/vote-history-table";
 import VoteHistoryLoading from "@/components/ask/consensus/vote-history-loading";
@@ -32,12 +31,11 @@ function debounce(
 
 // Memoize VoteHistory
 const VoteHistory = memo(() => {
-  const { voteHistory, setVoteHistory, queryMode } = useQueryStore();
+  const { voteHistory, setVoteHistory, queryMode, lastVoteResult } = useQueryStore();
   const [voteHistoryError, setVoteHistoryError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedVoteId, setExpandedVoteId] = useState<number | null>(null);
   const isMounted = useRef(false);
-  const subscriptionRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
   const renderCount = useRef(0);
   const mountCount = useRef(0);
 
@@ -102,6 +100,7 @@ const VoteHistory = memo(() => {
   // Inline debouncedLoadVoteHistory to avoid useCallback dependency issues
   const debouncedLoadVoteHistory = debounce(loadVoteHistory, 1000);
 
+  // Initial fetch on mount
   useEffect(() => {
     if (isMounted.current) {
       console.log("[VoteHistory] Skipping effect due to mount state");
@@ -111,46 +110,19 @@ const VoteHistory = memo(() => {
     console.log("[VoteHistory] Effect running, initial load");
     loadVoteHistory(true);
 
-    console.log("[VoteHistory] Setting up Supabase subscription for VoteSession INSERT");
-    subscriptionRef.current = supabase
-      .channel("vote-session-changes")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "VoteSession" },
-        (payload) => {
-          console.log("[VoteHistory] Received VoteSession INSERT payload:", payload);
-          console.log("[VoteHistory] Triggering debounced loadVoteHistory");
-          debouncedLoadVoteHistory();
-        }
-      )
-      .subscribe((status, error) => {
-        console.log(
-          `[VoteHistory] Subscription status: ${status}`,
-          error ? `Error: ${error.message}` : ""
-        );
-        if (status === "SUBSCRIBED") {
-          console.log("[VoteHistory] Subscription fully established");
-        } else if (status === "CHANNEL_ERROR" || status === "TIMED_OUT" || status === "CLOSED") {
-          console.error("[VoteHistory] Subscription failed, using polling fallback", error);
-        }
-      });
-
-    // Polling fallback (60 seconds)
-    const pollInterval = setInterval(() => {
-      console.log("[VoteHistory] Polling for vote history");
-      debouncedLoadVoteHistory();
-    }, 60000);
-
     return () => {
-      console.log("[VoteHistory] Cleaning up subscription and polling");
-      if (subscriptionRef.current) {
-        supabase.removeChannel(subscriptionRef.current);
-        subscriptionRef.current = null;
-      }
-      clearInterval(pollInterval);
+      console.log("[VoteHistory] Cleaning up mount state");
       isMounted.current = false;
     };
-  }, [debouncedLoadVoteHistory, loadVoteHistory]);
+  }, []);
+
+  // Fetch on query submission
+  useEffect(() => {
+    if (lastVoteResult) {
+      console.log("[VoteHistory] New vote result detected, triggering debounced loadVoteHistory");
+      debouncedLoadVoteHistory();
+    }
+  }, [lastVoteResult, debouncedLoadVoteHistory]);
 
   const handleRefresh = () => {
     console.log("[VoteHistory] Manual refresh triggered");

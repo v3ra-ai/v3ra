@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { supabase } from "@/lib/db/client";
+import { useQueryStore } from "@/store/query-store";
 import type { NetworkState } from "@/lib/types";
 
 interface NetworkStateResult {
@@ -13,6 +13,7 @@ export function useNetworkState(): NetworkStateResult {
   const [networkState, setNetworkState] = useState<NetworkState | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const { lastVoteResult } = useQueryStore();
 
   const fetchNetworkState = useCallback(
     async (isInitialLoad: boolean = false) => {
@@ -43,7 +44,7 @@ export function useNetworkState(): NetworkStateResult {
         }
       }
     },
-    [],
+    []
   );
 
   const refetch = useCallback(async () => {
@@ -51,42 +52,19 @@ export function useNetworkState(): NetworkStateResult {
     await fetchNetworkState(false);
   }, [fetchNetworkState]);
 
+  // Initial fetch on mount
   useEffect(() => {
-    console.log("[useNetworkState] Effect running");
+    console.log("[useNetworkState] Effect running for initial load");
     fetchNetworkState(true);
-
-    // Supabase subscription
-    console.log("[useNetworkState] Setting up Supabase subscription for VoteSession INSERT");
-    const subscription = supabase
-      .channel("vote-session-changes")
-      .on(
-        "postgres_changes",
-        { event: "INSERT", schema: "public", table: "VoteSession" },
-        (payload) => {
-          console.log("[useNetworkState] Received VoteSession INSERT payload:", payload);
-          console.log("[useNetworkState] Triggering fetchNetworkState");
-          fetchNetworkState(false);
-        }
-      )
-      .subscribe((status, error) => {
-        console.log(`[useNetworkState] Subscription status: ${status}`, error ? `Error: ${error.message}` : "");
-        if (status === "SUBSCRIBED") {
-          console.log("[useNetworkState] Subscription fully established");
-        }
-      });
-
-    // Polling fallback
-    const pollInterval = setInterval(() => {
-      console.log("[useNetworkState] Polling for network state");
-      fetchNetworkState(false);
-    }, 5000);
-
-    return () => {
-      console.log("[useNetworkState] Cleaning up subscription and polling");
-      supabase.removeChannel(subscription);
-      clearInterval(pollInterval);
-    };
   }, [fetchNetworkState]);
+
+  // Fetch on query submission
+  useEffect(() => {
+    if (lastVoteResult) {
+      console.log("[useNetworkState] New vote result detected, triggering fetchNetworkState");
+      fetchNetworkState(false);
+    }
+  }, [lastVoteResult, fetchNetworkState]);
 
   return { networkState, isLoading, error, refetch };
 }

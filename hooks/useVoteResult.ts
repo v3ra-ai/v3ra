@@ -1,15 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNetworkState } from "./useNetworkState";
-import { supabase } from "@/lib/db/client";
+import { useQueryStore } from "@/store/query-store";
 import type { VoteResult } from "@/lib/types";
 
-export function useVoteResult(voteSessionId?: string): { voteResult: VoteResult | null } {
+interface VoteResultHookResult {
+  voteResult: VoteResult | null;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+}
+
+export function useVoteResult(voteSessionId?: string): VoteResultHookResult {
   const { networkState } = useNetworkState();
   const lastQuery = networkState?.lastQuery;
+  const { lastVoteResult } = useQueryStore();
   const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
 
-  // Fetch VoteResult
-  const fetchVoteResult = async () => {
+  const fetchVoteResult = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
       const url = voteSessionId
         ? `/api/vote-sessions/${voteSessionId}`
@@ -27,7 +38,7 @@ export function useVoteResult(voteSessionId?: string): { voteResult: VoteResult 
 
       let fetchedVoteResult: VoteResult | null = null;
       if (voteSessionId) {
-        // Handle /api/vote-sessions/[voteSessionId] (VoteSession without validatorResponses)
+        // Handle /api/vote-sessions/[voteSessionId]
         if (data && data.id) {
           fetchedVoteResult = {
             id: data.id,
@@ -39,7 +50,7 @@ export function useVoteResult(voteSessionId?: string): { voteResult: VoteResult 
               no: data.votesNo,
               notVoted: data.notVoted,
             },
-            validatorResponses: data.validatorResponses || [], // Fallback to empty array
+            validatorResponses: data.validatorResponses || [],
             timestamp: data.timestamp,
           };
         }
@@ -54,105 +65,34 @@ export function useVoteResult(voteSessionId?: string): { voteResult: VoteResult 
       } else {
         throw new Error("No vote result found");
       }
-    } catch (error) {
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
       console.error("[useVoteResult] Error fetching vote result:", error);
-      // Fallback to mock data
-      const simulatedVoteResult: VoteResult | null = lastQuery
-        ? {
-            id: `query-${Date.now()}`,
-            isConsensusReached: true,
-            consensusValue: true,
-            queryText: lastQuery,
-            validatorResponses: [
-              {
-                id: "validator-1",
-                provider: "Provider A",
-                profileName: "Alice",
-                vote: "YES",
-                rationale: "Supports the query.",
-              },
-              {
-                id: "validator-2",
-                provider: "Provider B",
-                profileName: "Bob",
-                vote: "YES",
-                rationale: "Agrees with the proposal.",
-              },
-              {
-                id: "validator-3",
-                provider: "Provider C",
-                profileName: "Charlie",
-                vote: "NO",
-                rationale: "Disagrees due to cost.",
-              },
-            ],
-            votingResult: {
-              yes: 2,
-              no: 1,
-              notVoted: 1,
-            },
-            timestamp: new Date().toISOString(),
-          }
-        : null;
-      console.log(`[useVoteResult] Falling back to mock data:`, simulatedVoteResult);
-      setVoteResult(simulatedVoteResult);
+      setError(error);
+      setVoteResult(null);
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [voteSessionId]);
 
+  // Initial fetch when voteSessionId or lastQuery changes
   useEffect(() => {
-    console.log(`[useVoteResult] Effect running with voteSessionId: ${voteSessionId}, lastQuery: ${lastQuery}`);
+    console.log(`[useVoteResult] Effect running for initial fetch, voteSessionId: ${voteSessionId}, lastQuery: ${lastQuery}`);
     fetchVoteResult();
+  }, [voteSessionId, lastQuery, fetchVoteResult]);
 
-    // Supabase subscription (only for latest VoteResult)
-    let subscription = null;
-    if (!voteSessionId) {
-      console.log("[useVoteResult] Setting up Supabase subscription for VoteSession INSERT");
-      subscription = supabase
-        .channel("vote-session-changes")
-        .on(
-          "postgres_changes",
-          { event: "INSERT", schema: "public", table: "VoteSession" },
-          (payload) => {
-            console.log("[useVoteResult] Received VoteSession INSERT payload:", payload);
-            const newVoteResult: VoteResult = {
-              id: payload.new.id,
-              queryText: payload.new.queryText,
-              isConsensusReached: payload.new.isConsensusReached,
-              consensusValue: payload.new.consensusValue,
-              votingResult: {
-                yes: payload.new.votesYes,
-                no: payload.new.votesNo,
-                notVoted: payload.new.notVoted,
-              },
-              validatorResponses: [],
-              timestamp: payload.new.timestamp,
-            };
-            console.log("[useVoteResult] Setting new voteResult from subscription:", newVoteResult);
-            setVoteResult(newVoteResult);
-            fetchVoteResult();
-          }
-        )
-        .subscribe((status, error) => {
-          console.log(`[useVoteResult] Subscription status: ${status}`, error ? `Error: ${error.message}` : "");
-        });
+  // Fetch on query submission if voteSessionId matches lastVoteResult.id
+  useEffect(() => {
+    if (lastVoteResult && (!voteSessionId || lastVoteResult.id === voteSessionId)) {
+      console.log("[useVoteResult] New vote result detected, triggering fetchVoteResult");
+      fetchVoteResult();
     }
+  }, [lastVoteResult, voteSessionId, fetchVoteResult]);
 
-    // Polling fallback
-    const pollInterval = setInterval(() => {
-      if (!voteSessionId) {
-        console.log("[useVoteResult] Polling for latest VoteResult");
-        fetchVoteResult();
-      }
-    }, 5000);
+  const refetch = useCallback(async () => {
+    console.log("[useVoteResult] Manual refetch triggered");
+    await fetchVoteResult();
+  }, [fetchVoteResult]);
 
-    return () => {
-      console.log("[useVoteResult] Cleaning up subscription and polling");
-      if (subscription) {
-        supabase.removeChannel(subscription);
-      }
-      clearInterval(pollInterval);
-    };
-  }, [lastQuery, voteSessionId]);
-
-  return { voteResult };
+  return { voteResult, isLoading, error, refetch };
 }
