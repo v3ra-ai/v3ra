@@ -111,7 +111,7 @@ export default function QueryForm({
               +
             </Button>
           </div>
-          <span className="text-gray-500 dark:text-gray-400">AIs queried</span>
+          <span className="text-gray-500 dark:text-gray-400">AIs</span>
         </div>
         <Button
           className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer"

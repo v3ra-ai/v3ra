@@ -31,14 +31,17 @@ export default function WalletToggle({
   return (
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-3">
-        <Switch
-          checked={payWithWallet}
-          onCheckedChange={handleCheckedChange}
-          className="switch data-[state=checked]:bg-[#46BBA6]"
-        />
-        <span className="font-medium text-gray-500 dark:text-gray-400">
-          Pay with Wallet ({costToQuery} SOL)
-        </span>
+        {/* Hide Switch and span on mobile, show on md: */}
+        <div className="hidden md:flex items-center gap-3">
+          <Switch
+            checked={payWithWallet}
+            onCheckedChange={handleCheckedChange}
+            className="switch data-[state=checked]:bg-[#46BBA6]"
+          />
+          <span className="font-medium text-gray-500 dark:text-gray-400">
+            Pay with Wallet ({costToQuery} SOL)
+          </span>
+        </div>
         {payWithWallet && (
           <PaymentControls
             hasPaid={hasPaid}
