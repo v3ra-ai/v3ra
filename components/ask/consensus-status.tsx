@@ -30,12 +30,16 @@ export default function ConsensusStatus() {
 
         {/* Third row: Validator Vote History (full width) */}
         <div>
-          <ValidatorVoteHistory />
+          <ValidatorResults />
         </div>
 
         {/* Fourth row: Validator Results and Staking */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <ValidatorResults />
+        <div>
+          <ValidatorVoteHistory />
+        </div>
+
+        {/* Fifth row: Validator Results and Staking */}
+        <div>
           <Staking />
         </div>
       </div>
