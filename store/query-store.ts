@@ -2,13 +2,13 @@ import { create } from "zustand";
 import type { VoteResult } from "@/lib/types";
 import { Dispatch, SetStateAction } from "react";
 
-type QueryMode = "factCheck" | "predict" | "create" | "shop";
-type ViewMode = "viewStandard" | "viewExpert";
+export type QueryMode = "factCheck" | "predict" | "create" | "shop";
+export type ViewMode = "viewStandard" | "viewExpert";
 
 // For testing, default to viewExpert; change to viewStandard later
 const DEFAULT_VIEW_MODE: ViewMode = "viewExpert";
 
-interface QueryStore {
+export interface QueryStore {
   totalQueries: number;
   queryMode: QueryMode;
   viewMode: ViewMode;

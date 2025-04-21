@@ -1,15 +1,19 @@
 import { useEffect } from "react";
-import { useQueryStore } from "@/store/query-store";
-import ConsensusStatus from "@/components/ask/consensus-status";
+import { useQueryStore, ViewMode } from "@/store/query-store";
 import AskResultsStandard from "@/components/ask/ask-results-standard";
+import AskResultsExpert from "@/components/ask/ask-results-expert";
 
-export default function QueryResults() {
-  const { viewMode, setViewMode } = useQueryStore();
+type Props = {
+  viewMode: ViewMode;
+};
+
+export default function QueryResults({ viewMode }: Props) {
+  const { setViewMode } = useQueryStore();
 
   // Set default viewMode to viewStandard on mount
   useEffect(() => {
     setViewMode("viewStandard");
   }, [setViewMode]);
 
-  return viewMode === "viewStandard" ? <AskResultsStandard /> : <ConsensusStatus />;
+  return viewMode === "viewStandard" ? <AskResultsStandard /> : <AskResultsExpert />;
 }

@@ -16,7 +16,7 @@ import { useQueryStore } from "./query-store";
 import { WalletToggle } from "./wallet-toggle";
 import { PaymentControls } from "./payment-controls";
 
-type QueryMode = "factCheck" | "predict" | "create";
+type QueryMode = "factCheck" | "predict" | "create" | "shop";
 
 export default function AskForm() {
   const { totalQueries, decrementQueries } = useQueryStore();

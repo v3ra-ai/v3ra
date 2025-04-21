@@ -1,9 +1,13 @@
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { VoteResult } from "@/lib/types";
-import LoadingSpinner from "@/components/loading-spinner";
-import ErrorDisplay from "@/components/error-display";
+import { LoadingSpinner } from "@/components/loading-spinner";
+import { ErrorDisplay } from "@/components/error-display";
 import { format } from "date-fns";
 import { ChevronDown, ChevronUp, Grid3x3, Rows3 } from "lucide-react";
 import { useState } from "react";
@@ -75,7 +79,8 @@ export default function AskResultsStandard() {
           {recentQueries.map((query: VoteResult) => {
             // Safely parse timestamp
             const date = query.timestamp ? new Date(query.timestamp) : null;
-            const formattedDate = date && !isNaN(date.getTime()) ? format(date, "PPPp") : "N/A";
+            const formattedDate =
+              date && !isNaN(date.getTime()) ? format(date, "PPPp") : "N/A";
             const isOpen = openItems[query.id] || false;
 
             return (
@@ -122,9 +127,13 @@ export default function AskResultsStandard() {
                       Not Voted: {query.votingResult.notVoted}
                     </p>
                   </div>
-                  <Collapsible open={isOpen} onOpenChange={() => toggleItem(query.id)}>
+                  <Collapsible
+                    open={isOpen}
+                    onOpenChange={() => toggleItem(query.id)}
+                  >
                     <CollapsibleTrigger className="flex items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-                      Validator Responses ({query.validatorResponses?.length ?? 0})
+                      Validator Responses (
+                      {query.validatorResponses?.length ?? 0})
                       {isOpen ? (
                         <ChevronUp className="ml-2 h-4 w-4" />
                       ) : (

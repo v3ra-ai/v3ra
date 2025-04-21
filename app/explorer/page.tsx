@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { NetworkStats } from "@/components/network-stats";
 import { ValidatorList } from "@/components/explorer/validator-list";
 import { VoteHistory } from "@/components/explorer/vote-history";
@@ -24,14 +24,14 @@ const Explorer: React.FC = () => {
     networkState,
     isLoading,
     error: networkError,
-    refetch,
+    refetch: refetchNetwork,
   } = useNetworkState();
   const {
-    voteHistory,
-    setVoteHistory,
+    voteHistory: voteHistoryFromHook,
     error: voteHistoryError,
-    fetchVoteHistory,
+    refetch: refetchVoteHistory,
   } = useVoteHistory();
+  const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
   const [lastVoteResult, setLastVoteResult] = useState<VoteResult | null>(null);
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [selectedValidator, setSelectedValidator] = useState<Validator | null>(
@@ -40,17 +40,22 @@ const Explorer: React.FC = () => {
   const [showCustomQuery, setShowCustomQuery] = useState(true);
   const [showValidatorAdmin, setShowValidatorAdmin] = useState(false);
 
+  // Sync local voteHistory with useVoteHistory
+  useEffect(() => {
+    setVoteHistory(voteHistoryFromHook);
+  }, [voteHistoryFromHook]);
+
   const { broadcastQuery } = useBroadcastQuery(
     setVoteHistory,
     setLastVoteResult,
-    refetch,
-    fetchVoteHistory,
+    refetchNetwork,
+    refetchVoteHistory,
   );
 
   useAutoRefresh({
     isEnabled: autoRefresh,
     intervalMs: 5000,
-    fetchFunctions: [refetch, fetchVoteHistory],
+    fetchFunctions: [refetchNetwork, refetchVoteHistory],
   });
 
   if (isLoading) {
@@ -58,7 +63,7 @@ const Explorer: React.FC = () => {
   }
 
   if (networkError || !networkState) {
-    return <ErrorDisplay onRetry={refetch} />;
+    return <ErrorDisplay onRetry={refetchNetwork} />;
   }
 
   return (

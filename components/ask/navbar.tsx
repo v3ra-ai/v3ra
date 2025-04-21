@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Sun, Moon, CircleUser, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
+import { useQueryStore } from "@/store/query-store";
+import ModeToggle from "@/components/ask/mode-toggle";
 
 // Dynamically import WalletMultiButton with SSR disabled
 const WalletMultiButton = dynamic(
@@ -16,6 +18,7 @@ const WalletMultiButton = dynamic(
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
+  const { viewMode } = useQueryStore();
   const [mounted, setMounted] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const isLoggedIn = false; // Placeholder: Replace with useAuth if available
@@ -156,7 +159,7 @@ export default function Navbar() {
 
       {/* Scroll-based Search Bar */}
       {mounted && showSearch && (
-        <div className="container mx-auto px-4 py-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
+        <div className="container mx-auto px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
           <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
             <div className="w-full md:w-1/2">
               <div className="flex items-center space-x-2">
@@ -173,9 +176,7 @@ export default function Navbar() {
               </div>
             </div>
             <div className="w-full md:w-1/2 md:text-right">
-              <span className="text-gray-700 dark:text-gray-300 font-medium">
-                nav features
-              </span>
+              <ModeToggle variant="icons" viewMode={viewMode} />
             </div>
           </div>
         </div>

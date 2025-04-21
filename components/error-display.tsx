@@ -8,7 +8,7 @@ interface ErrorDisplayProps {
   className?: string;
 }
 
-export default function ErrorDisplay({
+export function ErrorDisplay({
   message = "Failed to load network state",
   onRetry,
   className = "flex items-center justify-center min-h-screen",
