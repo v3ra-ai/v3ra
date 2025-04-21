@@ -157,17 +157,26 @@ export default function Navbar() {
       {/* Scroll-based Search Bar */}
       {mounted && showSearch && (
         <div className="container mx-auto px-4 py-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
-          <div className="flex items-center space-x-2">
-            <label className="text-gray-700 dark:text-gray-300 font-medium">
-              Ask:
-            </label>
-            <input
-              type="text"
-              className="flex-1 p-2 border border-zinc-300 dark:border-zinc-600 rounded-md
-                bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200
-                focus:outline-none focus:ring-1 focus:ring-teal-500"
-              placeholder="Enter your query..."
-            />
+          <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
+            <div className="w-full md:w-1/2">
+              <div className="flex items-center space-x-2">
+                <label className="text-gray-700 dark:text-gray-300 font-medium">
+                  Ask:
+                </label>
+                <input
+                  type="text"
+                  className="flex-1 p-2 border border-zinc-300 dark:border-zinc-600 rounded-md
+                    bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200
+                    focus:outline-none focus:ring-1 focus:ring-teal-500"
+                  placeholder="Enter your query..."
+                />
+              </div>
+            </div>
+            <div className="w-full md:w-1/2 md:text-right">
+              <span className="text-gray-700 dark:text-gray-300 font-medium">
+                nav features
+              </span>
+            </div>
           </div>
         </div>
       )}
