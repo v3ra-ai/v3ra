@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo, memo } from "react";
+import { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
 import { useQueryStore } from "@/store/query-store";
 import { fetchVoteHistory } from "@/app/actions";
 import VoteHistoryHeader from "@/components/ask/consensus/vote-history-header";
@@ -64,7 +64,7 @@ const VoteHistory = memo(() => {
     memoizedQueryMode
   );
 
-  const loadVoteHistory = async (isInitialLoad: boolean = false) => {
+  const loadVoteHistory = useCallback(async (isInitialLoad: boolean = false) => {
     try {
       if (isInitialLoad) {
         setIsLoading(true);
@@ -95,7 +95,7 @@ const VoteHistory = memo(() => {
         setIsLoading(false);
       }
     }
-  };
+  }, [memoizedVoteHistory, setVoteHistory]);
 
   // Inline debouncedLoadVoteHistory to avoid useCallback dependency issues
   const debouncedLoadVoteHistory = debounce(loadVoteHistory, 1000);
@@ -114,7 +114,7 @@ const VoteHistory = memo(() => {
       console.log("[VoteHistory] Cleaning up mount state");
       isMounted.current = false;
     };
-  }, []);
+  }, [loadVoteHistory]);
 
   // Fetch on query submission
   useEffect(() => {
@@ -122,7 +122,7 @@ const VoteHistory = memo(() => {
       console.log("[VoteHistory] New vote result detected, triggering debounced loadVoteHistory");
       debouncedLoadVoteHistory();
     }
-  }, [lastVoteResult, debouncedLoadVoteHistory]);
+  }, [lastVoteResult, debouncedLoadVoteHistory, loadVoteHistory]);
 
   const handleRefresh = () => {
     console.log("[VoteHistory] Manual refresh triggered");
