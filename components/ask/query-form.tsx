@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Slider } from "@/components/ui/slider";
 import { useQueryStore } from "@/store/query-store";
 
 interface QueryFormProps {
@@ -20,6 +21,8 @@ interface QueryFormProps {
   queriesNeeded: number;
   hasPaid: boolean;
   totalQueries: number;
+  isSubmitInteracted: boolean;
+  setIsSubmitInteracted: (value: boolean) => void;
 }
 
 export default function QueryForm({
@@ -35,6 +38,8 @@ export default function QueryForm({
   queriesNeeded,
   hasPaid,
   totalQueries,
+  isSubmitInteracted,
+  setIsSubmitInteracted,
 }: QueryFormProps) {
   const { setQueryMode } = useQueryStore();
   const allowedAmountQueries = 20;
@@ -43,19 +48,19 @@ export default function QueryForm({
     <div>
       <div className="mb-8">
         <textarea
-          className="w-full p-4 border border-gray-200 rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg"
+          className={`w-full p-4 border rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg ${
+            isSubmitInteracted && !question.trim() ? "border-red-400" : "border-gray-200"
+          }`}
           placeholder={placeholderText}
           value={question}
           onChange={(e) => setQuestion(e.target.value)}
         />
       </div>
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button
-                className="text-white bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer"
-              >
+              <Button className="text-white bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer">
                 {queryMode === "predict"
                   ? "Predict"
                   : queryMode === "create"
@@ -92,36 +97,48 @@ export default function QueryForm({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md">
+          <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md px-2 py-1">
+            <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-2 py-1 rounded-md min-w-[20px] text-center">
+              {userAiQueryAmountRequested}
+              <span className="text-gray-500 dark:text-gray-200 ml-1">AIs</span>
+            </div>
+            <Slider
+              value={[userAiQueryAmountRequested]}
+              onValueChange={(value) => handleQueryAmountChange(value[0])}
+              min={1}
+              max={allowedAmountQueries}
+              step={1}
+              className="w-20"
+            />
             <Button
-              className="border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 h-8 w-8 p-0 hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer"
+              className="border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer"
               onClick={() => handleQueryAmountChange(userAiQueryAmountRequested - 1)}
               disabled={userAiQueryAmountRequested <= 1}
             >
               -
             </Button>
-            <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-4 py-1 rounded-md min-w-[60px] text-center">
-              {userAiQueryAmountRequested}
-            </div>
             <Button
-              className="border-zinc-300 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 h-8 w-8 p-0 hover:bg-zinc-200 text-xl cursor-pointer"
+              className="border-zinc-300 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer"
               onClick={() => handleQueryAmountChange(userAiQueryAmountRequested + 1)}
               disabled={userAiQueryAmountRequested >= allowedAmountQueries}
             >
               +
             </Button>
           </div>
-          <span className="text-gray-500 dark:text-gray-400">AIs</span>
         </div>
         <Button
-          className="bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer"
+          className={`bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer ${
+            isSubmitInteracted && totalQueries < 1 ? "ring-2 ring-red-400" : ""
+          }`}
           onClick={handleSubmit}
           disabled={
             isSubmitting ||
-            !question.trim() ||
-            (payWithWallet && queriesNeeded > 0 && !hasPaid) ||
-            (totalQueries > 0 && totalQueries < userAiQueryAmountRequested)
+            (payWithWallet && queriesNeeded > 0 && !hasPaid && totalQueries < 1)
           }
+          onMouseEnter={() => totalQueries < 1 && setIsSubmitInteracted(true)}
+          onMouseLeave={() => setIsSubmitInteracted(false)}
+          onMouseDown={() => totalQueries < 1 && setIsSubmitInteracted(true)}
+          onMouseUp={() => setIsSubmitInteracted(false)}
         >
           {isSubmitting ? "Submitting..." : "Submit"}
         </Button>

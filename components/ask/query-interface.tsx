@@ -11,6 +11,7 @@ import { useQueryLogic } from "@/hooks/useQueryLogic";
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
   const [hasPaid, setHasPaid] = useState(false);
+  const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
 
   const {
     userAiQueryAmountRequested,
@@ -57,6 +58,7 @@ export default function QueryInterface() {
           costToQuery={costToQuery}
           totalQueries={totalQueries}
           userAiQueryAmountRequested={userAiQueryAmountRequested}
+          highlightPayButton={isSubmitInteracted && totalQueries < 1}
         />
         <QueryForm
           question={question}
@@ -71,6 +73,8 @@ export default function QueryInterface() {
           queriesNeeded={queriesNeeded}
           hasPaid={hasPaid}
           totalQueries={totalQueries}
+          isSubmitInteracted={isSubmitInteracted}
+          setIsSubmitInteracted={setIsSubmitInteracted}
         />
         <QueryStats
           availableQueries={availableQueries}

@@ -34,7 +34,13 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           </div>
           <SolanaProvider>
             {children}
-            <Toaster richColors position="top-right" />
+            <Toaster
+              richColors
+              position="bottom-center"
+              closeButton
+
+              visibleToasts={1}
+            />
           </SolanaProvider>
         </ThemeProvider>
       </body>

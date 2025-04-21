@@ -9,21 +9,29 @@ import {
   LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import { useState } from "react";
-import { Loader2 } from "lucide-react"; // For loading animation
-import { toast } from "sonner"; // Sonner toast for notifications
+import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 interface PaymentControlsProps {
   hasPaid: boolean;
   setHasPaid: (value: boolean) => void;
-  solCost: number; // Dynamic SOL cost
-  totalQueries: number; // Number of queries left
-  userAiQueryAmountRequested: number; // Number of queries requested
+  solCost: number;
+  totalQueries: number;
+  userAiQueryAmountRequested: number;
+  highlightPayButton?: boolean;
 }
 
-export function PaymentControls({ hasPaid, setHasPaid, solCost, totalQueries, userAiQueryAmountRequested }: PaymentControlsProps) {
+export function PaymentControls({
+  hasPaid,
+  setHasPaid,
+  solCost,
+  totalQueries,
+  userAiQueryAmountRequested,
+  highlightPayButton = false,
+}: PaymentControlsProps) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
-  const [isProcessing, setIsProcessing] = useState(false); // New loading state
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const PAYMENT_RECEIVER_ADDRESS =
     process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
@@ -33,17 +41,17 @@ export function PaymentControls({ hasPaid, setHasPaid, solCost, totalQueries, us
     );
   }
   const PAYMENT_RECIPIENT = new PublicKey(PAYMENT_RECEIVER_ADDRESS);
-  const PAYMENT_AMOUNT = solCost * LAMPORTS_PER_SOL; // Use dynamic solCost
+  const PAYMENT_AMOUNT = solCost * LAMPORTS_PER_SOL;
 
   const handlePayment = async () => {
     if (!publicKey || !sendTransaction) {
       toast.error("Please connect your wallet first", {
-        style: { background: "#fee2e2", color: "#dc2626" }, // Red error style
+        style: { background: "#fee2e2", color: "#dc2626" },
       });
       return;
     }
 
-    setIsProcessing(true); // Start loading
+    setIsProcessing(true);
     try {
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -58,15 +66,15 @@ export function PaymentControls({ hasPaid, setHasPaid, solCost, totalQueries, us
 
       setHasPaid(true);
       toast.success(`Payment of ${solCost} SOL successful!`, {
-        style: { background: "#dcfce7", color: "#16a34a" }, // Green success style
+        style: { background: "#dcfce7", color: "#16a34a" },
       });
     } catch (error) {
       console.error("Payment failed:", error);
       toast.error("Payment failed. Please try again.", {
-        style: { background: "#fee2e2", color: "#dc2626" }, // Red error style
+        style: { background: "#fee2e2", color: "#dc2626" },
       });
     } finally {
-      setIsProcessing(false); // Stop loading
+      setIsProcessing(false);
     }
   };
 
@@ -92,9 +100,11 @@ export function PaymentControls({ hasPaid, setHasPaid, solCost, totalQueries, us
             onClick={handlePayment}
             disabled={!publicKey || hasPaid || isProcessing || totalQueries >= userAiQueryAmountRequested}
             className={`px-4 py-[6px] rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center text-sm border ${
-              !publicKey || hasPaid || isProcessing || solCost == 0
-                ? "bg-gray-200 text-zinc-900 cursor-not-allowed"
-                : "bg-blue-500 text-white hover:bg-blue-500 cursor-pointer"
+              highlightPayButton
+                ? "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
+                : !publicKey || hasPaid || isProcessing || solCost == 0
+                  ? "bg-gray-200 text-zinc-900 cursor-not-allowed"
+                  : "bg-blue-500 text-white hover:bg-blue-500 cursor-pointer"
             }`}
           >
             {isProcessing ? (
@@ -102,7 +112,7 @@ export function PaymentControls({ hasPaid, setHasPaid, solCost, totalQueries, us
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
-            ) : solCost===0 ? (
+            ) : solCost === 0 ? (
               "Paid"
             ) : (
               `Pay ${solCost} Dev SOL`

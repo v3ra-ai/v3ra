@@ -12,6 +12,7 @@ interface WalletToggleProps {
   costToQuery: string;
   totalQueries: number;
   userAiQueryAmountRequested: number;
+  highlightPayButton?: boolean;
 }
 
 export default function WalletToggle({
@@ -22,6 +23,7 @@ export default function WalletToggle({
   costToQuery,
   totalQueries,
   userAiQueryAmountRequested,
+  highlightPayButton = false,
 }: WalletToggleProps) {
   // Memoize the onCheckedChange handler
   const handleCheckedChange = useCallback((checked: boolean) => {
@@ -49,6 +51,7 @@ export default function WalletToggle({
             solCost={parseFloat(costToQuery)}
             totalQueries={totalQueries}
             userAiQueryAmountRequested={userAiQueryAmountRequested}
+            highlightPayButton={highlightPayButton}
           />
         )}
       </div>

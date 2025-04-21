@@ -3,6 +3,7 @@ import { useQueryStore } from "@/store/query-store";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import { Dispatch, SetStateAction } from "react";
 import { getPlaceholderText } from "@/lib/query-utils";
+import { toast } from "sonner";
 import type { VoteResult } from "@/lib/types";
 
 interface UseQueryLogicProps {
@@ -79,19 +80,31 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
 
   const handleSubmit = async () => {
     if (!question.trim()) {
-      setError("Query cannot be empty");
+      toast.error("Query cannot be empty", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
       return;
     }
     if (queriesNeeded > 0 && !payWithWallet) {
-      setError("Please enable Pay with Wallet for additional queries");
+      toast.error("Please enable Pay with Wallet for additional queries", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
       return;
     }
     if (payWithWallet && queriesNeeded > 0 && !hasPaid) {
-      setError("Please make a payment first");
+      toast.error("Please make a payment first", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
       return;
     }
     if (totalQueries > 0 && totalQueries < userAiQueryAmountRequested) {
-      setError("Not enough queries available");
+      toast.error("Not enough queries available", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
       return;
     }
 
@@ -103,7 +116,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       setUserAiQueryAmountRequested(initialAiQueryAmountRequested);
       setQuestion("");
       setHasPaid(false);
-      setPayWithWallet(userAiQueryAmountRequested > initialAvailableQueries); // Reset based on new amount
+      setPayWithWallet(userAiQueryAmountRequested > initialAvailableQueries);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
       setError(errorMessage);
