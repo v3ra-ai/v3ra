@@ -91,7 +91,7 @@ export default function AskResultsStandard() {
               <Card
                 key={query.id}
                 className={`bg-white dark:bg-zinc-800 ${
-                  layoutMode === "grid" ? "w-full md:w-[22rem]" : "w-full lg:w-4xl"
+                  layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"
                 }`}
               >
                 <CardHeader>
