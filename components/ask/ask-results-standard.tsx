@@ -36,7 +36,7 @@ export default function AskResultsStandard() {
   };
 
   return (
-    <div className="container rounded-2xl shadow-md mx-auto px-4 py-8 max-w-7xl bg-zinc-50 dark:bg-zinc-900">
+    <div className="container rounded-2xl shadow-md mx-auto px-4 py-8 max-w-6xl bg-transparent">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl text-zinc-800 dark:text-zinc-200">
           Recent Queries
@@ -82,7 +82,7 @@ export default function AskResultsStandard() {
               <Card
                 key={query.id}
                 className={`bg-white dark:bg-zinc-800 ${
-                  layoutMode === "grid" ? "w-full sm:w-[20rem]" : "w-full"
+                  layoutMode === "grid" ? "w-full sm:w-[22rem]" : "w-full"
                 }`}
               >
                 <CardHeader>

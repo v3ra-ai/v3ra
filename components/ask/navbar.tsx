@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Sun, Moon } from "lucide-react";
+import { Sun, Moon, CircleUser, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 
@@ -17,10 +17,30 @@ export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const isLoggedIn = false; // Placeholder: Replace with useAuth if available
 
   // Handle hydration
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  // Handle scroll for search bar
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowSearch(window.scrollY > 50);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Add padding to body to prevent content overlap with fixed navbar
+  useEffect(() => {
+    document.body.style.paddingTop = "80px"; // Adjust based on navbar height
+    return () => {
+      document.body.style.paddingTop = "0";
+    };
   }, []);
 
   // Toggle between light and dark themes
@@ -40,7 +60,7 @@ export default function Navbar() {
     : "/verafy_logo_black.svg"; // Default to black logo before mounting
 
   return (
-    <div className="w-full dark:bg-zinc-900">
+    <div className="fixed top-0 w-full bg-white dark:bg-zinc-900 z-50">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -89,27 +109,6 @@ export default function Navbar() {
 
         {/* Right Side - Theme Toggle, Login, Connect Wallet */}
         <div className="flex items-center space-x-4">
-          <Link
-            href="/login"
-            className="text-gray-800 font-medium dark:text-gray-200"
-          >
-            Login
-          </Link>
-
-          <WalletMultiButton
-            style={{
-              backgroundColor: "#2dd4bf",
-              color: "#fff",
-              padding: "10px 12px",
-              borderRadius: "0.375rem",
-              fontSize: "0.95rem",
-              fontWeight: "normal",
-              height: "2rem",
-              margin: "0 0rem",
-              border: "1px solid #d1d5db",
-            }}
-          />
-
           {mounted && (
             <button
               onClick={toggleTheme}
@@ -126,8 +125,52 @@ export default function Navbar() {
               )}
             </button>
           )}
+
+          <Link
+            href={isLoggedIn ? "/profile" : "/login"}
+            className="text-gray-800 dark:text-gray-200"
+            aria-label={isLoggedIn ? "Profile" : "Login"}
+          >
+            {isLoggedIn ? (
+              <User className="h-5 w-5" />
+            ) : (
+              <CircleUser className="h-5 w-5" />
+            )}
+          </Link>
+
+          <WalletMultiButton
+            style={{
+              backgroundColor: "#2dd4bf",
+              color: "#fff",
+              padding: "10px 12px",
+              borderRadius: "0.375rem",
+              fontSize: "0.95rem",
+              fontWeight: "normal",
+              height: "2rem",
+              margin: "0 0rem",
+              border: "1px solid #d1d5db",
+            }}
+          />
         </div>
       </div>
+
+      {/* Scroll-based Search Bar */}
+      {mounted && showSearch && (
+        <div className="container mx-auto px-4 py-2 bg-white dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
+          <div className="flex items-center space-x-2">
+            <label className="text-gray-700 dark:text-gray-300 font-medium">
+              Ask:
+            </label>
+            <input
+              type="text"
+              className="flex-1 p-2 border border-zinc-300 dark:border-zinc-600 rounded-md
+                bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200
+                focus:outline-none focus:ring-1 focus:ring-teal-500"
+              placeholder="Enter your query..."
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
