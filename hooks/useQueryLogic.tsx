@@ -5,6 +5,12 @@ import { Dispatch, SetStateAction } from "react";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { toast } from "sonner";
 import type { VoteResult } from "@/lib/types";
+import {
+  QUERY_COST,
+  INITIAL_AVAILABLE_QUERIES,
+  INITIAL_AI_QUERY_AMOUNT_REQUESTED,
+  ALLOWED_AMOUNT_QUERIES,
+} from "@/lib/constants";
 
 interface UseQueryLogicProps {
   payWithWallet: boolean;
@@ -14,12 +20,6 @@ interface UseQueryLogicProps {
 }
 
 export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHasPaid }: UseQueryLogicProps) {
-  const queryCost = 0.002; // Cost per query in SOL
-  const initialAvailableQueries = 10;
-  const initialAiQueryAmountRequested = 4;
-  const allowedAmountQueries = 20;
-
-  const [userAiQueryAmountRequested, setUserAiQueryAmountRequested] = useState<number>(initialAiQueryAmountRequested);
   const [question, setQuestion] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,21 +30,23 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
     viewMode,
     voteHistory,
     lastVoteResult,
+    userAiQueryAmountRequested,
     decrementQueries,
     incrementQueries,
     setQueryMode,
     setVoteHistory,
     setLastVoteResult,
+    setUserAiQueryAmountRequested,
   } = useQueryStore();
 
-  const availableQueries = Math.max(0, initialAvailableQueries - userAiQueryAmountRequested);
-  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - initialAvailableQueries);
-  const costToQuery = (queriesNeeded * queryCost).toFixed(3);
+  const availableQueries = Math.max(0, INITIAL_AVAILABLE_QUERIES - userAiQueryAmountRequested);
+  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - INITIAL_AVAILABLE_QUERIES);
+  const costToQuery = (queriesNeeded * QUERY_COST).toFixed(3);
 
   const placeholderText = getPlaceholderText(queryMode);
 
   useEffect(() => {
-    const initialTotalQueries = initialAvailableQueries - initialAiQueryAmountRequested;
+    const initialTotalQueries = INITIAL_AVAILABLE_QUERIES - INITIAL_AI_QUERY_AMOUNT_REQUESTED;
     incrementQueries(initialTotalQueries - totalQueries);
   }, [incrementQueries, totalQueries]);
 
@@ -70,11 +72,11 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
     handleSetVoteHistory,
     handleSetLastVoteResult,
     undefined,
-    undefined,
+    undefined
   );
 
   const handleQueryAmountChange = (newAmount: number) => {
-    const clampedAmount = Math.max(1, Math.min(allowedAmountQueries, newAmount));
+    const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
     setUserAiQueryAmountRequested(clampedAmount);
   };
 
@@ -113,10 +115,10 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
     try {
       await broadcastQuery(question);
       decrementQueries(userAiQueryAmountRequested);
-      setUserAiQueryAmountRequested(initialAiQueryAmountRequested);
+      setUserAiQueryAmountRequested(INITIAL_AI_QUERY_AMOUNT_REQUESTED);
       setQuestion("");
       setHasPaid(false);
-      setPayWithWallet(userAiQueryAmountRequested > initialAvailableQueries);
+      setPayWithWallet(userAiQueryAmountRequested > INITIAL_AVAILABLE_QUERIES);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
       setError(errorMessage);

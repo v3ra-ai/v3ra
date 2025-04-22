@@ -14,12 +14,14 @@ export interface QueryStore {
   viewMode: ViewMode;
   voteHistory: VoteResult[];
   lastVoteResult: VoteResult | null;
+  userAiQueryAmountRequested: number;
   decrementQueries: (amount: number) => void;
   incrementQueries: (amount: number) => void;
   setQueryMode: (mode: QueryMode) => void;
   setViewMode: (mode: ViewMode) => void;
   setVoteHistory: Dispatch<SetStateAction<VoteResult[]>>;
   setLastVoteResult: Dispatch<SetStateAction<VoteResult | null>>;
+  setUserAiQueryAmountRequested: (amount: number) => void;
 }
 
 export const useQueryStore = create<QueryStore>((set) => ({
@@ -28,6 +30,7 @@ export const useQueryStore = create<QueryStore>((set) => ({
   viewMode: DEFAULT_VIEW_MODE,
   voteHistory: [],
   lastVoteResult: null,
+  userAiQueryAmountRequested: 4, // Matches INITIAL_AI_QUERY_AMOUNT_REQUESTED
   decrementQueries: (amount: number) =>
     set((state) => ({
       totalQueries: Math.max(0, state.totalQueries - amount),
@@ -51,5 +54,9 @@ export const useQueryStore = create<QueryStore>((set) => ({
   setLastVoteResult: (result: VoteResult | null | ((prev: VoteResult | null) => VoteResult | null)) =>
     set((state) => ({
       lastVoteResult: typeof result === "function" ? result(state.lastVoteResult) : result,
+    })),
+  setUserAiQueryAmountRequested: (amount: number) =>
+    set(() => ({
+      userAiQueryAmountRequested: amount,
     })),
 }));

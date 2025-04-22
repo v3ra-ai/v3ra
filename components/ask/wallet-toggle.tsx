@@ -1,7 +1,7 @@
+"use client";
+
 import { useCallback } from "react";
 import { Switch } from "@/components/ui/switch";
-import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
 import { PaymentControls } from "@/components/ask/payment-controls";
 
 interface WalletToggleProps {
@@ -13,8 +13,13 @@ interface WalletToggleProps {
   totalQueries: number;
   userAiQueryAmountRequested: number;
   highlightPayButton?: boolean;
+  context?: "scrollbar" | "query-form";
 }
 
+/**
+ * Renders a toggle for enabling wallet payments, with payment controls and a refresh button.
+ * Displays "Pay" in scrollbar context and "Pay with Wallet" in query-form context.
+ */
 export default function WalletToggle({
   payWithWallet,
   setPayWithWallet,
@@ -24,11 +29,15 @@ export default function WalletToggle({
   totalQueries,
   userAiQueryAmountRequested,
   highlightPayButton = false,
+  context = "query-form",
 }: WalletToggleProps) {
   // Memoize the onCheckedChange handler
-  const handleCheckedChange = useCallback((checked: boolean) => {
-    setPayWithWallet(checked);
-  }, [setPayWithWallet]);
+  const handleCheckedChange = useCallback(
+    (checked: boolean) => {
+      setPayWithWallet(checked);
+    },
+    [setPayWithWallet]
+  );
 
   return (
     <div className="flex items-center justify-between mb-6">
@@ -41,7 +50,7 @@ export default function WalletToggle({
             className="switch data-[state=checked]:bg-[#46BBA6]"
           />
           <span className="font-medium text-gray-500 dark:text-gray-400">
-            Pay with Wallet ({costToQuery} SOL)
+            {context === "scrollbar" ? "Pay" : "Pay with Wallet"} ({costToQuery} SOL)
           </span>
         </div>
         {payWithWallet && (
@@ -52,12 +61,13 @@ export default function WalletToggle({
             totalQueries={totalQueries}
             userAiQueryAmountRequested={userAiQueryAmountRequested}
             highlightPayButton={highlightPayButton}
+            context={context}
           />
         )}
       </div>
-      <Button variant="ghost" className="text-gray-500">
+      {/* <Button variant="ghost" className="text-gray-500">
         <RefreshCw size={20} />
-      </Button>
+      </Button> */}
     </div>
   );
 }

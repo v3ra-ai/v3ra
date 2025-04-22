@@ -19,8 +19,13 @@ interface PaymentControlsProps {
   totalQueries: number;
   userAiQueryAmountRequested: number;
   highlightPayButton?: boolean;
+  context?: "scrollbar" | "query-form";
 }
 
+/**
+ * Renders wallet connection and payment buttons for SOL transactions.
+ * Shows "Pay" in scrollbar context and "Pay ${solCost} Dev SOL" in query-form context.
+ */
 export function PaymentControls({
   hasPaid,
   setHasPaid,
@@ -28,6 +33,7 @@ export function PaymentControls({
   totalQueries,
   userAiQueryAmountRequested,
   highlightPayButton = false,
+  context = "query-form",
 }: PaymentControlsProps) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
@@ -114,6 +120,8 @@ export function PaymentControls({
               </>
             ) : solCost === 0 ? (
               "Paid"
+            ) : context === "scrollbar" ? (
+              "Pay"
             ) : (
               `Pay ${solCost} Dev SOL`
             )}
