@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/collapsible";
 import { VoteResult } from "@/lib/types";
 import { format } from "date-fns";
-import { ChevronDown, ChevronUp, CircleCheck, X, Twitter, Share2, Share, Activity } from "lucide-react";
+import { ChevronDown, ChevronUp, CircleCheck, X, Twitter, Share2, Share } from "lucide-react";
 import { useCleanText } from "@/hooks/useCleanText";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
 
