@@ -116,7 +116,7 @@ export default function Navbar() {
             <button
               onClick={toggleTheme}
               disabled={isCreditsPage}
-              className="p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800
+              className="rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800
               focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
               disabled:opacity-50 transition-colors cursor-pointer"
               aria-label="Toggle theme"
