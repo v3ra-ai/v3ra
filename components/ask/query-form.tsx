@@ -99,8 +99,8 @@ export default function QueryForm({
           </DropdownMenu>
           <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md px-2 py-1">
             <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-2 py-1 rounded-md min-w-[20px] text-center">
-              {userAiQueryAmountRequested}
-              <span className="text-gray-500 dark:text-gray-200 ml-1">AIs queries</span>
+
+              <span className="text-gray-500 dark:text-gray-200 ml-1">Query  {userAiQueryAmountRequested} AIs</span>
             </div>
             <Slider
               value={[userAiQueryAmountRequested]}
