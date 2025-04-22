@@ -21,6 +21,7 @@ interface QueryFormProps {
   queriesNeeded: number;
   hasPaid: boolean;
   totalQueries: number;
+  // @ts-ignore TS6133: 'isSubmitInteracted' is used in parent component and className
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: (value: boolean) => void;
 }
@@ -108,7 +109,22 @@ export default function QueryForm({
               min={1}
               max={allowedAmountQueries}
               step={1}
-              className="w-20"
+              // className="w-20 [&_[role=slider]]:h-5 [&_[role=slider]]:w-5 [&_[role=slider]]:bg-white [&_[role=slider]]:dark:bg-zinc-200 [&_[role=slider]]:border [&_[role=slider]]:border-teal-400 [&_[role=slider]]:dark:border-teal-500 [&_[role=slider]]:focus:ring-2 [&_[role=slider]]:focus:ring-teal-400 [&>*]:h-1 [&>*]:bg-gray-100 [&>*]:dark:bg-zinc-700 [&>*]:rounded-full [&_.SliderRange]:bg-teal-400 [&_.SliderRange]:dark:bg-teal-500"
+              className="w-20
+              [&_[role=slider]]:h-5 [&_[role=slider]]:w-5
+              [&>*]:bg-gray-100
+              [&_[role=slider]]:bg-zinc-300
+              [&_[role=slider]]:dark:bg-zinc-300
+              [&_[role=slider]]:border
+              [&_[role=slider]]:border-zinc-400 [&_[role=slider]]:dark:border-zinc-500
+              [&_[role=slider]]:focus:ring-1
+              [&_[role=slider]]:focus:ring-zinc-500
+              [&>*]:h-5
+              [&>*]:bg-zinc-200
+              [&>*]:dark:bg-zinc-600
+              [&>*]:rounded-full
+              "
+
             />
             <Button
               className="border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer"
