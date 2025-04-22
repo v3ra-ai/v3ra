@@ -106,18 +106,18 @@ export default function AskResultsStandardCard({
                 return (
                   <div
                     key={response.id}
-                    className="flex flex-col items-center justify-center max-w-[40px] overflow-wrap-anywhere"
+                    className={`flex flex-col items-center justify-center max-w-[40px] overflow-wrap-anywhere`}
                   >
                     <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-1">
                       {response.vote}
                     </p>
-                    <img
+                    <div className={`flex w-[40px] h-[40px] ${
+                      response.vote === "YES" ? "border-2 border-green-500" : "border-2 border-red-500"
+                    }`}><img
                       src={mapping ? `/icons/${mapping.imageName}` : "/icons/placeholder.png"}
                       alt={response.profileName}
-                      className={`w-[40px] h-[40px] mt-1 object-contain ${
-                        response.vote === "YES" ? "border-2 border-green-500" : "border-2 border-red-500"
-                      }`}
-                    />
+                      className={`grayscale w-[40px] h-[38px] object-contain`}
+                    /></div>
                   </div>
                 );
               })}
