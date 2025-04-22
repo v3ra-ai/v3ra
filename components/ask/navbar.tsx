@@ -7,7 +7,8 @@ import { Sun, Moon, CircleUser, User } from "lucide-react";
 import { useTheme } from "next-themes";
 import { usePathname } from "next/navigation";
 import { useQueryStore } from "@/store/query-store";
-import ModeToggle from "@/components/ask/mode-toggle";
+import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
+import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
 
 // Dynamically import WalletMultiButton with SSR disabled
 const WalletMultiButton = dynamic(
@@ -47,7 +48,7 @@ export default function Navbar() {
   }, []);
 
   // Toggle between light and dark themes
-  const toggleTheme = () => {
+  const handleToggleTheme = () => {
     console.log("Toggling theme from", theme);
     setTheme(theme === "light" ? "dark" : "light");
   };
@@ -77,44 +78,13 @@ export default function Navbar() {
         </div>
 
         {/* Navigation Links */}
-        <div className="hidden md:flex items-center space-x-8">
-          <Link
-            href="/"
-            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-          >
-            Home
-          </Link>
-          <Link
-            href="/explorer"
-            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-          >
-            Explorer
-          </Link>
-          <Link
-            href="/become-validator"
-            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-          >
-            Start a validator
-          </Link>
-          <Link
-            href="/credits"
-            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-          >
-            Stake
-          </Link>
-          <Link
-            href="/ask/?q=shop"
-            className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-          >
-            Shop
-          </Link>
-        </div>
+        <NavbarSitelinks />
 
         {/* Right Side - Theme Toggle, Login, Connect Wallet */}
         <div className="flex items-center space-x-4">
           {mounted && (
             <button
-              onClick={toggleTheme}
+              onClick={handleToggleTheme}
               disabled={isCreditsPage}
               className="rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800
               focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
@@ -157,30 +127,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Scroll-based Search Bar */}
-      {mounted && showSearch && (
-        <div className="container mx-auto px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
-          <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
-            <div className="w-full md:w-1/2">
-              <div className="flex items-center space-x-2">
-                <label className="text-gray-700 dark:text-gray-300 font-medium">
-                  Ask:
-                </label>
-                <input
-                  type="text"
-                  className="flex-1 p-2 border border-zinc-300 dark:border-zinc-600 rounded-md
-                    bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200
-                    focus:outline-none focus:ring-1 focus:ring-teal-500"
-                  placeholder="Enter your query..."
-                />
-              </div>
-            </div>
-            <div className="w-full md:w-1/2 md:text-right">
-              <ModeToggle variant="icons" viewMode={viewMode} />
-            </div>
-          </div>
-        </div>
-      )}
+      <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
     </div>
   );
 }
