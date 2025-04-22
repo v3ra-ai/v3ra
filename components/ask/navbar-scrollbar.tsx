@@ -37,7 +37,7 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
   return (
     <div className="container mx-auto px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
       <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
-        <div className="w-full md:w-1/3">
+        <div className="w-full h-full md:w-1/3">
           <div className="flex items-center space-x-2">
             <label className="text-gray-700 dark:text-gray-300 font-medium">
               Ask:
@@ -51,18 +51,20 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
             />
           </div>
         </div>
-        <div className="w-full md:w-2/3 md:text-left">
-          <WalletToggle
-            payWithWallet={payWithWallet}
-            setPayWithWallet={setPayWithWallet}
-            hasPaid={hasPaid}
-            setHasPaid={setHasPaid}
-            costToQuery={costToQuery}
-            totalQueries={totalQueries}
-            userAiQueryAmountRequested={userAiQueryAmountRequested}
-            highlightPayButton={false} // Placeholder
-            context="scrollbar"
-          />
+        <div className="flex flex-row md:w-2/3 items-center h-full md:text-left">
+          <div className="flex items-center">
+            <WalletToggle
+              payWithWallet={payWithWallet}
+              setPayWithWallet={setPayWithWallet}
+              hasPaid={hasPaid}
+              setHasPaid={setHasPaid}
+              costToQuery={costToQuery}
+              totalQueries={totalQueries}
+              userAiQueryAmountRequested={userAiQueryAmountRequested}
+              highlightPayButton={false} // Placeholder
+              context="scrollbar"
+            />
+          </div>
         </div>
       </div>
     </div>

@@ -40,7 +40,7 @@ export default function WalletToggle({
   );
 
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className={`flex items-center justify-between ${context==="query-form" && "mb-6"}`}>
       <div className="flex items-center gap-3">
         {/* Hide Switch and span on mobile, show on md: */}
         <div className="hidden md:flex items-center gap-3">
