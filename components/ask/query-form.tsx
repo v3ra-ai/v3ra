@@ -21,7 +21,6 @@ interface QueryFormProps {
   queriesNeeded: number;
   hasPaid: boolean;
   totalQueries: number;
-  // @ts-ignore TS6133: 'isSubmitInteracted' is used in parent component and className
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: (value: boolean) => void;
 }
