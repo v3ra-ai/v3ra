@@ -17,7 +17,7 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="text-white bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer">
+        <Button className="text-zinc-900 dark:text-white  bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer">
           {queryMode === "predict"
             ? "Predict"
             : queryMode === "create"
