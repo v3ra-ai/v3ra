@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
+import Image from "next/image";
 import { Sun, Moon, CircleUser, User } from "lucide-react";
 import { useTheme } from "next-themes";
 // import { usePathname } from "next/navigation";
@@ -71,11 +72,7 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-            <img
-              src={logoSrc}
-              alt="Verafy Logo"
-              className="h-8 w-auto"
-            />
+          <Image src={logoSrc} alt="Logo" width={130} height={130} />
           </Link>
         </div>
 

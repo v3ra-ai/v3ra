@@ -87,7 +87,6 @@ export default function QueryInterface() {
                         ? "bg-teal-500 text-white"
                         : "bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600"
                     }`}
-                    aria-selected={queryMode === mode}
                     role="menuitem"
                   >
                     {formatQueryMode(mode)}
