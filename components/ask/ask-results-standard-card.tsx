@@ -13,9 +13,18 @@ import {
 } from "@/components/ui/collapsible";
 import { VoteResult } from "@/lib/types";
 import { format } from "date-fns";
-import { ChevronDown, ChevronUp, CircleCheck, X, Twitter, Share2, Share } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  CircleCheck,
+  X,
+  Twitter,
+  Share2,
+  Share,
+} from "lucide-react";
 import { useCleanText } from "@/hooks/useCleanText";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
+import Image from "next/image";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -36,15 +45,18 @@ export default function AskResultsStandardCard({
 
   console.log(query);
 
-  const matchingResponses = query.validatorResponses?.filter(
-    (response) =>
-      query.isConsensusReached &&
-      ((query.consensusValue && response.vote === "YES") ||
-       (!query.consensusValue && response.vote === "NO"))
-  ) || [];
+  const matchingResponses =
+    query.validatorResponses?.filter(
+      (response) =>
+        query.isConsensusReached &&
+        ((query.consensusValue && response.vote === "YES") ||
+          (!query.consensusValue && response.vote === "NO"))
+    ) || [];
   const longestRationale = matchingResponses.length
     ? matchingResponses.reduce((longest, response) =>
-        response.rationale.length > longest.rationale.length ? response : longest
+        response.rationale.length > longest.rationale.length
+          ? response
+          : longest
       ).rationale
     : null;
   const { cleanText } = useCleanText(longestRationale);
@@ -102,7 +114,9 @@ export default function AskResultsStandardCard({
           {query.validatorResponses?.length ? (
             <div className="flex flex-wrap gap-4 max-w-full">
               {query.validatorResponses.map((response) => {
-                const mapping = validatorImageMapping.find((m) => m.id === response.id);
+                const mapping = validatorImageMapping.find(
+                  (m) => m.id === response.id
+                );
                 return (
                   <div
                     key={response.id}
@@ -111,13 +125,25 @@ export default function AskResultsStandardCard({
                     <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-1">
                       {response.vote}
                     </p>
-                    <div className={`flex w-[40px] h-[40px] ${
-                      response.vote === "YES" ? "border-2 border-green-500" : "border-2 border-red-500"
-                    }`}><img
-                      src={mapping ? `/icons/${mapping.imageName}` : "/icons/placeholder.png"}
-                      alt={response.profileName}
-                      className={`grayscale w-[40px] h-[38px] object-contain`}
-                    /></div>
+                    <div
+                      className={`flex w-[40px] h-[40px] ${
+                        response.vote === "YES"
+                          ? "border-2 border-green-500"
+                          : "border-2 border-red-500"
+                      }`}
+                    >
+                      <Image
+                        src={
+                          mapping
+                            ? `/icons/${mapping.imageName}`
+                            : "/icons/placeholder.png"
+                        }
+                        alt={response.profileName}
+                        width={40}
+                        height={38}
+                        className="grayscale object-contain"
+                      />
+                    </div>
                   </div>
                 );
               })}

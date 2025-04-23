@@ -9,7 +9,6 @@ import { QUERY_COST, INITIAL_AVAILABLE_QUERIES, INITIAL_AI_QUERY_AMOUNT_REQUESTE
 import { getPlaceholderText } from "@/lib/query-utils";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import { toast } from "sonner";
-import type { VoteResult } from "@/lib/types";
 
 // Define props interface
 interface NavbarScrollbarProps {
