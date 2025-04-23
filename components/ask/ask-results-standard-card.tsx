@@ -25,6 +25,7 @@ import {
 import { useCleanText } from "@/hooks/useCleanText";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
 import Image from "next/image";
+import { useState } from "react";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -56,7 +57,6 @@ export default function AskResultsStandardCard({
       (response) => response.vote === (result.consensusValue ? "YES" : "NO")
     ).length;
     const percentage = ((matchingVotes / totalVotes) * 100).toFixed(0);
-    // const color = result.consensusValue ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400";
     const color = result.consensusValue ? "text-zinc-700 dark:text-zinc-300" : "text-zinc-700 dark:text-zinc-300";
     return { percentage: `${percentage}%`, color };
   };
@@ -79,9 +79,23 @@ export default function AskResultsStandardCard({
     : null;
   const { cleanText } = useCleanText(longestRationale);
 
+  // Toggle state for rationale
+  const [isRationaleExpanded, setIsRationaleExpanded] = useState(false);
+
+  const toggleRationale = () => {
+    setIsRationaleExpanded((prev) => !prev);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleRationale();
+    }
+  };
+
   return (
     <Card
-      className={`bg-white dark:bg-zinc-800 pt-4 gap-6 ${
+      className={`bg-white dark:bg-zinc-800 pt-4 gap-6 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 active:border-zinc-400 dark:hover:border-zinc-500 dark:active:border-zinc-500 transition-colors ${
         layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"
       }`}
     >
@@ -94,7 +108,7 @@ export default function AskResultsStandardCard({
         </div>
       </div>
       <CardHeader className="dark:bg-zinc-800">
-        <CardTitle className="text-lg font-medium flex ">
+        <CardTitle className="text-lg font-medium flex">
           <div>
             {query.isConsensusReached && query.consensusValue ? (
               <CircleCheck className="mr-2 h-7 w-7 text-green-700 dark:text-green-300" />
@@ -121,9 +135,23 @@ export default function AskResultsStandardCard({
         </div>
         <div>
           {longestRationale ? (
-            <p className="text-sm text-zinc-600 dark:text-zinc-300 line-clamp-5 leading-6">
-              {cleanText}
-            </p>
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={toggleRationale}
+              onKeyDown={handleKeyDown}
+              className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md p-1"
+              aria-expanded={isRationaleExpanded}
+              aria-label={isRationaleExpanded ? "Collapse rationale" : "Expand rationale"}
+            >
+              <p
+                className={`text-sm text-zinc-600 dark:text-zinc-300 leading-6 ${
+                  isRationaleExpanded ? "" : "line-clamp-5"
+                }`}
+              >
+                {cleanText}
+              </p>
+            </div>
           ) : (
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               No matching rationale available.
@@ -131,24 +159,21 @@ export default function AskResultsStandardCard({
           )}
         </div>
         <div className="flex items-center space-x-2 border-0 mt-5 mb-5">
-            <Image
-              src="/Verafy-Logo@0.5x.png"
-              alt="Verafy Logo"
-              width={50}
-              height={20}
-              className="object-contain w-8 md:w-10"
-            />
-            <span className="text-sm font-light text-zinc-800 dark:text-zinc-200"> AI CONSENSUS:</span>
-
-            <span
-              className={`text-xl md:text-2xl
-              font-normal ${color} border-0`}
-              aria-label={`Consensus rating: ${percentage}
-              ${query.isConsensusReached ? (query.consensusValue ? "YES" : "NO") : "N/A"}`}
-            >
-              {percentage}
-            </span>
-          </div>
+          <Image
+            src="/Verafy-Logo@0.5x.png"
+            alt="Verafy Logo"
+            width={50}
+            height={20}
+            className="object-contain w-8 md:w-10"
+          />
+          <span className="text-sm font-light text-zinc-800 dark:text-zinc-200"> AI CONSENSUS:</span>
+          <span
+            className={`text-xl md:text-2xl font-normal ${color} border-0`}
+            aria-label={`Consensus rating: ${percentage} ${query.isConsensusReached ? (query.consensusValue ? "YES" : "NO") : "N/A"}`}
+          >
+            {percentage}
+          </span>
+        </div>
         <div className="mt-3">
           {query.validatorResponses?.length ? (
             <div className="flex flex-wrap gap-4 max-w-full">
@@ -192,7 +217,6 @@ export default function AskResultsStandardCard({
               No validator responses available.
             </p>
           )}
-
         </div>
       </CardContent>
       <hr className="h-1 border" />
