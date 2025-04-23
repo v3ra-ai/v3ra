@@ -65,7 +65,7 @@ export default function QueryInterface() {
         <Popover.Root open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <Popover.Trigger asChild>
             <button
-              className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors"
+              className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors cursor-pointer "
               aria-label={`Change query mode, current mode: ${formatQueryMode(queryMode)}`}
             >
               {queryMode === "factCheck" ? "fact check" : queryMode}
