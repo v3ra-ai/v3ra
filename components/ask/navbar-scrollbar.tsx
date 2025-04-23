@@ -5,7 +5,7 @@ import { ViewMode, useQueryStore } from "@/store/query-store";
 import WalletToggle from "@/components/ask/wallet-toggle";
 import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
 import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
-import { QUERY_COST, INITIAL_AVAILABLE_QUERIES, INITIAL_AI_QUERY_AMOUNT_REQUESTED, ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+import { QUERY_COST, INITIAL_AVAILABLE_QUERIES, INITIAL_AI_QUERY_AMOUNT_REQUESTED, ALLOWED_AMOUNT_QUERIES, QUERY_COST_FIXED } from "@/lib/constants";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import { toast } from "sonner";
@@ -41,7 +41,7 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
 
   // Calculate costToQuery and queriesNeeded
   const queriesNeeded = Math.max(0, userAiQueryAmountRequested - INITIAL_AVAILABLE_QUERIES);
-  const costToQuery = (queriesNeeded * QUERY_COST).toFixed(3);
+  const costToQuery = (queriesNeeded * QUERY_COST).toFixed(QUERY_COST_FIXED);
 
   // Sync payWithWallet with queriesNeeded
   useEffect(() => {

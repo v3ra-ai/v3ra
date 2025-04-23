@@ -10,6 +10,7 @@ import {
   INITIAL_AVAILABLE_QUERIES,
   INITIAL_AI_QUERY_AMOUNT_REQUESTED,
   ALLOWED_AMOUNT_QUERIES,
+  QUERY_COST_FIXED
 } from "@/lib/constants";
 
 interface UseQueryLogicProps {
@@ -41,7 +42,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
 
   const availableQueries = Math.max(0, INITIAL_AVAILABLE_QUERIES - userAiQueryAmountRequested);
   const queriesNeeded = Math.max(0, userAiQueryAmountRequested - INITIAL_AVAILABLE_QUERIES);
-  const costToQuery = (queriesNeeded * QUERY_COST).toFixed(3);
+  const costToQuery = (queriesNeeded * QUERY_COST).toFixed(QUERY_COST_FIXED);
 
   const placeholderText = getPlaceholderText(queryMode);
 
