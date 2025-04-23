@@ -24,7 +24,7 @@ interface NavbarSettingsProps {
  */
 export function NavbarSettings({
   mounted,
-  isCreditsPage,
+  // isCreditsPage,
   isLoggedIn,
   handleToggleTheme,
 }: NavbarSettingsProps) {
@@ -33,7 +33,7 @@ export function NavbarSettings({
       {mounted && (
         <button
           onClick={handleToggleTheme}
-          disabled={isCreditsPage}
+          // disabled={isCreditsPage}
           className="rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800
             focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
             disabled:opacity-50 transition-colors cursor-pointer"

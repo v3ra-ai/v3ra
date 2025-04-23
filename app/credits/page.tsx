@@ -1,12 +1,14 @@
 // app/credits/page.tsx
-import TopNav from "@/components/top-nav";
+
 import CreditSlider from "@/components/credits/credit-slider";
 import StakeSlider from "@/components/credits/stake-slider";
-
+import Navbar from "@/components/ask/navbar";
+import { SolanaProvider } from "@/components/solana-provider";
 export default function CreditsPage() {
   return (
     <>
-      <TopNav />
+    <SolanaProvider>
+    <Navbar />
       <div className="w-full max-w-4xl mx-auto p-6">
         <h1 className="text-4xl font-bold text-center text-gray-900 dark:text-gray-100 mb-8">
           Get Credits
@@ -20,6 +22,7 @@ export default function CreditsPage() {
           </div>
         </div>
       </div>
+      </SolanaProvider>
     </>
   );
 }

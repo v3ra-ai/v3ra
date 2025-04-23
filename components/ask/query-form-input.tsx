@@ -29,7 +29,7 @@ export function QueryFormInput({
 }: QueryFormInputProps) {
   return (
     <>
-      <div className="mb-8">
+      <div className="mb-2">
         <textarea
           className={`w-full p-4 border rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg ${
             isSubmitInteracted && !question.trim() ? "border-red-400" : "border-gray-200"

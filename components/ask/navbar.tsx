@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Sun, Moon, CircleUser, User } from "lucide-react";
 import { useTheme } from "next-themes";
-import { usePathname } from "next/navigation";
+// import { usePathname } from "next/navigation";
 import { useQueryStore } from "@/store/query-store";
 import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
 import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
@@ -17,8 +17,10 @@ const WalletMultiButton = dynamic(
 );
 
 export default function Navbar() {
+
   const { theme, setTheme } = useTheme();
-  const pathname = usePathname();
+
+  // const pathname = usePathname();
   const { viewMode } = useQueryStore();
   const [mounted, setMounted] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
@@ -54,7 +56,7 @@ export default function Navbar() {
   };
 
   // Disable toggle on /credits due to forced light theme
-  const isCreditsPage = pathname === "/credits";
+  // const isCreditsPage = pathname === "/credits";
 
   // Select logo based on theme
   const logoSrc = mounted
@@ -85,7 +87,7 @@ export default function Navbar() {
           {mounted && (
             <button
               onClick={handleToggleTheme}
-              disabled={isCreditsPage}
+              // disabled={isCreditsPage}
               className="rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800
               focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
               disabled:opacity-50 transition-colors cursor-pointer"

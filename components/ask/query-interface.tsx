@@ -39,14 +39,14 @@ export default function QueryInterface() {
   }, [queriesNeeded, payWithWallet]);
 
   return (
-    <div className="container mx-auto px-4 py-4">
+    <div className="container mx-auto px-4 py-1">
       <ModeToggle viewMode={viewMode} />
       <h1 className="text-zinc-900 dark:text-zinc-200 text-2xl font-bold text-center mb-8 mt-2">
         How can we help you?
       </h1>
       <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-lg/20 p-6 max-w-4xl mx-auto">
         {error && (
-          <p className="text-red-500 text-sm mb-4" role="alert">
+          <p className="text-red-500 text-sm mb-2" role="alert">
             {error}
           </p>
         )}

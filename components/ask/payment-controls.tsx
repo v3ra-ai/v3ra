@@ -24,7 +24,8 @@ interface PaymentControlsProps {
 
 /**
  * Renders wallet connection and payment buttons for SOL transactions.
- * Shows "Pay" in scrollbar context and "Pay ${solCost} Dev SOL" in query-form context.
+ * Shows "Pay: ${solCost}" in scrollbar context and "Pay ${solCost} Dev SOL" in query-form context.
+ * In scrollbar context, WalletMultiButton is shown only when wallet is disconnected.
  */
 export function PaymentControls({
   hasPaid,
@@ -88,24 +89,27 @@ export function PaymentControls({
     <>
       {!hasPaid && (
         <>
-          <WalletMultiButton
-            style={{
-              backgroundColor: "#e5e7eb",
-              color: "#111827",
-              padding: "10px 12px",
-              borderRadius: "0.375rem",
-              fontSize: "0.95rem",
-              fontWeight: "normal",
-              height: "2rem",
-              margin: "0 0rem",
-              border: "1px solid #d1d5db",
-            }}
-          />
+          {(context === "query-form" || !publicKey) && (
+            <WalletMultiButton
+              style={{
+                backgroundColor: "#e5e7eb",
+                color: "#111827",
+                padding: "10px 12px",
+                borderRadius: "0.375rem",
+                fontSize: "0.95rem",
+                fontWeight: "normal",
+                height: "2rem",
+                margin: "0 0rem",
+                border: "1px solid #d1d5db",
+              }}
+            />
+          )}
           <button
             type="button"
             onClick={handlePayment}
             disabled={!publicKey || hasPaid || isProcessing || totalQueries >= userAiQueryAmountRequested}
-            className={`px-4 py-[6px] rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center text-sm border ${
+            className={`px-4 py-[6px] rounded-sm focus:outline-none focus:ring-2
+              focus:ring-offset-2 focus:ring-gray-500 flex items-center text-sm border ${
               highlightPayButton
                 ? "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
                 : !publicKey || hasPaid || isProcessing || solCost == 0
@@ -121,7 +125,7 @@ export function PaymentControls({
             ) : solCost === 0 ? (
               "Paid"
             ) : context === "scrollbar" ? (
-              "Pay"
+              `Pay: ${solCost}`
             ) : (
               `Pay ${solCost} Dev SOL`
             )}
