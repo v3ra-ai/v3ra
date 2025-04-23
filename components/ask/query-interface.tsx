@@ -42,7 +42,7 @@ export default function QueryInterface() {
     <div className="container mx-auto px-4 py-1">
       <ModeToggle viewMode={viewMode} />
       <h1 className="text-zinc-900 dark:text-zinc-200 text-2xl font-bold text-center mb-8 mt-2">
-        How can we help you?
+        How can we help you <span className="text-teal-600 dark:text-teal-300">{queryMode==="factCheck" ? "fact check" :queryMode}?</span>
       </h1>
       <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-lg/20 p-6 max-w-4xl mx-auto">
         {error && (
