@@ -1,14 +1,23 @@
 import { useVoteHistory } from "@/hooks/useVoteHistory";
+import { useQueryStore } from "@/store/query-store";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { ErrorDisplay } from "@/components/error-display";
 import { Grid3x3, Rows3 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AskResultsStandardCard from "./ask-results-standard-card";
 
 export default function AskResultsStandard() {
   const { voteHistory, isLoading, error, refetch } = useVoteHistory();
+  const { lastVoteResult } = useQueryStore();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
+
+  // Refetch vote history when lastVoteResult changes
+  useEffect(() => {
+    if (lastVoteResult?.id) {
+      refetch();
+    }
+  }, [lastVoteResult?.id, refetch]);
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -39,7 +48,10 @@ export default function AskResultsStandard() {
   };
 
   return (
-    <div className="container rounded-2xl shadow-md mx-auto px-4 py-8 max-w-6xl bg-transparent border-0 border-red-500 justify-center">
+    <div
+      className="container rounded-2xl shadow-md mx-auto px-4 py-8 max-w-6xl bg-transparent border-0 border-red-500 justify-center"
+      aria-live="polite"
+    >
       <div
         className={`flex items-center justify-center mb-6 ${
           layoutMode === "row" ? "w-full border-0 border-red-500" : ""
