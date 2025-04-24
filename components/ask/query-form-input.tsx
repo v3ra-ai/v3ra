@@ -1,5 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 
 interface QueryFormInputProps {
   question: string;
@@ -24,17 +23,11 @@ export function QueryFormInput({
   placeholderText,
   handleSubmit,
   isSubmitting,
-  payWithWallet,
   queriesUnpaid,
-  queriesCostTotal,
   hasPaid,
-  userCreditsTotal,
-  userFreeCredits,
-  userPaidCredits,
   isSubmitInteracted,
   setIsSubmitInteracted,
 }: QueryFormInputProps) {
-  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
 
   return (
     <>

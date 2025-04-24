@@ -23,7 +23,6 @@ export default function QueryInterface() {
     isSubmitting,
     error,
     placeholderText,
-    availableQueries,
     queriesCostTotal,
     queriesUnpaid,
     userCreditsTotal,

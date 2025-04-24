@@ -6,11 +6,8 @@ import WalletToggle from "@/components/ask/wallet-toggle";
 import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
 import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
 import {
-  QUERY_COST,
-  INITIAL_AVAILABLE_QUERIES,
   INITIAL_AI_QUERY_AMOUNT_REQUESTED,
   ALLOWED_AMOUNT_QUERIES,
-  QUERY_COST_FIXED_DECIMALS,
 } from "@/lib/constants";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
@@ -42,9 +39,7 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
     userCreditsTotal,
     userFreeCredits,
     userPaidCredits,
-    userCreditConversion,
     queriesUnpaid,
-    queriesCostEach,
     queriesCostTotal,
     queryMode,
     setUserAiQueryAmountRequested,

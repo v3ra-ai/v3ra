@@ -29,9 +29,6 @@ export function PaymentControls({
   hasPaid,
   setHasPaid,
   queriesCostTotal,
-  userCreditsTotal,
-  userFreeCredits,
-  userPaidCredits,
   queriesUnpaid,
   highlightPayButton = false,
 }: PaymentControlsProps) {
