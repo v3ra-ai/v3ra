@@ -40,9 +40,9 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
     setUserAiQueryAmountRequested,
   } = useQueryStore();
 
-  const availableQueries = Math.max(0, INITIAL_AVAILABLE_QUERIES - userAiQueryAmountRequested);
-  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - INITIAL_AVAILABLE_QUERIES);
+  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - totalQueries); // Use totalQueries
   const costToQuery = (queriesNeeded * QUERY_COST).toFixed(QUERY_COST_FIXED);
+  const availableQueries = Math.max(0, totalQueries - userAiQueryAmountRequested); // Update availableQueries
 
   const placeholderText = getPlaceholderText(queryMode);
 
@@ -82,6 +82,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
   };
 
   const handleSubmit = async () => {
+    console.log("Submitting, totalQueries:", totalQueries, "userAiQueryAmountRequested:", userAiQueryAmountRequested, "queriesNeeded:", queriesNeeded, "costToQuery:", costToQuery);
     if (!question.trim()) {
       toast.error("Query cannot be empty", {
         style: { background: "#fee2e2", color: "#dc2626" },
@@ -103,7 +104,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       });
       return;
     }
-    if (totalQueries > 0 && totalQueries < userAiQueryAmountRequested) {
+    if (totalQueries < userAiQueryAmountRequested && !hasPaid) { // Allow submission if hasPaid
       toast.error("Not enough queries available", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
@@ -119,7 +120,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       setUserAiQueryAmountRequested(INITIAL_AI_QUERY_AMOUNT_REQUESTED);
       setQuestion("");
       setHasPaid(false);
-      setPayWithWallet(userAiQueryAmountRequested > INITIAL_AVAILABLE_QUERIES);
+      setPayWithWallet(userAiQueryAmountRequested > totalQueries);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
       setError(errorMessage);

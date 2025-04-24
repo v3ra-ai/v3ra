@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useQueryStore } from "@/store/query-store";
 
 interface PaymentControlsProps {
   hasPaid: boolean;
@@ -39,6 +40,7 @@ export function PaymentControls({
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
+  const { incrementQueries } = useQueryStore();
 
   const PAYMENT_RECEIVER_ADDRESS =
     process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
@@ -60,6 +62,8 @@ export function PaymentControls({
 
     setIsProcessing(true);
     try {
+      console.log("Payment inputs:", { solCost, PAYMENT_AMOUNT, publicKey: publicKey.toBase58() });
+
       const transaction = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: publicKey,
@@ -68,16 +72,30 @@ export function PaymentControls({
         }),
       );
 
+      const { blockhash } = await connection.getLatestBlockhash("confirmed");
+      transaction.recentBlockhash = blockhash;
+      transaction.feePayer = publicKey;
+
       const signature = await sendTransaction(transaction, connection);
       await connection.confirmTransaction(signature, "confirmed");
 
       setHasPaid(true);
+      incrementQueries(solCost); // Increment totalQueries by costToQuery (e.g., 5 or 3)
+      console.log("Payment successful, solCost:", solCost, "totalQueries:", useQueryStore.getState().totalQueries);
       toast.success(`Payment of ${solCost} SOL successful!`, {
         style: { background: "#dcfce7", color: "#16a34a" },
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Payment failed:", error);
-      toast.error("Payment failed. Please try again.", {
+      let errorMessage = "Payment failed. Please try again.";
+      if (error instanceof Error) {
+        errorMessage = error.message.includes("insufficient funds")
+          ? "Insufficient SOL in wallet"
+          : error.message.includes("blockhash")
+          ? "Transaction expired, please try again"
+          : errorMessage;
+      }
+      toast.error(errorMessage, {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
     } finally {
