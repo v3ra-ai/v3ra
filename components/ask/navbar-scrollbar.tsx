@@ -5,7 +5,13 @@ import { ViewMode, useQueryStore } from "@/store/query-store";
 import WalletToggle from "@/components/ask/wallet-toggle";
 import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
 import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
-import { QUERY_COST, INITIAL_AVAILABLE_QUERIES, INITIAL_AI_QUERY_AMOUNT_REQUESTED, ALLOWED_AMOUNT_QUERIES, QUERY_COST_FIXED } from "@/lib/constants";
+import {
+  QUERY_COST,
+  INITIAL_AVAILABLE_QUERIES,
+  INITIAL_AI_QUERY_AMOUNT_REQUESTED,
+  ALLOWED_AMOUNT_QUERIES,
+  QUERY_COST_FIXED_DECIMALS,
+} from "@/lib/constants";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import { toast } from "sonner";
@@ -20,6 +26,7 @@ interface NavbarScrollbarProps {
 /**
  * Renders a scroll-based search bar that appears when scrolling past 50px.
  * Includes a query mode selector, input field with dynamic placeholder, AI query slider, and wallet toggle with queries left display.
+ * Users submit queries by pressing Enter.
  */
 export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
   // Local state for input and submission
@@ -27,11 +34,18 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [payWithWallet, setPayWithWallet] = useState(true);
   const [hasPaid, setHasPaid] = useState(false);
+  const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
 
   // Get store data
   const {
-    userAiQueryAmountRequested,
-    totalQueries,
+    queriesRequested,
+    userCreditsTotal,
+    userFreeCredits,
+    userPaidCredits,
+    userCreditConversion,
+    queriesUnpaid,
+    queriesCostEach,
+    queriesCostTotal,
     queryMode,
     setUserAiQueryAmountRequested,
     setVoteHistory,
@@ -39,17 +53,13 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
     decrementQueries,
   } = useQueryStore();
 
-  // Calculate costToQuery and queriesNeeded
-  const queriesNeeded = Math.max(0, userAiQueryAmountRequested - INITIAL_AVAILABLE_QUERIES);
-  const costToQuery = (queriesNeeded * QUERY_COST).toFixed(QUERY_COST_FIXED);
-
-  // Sync payWithWallet with queriesNeeded
+  // Sync payWithWallet with queriesUnpaid
   useEffect(() => {
-    const shouldPayWithWallet = queriesNeeded > 0;
+    const shouldPayWithWallet = queriesUnpaid > 0;
     if (payWithWallet !== shouldPayWithWallet) {
       setPayWithWallet(shouldPayWithWallet);
     }
-  }, [queriesNeeded, payWithWallet]);
+  }, [queriesUnpaid, payWithWallet]);
 
   // Handle query amount changes
   const handleQueryAmountChange = useCallback(
@@ -74,37 +84,42 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
+      setIsSubmitInteracted(true);
       return;
     }
-    if (queriesNeeded > 0 && !payWithWallet) {
+    if (queriesUnpaid > 0 && !payWithWallet) {
       toast.error("Please enable Pay with Wallet for additional queries", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
+      setIsSubmitInteracted(true);
       return;
     }
-    if (payWithWallet && queriesNeeded > 0 && !hasPaid) {
+    if (payWithWallet && queriesUnpaid > 0 && !hasPaid) {
       toast.error("Please make a payment first", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
+      setIsSubmitInteracted(true);
       return;
     }
-    if (totalQueries > 0 && totalQueries < userAiQueryAmountRequested) {
+    if (userCreditsTotal > 0 && userCreditsTotal < queriesRequested) {
       toast.error("Not enough queries available", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
+      setIsSubmitInteracted(true);
       return;
     }
 
     setIsSubmitting(true);
     try {
       await broadcastQuery(question);
-      decrementQueries(userAiQueryAmountRequested);
+      decrementQueries(queriesRequested);
       setUserAiQueryAmountRequested(INITIAL_AI_QUERY_AMOUNT_REQUESTED);
       setQuestion("");
       setHasPaid(false);
+      setIsSubmitInteracted(false);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
       toast.error(errorMessage, {
@@ -135,9 +150,9 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
             <QueryFormModeSelector queryMode={queryMode} />
             <input
               type="text"
-              className="flex-1 p-2 border border-zinc-300 dark:border-zinc-600 rounded-md
-                bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200
-                focus:outline-none focus:ring-1 focus:ring-teal-500 min-w-[150px]"
+              className={`flex-1 p-2 border rounded-md bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-teal-500 min-w-[150px] ${
+                isSubmitInteracted && !question.trim() ? "border-red-400" : "border-zinc-300 dark:border-zinc-600"
+              }`}
               placeholder={getPlaceholderText(queryMode)}
               value={isSubmitting ? "Submitting..." : question}
               onChange={(e) => setQuestion(e.target.value)}
@@ -150,7 +165,7 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
         </div>
         <div className="flex flex-row md:w-2/3 items-center h-full md:text-left flex-wrap gap-2">
           <QueryFormAISlider
-            userAiQueryAmountRequested={userAiQueryAmountRequested}
+            queriesRequested={queriesRequested}
             handleQueryAmountChange={handleQueryAmountChange}
             allowedAmountQueries={ALLOWED_AMOUNT_QUERIES}
             context="scrollbar"
@@ -161,10 +176,13 @@ export function NavbarScrollbar({ mounted, showSearch }: NavbarScrollbarProps) {
               setPayWithWallet={setPayWithWallet}
               hasPaid={hasPaid}
               setHasPaid={setHasPaid}
-              costToQuery={costToQuery}
-              totalQueries={totalQueries}
-              userAiQueryAmountRequested={userAiQueryAmountRequested}
-              highlightPayButton={false} // Placeholder
+              queriesCostTotal={queriesCostTotal}
+              userCreditsTotal={userCreditsTotal}
+              userFreeCredits={userFreeCredits}
+              userPaidCredits={userPaidCredits}
+              queriesRequested={queriesRequested}
+              queriesUnpaid={queriesUnpaid}
+              highlightPayButton={false}
               context="scrollbar"
             />
           </div>

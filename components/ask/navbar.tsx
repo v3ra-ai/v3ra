@@ -10,6 +10,7 @@ import { useTheme } from "next-themes";
 import { useQueryStore } from "@/store/query-store";
 // import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
 import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
+import { NavbarScrollbar } from "./navbar-scrollbar";
 
 // Dynamically import WalletMultiButton with SSR disabled
 const WalletMultiButton = dynamic(
@@ -125,7 +126,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} /> */}
+      <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
     </div>
   );
 }

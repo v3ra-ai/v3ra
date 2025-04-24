@@ -104,11 +104,11 @@ export function PaymentControls({
   const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
 
   return (
-    <div className="flex flex-col gap-2">
-      <div>
+    <>
+      {/* <div>
         Free Credits: {userFreeCredits} | Paid Credits: {userPaidCredits} | Total Credits: {userCreditsTotal}
         {displayUnpaid > 0 && <span> | Unpaid Queries: {displayUnpaid}</span>}
-      </div>
+      </div> */}
       {!hasPaid && displayUnpaid > 0 && (
         <>
           <WalletMultiButton
@@ -143,11 +143,11 @@ export function PaymentControls({
                 Processing...
               </>
             ) : (
-              `Buy Credits (${queriesCostTotal} credits, ${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)`
+              `Pay ${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} Dev SOL`
             )}
           </button>
         </>
       )}
-    </div>
+    </>
   );
 }

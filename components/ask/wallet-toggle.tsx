@@ -17,6 +17,7 @@ interface WalletToggleProps {
   queriesRequested: number;
   queriesUnpaid: number;
   highlightPayButton?: boolean;
+  context?: "scrollbar" | "default"; // Added to differentiate scrollbar view
 }
 
 export default function WalletToggle({
@@ -31,6 +32,7 @@ export default function WalletToggle({
   queriesRequested,
   queriesUnpaid,
   highlightPayButton = false,
+  context = "default", // Default to non-scrollbar view
 }: WalletToggleProps) {
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
@@ -43,18 +45,20 @@ export default function WalletToggle({
   const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
 
   return (
-    <div className="flex items-center justify-between mb-6">
+    <div className={`flex items-center justify-between ${context==="default" ? "mb-6" : "mb-0"} `}>
       <div className="flex items-center gap-3 flex-wrap">
-        <div className="flex items-center gap-3 hidden md:flex">
-          <Switch
-            checked={payWithWallet}
-            onCheckedChange={handleCheckedChange}
-            className="switch data-[state=checked]:bg-[#46BBA6]"
-          />
-          <span className="font-medium text-gray-500 dark:text-gray-400">
-            Pay with Wallet ({queriesCostTotal} credits, {(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
-          </span>
-        </div>
+        {context !== "scrollbar" && (
+          <div className="flex items-center gap-3 hidden md:flex">
+            <Switch
+              checked={payWithWallet}
+              onCheckedChange={handleCheckedChange}
+              className="switch data-[state=checked]:bg-[#46BBA6]"
+            />
+            <span className="font-medium text-gray-500 dark:text-gray-400">
+              Pay with Wallet ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+            </span>
+          </div>
+        )}
         {payWithWallet && (
           <PaymentControls
             hasPaid={hasPaid}

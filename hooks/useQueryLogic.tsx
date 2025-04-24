@@ -8,9 +8,6 @@ import { getPlaceholderText } from "@/lib/query-utils";
 import { toast } from "sonner";
 import type { VoteResult } from "@/lib/types";
 import {
-  QUERY_COST,
-  USER_FREE_CREDITS_DEFAULT,
-  QUERIES_REQUESTED_DEFAULT,
   ALLOWED_AMOUNT_QUERIES,
 } from "@/lib/constants";
 

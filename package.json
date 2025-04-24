@@ -16,7 +16,7 @@
     "db:seed": "ts-node --compiler-options '{\"module\":\"CommonJS\"}' prisma/seed.ts",
     "build:services": "tsc -p tsconfig.services.json",
     "build:all": "npm run build && npm run build:services",
-    "ready": "npx npx tsc --noEmit && npm run build",
+    "ready": "npx tsc --noEmit && npm run build",
     "reset": "rm -rf .next/* && npm run dev",
     "postinstall": "prisma generate"
   },
