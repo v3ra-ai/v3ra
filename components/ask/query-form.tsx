@@ -7,14 +7,17 @@ interface QueryFormProps {
   setQuestion: (value: string) => void;
   placeholderText: string;
   queryMode: "factCheck" | "predict" | "create" | "shop";
-  userAiQueryAmountRequested: number;
+  queriesRequested: number;
+  userFreeCredits: number;
+  userPaidCredits: number;
+  userCreditsTotal: number;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
   handleQueryAmountChange: (newAmount: number) => void;
   handleSubmit: () => void;
   isSubmitting: boolean;
   payWithWallet: boolean;
-  queriesNeeded: number;
   hasPaid: boolean;
-  totalQueries: number;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: (value: boolean) => void;
 }
@@ -24,14 +27,17 @@ export default function QueryForm({
   setQuestion,
   placeholderText,
   queryMode,
-  userAiQueryAmountRequested,
+  queriesRequested,
+  userFreeCredits,
+  userPaidCredits,
+  userCreditsTotal,
+  queriesUnpaid,
+  queriesCostTotal,
   handleQueryAmountChange,
   handleSubmit,
   isSubmitting,
   payWithWallet,
-  queriesNeeded,
   hasPaid,
-  totalQueries,
   isSubmitInteracted,
   setIsSubmitInteracted,
 }: QueryFormProps) {
@@ -46,16 +52,19 @@ export default function QueryForm({
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}
         payWithWallet={payWithWallet}
-        queriesNeeded={queriesNeeded}
+        queriesUnpaid={queriesUnpaid}
+        queriesCostTotal={queriesCostTotal}
         hasPaid={hasPaid}
-        totalQueries={totalQueries}
+        userCreditsTotal={userCreditsTotal}
+        userFreeCredits={userFreeCredits}
+        userPaidCredits={userPaidCredits}
         isSubmitInteracted={isSubmitInteracted}
         setIsSubmitInteracted={setIsSubmitInteracted}
       />
       <div className="flex items-center gap-0">
         <QueryFormModeSelector queryMode={queryMode} />
         <QueryFormAISlider
-          userAiQueryAmountRequested={userAiQueryAmountRequested}
+          queriesRequested={queriesRequested}
           handleQueryAmountChange={handleQueryAmountChange}
           allowedAmountQueries={allowedAmountQueries}
         />

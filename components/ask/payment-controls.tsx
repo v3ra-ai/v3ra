@@ -12,35 +12,33 @@ import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQueryStore } from "@/store/query-store";
+import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 
 interface PaymentControlsProps {
   hasPaid: boolean;
   setHasPaid: (value: boolean) => void;
-  solCost: number;
-  totalQueries: number;
-  userAiQueryAmountRequested: number;
+  queriesCostTotal: number;
+  userCreditsTotal: number;
+  userFreeCredits: number;
+  userPaidCredits: number;
+  queriesUnpaid: number;
   highlightPayButton?: boolean;
-  context?: "scrollbar" | "query-form";
 }
 
-/**
- * Renders wallet connection and payment buttons for SOL transactions.
- * Shows "Pay: ${solCost}" in scrollbar context and "Pay ${solCost} Dev SOL" in query-form context.
- * In scrollbar context, WalletMultiButton is shown only when wallet is disconnected.
- */
 export function PaymentControls({
   hasPaid,
   setHasPaid,
-  solCost,
-  totalQueries,
-  userAiQueryAmountRequested,
+  queriesCostTotal,
+  userCreditsTotal,
+  userFreeCredits,
+  userPaidCredits,
+  queriesUnpaid,
   highlightPayButton = false,
-  context = "query-form",
 }: PaymentControlsProps) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { incrementQueries } = useQueryStore();
+  const { resetCreditsAfterPayment } = useQueryStore();
 
   const PAYMENT_RECEIVER_ADDRESS =
     process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
@@ -50,7 +48,7 @@ export function PaymentControls({
     );
   }
   const PAYMENT_RECIPIENT = new PublicKey(PAYMENT_RECEIVER_ADDRESS);
-  const PAYMENT_AMOUNT = solCost * LAMPORTS_PER_SOL;
+  const PAYMENT_AMOUNT = queriesCostTotal * QUERY_COST * LAMPORTS_PER_SOL;
 
   const handlePayment = async () => {
     if (!publicKey || !sendTransaction) {
@@ -62,7 +60,7 @@ export function PaymentControls({
 
     setIsProcessing(true);
     try {
-      console.log("Payment inputs:", { solCost, PAYMENT_AMOUNT, publicKey: publicKey.toBase58() });
+      console.log("Payment inputs:", { queriesCostTotal, PAYMENT_AMOUNT, publicKey: publicKey.toBase58() });
 
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -80,9 +78,9 @@ export function PaymentControls({
       await connection.confirmTransaction(signature, "confirmed");
 
       setHasPaid(true);
-      incrementQueries(solCost); // Increment totalQueries by costToQuery (e.g., 5 or 3)
-      console.log("Payment successful, solCost:", solCost, "totalQueries:", useQueryStore.getState().totalQueries);
-      toast.success(`Payment of ${solCost} SOL successful!`, {
+      resetCreditsAfterPayment(); // Reset all credits to 0 after payment
+      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useQueryStore.getState().userCreditsTotal);
+      toast.success(`Payment of ${queriesCostTotal} credits (${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL) completed! Credits reset to 0.`, {
         style: { background: "#dcfce7", color: "#16a34a" },
       });
     } catch (error: unknown) {
@@ -103,34 +101,38 @@ export function PaymentControls({
     }
   };
 
+  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
+
   return (
-    <>
-      {!hasPaid && (
+    <div className="flex flex-col gap-2">
+      <div>
+        Free Credits: {userFreeCredits} | Paid Credits: {userPaidCredits} | Total Credits: {userCreditsTotal}
+        {displayUnpaid > 0 && <span> | Unpaid Queries: {displayUnpaid}</span>}
+      </div>
+      {!hasPaid && displayUnpaid > 0 && (
         <>
-          {(context === "query-form" || !publicKey) && (
-            <WalletMultiButton
-              style={{
-                backgroundColor: "#e5e7eb",
-                color: "#111827",
-                padding: "10px 12px",
-                borderRadius: "0.375rem",
-                fontSize: "0.95rem",
-                fontWeight: "normal",
-                height: "2rem",
-                margin: "0 0rem",
-                border: "1px solid #d1d5db",
-              }}
-            />
-          )}
+          <WalletMultiButton
+            style={{
+              backgroundColor: "#e5e7eb",
+              color: "#111827",
+              padding: "10px 12px",
+              borderRadius: "0.375rem",
+              fontSize: "0.95rem",
+              fontWeight: "normal",
+              height: "2rem",
+              margin: "0 0rem",
+              border: "1px solid #d1d5db",
+            }}
+          />
           <button
             type="button"
             onClick={handlePayment}
-            disabled={!publicKey || hasPaid || isProcessing || totalQueries >= userAiQueryAmountRequested}
+            disabled={!publicKey || hasPaid || isProcessing || displayUnpaid <= 0}
             className={`px-4 py-[6px] rounded-sm focus:outline-none focus:ring-2
               focus:ring-offset-2 focus:ring-gray-500 flex items-center text-sm border ${
               highlightPayButton
                 ? "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
-                : !publicKey || hasPaid || isProcessing || solCost == 0
+                : !publicKey || hasPaid || isProcessing || displayUnpaid <= 0
                   ? "bg-gray-200 text-zinc-900 cursor-not-allowed"
                   : "bg-blue-500 text-white hover:bg-blue-500 cursor-pointer"
             }`}
@@ -140,16 +142,12 @@ export function PaymentControls({
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Processing...
               </>
-            ) : solCost === 0 ? (
-              "Paid"
-            ) : context === "scrollbar" ? (
-              `Pay: ${solCost}`
             ) : (
-              `Pay ${solCost} Dev SOL`
+              `Buy Credits (${queriesCostTotal} credits, ${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)`
             )}
           </button>
         </>
       )}
-    </>
+    </div>
   );
 }

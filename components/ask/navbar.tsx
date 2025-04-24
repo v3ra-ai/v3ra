@@ -8,7 +8,7 @@ import { Sun, Moon, CircleUser, User } from "lucide-react";
 import { useTheme } from "next-themes";
 // import { usePathname } from "next/navigation";
 import { useQueryStore } from "@/store/query-store";
-import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
+// import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
 import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
 
 // Dynamically import WalletMultiButton with SSR disabled
@@ -18,7 +18,6 @@ const WalletMultiButton = dynamic(
 );
 
 export default function Navbar() {
-
   const { theme, setTheme } = useTheme();
 
   // const pathname = usePathname();
@@ -72,7 +71,7 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-          <Image src={logoSrc} alt="Logo" width={130} height={130} />
+            <Image src={logoSrc} alt="Logo" width={130} height={130} />
           </Link>
         </div>
 
@@ -126,7 +125,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
+      {/* <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} /> */}
     </div>
   );
 }

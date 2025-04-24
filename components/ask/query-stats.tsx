@@ -3,45 +3,40 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
+import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 
 interface QueryStatsProps {
-  availableQueries: number;
-  queriesNeeded: number;
-  costToQuery: string;
+  userCreditsTotal: number;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
+  queriesRequested: number;
 }
 
 export default function QueryStats({
-  availableQueries,
-  queriesNeeded,
-  costToQuery,
+  userCreditsTotal,
+  queriesUnpaid,
+  queriesCostTotal,
+  queriesRequested,
 }: QueryStatsProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [hasTriggeredOpen, setHasTriggeredOpen] = useState(false);
   const [hasTriggeredClose, setHasTriggeredClose] = useState(false);
 
-  // Auto-trigger open/close based on availableQueries and costToQuery
+  // Auto-trigger open/close based on queriesUnpaid
   useEffect(() => {
-    const cost = parseFloat(costToQuery);
-    if (
-      availableQueries < 1 &&
-      !isNaN(cost) &&
-      cost > 0 &&
-      !hasTriggeredOpen
-    ) {
+    if (queriesUnpaid > 0 && !hasTriggeredOpen) {
       setIsOpen(true);
       setHasTriggeredOpen(true);
-      setHasTriggeredClose(false); // Allow re-close if conditions change
-    } else if (availableQueries > 0 && !hasTriggeredClose) {
+      setHasTriggeredClose(false);
+    } else if (queriesUnpaid <= 0 && !hasTriggeredClose) {
       setIsOpen(false);
       setHasTriggeredClose(true);
-      setHasTriggeredOpen(false); // Allow re-open if conditions change
+      setHasTriggeredOpen(false);
     }
-  }, [
-    availableQueries,
-    costToQuery,
-    hasTriggeredOpen,
-    hasTriggeredClose,
-  ]);
+  }, [queriesUnpaid, hasTriggeredOpen, hasTriggeredClose]);
+
+  const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested); // Credits left after reserving queriesRequested
+  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
 
   return (
     <div className="w-full mt-8">
@@ -49,31 +44,31 @@ export default function QueryStats({
       <Collapsible
         open={isOpen}
         onOpenChange={setIsOpen}
-        className="md:hidden" // Hidden on md and above
+        className="md:hidden"
       >
         <CollapsibleTrigger asChild>
           <Button
             variant="outline"
             className="flex items-center justify-between w-full bg-zinc-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 cursor-pointer truncate"
           >
-            <span>Queries left: {availableQueries}</span>
+            <span>Credits left: {creditsLeft}</span>
             <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="flex flex-col gap-4 mt-4">
             <div className="md:flex items-center gap-2 hidden">
-              <span className="text-gray-700 dark:text-zinc-400">Queries left</span>
+              <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
               <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                {availableQueries}
+                {creditsLeft}
               </span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-700 dark:text-zinc-400">
-                Cost to query: ({queriesNeeded})
+                Cost to query: ({displayUnpaid})
               </span>
               <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                {costToQuery} SOL
+                {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
               </span>
             </div>
             <Link href="/credits">
@@ -94,20 +89,20 @@ export default function QueryStats({
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Desktop: Original layout */}
+      {/* Desktop: Always visible */}
       <div className="hidden md:flex items-center gap-4">
         <div className="flex items-center gap-2">
-          <span className="text-gray-700 dark:text-zinc-400">Queries left</span>
+          <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
           <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-            {availableQueries}
+            {creditsLeft}
           </span>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-700 dark:text-zinc-400">
-            Cost to query: ({queriesNeeded})
+            Cost to query: ({displayUnpaid})
           </span>
           <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-            {costToQuery} SOL
+            {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
           </span>
         </div>
         <Link href="/credits">

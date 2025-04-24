@@ -17,16 +17,18 @@ export default function QueryInterface() {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const {
-    userAiQueryAmountRequested,
+    queriesRequested,
     question,
     setQuestion,
     isSubmitting,
     error,
     placeholderText,
     availableQueries,
-    costToQuery,
-    queriesNeeded,
-    totalQueries,
+    queriesCostTotal,
+    queriesUnpaid,
+    userCreditsTotal,
+    userFreeCredits,
+    userPaidCredits,
     queryMode,
     viewMode,
     handleSubmit,
@@ -35,15 +37,13 @@ export default function QueryInterface() {
 
   const { setQueryMode } = useQueryStore();
 
-  // Automatically toggle payWithWallet based on queriesNeeded
   useEffect(() => {
-    const shouldPayWithWallet = queriesNeeded > 0;
+    const shouldPayWithWallet = queriesUnpaid > 0;
     if (payWithWallet !== shouldPayWithWallet) {
       setPayWithWallet(shouldPayWithWallet);
     }
-  }, [queriesNeeded, payWithWallet]);
+  }, [queriesUnpaid, payWithWallet]);
 
-  // Format queryMode for display with capitalized first letters (e.g., factCheck → "Fact Check")
   const formatQueryMode = (mode: QueryMode) => {
     if (mode === "factCheck") {
       return "Fact Check";
@@ -51,7 +51,6 @@ export default function QueryInterface() {
     return mode.charAt(0).toUpperCase() + mode.slice(1);
   };
 
-  // Handle mode selection and close popover
   const handleModeSelect = (mode: QueryMode) => {
     setQueryMode(mode);
     setIsPopoverOpen(false);
@@ -65,7 +64,7 @@ export default function QueryInterface() {
         <Popover.Root open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <Popover.Trigger asChild>
             <button
-              className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors cursor-pointer "
+              className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors cursor-pointer"
               aria-label={`Change query mode, current mode: ${formatQueryMode(queryMode)}`}
             >
               {queryMode === "factCheck" ? "fact check" : queryMode}
@@ -110,31 +109,38 @@ export default function QueryInterface() {
           setPayWithWallet={setPayWithWallet}
           hasPaid={hasPaid}
           setHasPaid={setHasPaid}
-          costToQuery={costToQuery}
-          totalQueries={totalQueries}
-          userAiQueryAmountRequested={userAiQueryAmountRequested}
-          highlightPayButton={isSubmitInteracted && totalQueries < 1}
+          queriesCostTotal={queriesCostTotal}
+          userCreditsTotal={userCreditsTotal}
+          userFreeCredits={userFreeCredits}
+          userPaidCredits={userPaidCredits}
+          queriesRequested={queriesRequested}
+          queriesUnpaid={queriesUnpaid}
+          highlightPayButton={isSubmitInteracted && queriesUnpaid > 0}
         />
         <QueryForm
           question={question}
           setQuestion={setQuestion}
           placeholderText={placeholderText}
           queryMode={queryMode}
-          userAiQueryAmountRequested={userAiQueryAmountRequested}
+          queriesRequested={queriesRequested}
+          userFreeCredits={userFreeCredits}
+          userPaidCredits={userPaidCredits}
+          userCreditsTotal={userCreditsTotal}
+          queriesUnpaid={queriesUnpaid}
+          queriesCostTotal={queriesCostTotal}
           handleQueryAmountChange={handleQueryAmountChange}
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           payWithWallet={payWithWallet}
-          queriesNeeded={queriesNeeded}
           hasPaid={hasPaid}
-          totalQueries={totalQueries}
           isSubmitInteracted={isSubmitInteracted}
           setIsSubmitInteracted={setIsSubmitInteracted}
         />
         <QueryStats
-          availableQueries={availableQueries}
-          queriesNeeded={queriesNeeded}
-          costToQuery={costToQuery}
+          userCreditsTotal={userCreditsTotal}
+          queriesUnpaid={queriesUnpaid}
+          queriesCostTotal={queriesCostTotal}
+          queriesRequested={queriesRequested}
         />
       </div>
       <p className="text-center text-gray-700 dark:text-zinc-200 mt-6 max-w-4xl mx-auto">
