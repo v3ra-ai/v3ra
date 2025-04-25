@@ -28,17 +28,17 @@ export default function CreditSliderUI({
   onChangeWallet,
 }: CreditSliderUIProps) {
   return (
-    <div className="max-w-md mx-auto p-6 bg-gray-200 dark:bg-gray-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+    <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
+      <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
         Purchase Credits
       </h2>
       <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-gray-900 dark:text-gray-100">
+        <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
           {creditAmount}
         </span>
       </div>
       <div className="mb-6">
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
           Select Credits
         </label>
         <div className="relative">
@@ -50,7 +50,7 @@ export default function CreditSliderUI({
             max={100}
             step={1}
           >
-            <Slider.Track className="bg-gray-300 dark:bg-gray-600 relative grow rounded-full h-1">
+            <Slider.Track className="bg-zinc-300 dark:bg-zinc-600 relative grow rounded-full h-1">
               <Slider.Range className="absolute bg-blue-500 dark:bg-blue-400 rounded-full h-full" />
             </Slider.Track>
             <Slider.Thumb
@@ -58,18 +58,18 @@ export default function CreditSliderUI({
               aria-label="Credits"
             />
           </Slider.Root>
-          <div className="flex justify-between mt-2 text-sm text-gray-700 dark:text-gray-300">
+          <div className="flex justify-between mt-2 text-sm text-zinc-700 dark:text-zinc-300">
             <span>Min. (0)</span>
             <span>Max. (100)</span>
           </div>
         </div>
       </div>
       <div className="mb-6">
-        <p className="text-lg font-medium text-gray-900 dark:text-gray-100">
+        <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
           Cost: {requiredSol.toFixed(3)} SOL
         </p>
       </div>
-      <p className="mb-4 text-sm text-gray-700 dark:text-gray-300">
+      <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">
         Current Balance:{" "}
         {isWalletConnected && creditBalance !== null
           ? `${creditBalance} credits`
@@ -86,7 +86,7 @@ export default function CreditSliderUI({
           isLoading ||
           creditAmount === 0 ||
           (!isWalletConnected ? false : !isValid || !hasEnoughSol)
-            ? "bg-gray-400 dark:bg-gray-600 cursor-not-allowed"
+            ? "bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed"
             : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
         }`}
       >
