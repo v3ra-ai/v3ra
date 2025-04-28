@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
-          defaultTheme="system"
+          defaultTheme="dark"
           enableSystem
           disableTransitionOnChange
         >
