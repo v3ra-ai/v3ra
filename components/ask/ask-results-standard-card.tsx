@@ -26,6 +26,7 @@ import { useCleanText } from "@/hooks/useCleanText";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
 import Image from "next/image";
 import { useState } from "react";
+import DOMPurify from "dompurify";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -34,41 +35,64 @@ interface AskResultsStandardCardProps {
   toggleItem: (id: string) => void;
 }
 
+const SocialShareIcons = () => (
+  <div className="flex justify-end mr-2 text-sm text-zinc-500 space-x-2 border-0">
+    <Twitter className="h-4 w-4" />
+    <Share2 className="h-4 w-4" />
+    <Share className="h-4 w-4" />
+  </div>
+);
+
+const getPercentage = (result: VoteResult) => {
+  if (!result.isConsensusReached || !result.validatorResponses?.length) {
+    return "N/A";
+  }
+  const totalVotes = result.validatorResponses.length;
+  const matchingVotes = result.validatorResponses.filter(
+    (response) => response.vote === (result.consensusValue ? "YES" : "NO")
+  ).length;
+  return `${((matchingVotes / totalVotes) * 100).toFixed(0)}%`;
+};
+
+const getColor = (result: VoteResult) =>
+  result.consensusValue ? "text-zinc-700 dark:text-zinc-300" : "text-zinc-700 dark:text-zinc-300";
+
+const calculateRating = (result: VoteResult) => ({
+  percentage: getPercentage(result),
+  color: getColor(result),
+});
+
 export default function AskResultsStandardCard({
   query,
   layoutMode,
   isOpen,
   toggleItem,
 }: AskResultsStandardCardProps) {
-  const date = query.timestamp ? new Date(query.timestamp) : null;
+  // Sanitize query data to prevent XSS
+  const sanitizedQuery = {
+    ...query,
+    queryText: DOMPurify.sanitize(query.queryText),
+    validatorResponses: query.validatorResponses?.map((response) => ({
+      ...response,
+      profileName: DOMPurify.sanitize(response.profileName),
+      provider: DOMPurify.sanitize(response.provider),
+      id: DOMPurify.sanitize(response.id),
+      rationale: DOMPurify.sanitize(response.rationale || ""),
+    })),
+  };
+
+  const date = sanitizedQuery.timestamp ? new Date(sanitizedQuery.timestamp) : null;
   const formattedDate =
     date && !isNaN(date.getTime()) ? format(date, "PPPp") : "N/A";
 
-  // Calculate rating percentage
-  const calculateRating = (
-    result: VoteResult
-  ): { percentage: string; color: string } => {
-    if (!result.isConsensusReached || !result.validatorResponses?.length) {
-      return { percentage: "N/A", color: "text-zinc-500" };
-    }
-
-    const totalVotes = result.validatorResponses.length;
-    const matchingVotes = result.validatorResponses.filter(
-      (response) => response.vote === (result.consensusValue ? "YES" : "NO")
-    ).length;
-    const percentage = ((matchingVotes / totalVotes) * 100).toFixed(0);
-    const color = result.consensusValue ? "text-zinc-700 dark:text-zinc-300" : "text-zinc-700 dark:text-zinc-300";
-    return { percentage: `${percentage}%`, color };
-  };
-
-  const { percentage, color } = calculateRating(query);
+  const { percentage, color } = calculateRating(sanitizedQuery);
 
   const matchingResponses =
-    query.validatorResponses?.filter(
+    sanitizedQuery.validatorResponses?.filter(
       (response) =>
-        query.isConsensusReached &&
-        ((query.consensusValue && response.vote === "YES") ||
-          (!query.consensusValue && response.vote === "NO"))
+        sanitizedQuery.isConsensusReached &&
+        ((sanitizedQuery.consensusValue && response.vote === "YES") ||
+          (!sanitizedQuery.consensusValue && response.vote === "NO"))
     ) || [];
   const longestRationale = matchingResponses.length
     ? matchingResponses.reduce((longest, response) =>
@@ -95,28 +119,30 @@ export default function AskResultsStandardCard({
 
   return (
     <Card
-      className={`bg-white dark:bg-zinc-800 pt-4 gap-6 border border-zinc-200 dark:border-zinc-700 hover:border-zinc-400 active:border-zinc-400 dark:hover:border-zinc-500 dark:active:border-zinc-500 transition-colors ${
-        layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"
-      }`}
+      className={`
+        bg-white dark:bg-zinc-800
+        pt-4 gap-6
+        border border-zinc-200 dark:border-zinc-700
+        hover:border-zinc-400 active:border-zinc-400
+        dark:hover:border-zinc-500 dark:active:border-zinc-500
+        transition-colors
+        ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+      `}
     >
       <div className="flex justify-between">
         <div className="flex justify-start mr-2 text-sm text-zinc-500 space-x-2 border-0"></div>
-        <div className="flex justify-end mr-2 text-sm text-zinc-500 space-x-2 border-0">
-          <Twitter className="h-4 w-4" />
-          <Share2 className="h-4 w-4" />
-          <Share className="h-4 w-4" />
-        </div>
+        <SocialShareIcons />
       </div>
       <CardHeader className="dark:bg-zinc-800">
         <CardTitle className="text-lg font-medium flex">
           <div>
-            {query.isConsensusReached && query.consensusValue ? (
+            {sanitizedQuery.isConsensusReached && sanitizedQuery.consensusValue ? (
               <CircleCheck className="mr-2 h-7 w-7 text-green-700 dark:text-green-300" />
-            ) : query.isConsensusReached && !query.consensusValue ? (
+            ) : sanitizedQuery.isConsensusReached && !sanitizedQuery.consensusValue ? (
               <X className="mr-2 h-7 w-7 text-red-700 dark:text-red-300" />
             ) : null}
           </div>
-          <div>{query.queryText}</div>
+          <div>{sanitizedQuery.queryText}</div>
         </CardTitle>
         <CardDescription className="font-light text-xs dark:text-zinc-500 text-zinc-500">
           {formattedDate}
@@ -126,8 +152,8 @@ export default function AskResultsStandardCard({
       <CardContent className="space-y-2">
         <div className="my-1">
           <p className="text-4xl text-zinc-600 dark:text-zinc-300">
-            {query.isConsensusReached
-              ? query.consensusValue
+            {sanitizedQuery.isConsensusReached
+              ? sanitizedQuery.consensusValue
                 ? "Yes"
                 : "No"
               : "No consensus"}
@@ -169,15 +195,15 @@ export default function AskResultsStandardCard({
           <span className="text-sm font-light text-zinc-800 dark:text-zinc-200"> AI CONSENSUS:</span>
           <span
             className={`text-xl md:text-2xl font-normal ${color} border-0`}
-            aria-label={`Consensus rating: ${percentage} ${query.isConsensusReached ? (query.consensusValue ? "YES" : "NO") : "N/A"}`}
+            aria-label={`Consensus rating: ${percentage} ${sanitizedQuery.isConsensusReached ? (sanitizedQuery.consensusValue ? "YES" : "NO") : "N/A"}`}
           >
             {percentage}
           </span>
         </div>
         <div className="mt-3">
-          {query.validatorResponses?.length ? (
+          {sanitizedQuery.validatorResponses?.length ? (
             <div className="flex flex-wrap gap-4 max-w-full">
-              {query.validatorResponses.map((response) => {
+              {sanitizedQuery.validatorResponses.map((response) => {
                 const mapping = validatorImageMapping.find(
                   (m) => m.id === response.id
                 );
@@ -221,9 +247,9 @@ export default function AskResultsStandardCard({
       </CardContent>
       <hr className="h-1 border" />
       <CardFooter className="flex justify-start p-2">
-        <Collapsible open={isOpen} onOpenChange={() => toggleItem(query.id)}>
+        <Collapsible open={isOpen} onOpenChange={() => toggleItem(sanitizedQuery.id)}>
           <CollapsibleTrigger className="flex items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-            Validator Responses ({query.validatorResponses?.length ?? 0})
+            Validator Responses ({sanitizedQuery.validatorResponses?.length ?? 0})
             {isOpen ? (
               <ChevronUp className="ml-2 h-4 w-4" />
             ) : (
@@ -231,8 +257,8 @@ export default function AskResultsStandardCard({
             )}
           </CollapsibleTrigger>
           <CollapsibleContent className="mt-2 space-y-2">
-            {query.validatorResponses?.length ? (
-              query.validatorResponses.map((response) => (
+            {sanitizedQuery.validatorResponses?.length ? (
+              sanitizedQuery.validatorResponses.map((response) => (
                 <div
                   key={response.id}
                   className="p-2 bg-zinc-100 dark:bg-zinc-700 rounded-md"
