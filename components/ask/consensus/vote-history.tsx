@@ -10,8 +10,8 @@ import VoteHistoryLoading from "@/components/ask/consensus/vote-history-loading"
 import VoteHistoryError from "@/components/ask/consensus/vote-history-error";
 import VoteHistoryEmpty from "@/components/ask/consensus/vote-history-empty";
 import { Button } from "@/components/ui/button";
-import DOMPurify from "dompurify";
 import { areVoteHistoriesEqual } from "@/utils/vote-utils";
+import { formatErrorMessage } from "@/utils/error-utils";
 
 
 
@@ -79,7 +79,7 @@ const VoteHistory = memo(() => {
       const result = await fetchVoteHistory();
       if ("error" in result) {
         debugLog("Fetch vote history failed:", result.error);
-        setVoteHistoryError(DOMPurify.sanitize(result.error));
+        setVoteHistoryError(formatErrorMessage(result.error));
         return;
       }
       debugLog("Fetch result:", result);
@@ -91,10 +91,9 @@ const VoteHistory = memo(() => {
       }
       setVoteHistoryError(null);
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to load vote history";
+      const errorMessage = formatErrorMessage(err, "Failed to load vote history");
       debugLog("Error in loadVoteHistory:", errorMessage);
-      setVoteHistoryError(DOMPurify.sanitize(errorMessage));
+      setVoteHistoryError(errorMessage);
     } finally {
       if (isInitialLoad) {
         debugLog("Fetch complete, isLoading set to false");

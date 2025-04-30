@@ -1,9 +1,9 @@
 
 import { useNetworkState } from "@/hooks/useNetworkState";
-import { NetworkState } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DOMPurify from "dompurify";
 import { truncateText } from "@/utils/text-utils";
+import { getNetworkStateDefaults } from "@/utils/network-utils";
 
 const StatusCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Card className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
@@ -14,12 +14,7 @@ const StatusCard = ({ title, children }: { title: string; children: React.ReactN
   </Card>
 );
 
-const getNetworkStateDefaults = (networkState: NetworkState | null) => ({
-  validators: networkState?.validators || [],
-  currentLeaderIndex: networkState?.currentLeaderIndex ?? 0,
-  isVoting: networkState?.isVoting || false,
-  currentQuery: networkState?.lastQuery || null,
-});
+
 
 export default function NetworkStatus() {
   const { networkState, isLoading, error } = useNetworkState();
