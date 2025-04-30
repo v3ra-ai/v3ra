@@ -1,15 +1,26 @@
 # Copilot Instructions
 
-This project is a web application that allows users to create and manage tasks. The application is built using React 19, NextJS 15, Tailwind 4 and Node.js, and it uses Supabase Postrgres as the database and Prisma.
+This project is a web application called the Verafy Testnet. It is a modular system where the UI (Next.js) serves as the entry point, sending queries to the broadcaster service. The broadcaster uses distributes queries to validators, which vote using their AI models. The leader validator calculates consensus, stores results in PostgreSQL, and rotates leadership. The UI retrieves and displays these results via API endpoints.This flow ensures a scalable, verifiable AI validation network.
+
+There are standard and expert views. Standard views are for general users, while expert views are for experienced users and validators that need very detailed history, queries and metrics. The expert view includes additional features like a leaderboard and a voting history.
+
+The application is designed to be user-friendly and visually appealing, with a focus on performance and responsiveness.It is important to ensure that the application is accessible to all users, including those with disabilities. This includes using semantic HTML, providing alternative text for images, and ensuring that the application can be navigated using a keyboard.
+The application is designed to be modular and scalable, allowing for easy integration of new features and services. The architecture is based on APIs/microservices, with each service responsible for a specific task. This allows for better maintainability and easier deployment of new features.
+
+ The application is built using React 19, NextJS 15, Tailwind 4 and Node.js, and it uses Supabase Postrgres as the database and Prisma.
 
 ## Coding Standards
 
+- Tailwind CSS is used for styling should always use light and dark themes.
+- Use Tailwind CSS for styling and avoid inline styles.
+- Use TypeScript for all new code to enforce type safety.
+- Use ESLint and Prettier for code formatting and linting.
+- Use Git for version control and follow a branching strategy (e.g., Git Flow).
 - Use lowercase and hyphenated names for files and directories (e.g., `my-component.js`, `my-page.js`).
 - Use camelCase for React hooks.
 - Use camelCase for variable and function names.
 - Use PascalCase for component names.
 - Use single quotes for strings.
-- String literals if there are variables in them.
 - Use semicolons at the end of statements.
 - Use 2 spaces for indentation.
 - Use arrow functions for callbacks.
@@ -18,6 +29,16 @@ This project is a web application that allows users to create and manage tasks. 
 - Use destructuring for objects and arrays.
 - Use template literals for strings that contain variables.
 - Use the latest JavaScript features (ES6+) where possible.
+
+Key files and directories:
+* UI Entry: app/api/broadcast/route.ts
+* Core Logic: app/actions.ts
+* Broadcaster: services/broadcaster/broadcaster.ts
+* Validator: services/validator/validator.ts
+* Validator Providers: lib/validators/providers/*.ts (e.g., openai.ts, grok.ts)
+* Network State: app/api/network/route.ts
+* Database: Prisma interactions in app/actions.ts and services/validator/validator.ts
+
 
 Also for React 19, NextJS 15, Tailwind 4, Node.js, Supabase Postgres, and Prisma stack:
 
