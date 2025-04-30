@@ -1,5 +1,5 @@
 import { Connection } from "@solana/web3.js";
-const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+const connection = new Connection(CURRENT_SOLANA_NETWORK_RPC, "confirmed");
 (async () => {
   try {
     const signature = await connection.sendRawTransaction(

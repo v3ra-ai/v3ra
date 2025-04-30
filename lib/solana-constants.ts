@@ -1,9 +1,9 @@
 // lib/solana-constants.ts
 import { Connection, PublicKey } from "@solana/web3.js";
-import { QUERY_COST } from "./constants";
+import { CURRENT_SOLANA_NETWORK_RPC, QUERY_COST } from "./constants";
 
 export const connection = new Connection(
-  "https://api.devnet.solana.com",
+  CURRENT_SOLANA_NETWORK_RPC || "",
   "confirmed",
 );
 export const CREDIT_PRICE_SOL = QUERY_COST

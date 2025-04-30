@@ -16,9 +16,9 @@ interface ExplorerHeaderProps {
 
 export function ExplorerHeader({
   title = "Verafy Explorer",
-  autoRefresh,
-  setAutoRefresh,
-  onManageValidators,
+  // autoRefresh,
+  // setAutoRefresh,
+  // onManageValidators,
   className = "bg-white dark:bg-gray-900 shadow-sm border-b border-gray-200 dark:border-gray-800",
 }: ExplorerHeaderProps) {
   const { theme, setTheme } = useTheme();
@@ -63,13 +63,13 @@ export function ExplorerHeader({
           >
             Shop
           </Link>
-            <button
+            {/* <button
               onClick={onManageValidators}
               className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800 transition-colors"
             >
               Manage Validators
-            </button>
-            <div className="flex items-center">
+            </button> */}
+            {/* <div className="flex items-center">
               <input
                 type="checkbox"
                 id="auto-refresh"
@@ -85,7 +85,7 @@ export function ExplorerHeader({
               >
                 Auto-refresh (5s)
               </label>
-            </div>
+            </div> */}
             {mounted && (
               <button
                 onClick={toggleTheme}

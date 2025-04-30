@@ -10,7 +10,7 @@ import {
   SendTransactionError,
 } from "@solana/web3.js";
 
-const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+const connection = new Connection(CURRENT_SOLANA_NETWORK_RPC, "confirmed");
 const VERAFY_WALLET = "GFY1U36t5HjVv8Gtq33bCdepUnPURtX46mPQXdAPaM4d";
 const LAMPORTS_TO_AIRDROP = 1_000_000_000; // 1 SOL
 const LAMPORTS_TO_TRANSFER = 10_000_000; // 0.01 SOL

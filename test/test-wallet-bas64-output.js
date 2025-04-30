@@ -8,7 +8,7 @@ import {
   Connection,
   PublicKey,
 } from "@solana/web3.js";
-const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+const connection = new Connection(CURRENT_SOLANA_NETWORK_RPC, "confirmed");
 (async () => {
   const from = Keypair.generate();
   const tx = new Transaction().add(
