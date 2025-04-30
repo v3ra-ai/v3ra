@@ -1,12 +1,12 @@
-
 "use client";
 
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { VoteResultContext } from "@/components/ask/ask-results-expert";
-import { VoteResult } from "@/lib/types";
 import { useContext } from "react";
 import { motion } from "framer-motion";
 import DOMPurify from "dompurify";
+import { sanitizeQueryText } from "@/utils/security-utils";
+import { calculateVotePercentages } from "@/utils/vote-utils";
 
 const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
   <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
@@ -21,17 +21,6 @@ const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
   </div>
 );
 
-const calculateVotePercentages = (voteResult: VoteResult | null) => {
-  const totalVotes = voteResult?.votingResult
-    ? (voteResult.votingResult.yes ?? 0) + (voteResult.votingResult.no ?? 0) + (voteResult.votingResult.notVoted ?? 0)
-    : 0;
-  return {
-    yes: totalVotes ? ((voteResult?.votingResult?.yes ?? 0) / totalVotes) * 100 : 0,
-    no: totalVotes ? ((voteResult?.votingResult?.no ?? 0) / totalVotes) * 100 : 0,
-    notVoted: totalVotes ? ((voteResult?.votingResult?.notVoted ?? 0) / totalVotes) * 100 : 0,
-  };
-};
-
 export default function CurrentQuery() {
   const { isLoading, error } = useNetworkState();
   const voteResult = useContext(VoteResultContext);
@@ -44,13 +33,16 @@ export default function CurrentQuery() {
     return <QueryState state={{ error: error.message }} />;
   }
 
+  // Sanitize queryText to prevent XSS
+  const sanitizedQueryText = sanitizeQueryText(voteResult?.queryText) || "No query available";
+
   const { yes: yesPercentage, no: noPercentage, notVoted: notVotedPercentage } = calculateVotePercentages(voteResult);
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
       <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">Current Query</h3>
       <div className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-300">{voteResult?.queryText ?? "No query available"}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">{sanitizedQueryText}</p>
         <div
           className={`
             h-8 w-full

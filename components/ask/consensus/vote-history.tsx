@@ -10,14 +10,10 @@ import VoteHistoryLoading from "@/components/ask/consensus/vote-history-loading"
 import VoteHistoryError from "@/components/ask/consensus/vote-history-error";
 import VoteHistoryEmpty from "@/components/ask/consensus/vote-history-empty";
 import { Button } from "@/components/ui/button";
-import type { VoteResult } from "@/lib/types";
 import DOMPurify from "dompurify";
+import { areVoteHistoriesEqual } from "@/utils/vote-utils";
 
-// Utility to compare voteHistory by IDs
-const areVoteHistoriesEqual = (a: VoteResult[], b: VoteResult[]): boolean => {
-  if (a.length !== b.length) return false;
-  return a.every((item, index) => item.id === b[index].id);
-};
+
 
 // Debug logging utility
 const debugLog = (message: string, ...args: unknown[]) => {

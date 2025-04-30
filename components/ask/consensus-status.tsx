@@ -1,4 +1,5 @@
-// components/ask/consensus/consensus-status.tsx
+"use client";
+
 import { useVoteResult } from "@/hooks/useVoteResult";
 import NetworkVisualization from "@/components/ask/consensus/network-visualization";
 import CurrentQuery from "@/components/ask/consensus/current-query";
@@ -6,6 +7,7 @@ import NetworkStatus from "@/components/ask/consensus/network-status";
 import ValidatorResults from "@/components/ask/consensus/validator-results";
 import Staking from "@/components/ask/consensus/staking";
 import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
+import { VoteResultContext } from "@/components/ask/ask-results-expert";
 
 export default function ConsensusStatus() {
   const { voteResult } = useVoteResult();
@@ -16,33 +18,35 @@ export default function ConsensusStatus() {
         Consensus Status
       </h2>
 
-      <div className="max-w-6xl mx-auto space-y-6">
-        {/* First row: Network Visualization and Current Query */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <NetworkVisualization />
-          <CurrentQuery voteResult={voteResult} />
-        </div>
+      <VoteResultContext.Provider value={voteResult}>
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* First row: Network Visualization and Current Query */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <NetworkVisualization />
+            <CurrentQuery />
+          </div>
 
-        {/* Second row: Network Status (full width) */}
-        <div>
-          <NetworkStatus />
-        </div>
+          {/* Second row: Network Status (full width) */}
+          <div>
+            <NetworkStatus />
+          </div>
 
-        {/* Third row: Validator Vote History (full width) */}
-        <div>
-          <ValidatorResults />
-        </div>
+          {/* Third row: Validator Vote History (full width) */}
+          <div>
+            <ValidatorResults />
+          </div>
 
-        {/* Fourth row: Validator Results and Staking */}
-        <div>
-          <ValidatorVoteHistory />
-        </div>
+          {/* Fourth row: Validator Results and Staking */}
+          <div>
+            <ValidatorVoteHistory />
+          </div>
 
-        {/* Fifth row: Validator Results and Staking */}
-        <div>
-          <Staking />
+          {/* Fifth row: Validator Results and Staking */}
+          <div>
+            <Staking />
+          </div>
         </div>
-      </div>
+      </VoteResultContext.Provider>
     </div>
   );
 }

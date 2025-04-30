@@ -8,7 +8,7 @@ import NetworkVisualization from "@/components/ask/consensus/network-visualizati
 import Staking from "@/components/ask/consensus/staking";
 import ValidatorResults from "@/components/ask/consensus/validator-results";
 import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
-import DOMPurify from "dompurify";
+import { sanitizeQueryText, sanitizeValidatorResponse } from "@/utils/security-utils";
 
 export const VoteResultContext = createContext<VoteResult | null>(null);
 
@@ -17,18 +17,12 @@ export default function AskResultsExpert() {
 
   // Sanitize voteResult to prevent XSS
   const sanitizedVoteResult = voteResult
-    ? {
-        ...voteResult,
-        queryText: DOMPurify.sanitize(voteResult.queryText),
-        validatorResponses: voteResult.validatorResponses?.map((response) => ({
-          ...response,
-          profileName: DOMPurify.sanitize(response.profileName),
-          provider: DOMPurify.sanitize(response.provider),
-          id: DOMPurify.sanitize(response.id),
-          rationale: DOMPurify.sanitize(response.rationale || ""),
-        })),
-      }
-    : null;
+  ? {
+      ...voteResult,
+      queryText: sanitizeQueryText(voteResult.queryText),
+      validatorResponses: voteResult.validatorResponses?.map(sanitizeValidatorResponse),
+    }
+  : null;
 
   return (
     <VoteResultContext.Provider value={sanitizedVoteResult}>

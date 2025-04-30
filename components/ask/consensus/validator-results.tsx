@@ -4,42 +4,45 @@
 import { useVoteResult } from "@/hooks/useVoteResult";
 import { VoteResult } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import DOMPurify from "dompurify";
+import { sanitizeValidatorResponse } from "@/utils/security-utils";
 
-const ValidatorResponseCard = ({ response }: { response: VoteResult["validatorResponses"][number] }) => (
-  <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
-    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
-      <div className="flex flex-col">
-        <span className="font-medium text-gray-800 dark:text-zinc-200">
-          {DOMPurify.sanitize(response.profileName)} ({DOMPurify.sanitize(response.provider)})
-        </span>
-        <span className="text-xs text-gray-500 dark:text-gray-400">
-          ID: {DOMPurify.sanitize(response.id)}
+const ValidatorResponseCard = ({ response }: { response: VoteResult["validatorResponses"][number] }) => {
+  const sanitizedResponse = sanitizeValidatorResponse(response);
+  return (
+    <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+        <div className="flex flex-col">
+          <span className="font-medium text-gray-800 dark:text-zinc-200">
+            {sanitizedResponse.profileName} ({sanitizedResponse.provider})
+          </span>
+          <span className="text-xs text-gray-500 dark:text-gray-400">
+            ID: {sanitizedResponse.id}
+          </span>
+        </div>
+        <span
+          className={`
+            px-2 py-1
+            rounded-full
+            text-xs font-medium
+            mt-2 sm:mt-0
+            ${
+              sanitizedResponse.vote === "YES"
+                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                : sanitizedResponse.vote === "NO"
+                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+                  : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
+            }
+          `}
+        >
+          {sanitizedResponse.vote || "N/A"}
         </span>
       </div>
-      <span
-        className={`
-          px-2 py-1
-          rounded-full
-          text-xs font-medium
-          mt-2 sm:mt-0
-          ${
-            response.vote === "YES"
-              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-              : response.vote === "NO"
-              ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-              : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-          }
-        `}
-      >
-        {response.vote || "N/A"}
-      </span>
+      <p className="text-sm text-gray-600 dark:text-gray-300">
+        {sanitizedResponse.rationale || "No rationale provided"}
+      </p>
     </div>
-    <p className="text-sm text-gray-600 dark:text-gray-300">
-      {DOMPurify.sanitize(response.rationale || "No rationale provided")}
-    </p>
-  </div>
-);
+  );
+};
 
 export default function ValidatorResults() {
   const { voteResult } = useVoteResult();

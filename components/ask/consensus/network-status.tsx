@@ -3,6 +3,7 @@ import { useNetworkState } from "@/hooks/useNetworkState";
 import { NetworkState } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DOMPurify from "dompurify";
+import { truncateText } from "@/utils/text-utils";
 
 const StatusCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Card className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
@@ -19,9 +20,6 @@ const getNetworkStateDefaults = (networkState: NetworkState | null) => ({
   isVoting: networkState?.isVoting || false,
   currentQuery: networkState?.lastQuery || null,
 });
-
-const truncateText = (text: string, maxLength: number) =>
-  text.length > maxLength ? `${text.slice(0, maxLength - 3)}...` : text;
 
 export default function NetworkStatus() {
   const { networkState, isLoading, error } = useNetworkState();

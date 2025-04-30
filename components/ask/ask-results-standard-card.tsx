@@ -12,7 +12,6 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 import { VoteResult } from "@/lib/types";
-import { format } from "date-fns";
 import {
   ChevronDown,
   ChevronUp,
@@ -26,7 +25,11 @@ import { useCleanText } from "@/hooks/useCleanText";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
 import Image from "next/image";
 import { useState } from "react";
-import DOMPurify from "dompurify";
+
+import { formatTime } from "@/utils/date-utils";
+import { sanitizeQueryText, sanitizeValidatorResponse } from "@/utils/security-utils";
+import { calculateRating } from "@/utils/vote-utils";
+
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -43,25 +46,6 @@ const SocialShareIcons = () => (
   </div>
 );
 
-const getPercentage = (result: VoteResult) => {
-  if (!result.isConsensusReached || !result.validatorResponses?.length) {
-    return "N/A";
-  }
-  const totalVotes = result.validatorResponses.length;
-  const matchingVotes = result.validatorResponses.filter(
-    (response) => response.vote === (result.consensusValue ? "YES" : "NO")
-  ).length;
-  return `${((matchingVotes / totalVotes) * 100).toFixed(0)}%`;
-};
-
-const getColor = (result: VoteResult) =>
-  result.consensusValue ? "text-zinc-700 dark:text-zinc-300" : "text-zinc-700 dark:text-zinc-300";
-
-const calculateRating = (result: VoteResult) => ({
-  percentage: getPercentage(result),
-  color: getColor(result),
-});
-
 export default function AskResultsStandardCard({
   query,
   layoutMode,
@@ -71,19 +55,13 @@ export default function AskResultsStandardCard({
   // Sanitize query data to prevent XSS
   const sanitizedQuery = {
     ...query,
-    queryText: DOMPurify.sanitize(query.queryText),
-    validatorResponses: query.validatorResponses?.map((response) => ({
-      ...response,
-      profileName: DOMPurify.sanitize(response.profileName),
-      provider: DOMPurify.sanitize(response.provider),
-      id: DOMPurify.sanitize(response.id),
-      rationale: DOMPurify.sanitize(response.rationale || ""),
-    })),
+    queryText: sanitizeQueryText(query.queryText),
+    validatorResponses: query.validatorResponses?.map(
+      sanitizeValidatorResponse
+    ),
   };
 
-  const date = sanitizedQuery.timestamp ? new Date(sanitizedQuery.timestamp) : null;
-  const formattedDate =
-    date && !isNaN(date.getTime()) ? format(date, "PPPp") : "N/A";
+  const formattedDate = formatTime(sanitizedQuery.timestamp);
 
   const { percentage, color } = calculateRating(sanitizedQuery);
 
@@ -136,9 +114,11 @@ export default function AskResultsStandardCard({
       <CardHeader className="dark:bg-zinc-800">
         <CardTitle className="text-lg font-medium flex">
           <div>
-            {sanitizedQuery.isConsensusReached && sanitizedQuery.consensusValue ? (
+            {sanitizedQuery.isConsensusReached &&
+            sanitizedQuery.consensusValue ? (
               <CircleCheck className="mr-2 h-7 w-7 text-green-700 dark:text-green-300" />
-            ) : sanitizedQuery.isConsensusReached && !sanitizedQuery.consensusValue ? (
+            ) : sanitizedQuery.isConsensusReached &&
+              !sanitizedQuery.consensusValue ? (
               <X className="mr-2 h-7 w-7 text-red-700 dark:text-red-300" />
             ) : null}
           </div>
@@ -168,7 +148,9 @@ export default function AskResultsStandardCard({
               onKeyDown={handleKeyDown}
               className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md p-1"
               aria-expanded={isRationaleExpanded}
-              aria-label={isRationaleExpanded ? "Collapse rationale" : "Expand rationale"}
+              aria-label={
+                isRationaleExpanded ? "Collapse rationale" : "Expand rationale"
+              }
             >
               <p
                 className={`text-sm text-zinc-600 dark:text-zinc-300 leading-6 ${
@@ -192,7 +174,10 @@ export default function AskResultsStandardCard({
             height={20}
             className="object-contain w-8 md:w-10"
           />
-          <span className="text-sm font-light text-zinc-800 dark:text-zinc-200"> AI CONSENSUS:</span>
+          <span className="text-sm font-light text-zinc-800 dark:text-zinc-200">
+            {" "}
+            AI CONSENSUS:
+          </span>
           <span
             className={`text-xl md:text-2xl font-normal ${color} border-0`}
             aria-label={`Consensus rating: ${percentage} ${sanitizedQuery.isConsensusReached ? (sanitizedQuery.consensusValue ? "YES" : "NO") : "N/A"}`}
@@ -247,9 +232,13 @@ export default function AskResultsStandardCard({
       </CardContent>
       <hr className="h-1 border" />
       <CardFooter className="flex justify-start p-2">
-        <Collapsible open={isOpen} onOpenChange={() => toggleItem(sanitizedQuery.id)}>
+        <Collapsible
+          open={isOpen}
+          onOpenChange={() => toggleItem(sanitizedQuery.id)}
+        >
           <CollapsibleTrigger className="flex items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-            Validator Responses ({sanitizedQuery.validatorResponses?.length ?? 0})
+            Validator Responses (
+            {sanitizedQuery.validatorResponses?.length ?? 0})
             {isOpen ? (
               <ChevronUp className="ml-2 h-4 w-4" />
             ) : (
