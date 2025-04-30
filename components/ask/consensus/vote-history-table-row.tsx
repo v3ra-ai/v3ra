@@ -1,6 +1,8 @@
+
 import Link from "next/link";
 import { Check, TrendingUpDown, WandSparkles, ShoppingCart } from "lucide-react";
 import type { VoteResult } from "@/lib/types";
+import DOMPurify from "dompurify";
 
 interface VoteHistoryTableRowProps {
   vote: VoteResult;
@@ -10,6 +12,40 @@ interface VoteHistoryTableRowProps {
   handleViewClick: (index: number) => void;
 }
 
+const ValidatorResponseItem = ({ validator }: { validator: VoteResult["validatorResponses"][number] }) => (
+  <div className="p-2 rounded border border-zinc-200 dark:border-zinc-700">
+    <div className="flex justify-between items-center">
+      <span className="font-medium text-sm text-gray-700 dark:text-zinc-200 flex items-center">
+        {DOMPurify.sanitize(validator.profileName)}
+        <span className="text-gray-500 dark:text-gray-400 ml-1">({DOMPurify.sanitize(validator.provider)})</span>
+      </span>
+      <span
+        className={`
+          px-2 py-1
+          rounded-full
+          text-xs font-medium
+          ${
+            validator?.vote?.toLowerCase() === "yes"
+              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+              : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+          }
+        `}
+      >
+        {validator?.vote || "No Vote"}
+      </span>
+    </div>
+    <div className="mt-2 text-sm text-gray-700 dark:text-zinc-200">
+      {DOMPurify.sanitize(validator?.rationale || "No rationale provided")}
+    </div>
+  </div>
+);
+
+const formatTime = (timestamp: string | number | undefined) => {
+  if (!timestamp) return "N/A";
+  const date = typeof timestamp === "string" ? new Date(timestamp) : new Date(timestamp * 1000);
+  return date.toLocaleTimeString();
+};
+
 export default function VoteHistoryTableRow({
   vote,
   index,
@@ -17,21 +53,24 @@ export default function VoteHistoryTableRow({
   expandedVoteId,
   handleViewClick,
 }: VoteHistoryTableRowProps) {
-  // Format timestamp for display
-  const formatTime = (timestamp: string | number | undefined) => {
-    if (!timestamp) return "N/A";
-    const date =
-      typeof timestamp === "string"
-        ? new Date(timestamp)
-        : new Date(timestamp * 1000);
-    return date.toLocaleTimeString();
+  // Sanitize vote data to prevent XSS
+  const sanitizedVote = {
+    ...vote,
+    queryText: DOMPurify.sanitize(vote.queryText),
+    validatorResponses: vote.validatorResponses?.map((response) => ({
+      ...response,
+      profileName: DOMPurify.sanitize(response.profileName),
+      provider: DOMPurify.sanitize(response.provider),
+      id: DOMPurify.sanitize(response.id),
+      rationale: DOMPurify.sanitize(response.rationale || ""),
+    })),
   };
 
   let consensusText = "Tie";
-  if (vote.isConsensusReached) {
-    if (vote.consensusValue === true) {
+  if (sanitizedVote.isConsensusReached) {
+    if (sanitizedVote.consensusValue === true) {
       consensusText = "Yes";
-    } else if (vote.consensusValue === false) {
+    } else if (sanitizedVote.consensusValue === false) {
       consensusText = "No";
     }
   }
@@ -51,7 +90,7 @@ export default function VoteHistoryTableRow({
       className={index % 2 === 0 ? "bg-zinc-50 dark:bg-zinc-800" : ""}
     >
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
-        {formatTime(vote.timestamp)}
+        {formatTime(sanitizedVote.timestamp)}
       </td>
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200 max-w-[200px]">
         <span
@@ -59,29 +98,34 @@ export default function VoteHistoryTableRow({
             expandedVoteId === index ? "whitespace-normal" : "truncate"
           }`}
           onClick={() => handleViewClick(index)}
-          title={vote.queryText.length > 45 ? `${vote.queryText.substring(0, 45)}...` : vote.queryText}
+          title={sanitizedVote.queryText.length > 45 ? `${sanitizedVote.queryText.substring(0, 45)}...` : sanitizedVote.queryText}
         >
-          {vote.queryText}
+          {sanitizedVote.queryText}
         </span>
       </td>
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
         {modeIcon}
       </td>
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
-        {vote?.votingResult?.yes || 0}
+        {sanitizedVote?.votingResult?.yes || 0}
       </td>
       <td className="px-4 py-3 text-sm text-gray-900 dark:text-zinc-200">
-        {vote?.votingResult?.no || 0}
+        {sanitizedVote?.votingResult?.no || 0}
       </td>
       <td className="px-4 py-3 text-sm">
         <span
-          className={`px-2 py-1 rounded-full text-xs font-medium ${
-            consensusText === "Yes"
-              ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-              : consensusText === "No"
+          className={`
+            px-2 py-1
+            rounded-full
+            text-xs font-medium
+            ${
+              consensusText === "Yes"
+                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
+                : consensusText === "No"
                 ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
                 : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-          }`}
+            }
+          `}
         >
           {consensusText}
         </span>
@@ -96,7 +140,7 @@ export default function VoteHistoryTableRow({
       </td>
       <td className="px-4 py-3 text-sm">
         <Link
-          href={`/vote-sessions/${vote.id}`}
+          href={`/vote-sessions/${sanitizedVote.id}`}
           className="text-indigo-600 hover:text-indigo-800 dark:text-indigo-400 dark:hover:text-indigo-300"
         >
           Discuss
@@ -115,7 +159,7 @@ export default function VoteHistoryTableRow({
                 Query:
               </h3>
               <p className="text-sm text-gray-700 dark:text-zinc-200">
-                {vote.queryText}
+                {sanitizedVote.queryText}
               </p>
             </div>
             <div>
@@ -123,35 +167,8 @@ export default function VoteHistoryTableRow({
                 Validator Responses:
               </h3>
               <div className="grid gap-2">
-                {vote.validatorResponses.map((validator, idx) => (
-                  <div
-                    key={`validator-${index}-${idx}`}
-                    className="p-2 rounded border border-zinc-200 dark:border-zinc-700"
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-sm text-gray-700 dark:text-zinc-200 flex items-center">
-                        {validator.profileName}
-                        <span className="text-gray-500 dark:text-gray-400 ml-1">
-                          ({validator.provider})
-                        </span>
-                      </span>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          validator &&
-                          validator.vote &&
-                          validator.vote.toLowerCase &&
-                          validator.vote.toLowerCase() === "yes"
-                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                        }`}
-                      >
-                        {validator?.vote || "No Vote"}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-sm text-gray-700 dark:text-zinc-200">
-                      {validator?.rationale || "No rationale provided"}
-                    </div>
-                  </div>
+                {sanitizedVote.validatorResponses?.map((validator, idx) => (
+                  <ValidatorResponseItem key={`validator-${index}-${idx}`} validator={validator} />
                 ))}
               </div>
             </div>

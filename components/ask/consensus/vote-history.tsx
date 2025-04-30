@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
@@ -10,11 +11,19 @@ import VoteHistoryError from "@/components/ask/consensus/vote-history-error";
 import VoteHistoryEmpty from "@/components/ask/consensus/vote-history-empty";
 import { Button } from "@/components/ui/button";
 import type { VoteResult } from "@/lib/types";
+import DOMPurify from "dompurify";
 
-// Compare voteHistory by IDs only
+// Utility to compare voteHistory by IDs
 const areVoteHistoriesEqual = (a: VoteResult[], b: VoteResult[]): boolean => {
   if (a.length !== b.length) return false;
   return a.every((item, index) => item.id === b[index].id);
+};
+
+// Debug logging utility
+const debugLog = (message: string, ...args: unknown[]) => {
+  if (process.env.NODE_ENV === "development") {
+    console.log(`[VoteHistory] ${message}`, ...args);
+  }
 };
 
 // Debounce function with specific type for loadVoteHistory
@@ -31,6 +40,7 @@ function debounce(
 
 // Memoize VoteHistory
 const VoteHistory = memo(() => {
+  // State and memoization setup
   const { voteHistory, setVoteHistory, queryMode, lastVoteResult } = useQueryStore();
   const [voteHistoryError, setVoteHistoryError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -42,8 +52,8 @@ const VoteHistory = memo(() => {
   // Track mount and render counts
   mountCount.current += isMounted.current ? 0 : 1;
   renderCount.current += 1;
-  console.log(
-    "[VoteHistory] Mount count:",
+  debugLog(
+    "Mount count:",
     mountCount.current,
     "Render count:",
     renderCount.current,
@@ -57,8 +67,8 @@ const VoteHistory = memo(() => {
   const memoizedVoteHistory = useMemo(() => voteHistory || [], [voteHistory]);
   const memoizedQueryMode = useMemo(() => queryMode, [queryMode]);
 
-  console.log(
-    "[VoteHistory] Component mounted or re-rendered, voteHistory length:",
+  debugLog(
+    "Component mounted or re-rendered, voteHistory length:",
     memoizedVoteHistory.length,
     "queryMode:",
     memoizedQueryMode
@@ -69,29 +79,29 @@ const VoteHistory = memo(() => {
       if (isInitialLoad) {
         setIsLoading(true);
       }
-      console.log("[VoteHistory] Fetching vote history via fetchVoteHistory, isInitialLoad:", isInitialLoad);
+      debugLog("Fetching vote history via fetchVoteHistory, isInitialLoad:", isInitialLoad);
       const result = await fetchVoteHistory();
       if ("error" in result) {
-        console.error("[VoteHistory] Fetch vote history failed:", result.error);
-        setVoteHistoryError(result.error);
+        debugLog("Fetch vote history failed:", result.error);
+        setVoteHistoryError(DOMPurify.sanitize(result.error));
         return;
       }
-      console.log("[VoteHistory] Fetch result:", result);
+      debugLog("Fetch result:", result);
       if (!areVoteHistoriesEqual(result, memoizedVoteHistory)) {
-        console.log("[VoteHistory] Setting voteHistory with", result.length, "items");
+        debugLog("Setting voteHistory with", result.length, "items");
         setVoteHistory([...result]);
       } else {
-        console.log("[VoteHistory] No change in voteHistory, skipping setVoteHistory");
+        debugLog("No change in voteHistory, skipping setVoteHistory");
       }
       setVoteHistoryError(null);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load vote history";
-      console.error("[VoteHistory] Error in loadVoteHistory:", errorMessage);
-      setVoteHistoryError(errorMessage);
+      debugLog("Error in loadVoteHistory:", errorMessage);
+      setVoteHistoryError(DOMPurify.sanitize(errorMessage));
     } finally {
       if (isInitialLoad) {
-        console.log("[VoteHistory] Fetch complete, isLoading set to false");
+        debugLog("Fetch complete, isLoading set to false");
         setIsLoading(false);
       }
     }
@@ -100,42 +110,42 @@ const VoteHistory = memo(() => {
   // Inline debouncedLoadVoteHistory to avoid useCallback dependency issues
   const debouncedLoadVoteHistory = debounce(loadVoteHistory, 1000);
 
-  // Initial fetch on mount
+  // Effect handling for initial fetch and updates
   useEffect(() => {
     if (isMounted.current) {
-      console.log("[VoteHistory] Skipping effect due to mount state");
+      debugLog("Skipping effect due to mount state");
       return;
     }
     isMounted.current = true;
-    console.log("[VoteHistory] Effect running, initial load");
+    debugLog("Effect running, initial load");
     loadVoteHistory(true);
 
     return () => {
-      console.log("[VoteHistory] Cleaning up mount state");
+      debugLog("Cleaning up mount state");
       isMounted.current = false;
     };
   }, [loadVoteHistory]);
 
-  // Fetch on query submission
   useEffect(() => {
     if (lastVoteResult) {
-      console.log("[VoteHistory] New vote result detected, triggering debounced loadVoteHistory");
+      debugLog("New vote result detected, triggering debounced loadVoteHistory");
       debouncedLoadVoteHistory();
     }
   }, [lastVoteResult, debouncedLoadVoteHistory, loadVoteHistory]);
 
   const handleRefresh = () => {
-    console.log("[VoteHistory] Manual refresh triggered");
+    debugLog("Manual refresh triggered");
     loadVoteHistory(true);
   };
 
   const handleViewClick = (index: number) => {
-    console.log("[VoteHistory] Toggling expandedVoteId:", index);
+    debugLog("Toggling expandedVoteId:", index);
     setExpandedVoteId((prev) => (prev === index ? null : index));
   };
 
-  console.log(
-    "[VoteHistory] Rendering with voteHistory length:",
+  // Rendering vote history table
+  debugLog(
+    "Rendering with voteHistory length:",
     memoizedVoteHistory.length,
     "isLoading:",
     isLoading,
@@ -148,7 +158,7 @@ const VoteHistory = memo(() => {
   }
 
   if (voteHistoryError) {
-    return <VoteHistoryError error={voteHistoryError} />;
+    return <VoteHistoryError error={voteHistoryError} onRetry={handleRefresh} />;
   }
 
   if (!memoizedVoteHistory || memoizedVoteHistory.length === 0) {

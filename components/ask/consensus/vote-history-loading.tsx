@@ -1,3 +1,5 @@
+import { LoadingSpinner } from "@/components/loading-spinner";
+
 export default function VoteHistoryLoading() {
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 max-w-6xl mx-auto">
@@ -5,7 +7,7 @@ export default function VoteHistoryLoading() {
         Validator Vote History
       </h3>
       <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 flex items-center justify-center">
-        <span className="text-gray-400 dark:text-gray-500">Loading...</span>
+        <LoadingSpinner />
       </div>
     </div>
   );
