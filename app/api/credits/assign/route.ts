@@ -4,6 +4,7 @@ import { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { verifyCsrfToken } from "@/utils/csrf-utils";
+import { QUERY_COST } from "@/lib/constants";
 
 // Define interface for request body
 interface RequestBody {
@@ -69,7 +70,7 @@ export async function POST(req: NextRequest) {
         id: uuidv4(),
         walletPublicKey,
         credits: creditAmount,
-        solAmount: creditAmount * 0.001,
+        solAmount: creditAmount * QUERY_COST,
         status: "ASSIGNED",
         createdAt: new Date(),
       },
@@ -96,7 +97,7 @@ export async function POST(req: NextRequest) {
         solAmount:
           (body.creditAmount && Number.isInteger(body.creditAmount)
             ? body.creditAmount
-            : 0) * 0.001,
+            : 0) * QUERY_COST,
         status: "FAILED",
         error: errorMessage,
         createdAt: new Date(),

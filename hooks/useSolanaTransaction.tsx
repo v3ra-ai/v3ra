@@ -9,6 +9,7 @@ import {
 } from "@solana/web3.js";
 import { connection } from "../lib/solana-constants";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
+import { QUERY_COST } from "@/lib/constants";
 
 interface TransactionResult {
   sendTransaction: (
@@ -59,7 +60,7 @@ export const useSolanaTransaction = (
             SystemProgram.transfer({
               fromPubkey: publicKey,
               toPubkey: destination,
-              lamports: Math.round(credits * 0.001 * 1_000_000_000), // CREDIT_PRICE_SOL * LAMPORTS_PER_SOL
+              lamports: Math.round(credits * QUERY_COST * 1_000_000_000), // CREDIT_PRICE_SOL * LAMPORTS_PER_SOL
             }),
           );
 

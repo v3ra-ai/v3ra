@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db/client";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { verifyCsrfToken } from "@/utils/csrf-utils";
+import { QUERY_COST } from "@/lib/constants";
 
 // Load Verafy wallet public key from .env
 const VERAFY_WALLET_PUBLIC_KEY = process.env.VERAFY_WALLET_PUBLIC_KEY;
@@ -32,7 +33,7 @@ try {
 const connection = new Connection("https://api.devnet.solana.com", "confirmed");
 
 // Price per credit in SOL (0.001 SOL = 1 credit)
-const CREDIT_PRICE_SOL = 0.001;
+const CREDIT_PRICE_SOL = QUERY_COST
 
 // Request body schema
 interface RequestBody {

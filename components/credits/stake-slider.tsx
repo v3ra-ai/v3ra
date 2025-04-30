@@ -5,6 +5,7 @@ import { useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
 import { Square } from "lucide-react";
 import { useSolanaWallet } from "@/hooks/useSolanaWallet";
+import { QUERY_COST } from "@/lib/constants";
 
 
 export default function StakeSlider() {
@@ -12,7 +13,7 @@ export default function StakeSlider() {
   const { isWalletConnected } =
   useSolanaWallet();
 
-  const stakeSol = stakeAmount * 0.001;
+  const stakeSol = stakeAmount * QUERY_COST;
 
   const onChangeWallet = () => {
     // Implement wallet change logic here
