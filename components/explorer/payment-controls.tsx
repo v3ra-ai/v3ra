@@ -11,6 +11,7 @@ import {
 import { useState } from "react";
 import { Loader2 } from "lucide-react"; // For loading animation
 import { toast } from "sonner"; // Sonner toast for notifications
+import { QUERY_COST } from "@/lib/constants";
 
 interface PaymentControlsProps {
   hasPaid: boolean;
@@ -96,7 +97,7 @@ export function PaymentControls({ hasPaid, setHasPaid }: PaymentControlsProps) {
                 Processing...
               </>
             ) : (
-              "Pay 0.01 Devnet SOL"
+              `Pay ${QUERY_COST} SOL`
             )}
           </button>
         </>

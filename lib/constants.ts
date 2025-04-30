@@ -1,6 +1,12 @@
-export const VOTE_YES = "YES";
-export const VOTE_NO = "NO";
-export const VOTE_ERROR = "ERROR";
+export const CURRENT_SOLANA_NETWORK = process.env.CURRENT_SOLANA_NETWORK;
+export const DEV_SOLANA_NETWORK_RPC = process.env.DEVNET_SOLANA_NETWORK_RPC;
+export const MAINNET_SOLANA_NETWORK_RPC =
+  process.env.MAINNET_SOLANA_NETWORK_RPC;
+export const CURRENT_SOLANA_NETWORK_RPC =
+  CURRENT_SOLANA_NETWORK === "Devnet"
+    ? DEV_SOLANA_NETWORK_RPC
+    : MAINNET_SOLANA_NETWORK_RPC;
+
 export const QUERY_COST = 0.00001; // SOL per credit
 export const QUERY_COST_FIXED_DECIMALS = 5; // Decimal places for SOL display
 export const USER_FREE_CREDITS_DEFAULT = 10;
@@ -11,3 +17,6 @@ export const QUERIES_COST_EACH_DEFAULT = 1;
 export const ALLOWED_AMOUNT_QUERIES = 20;
 export const INITIAL_AVAILABLE_QUERIES = USER_FREE_CREDITS_DEFAULT; // Initial queries available, matches USER_FREE_CREDITS_DEFAULT
 export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT; // Default AI query amount, matches QUERIES_REQUESTED_DEFAULT
+export const VOTE_YES = "YES";
+export const VOTE_NO = "NO";
+export const VOTE_ERROR = "ERROR";
