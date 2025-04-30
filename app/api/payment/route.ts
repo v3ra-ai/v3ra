@@ -1,4 +1,3 @@
-// app/api/payment/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import {
   Connection,
@@ -11,6 +10,7 @@ import {
 import { prisma } from "@/lib/db/client";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { verifyCsrfToken } from "@/utils/csrf-utils";
 
 // Load Verafy wallet public key from .env
 const VERAFY_WALLET_PUBLIC_KEY = process.env.VERAFY_WALLET_PUBLIC_KEY;
@@ -22,8 +22,7 @@ if (!VERAFY_WALLET_PUBLIC_KEY) {
 let VERAFY_WALLET: PublicKey;
 try {
   VERAFY_WALLET = new PublicKey(VERAFY_WALLET_PUBLIC_KEY);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-} catch (error) {
+} catch {
   throw new Error(
     "Invalid VERAFY_WALLET_PUBLIC_KEY: must be a valid base58 Solana public key",
   );
@@ -88,7 +87,14 @@ async function withRetry<T>(
   throw lastError;
 }
 
+// Processes a Solana payment and logs the transaction
 export async function POST(req: NextRequest) {
+  // Verify CSRF token
+  const csrfResponse = verifyCsrfToken(req);
+  if (csrfResponse) {
+    return csrfResponse;
+  }
+
   let body: RequestBody = {
     transaction: undefined,
     signature: undefined,
@@ -111,7 +117,7 @@ export async function POST(req: NextRequest) {
     });
     const { transaction, signature, credits, userWallet } = parsedBody;
 
-    console.log("Received payment request:", {
+    console.log("[Payment] Received payment request:", {
       signature,
       userWallet,
       credits,
@@ -162,17 +168,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    console.log("Deserialized transaction:", {
-      signatures: tx.signatures.map(
-        (sig) => sig.signature?.toString("base64") || "null",
-      ),
-      instructions: tx.instructions.map((instr, idx) => ({
-        index: idx,
-        programId: instr.programId.toBase58(),
-        keys: instr.keys.map((k) => k.pubkey.toBase58()),
-      })),
-    });
-
     // Verify transaction
     let transferInstruction = null;
     let errorMessage: string | null = null;
@@ -194,7 +189,7 @@ export async function POST(req: NextRequest) {
       errorMessage =
         errorMessage ||
         "Invalid transaction: no SystemProgram.transfer instruction found";
-      console.log("Transaction validation failed:", {
+      console.log("[Payment] Transaction validation failed:", {
         instructions: tx.instructions.map((instr, idx) => ({
           index: idx,
           programId: instr.programId.toBase58(),
@@ -226,7 +221,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (errorMessage) {
-      console.log("Transfer instruction validation failed:", {
+      console.log("[Payment] Transfer instruction validation failed:", {
         programId: instruction.programId.toBase58(),
         keys: instruction.keys.map((k) => k.pubkey.toBase58()),
         expectedRecipient: VERAFY_WALLET.toBase58(),
@@ -309,7 +304,7 @@ export async function POST(req: NextRequest) {
           }
           return txStatus;
         } catch (error) {
-          console.error("Signature status check failed:", {
+          console.error("[Payment] Signature status check failed:", {
             signature,
             error: error instanceof Error ? error.message : String(error),
           });
@@ -321,7 +316,7 @@ export async function POST(req: NextRequest) {
         error instanceof Error
           ? `Failed to verify transaction signature: ${error.message}`
           : "Failed to verify transaction signature";
-      console.log("Signature verification failed:", { signature, error });
+      console.log("[Payment] Signature verification failed:", { signature, error });
       await prisma.paymentLog.create({
         data: {
           id: uuidv4(),
@@ -380,7 +375,7 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    console.error("Payment error:", error);
+    console.error("[Payment] Payment error:", error);
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }

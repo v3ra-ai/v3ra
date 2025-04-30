@@ -1,15 +1,20 @@
-
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useQueryStore } from "@/store/query-store";
 import { ErrorDisplay } from "@/components/error-display";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { Grid3x3, Rows3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
 import DOMPurify from "dompurify";
-import { BeatLoader } from "react-spinners";
 
-const LayoutToggle = ({ layoutMode, setLayoutMode }: { layoutMode: "grid" | "row"; setLayoutMode: (mode: "grid" | "row") => void }) => (
+const LayoutToggle = ({
+  layoutMode,
+  setLayoutMode,
+}: {
+  layoutMode: "grid" | "row";
+  setLayoutMode: (mode: "grid" | "row") => void;
+}) => (
   <div className="flex space-x-2 ml-4">
     <Grid3x3
       className={`h-5 w-5 cursor-pointer ${layoutMode === "grid" ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400"}`}
@@ -58,13 +63,15 @@ export default function AskResultsStandard() {
   }, [lastVoteResult?.id, refetch]);
 
   if (isLoading) {
-    return <BeatLoader color="#14b8a6" />;
+    return <LoadingSpinner type="beat" message="Loading..." />;
   }
 
   if (error) {
     return (
       <ErrorDisplay
-        message={DOMPurify.sanitize(error.message || "Failed to load vote history")}
+        message={DOMPurify.sanitize(
+          error.message || "Failed to load vote history"
+        )}
         onRetry={refetch}
       />
     );
@@ -95,11 +102,15 @@ export default function AskResultsStandard() {
       <div
         className={`flex items-center justify-center mb-6 ${layoutMode === "row" ? "w-full border-0 border-red-500" : ""}`}
       >
-        <h2 className="text-xl text-zinc-800 dark:text-zinc-200">Recent Queries</h2>
+        <h2 className="text-xl text-zinc-800 dark:text-zinc-200">
+          Recent Queries
+        </h2>
         <LayoutToggle layoutMode={layoutMode} setLayoutMode={setLayoutMode} />
       </div>
       {recentQueries.length === 0 ? (
-        <p className="text-zinc-500 dark:text-zinc-400">No recent queries found.</p>
+        <p className="text-zinc-500 dark:text-zinc-400">
+          No recent queries found.
+        </p>
       ) : (
         <div
           className={`max-w-6xl mx-auto ${

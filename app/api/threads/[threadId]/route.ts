@@ -1,12 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { NextRequest } from "next/server"; // Added missing import
 import { PrismaClient } from "@prisma/client";
+import { limitVoteRequest } from "@/utils/rate-limit-utils";
 
 const prisma = new PrismaClient();
 
-// GET /api/threads/[threadId] - Fetch a single thread by ID
-export async function GET(req: NextRequest) {
-  // Extract threadId from the URL
-  const threadId = req.nextUrl.pathname.split("/").pop();
+// POST /api/threads/[threadId]/downvote - Increment downvotes for a thread
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ threadId: string }> },
+) {
+  // Apply rate-limiting
+  const rateLimitResponse = await limitVoteRequest(request as NextRequest);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
+  const { threadId } = await params;
 
   if (!threadId) {
     return NextResponse.json(
@@ -16,24 +26,31 @@ export async function GET(req: NextRequest) {
   }
 
   try {
+    // Check if thread exists
     const thread = await prisma.thread.findUnique({
       where: { id: threadId },
-      // Optionally include related data
-      // include: { replies: true }
     });
 
     if (!thread) {
       return NextResponse.json({ error: "Thread not found" }, { status: 404 });
     }
 
-    return NextResponse.json(thread);
+    // Atomically increment the downvotes
+    const updatedThread = await prisma.thread.update({
+      where: { id: threadId },
+      data: {
+        downvotes: {
+          increment: 1,
+        },
+      },
+    });
+
+    return NextResponse.json(updatedThread);
   } catch (error) {
-    console.error("Error fetching thread:", error);
+    console.error("[Threads/Downvote] Error downvoting thread:", error);
     return NextResponse.json(
-      { error: "Failed to fetch thread" },
+      { error: "Failed to downvote thread" },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

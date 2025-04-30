@@ -1,5 +1,6 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { limitVoteRequest } from "@/utils/rate-limit-utils";
 
 const prisma = new PrismaClient();
 
@@ -8,6 +9,12 @@ export async function POST(
   request: Request,
   { params }: { params: Promise<{ threadId: string }> },
 ) {
+  // Apply rate-limiting
+  const rateLimitResponse = await limitVoteRequest(request as NextRequest);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   const { threadId } = await params;
 
   if (!threadId) {
@@ -39,13 +46,10 @@ export async function POST(
 
     return NextResponse.json(updatedThread);
   } catch (error) {
-    console.error("Error downvoting thread:", error);
-    // Handle potential errors like concurrent updates if necessary
+    console.error("[Threads/Downvote] Error downvoting thread:", error);
     return NextResponse.json(
       { error: "Failed to downvote thread" },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

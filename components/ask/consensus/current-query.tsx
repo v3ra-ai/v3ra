@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { calculateVotePercentages } from "@/utils/vote-utils";
 import { formatErrorMessage } from "@/utils/error-utils";
-import { BeatLoader } from "react-spinners";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
 
 const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
   <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
@@ -17,7 +17,7 @@ const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
     <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-40 w-full flex items-center justify-center">
       {state === "loading" ? (
         <span className="">
-          <BeatLoader color="#14b8a6" />
+          <LoadingSpinner type="beat" message="Loading..." />
         </span>
       ) : (
         <span className="text-red-500">

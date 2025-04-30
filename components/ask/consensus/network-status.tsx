@@ -1,38 +1,53 @@
-
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DOMPurify from "dompurify";
 import { truncateText } from "@/utils/text-utils";
 import { getNetworkStateDefaults } from "@/utils/network-utils";
-import { BeatLoader } from "react-spinners";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
 
-const StatusCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
+const StatusCard = ({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) => (
   <Card className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
     <CardHeader className="p-0 mb-0">
-      <h4 className="text-sm font-medium text-gray-800 dark:text-zinc-200">{title}</h4>
+      <h4 className="text-sm font-medium text-gray-800 dark:text-zinc-200">
+        {title}
+      </h4>
     </CardHeader>
     <CardContent className="p-0">{children}</CardContent>
   </Card>
 );
 
-
-
 export default function NetworkStatus() {
   const { networkState, isLoading, error } = useNetworkState();
 
-  const { validators, currentLeaderIndex, isVoting, currentQuery } = getNetworkStateDefaults(networkState);
+  const { validators, currentLeaderIndex, isVoting, currentQuery } =
+    getNetworkStateDefaults(networkState);
 
   // Sanitize fields to prevent XSS
-  const sanitizedCurrentQuery = currentQuery ? DOMPurify.sanitize(currentQuery) : null;
-  const sanitizedLeader = Array.isArray(validators) && validators.length > currentLeaderIndex
-    ? {
-        ...validators[currentLeaderIndex],
-        id: DOMPurify.sanitize(validators[currentLeaderIndex].id || ""),
-        profileName: DOMPurify.sanitize(validators[currentLeaderIndex].profileName || ""),
-        provider: DOMPurify.sanitize(validators[currentLeaderIndex].provider || ""),
-        publicKey: DOMPurify.sanitize(validators[currentLeaderIndex].publicKey || ""),
-      }
+  const sanitizedCurrentQuery = currentQuery
+    ? DOMPurify.sanitize(currentQuery)
     : null;
+  const sanitizedLeader =
+    Array.isArray(validators) && validators.length > currentLeaderIndex
+      ? {
+          ...validators[currentLeaderIndex],
+          id: DOMPurify.sanitize(validators[currentLeaderIndex].id || ""),
+          profileName: DOMPurify.sanitize(
+            validators[currentLeaderIndex].profileName || ""
+          ),
+          provider: DOMPurify.sanitize(
+            validators[currentLeaderIndex].provider || ""
+          ),
+          publicKey: DOMPurify.sanitize(
+            validators[currentLeaderIndex].publicKey || ""
+          ),
+        }
+      : null;
 
   if (isLoading) {
     return (
@@ -41,7 +56,7 @@ export default function NetworkStatus() {
           Network Status
         </h3>
         <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 w-full flex items-center justify-center">
-          <span className=""><BeatLoader color="#14b8a6" /></span>
+          <LoadingSpinner type="beat" message="Loading..." />
         </div>
       </div>
     );
@@ -54,7 +69,9 @@ export default function NetworkStatus() {
           Network Status
         </h3>
         <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 w-full flex items-center justify-center">
-          <span className="text-red-500">Error: {DOMPurify.sanitize(error.message)}</span>
+          <span className="text-red-500">
+            Error: {DOMPurify.sanitize(error.message)}
+          </span>
         </div>
       </div>
     );
@@ -79,9 +96,7 @@ export default function NetworkStatus() {
                 <div className="text-gray-500">Status:</div>
                 <div className="font-medium">
                   {isVoting ? (
-                    <span className="text-yellow-500">
-                      Voting in Progress
-                    </span>
+                    <span className="text-yellow-500">Voting in Progress</span>
                   ) : (
                     <span className="text-green-500">Ready</span>
                   )}
@@ -89,7 +104,10 @@ export default function NetworkStatus() {
               </div>
               <div className="flex flex-col sm:flex-row justify-between">
                 <div className="text-gray-500">Current Leader:</div>
-                <div className="font-medium" title={sanitizedLeader?.id || "None"}>
+                <div
+                  className="font-medium"
+                  title={sanitizedLeader?.id || "None"}
+                >
                   {truncateText(sanitizedLeader?.id || "None", 30)}
                 </div>
               </div>
@@ -108,7 +126,9 @@ export default function NetworkStatus() {
               <div className="space-y-1">
                 <div className="flex flex-col sm:flex-row justify-between">
                   <div className="text-gray-500">Profile:</div>
-                  <div className="font-medium">{sanitizedLeader.profileName}</div>
+                  <div className="font-medium">
+                    {sanitizedLeader.profileName}
+                  </div>
                 </div>
                 <div className="flex flex-col sm:flex-row justify-between">
                   <div className="text-gray-500">Provider:</div>

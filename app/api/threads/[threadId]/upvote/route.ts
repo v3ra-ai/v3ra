@@ -1,10 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { limitVoteRequest } from "@/utils/rate-limit-utils";
 
 const prisma = new PrismaClient();
 
 // POST /api/threads/[threadId]/upvote - Increment upvotes for a thread
 export async function POST(req: NextRequest) {
+  // Apply rate-limiting
+  const rateLimitResponse = await limitVoteRequest(req);
+  if (rateLimitResponse) {
+    return rateLimitResponse;
+  }
+
   // Extract threadId from the URL
   const threadId = req.nextUrl.pathname.split("/")[3]; // Assuming path is /api/threads/{threadId}/upvote
 
@@ -37,13 +44,10 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(updatedThread);
   } catch (error) {
-    console.error("Error upvoting thread:", error);
-    // Handle potential errors like concurrent updates if necessary
+    console.error("[Threads/Upvote] Error upvoting thread:", error);
     return NextResponse.json(
       { error: "Failed to upvote thread" },
       { status: 500 },
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

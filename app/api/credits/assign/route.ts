@@ -1,9 +1,9 @@
-// app/api/credits/assign/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { PublicKey } from "@solana/web3.js";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
+import { verifyCsrfToken } from "@/utils/csrf-utils";
 
 // Define interface for request body
 interface RequestBody {
@@ -28,7 +28,14 @@ const assignCreditsSchema = z.object({
   email: z.string().email().optional(),
 });
 
+// Assigns credits to a user's Solana wallet and logs the transaction
 export async function POST(req: NextRequest) {
+  // Verify CSRF token
+  const csrfResponse = verifyCsrfToken(req);
+  if (csrfResponse) {
+    return csrfResponse;
+  }
+
   // Initialize body with defaults to ensure scope and type safety
   let body: RequestBody = {
     walletPublicKey: undefined,
@@ -95,7 +102,7 @@ export async function POST(req: NextRequest) {
         createdAt: new Date(),
       },
     });
-    console.error("Error assigning credits:", error);
+    console.error("[Credits/Assign] Error assigning credits:", error);
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
