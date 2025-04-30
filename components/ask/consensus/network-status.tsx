@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DOMPurify from "dompurify";
 import { truncateText } from "@/utils/text-utils";
 import { getNetworkStateDefaults } from "@/utils/network-utils";
+import { BeatLoader } from "react-spinners";
 
 const StatusCard = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <Card className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
@@ -40,7 +41,7 @@ export default function NetworkStatus() {
           Network Status
         </h3>
         <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 w-full flex items-center justify-center">
-          <span className="text-gray-400 dark:text-gray-500">Loading...</span>
+          <span className=""><BeatLoader color="#14b8a6" /></span>
         </div>
       </div>
     );

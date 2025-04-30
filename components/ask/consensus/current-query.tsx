@@ -7,15 +7,22 @@ import { motion } from "framer-motion";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { calculateVotePercentages } from "@/utils/vote-utils";
 import { formatErrorMessage } from "@/utils/error-utils";
+import { BeatLoader } from "react-spinners";
 
 const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
   <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
-    <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">Current Query</h3>
+    <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
+      Current Query
+    </h3>
     <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-40 w-full flex items-center justify-center">
       {state === "loading" ? (
-        <span className="text-gray-400 dark:text-gray-500">Loading...</span>
+        <span className="">
+          <BeatLoader color="#14b8a6" />
+        </span>
       ) : (
-        <span className="text-red-500">Error: {formatErrorMessage(state.error)}</span>
+        <span className="text-red-500">
+          Error: {formatErrorMessage(state.error)}
+        </span>
       )}
     </div>
   </div>
@@ -33,15 +40,24 @@ export default function CurrentQuery() {
     return <QueryState state={{ error: formatErrorMessage(error) }} />;
   }
   // Sanitize queryText to prevent XSS
-  const sanitizedQueryText = sanitizeQueryText(voteResult?.queryText) || "No query available";
+  const sanitizedQueryText =
+    sanitizeQueryText(voteResult?.queryText) || "No query available";
 
-  const { yes: yesPercentage, no: noPercentage, notVoted: notVotedPercentage } = calculateVotePercentages(voteResult);
+  const {
+    yes: yesPercentage,
+    no: noPercentage,
+    notVoted: notVotedPercentage,
+  } = calculateVotePercentages(voteResult);
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
-      <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">Current Query</h3>
+      <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
+        Current Query
+      </h3>
       <div className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-300">{sanitizedQueryText}</p>
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          {sanitizedQueryText}
+        </p>
         <div
           className={`
             h-8 w-full

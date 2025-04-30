@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "@/components/loading-spinner";
+import { BeatLoader } from "react-spinners";
 
 export default function VoteHistoryLoading() {
   return (
@@ -7,7 +7,7 @@ export default function VoteHistoryLoading() {
         Validator Vote History
       </h3>
       <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 flex items-center justify-center">
-        <LoadingSpinner />
+        <BeatLoader color="#14b8a6" />
       </div>
     </div>
   );

@@ -1,13 +1,13 @@
 
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useQueryStore } from "@/store/query-store";
-import { LoadingSpinner } from "@/components/loading-spinner";
 import { ErrorDisplay } from "@/components/error-display";
 import { Grid3x3, Rows3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
 import DOMPurify from "dompurify";
+import { BeatLoader } from "react-spinners";
 
 const LayoutToggle = ({ layoutMode, setLayoutMode }: { layoutMode: "grid" | "row"; setLayoutMode: (mode: "grid" | "row") => void }) => (
   <div className="flex space-x-2 ml-4">
@@ -58,7 +58,7 @@ export default function AskResultsStandard() {
   }, [lastVoteResult?.id, refetch]);
 
   if (isLoading) {
-    return <LoadingSpinner />;
+    return <BeatLoader color="#14b8a6" />;
   }
 
   if (error) {
