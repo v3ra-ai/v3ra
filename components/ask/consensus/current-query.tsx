@@ -4,9 +4,9 @@ import { useNetworkState } from "@/hooks/useNetworkState";
 import { VoteResultContext } from "@/components/ask/ask-results-expert";
 import { useContext } from "react";
 import { motion } from "framer-motion";
-import DOMPurify from "dompurify";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { calculateVotePercentages } from "@/utils/vote-utils";
+import { formatErrorMessage } from "@/utils/error-utils";
 
 const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
   <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
@@ -15,7 +15,7 @@ const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
       {state === "loading" ? (
         <span className="text-gray-400 dark:text-gray-500">Loading...</span>
       ) : (
-        <span className="text-red-500">Error: {DOMPurify.sanitize(state.error)}</span>
+        <span className="text-red-500">Error: {formatErrorMessage(state.error)}</span>
       )}
     </div>
   </div>
@@ -30,9 +30,8 @@ export default function CurrentQuery() {
   }
 
   if (error) {
-    return <QueryState state={{ error: error.message }} />;
+    return <QueryState state={{ error: formatErrorMessage(error) }} />;
   }
-
   // Sanitize queryText to prevent XSS
   const sanitizedQueryText = sanitizeQueryText(voteResult?.queryText) || "No query available";
 
