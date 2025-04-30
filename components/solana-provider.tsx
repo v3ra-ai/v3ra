@@ -15,6 +15,7 @@ import { clusterApiUrl } from "@solana/web3.js";
 
 // Import wallet adapter styles
 import "@solana/wallet-adapter-react-ui/styles.css";
+import { CURRENT_SOLANA_NETWORK } from "@/lib/constants";
 
 interface SolanaProviderProps {
   children: React.ReactNode;
@@ -22,13 +23,16 @@ interface SolanaProviderProps {
 
 export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
   // Use devnet for testing (can be changed to mainnet-beta later)
-  const network = WalletAdapterNetwork.Devnet;
+  const network =
+    CURRENT_SOLANA_NETWORK === "Devnet"
+      ? WalletAdapterNetwork.Devnet
+      : WalletAdapterNetwork.Mainnet;
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
   // Initialize wallet adapters (Phantom and Solflare as examples)
   const wallets = useMemo(
     () => [new PhantomWalletAdapter(), new SolflareWalletAdapter()],
-    [],
+    []
   );
 
   return (
