@@ -4,7 +4,42 @@
 - Since we didn't have anything I made this (it's a typical workflow to avoid code collisions)
 - I'm totally up to changes, but let's discuss first so we can collaborate better.
 
-### Branching/Updates
+
+## Dev Branching instructions
+- If you are working on a new feature, create a branch from `dev` instead of `main`.
+- This is to ensure that you are working with the latest code and not on a potentially outdated version of `main`.
+- The `dev` branch is where we can test new features before merging them into `main`.
+
+Example of working on new code from dev and then a PR to dev:
+
+```
+git checkout dev  # Switch to dev
+git pull origin dev  # Get the latest changes
+git checkout -b YYYYMMDD-feature-description  # Create a new branch from dev (use that filename format)
+```
+
+Make your changes, then stage and commit them:
+
+```
+git add .  # Stage all changes
+git commit -m "Added validator page functionality"
+```
+Push your branch to the remote repository:
+
+```
+git push origin YYYYMMDD-feature-description
+```
+
+Then go to GitHub and create a Pull Request (PR) from `YYYYMMDD-feature-description` → `dev` (or `main` depending on what we agree for workflow).
+- Make sure your feature branch is working locally and on the test deployment URL.
+
+Tips:
+* Use descriptive commit messages.
+* Run `npm run ready` to check for code style issues before committing.
+
+---
+
+### More info on Branching/Updates
 
 - Make a branch from main for any modifications you make.
 - Also, I created a general "dev" branch.
@@ -75,6 +110,10 @@ We can discuss the best workflow for our git branching, but this is one common w
 
 - Before merging, make sure your branch is up to date with the latest changes from main or dev (whichever is the merging target). This avoids conflicts later.
 - Manually resolve conflicts
+
+
+
+---
 
 Example merge after approval to dev or main main:
 
