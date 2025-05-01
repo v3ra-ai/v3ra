@@ -1,8 +1,9 @@
 import { Button } from "@/components/ui/button";
+import { Dispatch, SetStateAction } from "react";
 
 interface QueryFormInputProps {
-  question: string;
-  setQuestion: (value: string) => void;
+  queryText: string;
+  setQueryText: Dispatch<SetStateAction<string>>;
   placeholderText: string;
   handleSubmit: () => void;
   isSubmitting: boolean;
@@ -14,12 +15,12 @@ interface QueryFormInputProps {
   userFreeCredits: number;
   userPaidCredits: number;
   isSubmitInteracted: boolean;
-  setIsSubmitInteracted: (value: boolean) => void;
+  setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
 }
 
 export function QueryFormInput({
-  question,
-  setQuestion,
+  queryText,
+  setQueryText,
   placeholderText,
   handleSubmit,
   isSubmitting,
@@ -28,32 +29,25 @@ export function QueryFormInput({
   isSubmitInteracted,
   setIsSubmitInteracted,
 }: QueryFormInputProps) {
-
   return (
     <>
       <div className="mb-2">
         <textarea
           className={`w-full p-4 border rounded-xl h-32 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg ${
-            isSubmitInteracted && !question.trim() ? "border-red-400" : "border-gray-200"
+            isSubmitInteracted && !queryText.trim() ? "border-red-400" : "border-gray-200"
           }`}
           placeholder={placeholderText}
-          value={question}
-          onChange={(e) => setQuestion(e.target.value)}
+          value={queryText}
+          onChange={(e) => setQueryText(e.target.value)}
         />
       </div>
       <div className="flex items-center justify-end">
-        {/* <div className="flex flex-col text-sm text-gray-600 dark:text-gray-400">
-          <span>Free Credits: {userFreeCredits}</span>
-          <span>Paid Credits: {userPaidCredits}</span>
-          <span>Total Credits: {userCreditsTotal}</span>
-          {displayUnpaid > 0 && <span>Unpaid Queries: {displayUnpaid} ({queriesCostTotal} credits)</span>}
-        </div> */}
         <Button
           className={`bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer ${
             isSubmitInteracted && queriesUnpaid > 0 ? "ring-2 ring-red-400" : ""
           }`}
           onClick={handleSubmit}
-          disabled={isSubmitting || (queriesUnpaid > 0 && !hasPaid)} // Disable if submitting or unpaid queries exist without payment
+          disabled={isSubmitting || (queriesUnpaid > 0 && !hasPaid)}
           onMouseEnter={() => queriesUnpaid > 0 && setIsSubmitInteracted(true)}
           onMouseLeave={() => setIsSubmitInteracted(false)}
           onMouseDown={() => queriesUnpaid > 0 && setIsSubmitInteracted(true)}

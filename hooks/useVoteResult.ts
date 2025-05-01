@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNetworkState } from "./useNetworkState";
 import { useQueryStore } from "@/store/query-store";
 import type { VoteResult } from "@/lib/types";
+import { sanitizeError } from "@/utils/security-utils";
 
 interface VoteResultHookResult {
   voteResult: VoteResult | null;
@@ -33,30 +34,29 @@ export function useVoteResult(voteSessionId?: string): VoteResultHookResult {
         throw new Error(`HTTP error! Status: ${response.status}`);
       }
 
-      const data = await response.json();
-      console.log(`[useVoteResult] Fetch response:`, data);
+      const voteData = await response.json();
+      console.log(`[useVoteResult] Fetch response:`, voteData);
 
+      // Parse response based on endpoint
       let fetchedVoteResult: VoteResult | null = null;
       if (voteSessionId) {
-        // Handle /api/vote-sessions/[voteSessionId]
-        if (data && data.id) {
+        if (voteData && voteData.id) {
           fetchedVoteResult = {
-            id: data.id,
-            queryText: data.queryText,
-            isConsensusReached: data.isConsensusReached,
-            consensusValue: data.consensusValue,
+            id: voteData.id,
+            queryText: voteData.queryText,
+            isConsensusReached: voteData.isConsensusReached,
+            consensusValue: voteData.consensusValue,
             votingResult: {
-              yes: data.votesYes,
-              no: data.votesNo,
-              notVoted: data.notVoted,
+              yes: voteData.votesYes,
+              no: voteData.votesNo,
+              notVoted: voteData.notVoted,
             },
-            validatorResponses: data.validatorResponses || [],
-            timestamp: data.timestamp,
+            validatorResponses: voteData.validatorResponses || [],
+            timestamp: voteData.timestamp,
           };
         }
       } else {
-        // Handle /api/vote-history (array of VoteResult)
-        fetchedVoteResult = Array.isArray(data) && data[0] ? data[0] : null;
+        fetchedVoteResult = Array.isArray(voteData) && voteData[0] ? voteData[0] : null;
       }
 
       if (fetchedVoteResult) {
@@ -67,7 +67,7 @@ export function useVoteResult(voteSessionId?: string): VoteResultHookResult {
       }
     } catch (err) {
       const error = err instanceof Error ? err : new Error(String(err));
-      console.error("[useVoteResult] Error fetching vote result:", error);
+      console.error(sanitizeError(error));
       setError(error);
       setVoteResult(null);
     } finally {

@@ -18,8 +18,8 @@ export default function QueryInterface() {
 
   const {
     queriesRequested,
-    question,
-    setQuestion,
+    queryText,
+    setQueryText,
     isSubmitting,
     error,
     placeholderText,
@@ -117,8 +117,8 @@ export default function QueryInterface() {
           highlightPayButton={isSubmitInteracted && queriesUnpaid > 0}
         />
         <QueryForm
-          question={question}
-          setQuestion={setQuestion}
+          queryText={queryText}
+          setQueryText={setQueryText}
           placeholderText={placeholderText}
           queryMode={queryMode}
           queriesRequested={queriesRequested}

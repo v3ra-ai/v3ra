@@ -17,6 +17,8 @@ import { useNetworkState } from "@/hooks/useNetworkState";
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+import { toast } from "sonner";
+import { sanitizeError } from "@/utils/security-utils";
 import type { VoteResult, Validator } from "@/lib/types";
 
 const Explorer: React.FC = () => {
@@ -39,11 +41,38 @@ const Explorer: React.FC = () => {
   );
   const [showCustomQuery, setShowCustomQuery] = useState(true);
   const [showValidatorAdmin, setShowValidatorAdmin] = useState(false);
+  const [csrfToken, setCsrfToken] = useState<string>("");
+  const [csrfError, setCsrfError] = useState<string | null>(null);
 
   // Sync local voteHistory with useVoteHistory
   useEffect(() => {
     setVoteHistory(voteHistoryFromHook);
   }, [voteHistoryFromHook]);
+
+  // Fetch CSRF token on mount
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch("/api/csrf-token", {
+          credentials: "include",
+        });
+        if (!response.ok) {
+          throw new Error(`Failed to fetch CSRF token: ${response.status}`);
+        }
+        const data = await response.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        // const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        console.error(sanitizeError(err));
+        setCsrfError("Failed to initialize CSRF protection");
+        toast.error("Failed to initialize CSRF protection", {
+          style: { background: "#fee2e2", color: "#dc2626" },
+          duration: 5000,
+        });
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   const { broadcastQuery } = useBroadcastQuery(
     setVoteHistory,
@@ -55,7 +84,7 @@ const Explorer: React.FC = () => {
   useAutoRefresh({
     isEnabled: autoRefresh,
     intervalMs: 5000,
-    fetchFunctions: [refetchNetwork, refetchVoteHistory],
+    fetchCallbacks: [refetchNetwork, refetchVoteHistory],
   });
 
   if (isLoading) {
@@ -64,6 +93,10 @@ const Explorer: React.FC = () => {
 
   if (networkError || !networkState) {
     return <ErrorDisplay onRetry={refetchNetwork} />;
+  }
+
+  if (csrfError) {
+    return <ErrorDisplay message={csrfError} onRetry={() => window.location.reload()} />;
   }
 
   return (
@@ -79,6 +112,7 @@ const Explorer: React.FC = () => {
           onSubmit={broadcastQuery}
           isOpen={showCustomQuery}
           onToggle={() => setShowCustomQuery(!showCustomQuery)}
+          csrfToken={csrfToken}
         />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

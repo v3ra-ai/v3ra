@@ -1,5 +1,4 @@
-// hooks/useSolanaTransaction.ts
-import { useState, useCallback } from "react";
+import { useCallback, useState } from "react";
 import {
   PublicKey,
   Transaction,
@@ -10,6 +9,7 @@ import {
 import { connection } from "../lib/solana-constants";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 import { QUERY_COST } from "@/lib/constants";
+import { sanitizeError } from "@/utils/security-utils";
 
 interface TransactionResult {
   sendTransaction: (
@@ -24,7 +24,7 @@ interface TransactionResult {
 
 export const useSolanaTransaction = (
   publicKey: PublicKey | null,
-  signTransaction: ((tx: Transaction) => Promise<Transaction>) | null,
+  signTransaction: ((tx: Transaction) => Promise<Transaction>) | null | undefined,
 ): TransactionResult => {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -49,6 +49,7 @@ export const useSolanaTransaction = (
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
+          // Create and configure transaction
           const transaction = new Transaction();
           transaction.add(
             ComputeBudgetProgram.setComputeUnitLimit({
@@ -63,6 +64,17 @@ export const useSolanaTransaction = (
               lamports: Math.round(credits * QUERY_COST * 1_000_000_000), // CREDIT_PRICE_SOL * LAMPORTS_PER_SOL
             }),
           );
+
+          // Validate transaction destination
+          const transferInstruction = transaction.instructions.find((instr) =>
+            instr.programId.equals(SystemProgram.programId),
+          );
+          if (!transferInstruction) {
+            throw new Error("No SystemProgram.transfer instruction found");
+          }
+          if (!transferInstruction.keys[1]?.pubkey.equals(destination)) {
+            throw new Error("Transaction destination does not match expected recipient");
+          }
 
           const { blockhash, lastValidBlockHeight } =
             await connection.getLatestBlockhash("confirmed");
@@ -114,22 +126,16 @@ export const useSolanaTransaction = (
           setSignedTx(signed);
           setIsSending(false);
           return { signature: sig, signedTx: signed };
-        } catch (err) {
-          lastError = err;
-          if (err instanceof SendTransactionError) {
-            console.error("SendTransactionError:", {
-              message: err.message,
-              logs: err.logs,
-            });
-            setError(`Transaction failed: ${err.message}`);
-          } else if (err instanceof WalletSignTransactionError) {
-            console.error("WalletSignTransactionError:", {
-              message: err.message,
-              error: err.error,
-            });
+        } catch (transactionError) {
+          lastError = transactionError;
+          if (transactionError instanceof SendTransactionError) {
+            console.error(sanitizeError(transactionError));
+            setError(`Transaction failed: ${transactionError.message}`);
+          } else if (transactionError instanceof WalletSignTransactionError) {
+            console.error(sanitizeError(transactionError));
             setError("Wallet approval denied");
           } else {
-            console.error("Send error:", err);
+            console.error(sanitizeError(transactionError));
             setError("Failed to send transaction");
           }
           if (attempt < maxAttempts) {

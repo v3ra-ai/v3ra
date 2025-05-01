@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import type { VoteResult } from "@/lib/types";
+import { sanitizeError } from "@/utils/security-utils";
 
 interface VoteHistoryResult {
   voteHistory: VoteResult[];
@@ -18,6 +19,7 @@ export function useVoteHistory(initialLimit: number = 10): VoteHistoryResult {
   const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
+  const VOTE_HISTORY_API = "/api/vote-history";
 
   const refetch = useCallback(
     async (limit: number = initialLimit) => {
@@ -25,7 +27,8 @@ export function useVoteHistory(initialLimit: number = 10): VoteHistoryResult {
         setIsLoading(true);
         setError(null);
         console.log(`[useVoteHistory] Refetching vote history with limit: ${limit}`);
-        const response = await fetch(`/api/vote-history?limit=${limit}`);
+        // Fetch and update vote history
+        const response = await fetch(`${VOTE_HISTORY_API}?limit=${limit}`);
         console.log(`[useVoteHistory] Refetch status: ${response.status} ${response.statusText}`);
         if (!response.ok) {
           throw new Error(`Vote history refetch failed: ${response.statusText}`);
@@ -40,14 +43,14 @@ export function useVoteHistory(initialLimit: number = 10): VoteHistoryResult {
         }
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error("[useVoteHistory] Failed to refetch vote history:", error);
+        console.error(sanitizeError(error));
         setError(error);
         setVoteHistory([]);
       } finally {
         setIsLoading(false);
       }
     },
-    [initialLimit]
+    [initialLimit],
   );
 
   useEffect(() => {

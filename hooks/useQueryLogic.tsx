@@ -7,9 +7,8 @@ import { Dispatch, SetStateAction } from "react";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { toast } from "sonner";
 import type { VoteResult } from "@/lib/types";
-import {
-  ALLOWED_AMOUNT_QUERIES,
-} from "@/lib/constants";
+import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+import { sanitizeError, sanitizeQueryText } from "@/utils/security-utils";
 
 interface UseQueryLogicProps {
   payWithWallet: boolean;
@@ -19,9 +18,10 @@ interface UseQueryLogicProps {
 }
 
 export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHasPaid }: UseQueryLogicProps) {
-  const [question, setQuestion] = useState<string>("");
+  const [queryText, setQueryText] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string>("");
 
   const {
     userFreeCredits,
@@ -42,6 +42,26 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
   } = useQueryStore();
 
   const placeholderText = getPlaceholderText(queryMode);
+
+  // Fetch CSRF token from server on mount
+  useEffect(() => {
+    const fetchCsrfToken = async () => {
+      try {
+        const response = await fetch("/api/csrf-token", {
+          credentials: "include", // Include cookies
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch CSRF token");
+        }
+        const data = await response.json();
+        setCsrfToken(data.csrfToken);
+      } catch (err) {
+        console.error(sanitizeError(err));
+        setError(sanitizeQueryText("Failed to initialize CSRF protection"));
+      }
+    };
+    fetchCsrfToken();
+  }, []);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -65,7 +85,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
     handleSetVoteHistory,
     handleSetLastVoteResult,
     undefined,
-    undefined
+    undefined,
   );
 
   const handleQueryAmountChange = useCallback(
@@ -73,12 +93,13 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
       setQueriesRequested(clampedAmount);
     },
-    [setQueriesRequested]
+    [setQueriesRequested],
   );
 
   const handleSubmit = async () => {
     console.log("Submitting, userCreditsTotal:", userCreditsTotal, "queriesRequested:", queriesRequested, "queriesUnpaid:", queriesUnpaid, "queriesCostTotal:", queriesCostTotal);
-    if (!question.trim()) {
+    // Validate query submission
+    if (!queryText.trim()) {
       toast.error("Query cannot be empty", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
@@ -99,19 +120,35 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       });
       return;
     }
+    if (!csrfToken) {
+      toast.error("CSRF token not initialized", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+      return;
+    }
 
     setIsSubmitting(true);
     setError(null);
     try {
-      await broadcastQuery(question);
+      // Pass CSRF token to protect API request
+      await broadcastQuery(queryText, { csrfToken });
       resetAfterSubmission();
-      setQuestion("");
+      setQueryText("");
       setHasPaid(false);
       setPayWithWallet(queriesRequested > userCreditsTotal);
+      // Fetch new CSRF token after successful submission
+      const response = await fetch("/api/csrf-token", {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setCsrfToken(data.csrfToken);
+      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
-      setError(errorMessage);
-      console.error("Submission failed:", errorMessage);
+      setError(sanitizeQueryText(errorMessage));
+      console.error(sanitizeError(err));
     } finally {
       setIsSubmitting(false);
     }
@@ -119,8 +156,8 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
 
   return {
     queriesRequested,
-    question,
-    setQuestion,
+    queryText,
+    setQueryText,
     isSubmitting,
     error,
     setError,

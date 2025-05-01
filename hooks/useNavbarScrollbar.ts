@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useQueryStore, QueryMode } from "@/store/query-store";
-import {useSubmitQuery} from "@/hooks/useSubmitQuery";
+import { useSubmitQuery } from "@/hooks/useSubmitQuery";
 import { toast } from "sonner";
 import {
   INITIAL_AI_QUERY_AMOUNT_REQUESTED,
@@ -31,7 +31,7 @@ interface NavbarScrollbarReturn extends NavbarScrollbarState {
 }
 
 export function useNavbarScrollbar(): NavbarScrollbarReturn {
-  const [state, setState] = useState<NavbarScrollbarState>({
+  const [navbarState, setNavbarState] = useState<NavbarScrollbarState>({
     queryText: "",
     isSubmitting: false,
     payWithWallet: true,
@@ -56,10 +56,10 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
   // Sync payWithWallet with queriesUnpaid
   useEffect(() => {
     const shouldPayWithWallet = queriesUnpaid > 0;
-    if (state.payWithWallet !== shouldPayWithWallet) {
-      setState((prev) => ({ ...prev, payWithWallet: shouldPayWithWallet }));
+    if (navbarState.payWithWallet !== shouldPayWithWallet) {
+      setNavbarState((prev) => ({ ...prev, payWithWallet: shouldPayWithWallet }));
     }
-  }, [queriesUnpaid, state.payWithWallet]);
+  }, [queriesUnpaid, navbarState.payWithWallet]);
 
   // Update query amount with clamping
   const updateQueryAmountRequested = useCallback(
@@ -67,33 +67,34 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
       const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
       setUserAiQueryAmountRequested(clampedAmount);
     },
-    [setUserAiQueryAmountRequested]
+    [setUserAiQueryAmountRequested],
   );
 
   // Submit query with validation
   const handleSubmit = async () => {
-    if (!state.queryText.trim()) {
+    // Validate query submission
+    if (!navbarState.queryText.trim()) {
       toast.error("Query cannot be empty", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
-      setState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
       return;
     }
-    if (queriesUnpaid > 0 && !state.payWithWallet) {
+    if (queriesUnpaid > 0 && !navbarState.payWithWallet) {
       toast.error("Please enable Pay with Wallet for additional queries", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
-      setState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
       return;
     }
-    if (state.payWithWallet && queriesUnpaid > 0 && !state.hasPaid) {
+    if (navbarState.payWithWallet && queriesUnpaid > 0 && !navbarState.hasPaid) {
       toast.error("Please make a payment first", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
-      setState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
       return;
     }
     if (userCreditsTotal > 0 && userCreditsTotal < queriesRequested) {
@@ -101,16 +102,16 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
-      setState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
       return;
     }
 
-    setState((prev) => ({ ...prev, isSubmitting: true }));
+    setNavbarState((prev) => ({ ...prev, isSubmitting: true }));
     try {
-      await submitQuery(state.queryText);
+      await submitQuery(navbarState.queryText);
       decrementQueries(queriesRequested);
       setUserAiQueryAmountRequested(INITIAL_AI_QUERY_AMOUNT_REQUESTED);
-      setState((prev) => ({
+      setNavbarState((prev) => ({
         ...prev,
         queryText: "",
         hasPaid: false,
@@ -124,27 +125,27 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
       });
       console.error("Submission failed:", errorMessage);
     } finally {
-      setState((prev) => ({ ...prev, isSubmitting: false }));
+      setNavbarState((prev) => ({ ...prev, isSubmitting: false }));
     }
   };
 
   // Handle Enter key for submission
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !state.isSubmitting) {
+    if (e.key === "Enter" && !navbarState.isSubmitting) {
       e.preventDefault();
       handleSubmit();
     }
   };
 
   return {
-    queryText: state.queryText,
-    setQueryText: (text) => setState((prev) => ({ ...prev, queryText: text })),
-    isSubmitting: state.isSubmitting,
-    payWithWallet: state.payWithWallet,
-    setPayWithWallet: (value) => setState((prev) => ({ ...prev, payWithWallet: value })),
-    hasPaid: state.hasPaid,
-    setHasPaid: (value) => setState((prev) => ({ ...prev, hasPaid: value })),
-    hasAttemptedSubmit: state.hasAttemptedSubmit,
+    queryText: navbarState.queryText,
+    setQueryText: (text) => setNavbarState((prev) => ({ ...prev, queryText: text })),
+    isSubmitting: navbarState.isSubmitting,
+    payWithWallet: navbarState.payWithWallet,
+    setPayWithWallet: (value) => setNavbarState((prev) => ({ ...prev, payWithWallet: value })),
+    hasPaid: navbarState.hasPaid,
+    setHasPaid: (value) => setNavbarState((prev) => ({ ...prev, hasPaid: value })),
+    hasAttemptedSubmit: navbarState.hasAttemptedSubmit,
     queriesRequested,
     userCreditsTotal,
     userFreeCredits,

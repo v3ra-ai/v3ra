@@ -49,12 +49,22 @@ export async function broadcastCustomQuery(
     for (const dbValidator of dbValidators) {
       let validator;
 
+      // Skip validators without API keys
+      if (!dbValidator.apiKeys[0]?.apiKeyId) {
+        console.warn(
+          `Skipping validator ${dbValidator.id} (${dbValidator.profileName}): No API key found`,
+        );
+        continue;
+      }
+
       if (dbValidator.provider === "OpenAI") {
+        // Correct invalid model name
+        const modelName = dbValidator.modelName === "gpt-40" ? "gpt-4o" : dbValidator.modelName;
         validator = new OpenAIValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
-          modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          modelName,
+          keyId: dbValidator.apiKeys[0].apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Anthropic") {
@@ -65,7 +75,7 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          keyId: dbValidator.apiKeys[0].apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Grok") {
@@ -76,7 +86,7 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          keyId: dbValidator.apiKeys[0].apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Google") {
@@ -87,7 +97,7 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          keyId: dbValidator.apiKeys[0].apiKeyId,
           active: dbValidator.active,
         });
       } else {

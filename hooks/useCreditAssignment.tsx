@@ -1,4 +1,3 @@
-// hooks/useCreditAssignment.ts
 "use client";
 
 import { useState, useCallback } from "react";
@@ -32,21 +31,19 @@ export const useCreditAssignment = (): CreditAssignment => {
       setError(null);
 
       try {
-        // Find SystemProgram.transfer instruction
+        // Validate transaction amount
         const transferInstruction = signedTx.instructions.find((instr) =>
           instr.programId.equals(SystemProgram.programId),
         );
         if (!transferInstruction) {
           throw new Error("No SystemProgram.transfer instruction found");
         }
-
-        // Safely read lamports (data should be at least 12 bytes: 4 for instruction, 8 for lamports)
         if (transferInstruction.data.length < 12) {
           throw new Error(
             "Invalid instruction data: too short to contain lamports",
           );
         }
-        const lamports = transferInstruction.data.readBigInt64LE(4); // Lamports at offset 4
+        const lamports = transferInstruction.data.readBigInt64LE(4);
         const expectedLamports = BigInt(
           credits * CREDIT_PRICE_SOL * 1_000_000_000,
         );
@@ -62,7 +59,7 @@ export const useCreditAssignment = (): CreditAssignment => {
           );
         }
 
-        const response = await fetch("/api/payment", {
+        const apiResponse = await fetch("/api/payment", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -73,17 +70,17 @@ export const useCreditAssignment = (): CreditAssignment => {
           }),
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
+        if (!apiResponse.ok) {
+          const errorData = await apiResponse.json();
           throw new Error(errorData.error || "Payment failed");
         }
 
-        const paymentData = await response.json();
+        const paymentData = await apiResponse.json();
         if (paymentData.status !== "success") {
           throw new Error("Payment verification failed");
         }
 
-        const assignResponse = await fetch("/api/credits/assign", {
+        const assignApiResponse = await fetch("/api/credits/assign", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -92,12 +89,12 @@ export const useCreditAssignment = (): CreditAssignment => {
           }),
         });
 
-        if (!assignResponse.ok) {
-          const errorData = await assignResponse.json();
+        if (!assignApiResponse.ok) {
+          const errorData = await assignApiResponse.json();
           throw new Error(errorData.error || "Credit assignment failed");
         }
 
-        const assignData = await assignResponse.json();
+        const assignData = await assignApiResponse.json();
         toast.success(
           `${credits} credits added! New balance: ${assignData.credits}`,
         );

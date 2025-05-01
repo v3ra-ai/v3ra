@@ -8,6 +8,12 @@ import {
   QUERIES_COST_EACH_DEFAULT,
 } from "@/lib/constants";
 
+// Helper function to calculate derived query states
+const calculateQueriesState = (queriesRequested: number, creditsTotal: number, costEach: number) => ({
+  queriesUnpaid: queriesRequested - creditsTotal,
+  queriesCostTotal: Math.max(0, queriesRequested - creditsTotal) * costEach,
+});
+
 // Export VoteResult from lib/types
 export type { VoteResult };
 
@@ -43,6 +49,7 @@ export interface QueryStore {
 }
 
 export const useQueryStore = create<QueryStore>((set) => ({
+  // State: User credits and query counts
   userFreeCredits: USER_FREE_CREDITS_DEFAULT,
   userPaidCredits: USER_PAID_CREDITS_DEFAULT,
   userCreditsTotal: USER_FREE_CREDITS_DEFAULT + USER_PAID_CREDITS_DEFAULT,
@@ -51,76 +58,107 @@ export const useQueryStore = create<QueryStore>((set) => ({
   queriesCostEach: QUERIES_COST_EACH_DEFAULT,
   queriesCostTotal: Math.max(0, QUERIES_REQUESTED_DEFAULT - (USER_FREE_CREDITS_DEFAULT + USER_PAID_CREDITS_DEFAULT)) * QUERIES_COST_EACH_DEFAULT,
   userCreditConversion: USER_CREDIT_CONVERSION_DEFAULT,
+
+  // State: Query modes and vote history
   queryMode: "factCheck",
   viewMode: "viewExpert",
   voteHistory: [],
   lastVoteResult: null,
-  decrementFreeCredits: (amount: number) => set((state) => ({
-    userFreeCredits: Math.max(0, state.userFreeCredits - amount),
-    userCreditsTotal: Math.max(0, state.userFreeCredits - amount + state.userPaidCredits),
-    queriesUnpaid: state.queriesRequested - Math.max(0, state.userFreeCredits - amount + state.userPaidCredits),
-    queriesCostTotal: Math.max(0, state.queriesRequested - Math.max(0, state.userFreeCredits - amount + state.userPaidCredits)) * state.queriesCostEach,
-  })),
-  decrementPaidCredits: (amount: number) => set((state) => ({
-    userPaidCredits: Math.max(0, state.userPaidCredits - amount),
-    userCreditsTotal: Math.max(0, state.userFreeCredits + state.userPaidCredits - amount),
-    queriesUnpaid: state.queriesRequested - Math.max(0, state.userFreeCredits + state.userPaidCredits - amount),
-    queriesCostTotal: Math.max(0, state.queriesRequested - Math.max(0, state.userFreeCredits + state.userPaidCredits - amount)) * state.queriesCostEach,
-  })),
-  incrementPaidCredits: (amount: number) => set((state) => ({
-    userPaidCredits: state.userPaidCredits + amount,
-    userCreditsTotal: state.userFreeCredits + state.userPaidCredits + amount,
-    queriesUnpaid: state.queriesRequested - (state.userFreeCredits + state.userPaidCredits + amount),
-    queriesCostTotal: Math.max(0, state.queriesRequested - (state.userFreeCredits + state.userPaidCredits + amount)) * state.queriesCostEach,
-  })),
+
+  // Actions: Credit management
+  decrementFreeCredits: (amount: number) => set((state) => {
+    const newFreeCredits = Math.max(0, state.userFreeCredits - amount);
+    const newCreditsTotal = newFreeCredits + state.userPaidCredits;
+    return {
+      userFreeCredits: newFreeCredits,
+      userCreditsTotal: newCreditsTotal,
+      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
+    };
+  }),
+
+  decrementPaidCredits: (amount: number) => set((state) => {
+    const newPaidCredits = Math.max(0, state.userPaidCredits - amount);
+    const newCreditsTotal = state.userFreeCredits + newPaidCredits;
+    return {
+      userPaidCredits: newPaidCredits,
+      userCreditsTotal: newCreditsTotal,
+      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
+    };
+  }),
+
+  incrementPaidCredits: (amount: number) => set((state) => {
+    const newPaidCredits = state.userPaidCredits + amount;
+    const newCreditsTotal = state.userFreeCredits + newPaidCredits;
+    return {
+      userPaidCredits: newPaidCredits,
+      userCreditsTotal: newCreditsTotal,
+      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
+    };
+  }),
+
+  // Actions: Query management
   setQueriesRequested: (amount: number) => set((state) => ({
     queriesRequested: amount,
-    queriesUnpaid: amount - state.userCreditsTotal,
-    queriesCostTotal: Math.max(0, amount - state.userCreditsTotal) * state.queriesCostEach,
+    ...calculateQueriesState(amount, state.userCreditsTotal, state.queriesCostEach),
   })),
+
   setQueryMode: (mode: QueryMode) => set(() => ({ queryMode: mode })),
+
   setViewMode: (mode: ViewMode) => set(() => ({ viewMode: mode })),
+
+  // Actions: Vote history management
   setVoteHistory: (history) => set((state) => ({
     voteHistory: typeof history === "function" ? history(state.voteHistory) : history,
   })),
+
   setLastVoteResult: (result) => set((state) => ({
     lastVoteResult: typeof result === "function" ? result(state.lastVoteResult) : result,
   })),
+
+  // Actions: Reset and query adjustments
   resetAfterSubmission: () => set((state) => {
     const remainingCredits = Math.max(0, state.userCreditsTotal - state.queriesRequested);
     const freeCredits = Math.min(remainingCredits, state.userFreeCredits);
     const paidCredits = remainingCredits - freeCredits;
+    const newCreditsTotal = freeCredits + paidCredits;
     return {
       userFreeCredits: freeCredits,
       userPaidCredits: paidCredits,
-      userCreditsTotal: remainingCredits,
+      userCreditsTotal: newCreditsTotal,
       queriesRequested: QUERIES_REQUESTED_DEFAULT,
-      queriesUnpaid: QUERIES_REQUESTED_DEFAULT - remainingCredits,
-      queriesCostTotal: Math.max(0, QUERIES_REQUESTED_DEFAULT - remainingCredits) * state.queriesCostEach,
+      ...calculateQueriesState(QUERIES_REQUESTED_DEFAULT, newCreditsTotal, state.queriesCostEach),
     };
   }),
+
   decrementQueries: (amount: number) => set((state) => {
     const freeAmount = Math.min(amount, state.userFreeCredits);
     const paidAmount = amount - freeAmount;
+    const newFreeCredits = Math.max(0, state.userFreeCredits - freeAmount);
+    const newPaidCredits = Math.max(0, state.userPaidCredits - paidAmount);
+    const newCreditsTotal = newFreeCredits + newPaidCredits;
     return {
-      userFreeCredits: Math.max(0, state.userFreeCredits - freeAmount),
-      userPaidCredits: Math.max(0, state.userPaidCredits - paidAmount),
-      userCreditsTotal: Math.max(0, state.userFreeCredits - freeAmount + state.userPaidCredits - paidAmount),
-      queriesUnpaid: state.queriesRequested - Math.max(0, state.userFreeCredits - freeAmount + state.userPaidCredits - paidAmount),
-      queriesCostTotal: Math.max(0, state.queriesRequested - Math.max(0, state.userFreeCredits - freeAmount + state.userPaidCredits - paidAmount)) * state.queriesCostEach,
+      userFreeCredits: newFreeCredits,
+      userPaidCredits: newPaidCredits,
+      userCreditsTotal: newCreditsTotal,
+      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
     };
   }),
-  incrementQueries: (amount: number) => set((state) => ({
-    userPaidCredits: state.userPaidCredits + amount,
-    userCreditsTotal: state.userFreeCredits + state.userPaidCredits + amount,
-    queriesUnpaid: state.queriesRequested - (state.userFreeCredits + state.userPaidCredits + amount),
-    queriesCostTotal: Math.max(0, state.queriesRequested - (state.userFreeCredits + state.userPaidCredits + amount)) * state.queriesCostEach,
-  })),
+
+  incrementQueries: (amount: number) => set((state) => {
+    const newPaidCredits = state.userPaidCredits + amount;
+    const newCreditsTotal = state.userFreeCredits + newPaidCredits;
+    return {
+      userPaidCredits: newPaidCredits,
+      userCreditsTotal: newCreditsTotal,
+      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
+    };
+  }),
+
   setUserAiQueryAmountRequested: (amount: number) => set((state) => ({
     queriesRequested: amount,
-    queriesUnpaid: amount - state.userCreditsTotal,
-    queriesCostTotal: Math.max(0, amount - state.userCreditsTotal) * state.queriesCostEach,
+    ...calculateQueriesState(amount, state.userCreditsTotal, state.queriesCostEach),
   })),
+
   resetCreditsAfterPayment: () => set((state) => ({
     userFreeCredits: 0,
     userPaidCredits: 0,

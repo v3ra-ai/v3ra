@@ -1,4 +1,3 @@
-// hooks/useCreditBalance.ts
 "use client";
 
 import { useState, useEffect } from "react";
@@ -8,15 +7,18 @@ import { toast } from "sonner";
 export const useCreditBalance = () => {
   const { publicKey } = useWallet();
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
+  const BALANCE_API_ENDPOINT = "/api/credits/balance";
 
   useEffect(() => {
     const fetchCreditBalance = async () => {
+      // Exit if no wallet is connected
       if (!publicKey) {
         setCreditBalance(null);
         return;
       }
       try {
-        const response = await fetch("/api/credits/balance", {
+        // Fetch balance from server
+        const response = await fetch(BALANCE_API_ENDPOINT, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -36,6 +38,7 @@ export const useCreditBalance = () => {
         console.log("Fetched credit balance:", data.credits); // Debug log
         setCreditBalance(data.credits || 0);
       } catch (error) {
+        // Handle unexpected errors
         const errorMsg =
           error instanceof Error ? error.message : "Unknown error";
         toast.error(`Error fetching credit balance: ${errorMsg}`);

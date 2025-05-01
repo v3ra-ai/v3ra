@@ -1,17 +1,14 @@
-// components/stake-slider.tsx
 "use client";
 
 import { useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
 import { Square } from "lucide-react";
-import { useSolanaWallet } from "@/hooks/useSolanaWallet";
+import { useWallet } from "@solana/wallet-adapter-react";
 import { QUERY_COST } from "@/lib/constants";
-
 
 export default function StakeSlider() {
   const [stakeAmount, setStakeAmount] = useState(0);
-  const { isWalletConnected } =
-  useSolanaWallet();
+  const { connected: isWalletConnected } = useWallet();
 
   const stakeSol = stakeAmount * QUERY_COST;
 

@@ -3,21 +3,23 @@ import { useEffect, useRef } from "react";
 interface UseAutoRefreshOptions {
   isEnabled: boolean;
   intervalMs?: number;
-  fetchFunctions: Array<() => Promise<void>>;
+  fetchCallbacks: Array<() => Promise<void>>;
 }
 
 export function useAutoRefresh({
   isEnabled,
   intervalMs = 5000,
-  fetchFunctions,
+  fetchCallbacks,
 }: UseAutoRefreshOptions) {
   const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    // Start interval only if enabled
     if (isEnabled) {
       intervalIdRef.current = setInterval(async () => {
         try {
-          await Promise.all(fetchFunctions.map((fn) => fn()));
+          // Execute all fetch callbacks in parallel
+          await Promise.all(fetchCallbacks.map((fn) => fn()));
         } catch (err: unknown) {
           const error = err instanceof Error ? err : new Error(String(err));
           console.error("Auto-refresh failed:", error);
@@ -25,11 +27,12 @@ export function useAutoRefresh({
       }, intervalMs);
     }
 
+    // Cleanup interval on unmount or change
     return () => {
       if (intervalIdRef.current) {
         clearInterval(intervalIdRef.current);
         intervalIdRef.current = null;
       }
     };
-  }, [isEnabled, intervalMs, fetchFunctions]);
+  }, [isEnabled, intervalMs, fetchCallbacks]);
 }

@@ -14,6 +14,7 @@ export function useNetworkState(): NetworkStateResult {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
   const { lastVoteResult } = useQueryStore();
+  const NETWORK_API_URL = "/api/network";
 
   const fetchNetworkState = useCallback(
     async (isInitialLoad: boolean = false) => {
@@ -22,8 +23,9 @@ export function useNetworkState(): NetworkStateResult {
           setIsLoading(true);
         }
         setError(null);
-        const url = isInitialLoad ? "/api/network" : `/api/network?t=${Date.now()}`;
+        const url = isInitialLoad ? NETWORK_API_URL : `${NETWORK_API_URL}?t=${Date.now()}`;
         console.log(`[useNetworkState] Fetching network state from ${url}`);
+        // Fetch and update network state
         const response = await fetch(url);
         console.log(`[useNetworkState] Fetch status: ${response.status} ${response.statusText}`);
         if (!response.ok) {
@@ -44,7 +46,7 @@ export function useNetworkState(): NetworkStateResult {
         }
       }
     },
-    []
+    [],
   );
 
   const refetch = useCallback(async () => {

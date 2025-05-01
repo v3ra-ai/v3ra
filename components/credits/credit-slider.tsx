@@ -1,35 +1,39 @@
-// components/credit-slider.tsx
 "use client";
 
 import { useState, useMemo, useCallback } from "react";
 import { toast } from "sonner";
 import CreditSliderUI from "./credit-slider-ui";
-import { useSolanaWallet } from "@/hooks/useSolanaWallet";
 import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
 import { useCreditAssignment } from "@/hooks/useCreditAssignment";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
 import { VERAFY_WALLET, CREDIT_PRICE_SOL } from "@/lib/solana-constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey } from "@solana/web3.js"; // Added import
+import { PublicKey, Transaction } from "@solana/web3.js";
 
 export default function CreditSlider() {
   const [creditAmount, setCreditAmount] = useState(10);
   const { creditBalance, setCreditBalance } = useCreditBalance();
-  const { publicKey, signTransaction, solBalance, isWalletConnected } =
-    useSolanaWallet();
+  const { publicKey, signTransaction, connected: isWalletConnected, disconnect } = useWallet();
   const {
     sendTransaction,
     isSending,
     error: txError,
-  } = useSolanaTransaction(publicKey, signTransaction);
+  } = useSolanaTransaction(
+    publicKey,
+    signTransaction
+      ? (tx: Transaction) => signTransaction(tx)
+      : null
+  );
   const {
     assignCredits,
     isAssigning,
     error: assignError,
   } = useCreditAssignment();
   const { setVisible } = useWalletModal();
-  const { disconnect } = useWallet();
+
+  // Placeholder for solBalance (fetch actual balance if needed)
+  const solBalance = 0; // TODO: Fetch balance using @solana/web3.js
 
   const requiredSol = creditAmount * CREDIT_PRICE_SOL;
   const hasEnoughSol = solBalance >= requiredSol;

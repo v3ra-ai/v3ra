@@ -8,15 +8,17 @@ import { PaymentControls } from "@/components/explorer/payment-controls";
 import { SubmitButton } from "@/components/explorer/submit-button";
 
 interface CustomQueryFormProps {
-  onSubmit: (query: string) => Promise<void>;
+  onSubmit: (query: string, options?: { csrfToken?: string }) => Promise<void>;
   isOpen: boolean;
   onToggle: () => void;
+  csrfToken: string;
 }
 
 export function CustomQueryForm({
   onSubmit,
   isOpen,
   onToggle,
+  csrfToken,
 }: CustomQueryFormProps) {
   const [query, setQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -26,7 +28,7 @@ export function CustomQueryForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    e.stopPropagation(); // Extra safeguard against event bubbling
+    e.stopPropagation();
     if (!query.trim()) {
       setError("Query cannot be empty");
       return;
@@ -37,10 +39,15 @@ export function CustomQueryForm({
       return;
     }
 
+    if (!csrfToken) {
+      setError("CSRF token not initialized");
+      return;
+    }
+
     setIsSubmitting(true);
     setError(null);
     try {
-      await onSubmit(query);
+      await onSubmit(query, { csrfToken });
       setQuery("");
       if (isWalletEnabled) setHasPaid(false);
     } catch (err: unknown) {

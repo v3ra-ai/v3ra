@@ -1,10 +1,11 @@
 import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
 import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
 import { QueryFormInput } from "@/components/ask/query-form-input";
+import { Dispatch, SetStateAction } from "react";
 
 interface QueryFormProps {
-  question: string;
-  setQuestion: (value: string) => void;
+  queryText: string;
+  setQueryText: Dispatch<SetStateAction<string>>;
   placeholderText: string;
   queryMode: "factCheck" | "predict" | "create" | "shop";
   queriesRequested: number;
@@ -19,12 +20,12 @@ interface QueryFormProps {
   payWithWallet: boolean;
   hasPaid: boolean;
   isSubmitInteracted: boolean;
-  setIsSubmitInteracted: (value: boolean) => void;
+  setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
 }
 
 export default function QueryForm({
-  question,
-  setQuestion,
+  queryText,
+  setQueryText,
   placeholderText,
   queryMode,
   queriesRequested,
@@ -46,8 +47,8 @@ export default function QueryForm({
   return (
     <div>
       <QueryFormInput
-        question={question}
-        setQuestion={setQuestion}
+        queryText={queryText}
+        setQueryText={setQueryText}
         placeholderText={placeholderText}
         handleSubmit={handleSubmit}
         isSubmitting={isSubmitting}

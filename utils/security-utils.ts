@@ -1,5 +1,15 @@
 import DOMPurify from "dompurify";
 import { VoteResult } from "@/lib/types";
+import { SendTransactionError } from "@solana/web3.js";
+import crypto from "crypto";
+
+/**
+ * Generates a secure CSRF token for protecting API requests.
+ * @returns A random, unique token as a string.
+ */
+export function generateCsrfToken(): string {
+  return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 18);
+}
 
 /**
  * Sanitizes query text to prevent XSS by removing or escaping dangerous characters.
@@ -25,4 +35,18 @@ export function sanitizeValidatorResponse(
     id: DOMPurify.sanitize(response.id),
     rationale: DOMPurify.sanitize(response.rationale || ""),
   };
+}
+
+/**
+ * Sanitizes error messages for safe logging, preventing exposure of sensitive details.
+ * @param error - The error to sanitize (unknown type).
+ * @returns A safe string representation of the error message.
+ */
+export function sanitizeError(error: unknown): string {
+  if (error instanceof SendTransactionError) {
+    return `Transaction failed: ${error.message}`;
+  } else if (error instanceof Error) {
+    return `Error: ${error.message}`;
+  }
+  return "Unknown error occurred";
 }
