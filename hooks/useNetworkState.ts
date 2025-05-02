@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
-import { useQueryStore } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
+import { useNetworkStore } from "@/store/network-store";
 import type { NetworkState } from "@/lib/types";
 
 interface NetworkStateResult {
@@ -13,7 +14,8 @@ export function useNetworkState(): NetworkStateResult {
   const [networkState, setNetworkState] = useState<NetworkState | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const { lastVoteResult, networkStateCache, networkStateTimestamp, setNetworkStateCache } = useQueryStore();
+  const { lastVoteResult } = useVoteStore();
+  const { networkStateCache, networkStateTimestamp, setNetworkStateCache } = useNetworkStore();
   const NETWORK_API_URL = "/api/network";
 
   const fetchNetworkState = useCallback(

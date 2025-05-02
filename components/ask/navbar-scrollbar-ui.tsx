@@ -1,6 +1,6 @@
 "use client";
 
-import { ViewMode, QueryMode } from "@/store/query-store";
+import { ViewMode, QueryMode } from "@/lib/types";
 import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
 import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
 import WalletToggle from "@/components/ask/wallet-toggle";

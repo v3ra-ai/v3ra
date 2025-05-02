@@ -1,5 +1,5 @@
 import { useVoteHistory } from "@/hooks/useVoteHistory";
-import { useQueryStore } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
 import { ErrorDisplay } from "@/components/error-display";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { Grid3x3, Rows3 } from "lucide-react";
@@ -38,7 +38,7 @@ const getRecentQueries = (voteHistory: VoteResult[]) =>
 
 export default function AskResultsStandard() {
   const { voteHistory, isLoading, error, refetch } = useVoteHistory();
-  const { lastVoteResult } = useQueryStore();
+  const { lastVoteResult } = useVoteStore();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
 

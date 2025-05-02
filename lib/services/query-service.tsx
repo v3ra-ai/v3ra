@@ -1,4 +1,4 @@
-import { VoteResult } from "@/store/query-store";
+import { VoteResult } from "@/lib/types";
 
 interface SubmitQueryResponse {
   success: boolean;

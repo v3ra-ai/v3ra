@@ -10,7 +10,6 @@ import { QUERY_COST } from "@/lib/constants";
 interface RequestBody {
   walletPublicKey?: string;
   creditAmount?: number;
-  email?: string;
 }
 
 const assignCreditsSchema = z.object({
@@ -26,7 +25,6 @@ const assignCreditsSchema = z.object({
     { message: "Invalid Solana public key" },
   ),
   creditAmount: z.number().int().min(1).max(100),
-  email: z.string().email().optional(),
 });
 
 // Assigns credits to a user's Solana wallet and logs the transaction
@@ -41,25 +39,21 @@ export async function POST(req: NextRequest) {
   let body: RequestBody = {
     walletPublicKey: undefined,
     creditAmount: undefined,
-    email: undefined,
   };
 
   try {
     body = (await req.json()) as RequestBody; // Cast to our interface
-    const { walletPublicKey, creditAmount, email } =
-      assignCreditsSchema.parse(body);
+    const { walletPublicKey, creditAmount } = assignCreditsSchema.parse(body);
 
     const updatedCredit = await prisma.userCredit.upsert({
       where: { walletPublicKey },
       update: {
         credits: { increment: creditAmount },
-        email: email || undefined,
         updatedAt: new Date(),
       },
       create: {
         walletPublicKey,
         credits: creditAmount,
-        email,
         createdAt: new Date(),
         updatedAt: new Date(),
       },

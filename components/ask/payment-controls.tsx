@@ -11,7 +11,7 @@ import {
 import { useState } from "react";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { useQueryStore } from "@/store/query-store";
+import { useCreditsStore } from "@/store/credit-store";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 
 interface PaymentControlsProps {
@@ -35,7 +35,7 @@ export function PaymentControls({
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { resetCreditsAfterPayment } = useQueryStore();
+  const { resetCreditsAfterPayment } = useCreditsStore();
 
   const PAYMENT_RECEIVER_ADDRESS =
     process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
@@ -76,7 +76,7 @@ export function PaymentControls({
 
       setHasPaid(true);
       resetCreditsAfterPayment(); // Reset all credits to 0 after payment
-      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useQueryStore.getState().userCreditsTotal);
+      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useCreditsStore.getState().userCreditsTotal);
       toast.success(`Payment of ${queriesCostTotal} credits (${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL) completed! Credits reset to 0.`, {
         style: { background: "#dcfce7", color: "#16a34a" },
       });
@@ -102,10 +102,6 @@ export function PaymentControls({
 
   return (
     <>
-      {/* <div>
-        Free Credits: {userFreeCredits} | Paid Credits: {userPaidCredits} | Total Credits: {userCreditsTotal}
-        {displayUnpaid > 0 && <span> | Unpaid Queries: {displayUnpaid}</span>}
-      </div> */}
       {!hasPaid && displayUnpaid > 0 && (
         <>
           <WalletMultiButton

@@ -1,5 +1,6 @@
 import { useCallback } from "react";
-import { useQueryStore, VoteResult } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
+import { VoteResult } from "@/lib/types";
 import { submitQueryService } from "@/lib/services/query-service";
 import { sanitizeQueryText } from "@/utils/security-utils";
 
@@ -8,7 +9,7 @@ interface SubmitQueryReturn {
 }
 
 export function useSubmitQuery(): SubmitQueryReturn {
-  const { setVoteHistory, setLastVoteResult } = useQueryStore();
+  const { setVoteHistory, setLastVoteResult } = useVoteStore();
 
   const submitQuery = useCallback(
     async (queryText: string) => {

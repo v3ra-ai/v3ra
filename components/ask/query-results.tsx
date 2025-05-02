@@ -1,5 +1,6 @@
 import { useEffect } from "react";
-import { useQueryStore, ViewMode } from "@/store/query-store";
+import { useQueryStore } from "@/store/query-store";
+import { ViewMode } from "@/lib/types";
 import AskResultsStandard from "@/components/ask/ask-results-standard";
 import AskResultsExpert from "@/components/ask/ask-results-expert";
 

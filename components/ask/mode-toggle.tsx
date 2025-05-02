@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryStore } from "@/store/query-store";
-import { ViewMode } from "@/store/query-store";
+import { ViewMode } from "@/lib/types";
 import { AppWindowMac, FlaskConical } from "lucide-react";
 
 // Define props interface

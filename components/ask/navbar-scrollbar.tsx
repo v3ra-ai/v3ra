@@ -1,6 +1,6 @@
 "use client";
 
-import { ViewMode } from "@/store/query-store";
+import { ViewMode } from "@/lib/types";
 import { NavbarScrollbarUI } from "@/components/ask/navbar-scrollbar-ui";
 import { useNavbarScrollbar } from "@/hooks/useNavbarScrollbar";
 

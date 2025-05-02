@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNetworkState } from "./useNetworkState";
-import { useQueryStore } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
 import type { VoteResult } from "@/lib/types";
 import { sanitizeError } from "@/utils/security-utils";
 
@@ -14,7 +14,7 @@ interface VoteResultHookResult {
 export function useVoteResult(voteSessionId?: string): VoteResultHookResult {
   const { networkState } = useNetworkState();
   const lastQuery = networkState?.lastQuery;
-  const { lastVoteResult } = useQueryStore();
+  const { lastVoteResult } = useVoteStore();
   const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<Error | null>(null);

@@ -1,29 +1,7 @@
 import { create } from "zustand";
-import type { VoteResult, NetworkState } from "@/lib/types";
-import {
-  USER_FREE_CREDITS_DEFAULT,
-  USER_PAID_CREDITS_DEFAULT,
-  QUERIES_REQUESTED_DEFAULT,
-  USER_CREDIT_CONVERSION_DEFAULT,
-  QUERIES_COST_EACH_DEFAULT,
-} from "@/lib/constants";
+import { DEFAULTS, QueryMode, ViewMode } from "@/lib/types";
 
-// Helper function to calculate derived query states
-const calculateQueriesState = (queriesRequested: number, creditsTotal: number, costEach: number) => ({
-  queriesUnpaid: queriesRequested - creditsTotal,
-  queriesCostTotal: Math.max(0, queriesRequested - creditsTotal) * costEach,
-});
-
-// Export VoteResult from lib/types
-export type { VoteResult };
-
-export type QueryMode = "factCheck" | "predict" | "create" | "shop";
-export type ViewMode = "viewStandard" | "viewExpert";
-
-export interface QueryStore {
-  userFreeCredits: number;
-  userPaidCredits: number;
-  userCreditsTotal: number;
+interface QueryStore {
   queriesRequested: number;
   queriesUnpaid: number;
   queriesCostEach: number;
@@ -31,152 +9,54 @@ export interface QueryStore {
   userCreditConversion: number;
   queryMode: QueryMode;
   viewMode: ViewMode;
-  voteHistory: VoteResult[];
-  lastVoteResult: VoteResult | null;
-  networkStateCache: NetworkState | null;
-  networkStateTimestamp: number | null;
-  decrementFreeCredits: (amount: number) => void;
-  decrementPaidCredits: (amount: number) => void;
-  incrementPaidCredits: (amount: number) => void;
-  setQueriesRequested: (amount: number) => void;
+  setQueriesRequested: (amount: number, creditsTotal: number) => void;
   setQueryMode: (mode: QueryMode) => void;
   setViewMode: (mode: ViewMode) => void;
-  setVoteHistory: (history: VoteResult[] | ((prev: VoteResult[]) => VoteResult[])) => void;
-  setLastVoteResult: (result: VoteResult | null | ((prev: VoteResult | null) => VoteResult | null)) => void;
-  resetAfterSubmission: () => void;
-  decrementQueries: (amount: number) => void;
-  incrementQueries: (amount: number) => void;
-  setUserAiQueryAmountRequested: (amount: number) => void;
-  resetCreditsAfterPayment: () => void;
-  setNetworkStateCache: (data: NetworkState | null, timestamp: number | null) => void;
+  decrementQueries: (amount: number, creditsTotal: number) => void;
+  incrementQueries: (amount: number, creditsTotal: number) => void;
+  setUserAiQueryAmountRequested: (amount: number, creditsTotal: number) => void;
+  resetAfterSubmission: (creditsTotal: number) => void;
 }
 
-export const useQueryStore = create<QueryStore>((set) => ({
-  // State: User credits and query counts
-  userFreeCredits: USER_FREE_CREDITS_DEFAULT,
-  userPaidCredits: USER_PAID_CREDITS_DEFAULT,
-  userCreditsTotal: USER_FREE_CREDITS_DEFAULT + USER_PAID_CREDITS_DEFAULT,
-  queriesRequested: QUERIES_REQUESTED_DEFAULT,
-  queriesUnpaid: QUERIES_REQUESTED_DEFAULT - (USER_FREE_CREDITS_DEFAULT + USER_PAID_CREDITS_DEFAULT),
-  queriesCostEach: QUERIES_COST_EACH_DEFAULT,
-  queriesCostTotal: Math.max(0, QUERIES_REQUESTED_DEFAULT - (USER_FREE_CREDITS_DEFAULT + USER_PAID_CREDITS_DEFAULT)) * QUERIES_COST_EACH_DEFAULT,
-  userCreditConversion: USER_CREDIT_CONVERSION_DEFAULT,
+// Helper function to calculate derived query states
+const calculateQueriesState = (queriesRequested: number, creditsTotal: number, costEach: number) => ({
+  queriesUnpaid: queriesRequested - creditsTotal,
+  queriesCostTotal: Math.max(0, queriesRequested - creditsTotal) * costEach,
+});
 
-  // State: Query modes and vote history
+export const useQueryStore = create<QueryStore>((set) => ({
+  queriesRequested: DEFAULTS.QUERIES_REQUESTED,
+  queriesUnpaid: DEFAULTS.QUERIES_REQUESTED - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS),
+  queriesCostEach: DEFAULTS.QUERIES_COST_EACH,
+  queriesCostTotal: Math.max(0, DEFAULTS.QUERIES_REQUESTED - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS)) * DEFAULTS.QUERIES_COST_EACH,
+  userCreditConversion: DEFAULTS.USER_CREDIT_CONVERSION,
   queryMode: "factCheck",
   viewMode: "viewExpert",
-  voteHistory: [],
-  lastVoteResult: null,
 
-  // State: Network state cache
-  networkStateCache: null,
-  networkStateTimestamp: null,
-
-  // Actions: Credit management
-  decrementFreeCredits: (amount: number) => set((state) => {
-    const newFreeCredits = Math.max(0, state.userFreeCredits - amount);
-    const newCreditsTotal = newFreeCredits + state.userPaidCredits;
-    return {
-      userFreeCredits: newFreeCredits,
-      userCreditsTotal: newCreditsTotal,
-      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
-    };
-  }),
-
-  decrementPaidCredits: (amount: number) => set((state) => {
-    const newPaidCredits = Math.max(0, state.userPaidCredits - amount);
-    const newCreditsTotal = state.userFreeCredits + newPaidCredits;
-    return {
-      userPaidCredits: newPaidCredits,
-      userCreditsTotal: newCreditsTotal,
-      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
-    };
-  }),
-
-  incrementPaidCredits: (amount: number) => set((state) => {
-    const newPaidCredits = state.userPaidCredits + amount;
-    const newCreditsTotal = state.userFreeCredits + newPaidCredits;
-    return {
-      userPaidCredits: newPaidCredits,
-      userCreditsTotal: newCreditsTotal,
-      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
-    };
-  }),
-
-  // Actions: Query management
-  setQueriesRequested: (amount: number) => set((state) => ({
+  setQueriesRequested: (amount: number, creditsTotal: number) => set(() => ({
     queriesRequested: amount,
-    ...calculateQueriesState(amount, state.userCreditsTotal, state.queriesCostEach),
+    ...calculateQueriesState(amount, creditsTotal, DEFAULTS.QUERIES_COST_EACH),
   })),
 
   setQueryMode: (mode: QueryMode) => set(() => ({ queryMode: mode })),
 
   setViewMode: (mode: ViewMode) => set(() => ({ viewMode: mode })),
 
-  // Actions: Vote history management
-  setVoteHistory: (history) => set((state) => ({
-    voteHistory: typeof history === "function" ? history(state.voteHistory) : history,
+  decrementQueries: (amount: number, creditsTotal: number) => set((state) => ({
+    ...calculateQueriesState(state.queriesRequested, creditsTotal, state.queriesCostEach),
   })),
 
-  setLastVoteResult: (result) => set((state) => ({
-    lastVoteResult: typeof result === "function" ? result(state.lastVoteResult) : result,
+  incrementQueries: (amount: number, creditsTotal: number) => set((state) => ({
+    ...calculateQueriesState(state.queriesRequested, creditsTotal, state.queriesCostEach),
   })),
 
-  // Actions: Reset and query adjustments
-  resetAfterSubmission: () => set((state) => {
-    const remainingCredits = Math.max(0, state.userCreditsTotal - state.queriesRequested);
-    const freeCredits = Math.min(remainingCredits, state.userFreeCredits);
-    const paidCredits = remainingCredits - freeCredits;
-    const newCreditsTotal = freeCredits + paidCredits;
-    return {
-      userFreeCredits: freeCredits,
-      userPaidCredits: paidCredits,
-      userCreditsTotal: newCreditsTotal,
-      queriesRequested: QUERIES_REQUESTED_DEFAULT,
-      ...calculateQueriesState(QUERIES_REQUESTED_DEFAULT, newCreditsTotal, state.queriesCostEach),
-    };
-  }),
-
-  decrementQueries: (amount: number) => set((state) => {
-    const freeAmount = Math.min(amount, state.userFreeCredits);
-    const paidAmount = amount - freeAmount;
-    const newFreeCredits = Math.max(0, state.userFreeCredits - freeAmount);
-    const newPaidCredits = Math.max(0, state.userPaidCredits - paidAmount);
-    const newCreditsTotal = newFreeCredits + newPaidCredits;
-    return {
-      userFreeCredits: newFreeCredits,
-      userPaidCredits: newPaidCredits,
-      userCreditsTotal: newCreditsTotal,
-      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
-    };
-  }),
-
-  incrementQueries: (amount: number) => set((state) => {
-    const newPaidCredits = state.userPaidCredits + amount;
-    const newCreditsTotal = state.userFreeCredits + newPaidCredits;
-    return {
-      userPaidCredits: newPaidCredits,
-      userCreditsTotal: newCreditsTotal,
-      ...calculateQueriesState(state.queriesRequested, newCreditsTotal, state.queriesCostEach),
-    };
-  }),
-
-  setUserAiQueryAmountRequested: (amount: number) => set((state) => ({
+  setUserAiQueryAmountRequested: (amount: number, creditsTotal: number) => set(() => ({
     queriesRequested: amount,
-    ...calculateQueriesState(amount, state.userCreditsTotal, state.queriesCostEach),
+    ...calculateQueriesState(amount, creditsTotal, DEFAULTS.QUERIES_COST_EACH),
   })),
 
-  resetCreditsAfterPayment: () => set((state) => ({
-    userFreeCredits: 0,
-    userPaidCredits: 0,
-    userCreditsTotal: 0,
-    queriesUnpaid: state.queriesRequested,
-    queriesCostTotal: state.queriesRequested * state.queriesCostEach,
-  })),
-
-  // Action: Update network state cache
-  setNetworkStateCache: (data: NetworkState | null, timestamp: number | null) => set(() => ({
-    networkStateCache: data,
-    networkStateTimestamp: timestamp,
+  resetAfterSubmission: (creditsTotal: number) => set(() => ({
+    queriesRequested: DEFAULTS.QUERIES_REQUESTED,
+    ...calculateQueriesState(DEFAULTS.QUERIES_REQUESTED, creditsTotal, DEFAULTS.QUERIES_COST_EACH),
   })),
 }));

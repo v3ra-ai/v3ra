@@ -1,5 +1,7 @@
-// Network state and validator interfaces
 import { ApiKey } from "@prisma/client";
+import { USER_FREE_CREDITS_DEFAULT, USER_PAID_CREDITS_DEFAULT, QUERIES_REQUESTED_DEFAULT, USER_CREDIT_CONVERSION_DEFAULT, QUERIES_COST_EACH_DEFAULT } from "@/lib/constants";
+
+// Network state and validator interfaces
 export interface Validator {
   id: string;
   publicKey: string;
@@ -76,8 +78,8 @@ export interface VoteResult {
 }
 
 export interface VoteValidatorResponse extends ValidatorResponse {
-  vote: "YES" | "NO" | "ERROR"; // Required here
-  rationale: string; // Required here
+  vote: "YES" | "NO" | "ERROR";
+  rationale: string;
 }
 
 export interface ExtendedApiKey extends ApiKey {
@@ -85,3 +87,16 @@ export interface ExtendedApiKey extends ApiKey {
   keyPattern: string | null;
   linkedValidators: number;
 }
+
+// Query-related types
+export type QueryMode = "factCheck" | "predict" | "create" | "shop";
+export type ViewMode = "viewStandard" | "viewExpert";
+
+// Constants
+export const DEFAULTS = {
+  USER_FREE_CREDITS: USER_FREE_CREDITS_DEFAULT,
+  USER_PAID_CREDITS: USER_PAID_CREDITS_DEFAULT,
+  QUERIES_REQUESTED: QUERIES_REQUESTED_DEFAULT,
+  USER_CREDIT_CONVERSION: USER_CREDIT_CONVERSION_DEFAULT,
+  QUERIES_COST_EACH: QUERIES_COST_EACH_DEFAULT,
+};

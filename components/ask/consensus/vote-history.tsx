@@ -1,8 +1,8 @@
-
 "use client";
 
 import { useState, useEffect, useRef, useMemo, memo, useCallback } from "react";
 import { useQueryStore } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
 import { fetchVoteHistory } from "@/app/actions";
 import VoteHistoryHeader from "@/components/ask/consensus/vote-history-header";
 import VoteHistoryTable from "@/components/ask/consensus/vote-history-table";
@@ -12,8 +12,6 @@ import VoteHistoryEmpty from "@/components/ask/consensus/vote-history-empty";
 import { Button } from "@/components/ui/button";
 import { areVoteHistoriesEqual } from "@/utils/vote-utils";
 import { formatErrorMessage } from "@/utils/error-utils";
-
-
 
 // Debug logging utility
 const debugLog = (message: string, ...args: unknown[]) => {
@@ -37,7 +35,8 @@ function debounce(
 // Memoize VoteHistory
 const VoteHistory = memo(() => {
   // State and memoization setup
-  const { voteHistory, setVoteHistory, queryMode, lastVoteResult } = useQueryStore();
+  const { queryMode } = useQueryStore();
+  const { voteHistory, setVoteHistory, lastVoteResult } = useVoteStore();
   const [voteHistoryError, setVoteHistoryError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedVoteId, setExpandedVoteId] = useState<number | null>(null);

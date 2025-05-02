@@ -1,7 +1,9 @@
 "use client";
 
 import { useCallback, useState, useEffect } from "react";
+import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
 import { Dispatch, SetStateAction } from "react";
 import { getPlaceholderText } from "@/lib/query-utils";
@@ -23,23 +25,18 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
   const [error, setError] = useState<string | null>(null);
   const [csrfToken, setCsrfToken] = useState<string>("");
 
+  const { userFreeCredits, userPaidCredits, userCreditsTotal } = useCreditsStore();
   const {
-    userFreeCredits,
-    userPaidCredits,
-    userCreditsTotal,
     queriesRequested,
     queriesUnpaid,
     queriesCostTotal,
     queryMode,
     viewMode,
-    voteHistory,
-    lastVoteResult,
     setQueriesRequested,
     setQueryMode,
-    setVoteHistory,
-    setLastVoteResult,
     resetAfterSubmission,
   } = useQueryStore();
+  const { voteHistory, lastVoteResult, setVoteHistory, setLastVoteResult } = useVoteStore();
 
   const placeholderText = getPlaceholderText(queryMode);
 
@@ -91,9 +88,9 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
   const handleQueryAmountChange = useCallback(
     (newAmount: number) => {
       const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
-      setQueriesRequested(clampedAmount);
+      setQueriesRequested(clampedAmount, userCreditsTotal);
     },
-    [setQueriesRequested],
+    [setQueriesRequested, userCreditsTotal],
   );
 
   const handleSubmit = async () => {
@@ -133,7 +130,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
     try {
       // Pass CSRF token to protect API request
       await broadcastQuery(queryText, { csrfToken });
-      resetAfterSubmission();
+      resetAfterSubmission(userCreditsTotal);
       setQueryText("");
       setHasPaid(false);
       setPayWithWallet(queriesRequested > userCreditsTotal);

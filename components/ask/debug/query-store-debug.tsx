@@ -1,13 +1,13 @@
 "use client";
 
 import React from "react";
+import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
 
 export default function QueryStoreDebugPanel() {
+  const { userFreeCredits, userPaidCredits, userCreditsTotal } = useCreditsStore();
   const {
-    userFreeCredits,
-    userPaidCredits,
-    userCreditsTotal,
     queriesRequested,
     queriesUnpaid,
     queriesCostEach,
@@ -15,9 +15,8 @@ export default function QueryStoreDebugPanel() {
     userCreditConversion,
     queryMode,
     viewMode,
-    voteHistory,
-    lastVoteResult,
   } = useQueryStore();
+  const { voteHistory, lastVoteResult } = useVoteStore();
 
   return (
     <div className="p-4 bg-gray-100 text-sm text-black rounded shadow max-w-2xl mx-auto my-8">

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
-import { useQueryStore, QueryMode } from "@/store/query-store";
+import { useCreditsStore } from "@/store/credit-store";
+import { useQueryStore } from "@/store/query-store";
+import { QueryMode, } from "@/lib/types";
 import { useSubmitQuery } from "@/hooks/useSubmitQuery";
 import { toast } from "sonner";
 import {
@@ -39,11 +41,9 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
     hasAttemptedSubmit: false,
   });
 
+  const { userFreeCredits, userPaidCredits, userCreditsTotal } = useCreditsStore();
   const {
     queriesRequested,
-    userCreditsTotal,
-    userFreeCredits,
-    userPaidCredits,
     queriesUnpaid,
     queriesCostTotal,
     queryMode,
@@ -65,9 +65,9 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
   const updateQueryAmountRequested = useCallback(
     (newAmount: number) => {
       const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
-      setUserAiQueryAmountRequested(clampedAmount);
+      setUserAiQueryAmountRequested(clampedAmount, userCreditsTotal);
     },
-    [setUserAiQueryAmountRequested],
+    [setUserAiQueryAmountRequested, userCreditsTotal],
   );
 
   // Submit query with validation
@@ -109,8 +109,8 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
     setNavbarState((prev) => ({ ...prev, isSubmitting: true }));
     try {
       await submitQuery(navbarState.queryText);
-      decrementQueries(queriesRequested);
-      setUserAiQueryAmountRequested(INITIAL_AI_QUERY_AMOUNT_REQUESTED);
+      decrementQueries(queriesRequested, userCreditsTotal);
+      setUserAiQueryAmountRequested(INITIAL_AI_QUERY_AMOUNT_REQUESTED, userCreditsTotal);
       setNavbarState((prev) => ({
         ...prev,
         queryText: "",

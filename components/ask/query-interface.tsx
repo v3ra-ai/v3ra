@@ -7,7 +7,8 @@ import WalletToggle from "@/components/ask/wallet-toggle";
 import QueryStats from "@/components/ask/query-stats";
 import QueryResults from "@/components/ask/query-results";
 import { useQueryLogic } from "@/hooks/useQueryLogic";
-import { useQueryStore, QueryMode } from "@/store/query-store";
+import { useQueryStore } from "@/store/query-store";
+import { QueryMode } from "@/lib/types";
 import * as Popover from "@radix-ui/react-popover";
 
 export default function QueryInterface() {
