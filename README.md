@@ -106,10 +106,10 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default
 
 - Set the remote DB (replace with your team’s Supabase URL Project ref.):
   ```bash
-  supabase link --project-ref dmrylpiaazevwqxcucsr
+  supabase link --project-ref quuuhdbozcmhkwzhamuh
   ```
   ⚠️ You have to be logged in with: `supabase login` if you have not.
-  note: You will see the project ref in the dashboard if you go to https://supabase.com/dashboard and then click on the testnet-demo project in there it will be in the url like: `https://supabase.com/dashboard/project/dmrylpiaazevwqxcucsr`
+  note: You will see the project ref in the dashboard if you go to https://supabase.com/dashboard and then click on the testnet-demo project in there it will be in the url like: `https://supabase.com/dashboard/project/quuuhdbozcmhkwzhamuh`
 - Pull the schema from remote to local (if you want to refresh your local DB with the remote one ):
   ```bash
   supabase db pull
@@ -140,7 +140,7 @@ If you want to use the local database instead of the rmote, change the .env file
   ```
 
   note: If you do a remote prisma push (to change the Supabase remote database), you need to use the "direct db url":
-  example of how it looks: postgresql://postgres.dmrylpiaazevwqxcucsr:<your password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres
+  example of how it looks: postgresql://postgres.quuuhdbozcmhkwzhamuh:<your password>@aws-0-us-east-1.pooler.supabase.com:5432/postgres
 
 #### 10. **Start the Application**:
 
@@ -200,9 +200,9 @@ I am not sure if this will always be the case, but I have run into this several 
 Repalce DATABASE_URL with the PRISMA_DATABASE_URL (see below)
 
 ```bash
-DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&noPrepare=true&connection_limit=1
+DATABASE_URL=postgresql://postgres.quuuhdbozcmhkwzhamuh:<password>@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&noPrepare=true&connection_limit=1
 
-PRISMA_DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres
+PRISMA_DATABASE_URL=postgresql://postgres.quuuhdbozcmhkwzhamuh:<password>@aws-0-us-east-1.pooler.supabase.com:5432/postgres
 ```
 
 ### 2. Verify schema.prisma is correct (run through AI is a good idea)
@@ -215,12 +215,12 @@ npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schem
 #### 4. Manually apply
 
 ```
-psql "postgresql://postgres.dmrylpiaazevwqxcucsr:<PASSWORD>@aws-0-us-west-1.pooler.supabase.com:5432/postgres?sslmode=require" < migration.sql
+psql "postgresql://postgres.quuuhdbozcmhkwzhamuh:<PASSWORD>@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require" < migration.sql
 ```
 
 #### 5. Mark the Migration as Applied
 
-psql "postgresql://postgres:[YOUR-PASSWORD]@aws-0-us-west-1.pooler.supabase.com:5432/postgres?sslmode=require"
+psql "postgresql://postgres:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
 
 ```sql
 INSERT INTO public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
@@ -422,10 +422,10 @@ npx prettier --write "**/*.{js,ts,tsx,css,json,md}"
 ### ENV file (local)
 
 For local dev, deployed dev may be set in teh team Vercel account.
-note: DATABASE_URL= should use the team account one, the `dmrylpiaazevwqxcucsr` is a sample, that is the project reference given by Supabase, each team acct. has a different one, so find out yours and replace that with yours.
+note: DATABASE_URL= should use the team account one, the `quuuhdbozcmhkwzhamuh` is a sample, that is the project reference given by Supabase, each team acct. has a different one, so find out yours and replace that with yours.
 
 ```
-DATABASE_URL=postgresql://postgres:[supabase team acct. db password]@db.dmrylpiaazevwqxcucsr.supabase.co:6543/postgres?pgbouncer=true
+DATABASE_URL=postgresql://postgres:[supabase team acct. db password]@db.quuuhdbozcmhkwzhamuh.supabase.co:6543/postgres?pgbouncer=true
 REDIS_URL=redis://localhost:6379
 OPENAI_API_KEY=your-key
 ANTHROPIC_API_KEY=your-key
@@ -747,8 +747,8 @@ If you are unsure go to the supabase dashboard "connect" circular issues from fo
 
 ```bash
 PGPASSWORD="your_password" pg_dump \
-  -h aws-0-us-west-1.pooler.supabase.com \
-  -U postgres.dmrylpiaazevwqxcucsr \
+  -h aws-0-us-east-1.pooler.supabase.com \
+  -U postgres.quuuhdbozcmhkwzhamuh \
   -p 5432 \
   -d postgres \
   -F c \
@@ -759,7 +759,7 @@ PGPASSWORD="your_password" pg_dump \
 or (may need to update variables)
 
 ```bash
-pg_dump -h aws-0-us-west-1.pooler.supabase.com -U postgres.dmrylpiaazevwqxcucsr -p 5432 -d postgres -F c -f 20250501-remote_supabase_backup.dump
+pg_dump -h aws-0-us-east-1.pooler.supabase.com -U postgres.quuuhdbozcmhkwzhamuh -p 5432 -d postgres -F c -f 20250501-remote_supabase_backup.dump
 ```
 
 Restore (only use if db is new in another location):
@@ -783,7 +783,7 @@ Docs: https://supabase.com/docs/guides/realtime
 Example (you may have to adjust based on your actual table names and schema):
 
 Go to our project
-https://supabase.com/dashboard/project/dmrylpiaazevwqxcucsr/database/publications
+https://supabase.com/dashboard/project/quuuhdbozcmhkwzhamuh/database/publications
 
 Look for the supabase_realtime publication, which is the default for real-time features. It may show "0 tables" or list currently enabled tables.
 
