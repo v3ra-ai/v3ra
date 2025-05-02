@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { VoteResult, Validator } from "@/lib/types";
+import type { VoteResult } from "@/lib/types";
 import {
   USER_FREE_CREDITS_DEFAULT,
   USER_PAID_CREDITS_DEFAULT,
@@ -33,8 +33,6 @@ export interface QueryStore {
   viewMode: ViewMode;
   voteHistory: VoteResult[];
   lastVoteResult: VoteResult | null;
-  validators: Validator[] | null;
-  lastFetchedValidators: number | null;
   decrementFreeCredits: (amount: number) => void;
   decrementPaidCredits: (amount: number) => void;
   incrementPaidCredits: (amount: number) => void;
@@ -43,7 +41,6 @@ export interface QueryStore {
   setViewMode: (mode: ViewMode) => void;
   setVoteHistory: (history: VoteResult[] | ((prev: VoteResult[]) => VoteResult[])) => void;
   setLastVoteResult: (result: VoteResult | null | ((prev: VoteResult | null) => VoteResult | null)) => void;
-  setValidators: (validators: Validator[], timestamp: number) => void;
   resetAfterSubmission: () => void;
   decrementQueries: (amount: number) => void;
   incrementQueries: (amount: number) => void;
@@ -67,8 +64,6 @@ export const useQueryStore = create<QueryStore>((set) => ({
   viewMode: "viewExpert",
   voteHistory: [],
   lastVoteResult: null,
-  validators: null,
-  lastFetchedValidators: null,
 
   // Actions: Credit management
   decrementFreeCredits: (amount: number) => set((state) => {
@@ -111,18 +106,13 @@ export const useQueryStore = create<QueryStore>((set) => ({
 
   setViewMode: (mode: ViewMode) => set(() => ({ viewMode: mode })),
 
-  // Actions: Vote history and validators management
+  // Actions: Vote history management
   setVoteHistory: (history) => set((state) => ({
     voteHistory: typeof history === "function" ? history(state.voteHistory) : history,
   })),
 
   setLastVoteResult: (result) => set((state) => ({
     lastVoteResult: typeof result === "function" ? result(state.lastVoteResult) : result,
-  })),
-
-  setValidators: (validators, timestamp) => set(() => ({
-    validators,
-    lastFetchedValidators: timestamp,
   })),
 
   // Actions: Reset and query adjustments
