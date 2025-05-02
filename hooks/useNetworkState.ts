@@ -1,5 +1,3 @@
-
-
 import { useState, useEffect, useCallback } from "react";
 import { useQueryStore } from "@/store/query-store";
 import type { NetworkState } from "@/lib/types";
@@ -15,12 +13,27 @@ export function useNetworkState(): NetworkStateResult {
   const [networkState, setNetworkState] = useState<NetworkState | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const { lastVoteResult } = useQueryStore();
+  const { lastVoteResult, networkStateCache, networkStateTimestamp, setNetworkStateCache } = useQueryStore();
   const NETWORK_API_URL = "/api/network";
 
   const fetchNetworkState = useCallback(
-    async (isInitialLoad: boolean = false) => {
+    async (isInitialLoad: boolean = false, forceFetch: boolean = false) => {
       try {
+        // Check global cache: skip fetch if data exists and less than 3 minutes old
+        if (
+          !forceFetch &&
+          networkStateCache &&
+          networkStateTimestamp &&
+          Date.now() - networkStateTimestamp < 180000 // 3 minutes in ms
+        ) {
+          console.log("[useNetworkState] Using cached network state from global store");
+          setNetworkState({ ...networkStateCache });
+          if (isInitialLoad) {
+            setIsLoading(false);
+          }
+          return;
+        }
+
         if (isInitialLoad) {
           setIsLoading(true);
         }
@@ -36,11 +49,15 @@ export function useNetworkState(): NetworkStateResult {
         const data: NetworkState = await response.json();
         console.log("[useNetworkState] Fetch response data:", data);
         setNetworkState({ ...data }); // Force new object
+        // Update global cache
+        setNetworkStateCache({ ...data }, Date.now());
       } catch (err) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error("[useNetworkState] Failed to fetch network state:", error);
         setError(error);
         setNetworkState(null);
+        // Clear global cache on error
+        setNetworkStateCache(null, null);
       } finally {
         if (isInitialLoad) {
           console.log("[useNetworkState] Initial load complete, isLoading set to false");
@@ -48,12 +65,12 @@ export function useNetworkState(): NetworkStateResult {
         }
       }
     },
-    [],
+    [networkStateCache, networkStateTimestamp, setNetworkStateCache],
   );
 
   const refetch = useCallback(async () => {
     console.log("[useNetworkState] Manual refetch triggered");
-    await fetchNetworkState(false);
+    await fetchNetworkState(false, true); // Force fetch on manual refetch
   }, [fetchNetworkState]);
 
   // Initial fetch on mount

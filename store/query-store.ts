@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { VoteResult } from "@/lib/types";
+import type { VoteResult, NetworkState } from "@/lib/types";
 import {
   USER_FREE_CREDITS_DEFAULT,
   USER_PAID_CREDITS_DEFAULT,
@@ -33,6 +33,8 @@ export interface QueryStore {
   viewMode: ViewMode;
   voteHistory: VoteResult[];
   lastVoteResult: VoteResult | null;
+  networkStateCache: NetworkState | null;
+  networkStateTimestamp: number | null;
   decrementFreeCredits: (amount: number) => void;
   decrementPaidCredits: (amount: number) => void;
   incrementPaidCredits: (amount: number) => void;
@@ -46,6 +48,7 @@ export interface QueryStore {
   incrementQueries: (amount: number) => void;
   setUserAiQueryAmountRequested: (amount: number) => void;
   resetCreditsAfterPayment: () => void;
+  setNetworkStateCache: (data: NetworkState | null, timestamp: number | null) => void;
 }
 
 export const useQueryStore = create<QueryStore>((set) => ({
@@ -64,6 +67,10 @@ export const useQueryStore = create<QueryStore>((set) => ({
   viewMode: "viewExpert",
   voteHistory: [],
   lastVoteResult: null,
+
+  // State: Network state cache
+  networkStateCache: null,
+  networkStateTimestamp: null,
 
   // Actions: Credit management
   decrementFreeCredits: (amount: number) => set((state) => {
@@ -165,5 +172,11 @@ export const useQueryStore = create<QueryStore>((set) => ({
     userCreditsTotal: 0,
     queriesUnpaid: state.queriesRequested,
     queriesCostTotal: state.queriesRequested * state.queriesCostEach,
+  })),
+
+  // Action: Update network state cache
+  setNetworkStateCache: (data: NetworkState | null, timestamp: number | null) => set(() => ({
+    networkStateCache: data,
+    networkStateTimestamp: timestamp,
   })),
 }));
