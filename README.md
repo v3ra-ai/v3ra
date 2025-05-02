@@ -234,7 +234,11 @@ mkdir -p prisma/migrations/20250501_add_user_auth
 mv migration.sql prisma/migrations/20250501_add_user_auth/migration.sql
 ```
 
-#### 7. Update app logic with to sync with the DB types, npx prisma generate
+#### 7. Remove in node_modules the prisma types
+
+Sometimes the types do not update correctly, so you need to remove the old ones.
+
+#### 8. Update app logic with to sync with the DB types, npx prisma generate
 
 ```bash
 npx prisma generate
