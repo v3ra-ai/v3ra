@@ -7,6 +7,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum QueryMode {
+  factCheck
+  create
+  predict
+  shop
+}
+
+enum QueryStatus {
+  Pending
+  Voting
+  Completed
+  Failed
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  name         String
+  password     String
+  userCredit   UserCredit? @relation(name: "UserToUserCredit")
+  userCreditId String?     @unique
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model UserCredit {
+  id              String        @id @default(uuid())
+  walletPublicKey String        @unique
+  credits         Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  userId          String?       @unique
+  user            User?         @relation(name: "UserToUserCredit", fields: [userId], references: [id], onDelete: SetNull)
+  voteSessions    VoteSession[]
+}
+
+model PaymentLog {
+  id              String    @id
+  walletPublicKey String
+  credits         Int
+  solAmount       Float
+  status          String
+  error           String?
+  createdAt       DateTime  @default(now())
+}
+
 model ApiKey {
   id            String         @id @default(dbgenerated("uuid_generate_v4()"))
   name          String
@@ -74,6 +120,14 @@ model VoteSession {
   graphEdges         GraphEdge[]         @relation("VoteSessionEdges")
   threads            Thread[]
   validatorResponses ValidatorResponse[]
+  mode               QueryMode?          // Nullable for legacy compatibility
+  queryAiCountReq    Int?                // Nullable, number of AIs requested
+  walletPublicKey    String?             // Nullable, wallet key for user
+  userId             String?             // Nullable, foreign key to UserCredit
+  statusProcessing   QueryStatus?        // Nullable, query status
+  queryCost          Float?              // Nullable, cost in credits
+  responseLatency    Int?                // Nullable, latency in milliseconds
+  user               UserCredit?         @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@index([timestamp])
   @@index([consensusValue])
@@ -110,7 +164,7 @@ model GraphEdge {
   targetId      String
   relationship  String
   weight        Float?
-  properties    String
+  properties    String       @default("")
   createdAt     DateTime     @default(now())
   validatorId   String?
   voteSessionId String?
@@ -143,23 +197,4 @@ model Reply {
   updatedAt DateTime @updatedAt
   threadId  String
   thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
-}
-
-model PaymentLog {
-  id              String    @id
-  walletPublicKey String
-  credits         Int
-  solAmount       Float
-  status          String
-  error           String?
-  createdAt       DateTime  @default(now())
-}
-
-model UserCredit {
-  id              String    @id @default(uuid())
-  walletPublicKey String    @unique
-  email           String?   // Optional email field
-  credits         Int       @default(0)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
 }

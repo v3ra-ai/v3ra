@@ -1,6 +1,6 @@
 
 *.env.*
-
+backup.sql
 # Logs
 logs
 *.log

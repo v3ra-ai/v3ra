@@ -181,6 +181,64 @@ There are some weird things I've run into with Prisma, be aware of them so you d
 9. If they do not update go into `node_modules/.prisma` and remove or rename `index.d.ts` and `index.js`
 10. Do `npx prisma generate` again, it should fix it.
 
+## Prisma Migrations
+
+These can be a serious pain. One thing I learned is if you look up docs in AI or Google, you may find some things that are not correct.
+
+* **You absolutely MUST specify that you are using Supabase.** They have a different way of doing migrations than normal Prisma+Postgres.
+
+**As a result if you follow the other non-Supabase docs you will get errors.**
+
+I am not sure if this will always be the case, but I have run into this several times.
+
+### Migration Steps
+
+### 1. Backup the Database and make sure .env is correct PRISMA url
+
+
+
+Repalce DATABASE_URL with the PRISMA_DATABASE_URL (see below)
+
+```bash
+DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west-1.pooler.supabase.com:6543/postgres?pgbouncer=true&noPrepare=true&connection_limit=1
+
+PRISMA_DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres
+```
+
+### 2. Verify schema.prisma is correct (run through AI is a good idea)
+### 3. Generate Migration SQL
+
+```
+npx prisma migrate diff --from-schema-datasource prisma/schema.prisma --to-schema-datamodel prisma/schema.prisma --script > migration.sql
+```
+
+#### 4. Manually apply
+
+```
+psql "postgresql://postgres.dmrylpiaazevwqxcucsr:<PASSWORD>@aws-0-us-west-1.pooler.supabase.com:5432/postgres?sslmode=require" < migration.sql
+```
+
+#### 5. Mark the Migration as Applied
+
+psql "postgresql://postgres:[YOUR-PASSWORD]@aws-0-us-west-1.pooler.supabase.com:5432/postgres?sslmode=require"
+
+```sql
+INSERT INTO public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
+VALUES (gen_random_uuid(), 'checksum-placeholder', NOW(), '20250501_add_user_auth', '', NULL, NOW(), 1);
+```
+
+#### 6. Move SQL to Migration Folder
+
+```
+mkdir -p prisma/migrations/20250501_add_user_auth
+mv migration.sql prisma/migrations/20250501_add_user_auth/migration.sql
+```
+
+#### 7. Update app logic with to sync with the DB types, npx prisma generate
+
+```bash
+npx prisma generate
+
 ---
 
 ## Deployment
