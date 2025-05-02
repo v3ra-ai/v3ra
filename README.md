@@ -197,7 +197,7 @@ I am not sure if this will always be the case, but I have run into this several 
 
 
 
-Repalce DATABASE_URL with the PRISMA_DATABASE_URL (see below)
+Replace DATABASE_URL with the PRISMA_DATABASE_URL (see below)
 
 ```bash
 DATABASE_URL=postgresql://postgres.quuuhdbozcmhkwzhamuh:<password>@aws-0-us-east-1.pooler.supabase.com:6543/postgres?pgbouncer=true&noPrepare=true&connection_limit=1
@@ -242,7 +242,7 @@ Sometimes the types do not update correctly, so you need to remove the old ones.
 
 ```bash
 npx prisma generate
-
+```
 ---
 
 ## Deployment
