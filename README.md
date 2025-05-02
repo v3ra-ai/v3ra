@@ -206,6 +206,11 @@ PRISMA_DATABASE_URL=postgresql://postgres.quuuhdbozcmhkwzhamuh:<password>@aws-0-
 ```
 
 ### 2. Verify schema.prisma is correct (run through AI is a good idea)
+
+⚠️ WARNING: Dropping a column will permanently delete any existing password data in the table.
+
+⚠️ Always backup first! Avoid major headaches!!!
+
 ### 3. Generate Migration SQL
 
 ```
@@ -237,6 +242,10 @@ mv migration.sql prisma/migrations/20250501_add_user_auth/migration.sql
 #### 7. Remove in node_modules the prisma types
 
 Sometimes the types do not update correctly, so you need to remove the old ones.
+
+```
+rm -rf node_modules/.prisma/client/index.d.ts node_modules/.prisma/client/index.js
+```
 
 #### 8. Update app logic with to sync with the DB types, npx prisma generate
 

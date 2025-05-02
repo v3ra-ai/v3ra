@@ -25,7 +25,6 @@ model User {
   id           String      @id @default(uuid())
   email        String      @unique
   name         String
-  password     String
   userCredit   UserCredit? @relation(name: "UserToUserCredit")
   userCreditId String?     @unique
   createdAt    DateTime    @default(now())
