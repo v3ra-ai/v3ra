@@ -43,7 +43,7 @@ export default function AskFooter() {
         <div className="container mx-auto px-4 max-w-6xl">
           <QueryStoreDebugPanel />
           <div className="text-center text-sm text-zinc-600 dark:text-zinc-400 mt-4">
-            &copy; 2023 Your Company. All rights reserved.
+            &copy; 2025 Verafy. All rights reserved.
           </div>
         </div>
       </div>
