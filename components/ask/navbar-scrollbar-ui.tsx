@@ -52,7 +52,7 @@ export function NavbarScrollbarUI({
   handleKeyDown,
 }: NavbarScrollbarUIProps) {
   return (
-    <div className="container mx-auto px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-700">
+    <div className="container mx-auto px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800">
       <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
         <div className="w-full md:w-1/3">
           <div className="flex items-center space-x-2 flex-wrap">

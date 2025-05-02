@@ -67,12 +67,12 @@ export default function Navbar() {
     : "/verafy_logo_black.svg"; // Default to black logo before mounting
 
   return (
-    <div className="fixed top-0 w-full bg-white dark:bg-zinc-900 z-50">
+    <div className="fixed top-0 w-full bg-white dark:bg-zinc-900 z-50 height-[16px]">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-            <Image src={logoSrc} alt="Logo" width={130} height={130} />
+            <Image src={logoSrc} alt="Logo" width={130} height={40} />
           </Link>
         </div>
 
