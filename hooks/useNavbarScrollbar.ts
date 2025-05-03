@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
-import { QueryMode, } from "@/lib/types";
+import { QueryMode } from "@/lib/types";
 import { useSubmitQuery } from "@/hooks/useSubmitQuery";
 import { toast } from "sonner";
 import {
@@ -48,7 +48,7 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
     queriesCostTotal,
     queryMode,
     setUserAiQueryAmountRequested,
-    decrementQueries,
+    resetAfterSubmission,
   } = useQueryStore();
 
   const { submitQuery } = useSubmitQuery();
@@ -109,8 +109,7 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
     setNavbarState((prev) => ({ ...prev, isSubmitting: true }));
     try {
       await submitQuery(navbarState.queryText);
-      decrementQueries(queriesRequested, userCreditsTotal);
-      setUserAiQueryAmountRequested(INITIAL_AI_QUERY_AMOUNT_REQUESTED, userCreditsTotal);
+      resetAfterSubmission(userCreditsTotal); // Use resetAfterSubmission for consistency
       setNavbarState((prev) => ({
         ...prev,
         queryText: "",
@@ -123,7 +122,14 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
-      console.error("Submission failed:", errorMessage);
+      console.error("[useNavbarScrollbar] Submission failed:", {
+        errorMessage,
+        queryText: navbarState.queryText,
+        queriesRequested,
+        queriesUnpaid,
+        payWithWallet: navbarState.payWithWallet,
+        hasPaid: navbarState.hasPaid,
+      });
     } finally {
       setNavbarState((prev) => ({ ...prev, isSubmitting: false }));
     }

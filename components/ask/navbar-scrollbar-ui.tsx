@@ -48,6 +48,7 @@ export function NavbarScrollbarUI({
   queriesUnpaid,
   queriesCostTotal,
   queryMode,
+  viewMode,
   updateQueryAmountRequested,
   handleKeyDown,
 }: NavbarScrollbarUIProps) {
@@ -77,6 +78,7 @@ export function NavbarScrollbarUI({
             queriesRequested={queriesRequested}
             handleQueryAmountChange={updateQueryAmountRequested}
             allowedAmountQueries={ALLOWED_AMOUNT_QUERIES}
+            context="scrollbar"
           />
           <div className="flex items-center h-full">
             <WalletToggle

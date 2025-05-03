@@ -23,7 +23,6 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
   const [queryText, setQueryText] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [csrfToken, setCsrfToken] = useState<string>("");
 
   const { userFreeCredits, userPaidCredits, userCreditsTotal } = useCreditsStore();
   const {
@@ -40,25 +39,22 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
 
   const placeholderText = getPlaceholderText(queryMode);
 
-  // Fetch CSRF token from server on mount
-  useEffect(() => {
-    const fetchCsrfToken = async () => {
-      try {
-        const response = await fetch("/api/csrf-token", {
-          credentials: "include", // Include cookies
-        });
-        if (!response.ok) {
-          throw new Error("Failed to fetch CSRF token");
-        }
-        const data = await response.json();
-        setCsrfToken(data.csrfToken);
-      } catch (err) {
-        console.error(sanitizeError(err));
-        setError(sanitizeQueryText("Failed to initialize CSRF protection"));
+  // Fetch CSRF token dynamically
+  const fetchCsrfToken = async (): Promise<string> => {
+    try {
+      const response = await fetch("/api/csrf-token", {
+        method: "GET",
+        credentials: "include",
+      });
+      const data = await response.json();
+      if (!response.ok || !data.csrfToken) {
+        throw new Error(data.error || `Failed to fetch CSRF token: ${response.status}`);
       }
-    };
-    fetchCsrfToken();
-  }, []);
+      return data.csrfToken;
+    } catch (err) {
+      throw new Error(err instanceof Error ? err.message : "Unknown error fetching CSRF token");
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -94,7 +90,16 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
   );
 
   const handleSubmit = async () => {
-    console.log("Submitting, userCreditsTotal:", userCreditsTotal, "queriesRequested:", queriesRequested, "queriesUnpaid:", queriesUnpaid, "queriesCostTotal:", queriesCostTotal);
+    console.log("[useQueryLogic] Submitting", {
+      userCreditsTotal,
+      queriesRequested,
+      queriesUnpaid,
+      queriesCostTotal,
+      queryText,
+      payWithWallet,
+      hasPaid,
+    });
+
     // Validate query submission
     if (!queryText.trim()) {
       toast.error("Query cannot be empty", {
@@ -117,35 +122,33 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       });
       return;
     }
-    if (!csrfToken) {
-      toast.error("CSRF token not initialized", {
-        style: { background: "#fee2e2", color: "#dc2626" },
-        duration: 5000,
-      });
-      return;
-    }
 
     setIsSubmitting(true);
     setError(null);
     try {
-      // Pass CSRF token to protect API request
+      // Fetch fresh CSRF token for each submission
+      const csrfToken = await fetchCsrfToken();
       await broadcastQuery(queryText, { csrfToken });
       resetAfterSubmission(userCreditsTotal);
       setQueryText("");
       setHasPaid(false);
       setPayWithWallet(queriesRequested > userCreditsTotal);
-      // Fetch new CSRF token after successful submission
-      const response = await fetch("/api/csrf-token", {
-        credentials: "include",
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setCsrfToken(data.csrfToken);
-      }
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
       setError(sanitizeQueryText(errorMessage));
-      console.error(sanitizeError(err));
+      console.error("[useQueryLogic] Submission failed:", {
+        errorMessage,
+        queryText,
+        queriesRequested,
+        queriesUnpaid,
+        payWithWallet,
+        hasPaid,
+        responseStatus: err instanceof Error && err.message.includes("Server responded") ? err.message : "Unknown",
+      });
+      toast.error(errorMessage, {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }
