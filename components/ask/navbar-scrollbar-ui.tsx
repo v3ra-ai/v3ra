@@ -48,7 +48,6 @@ export function NavbarScrollbarUI({
   queriesUnpaid,
   queriesCostTotal,
   queryMode,
-  viewMode,
   updateQueryAmountRequested,
   handleKeyDown,
 }: NavbarScrollbarUIProps) {

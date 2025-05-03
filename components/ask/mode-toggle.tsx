@@ -39,7 +39,7 @@ export default function ModeToggle({ viewMode, variant = "buttons" }: Props) {
   }
 
   return (
-    <div className="container mx-auto px-4 flex justify-center mt-1 mb-2">
+    <div className="container mx-auto px-2 flex justify-center mt-1 mb-2">
       <div className="flex rounded-full bg-zinc-200 dark:bg-zinc-700 p-1">
         <button
           onClick={() => setViewMode("viewStandard")}

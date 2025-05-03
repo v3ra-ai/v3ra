@@ -39,7 +39,7 @@ export default function QueryStats({
   const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
 
   return (
-    <div className="w-full mt-8">
+    <div className="w-full mt-4">
       {/* Mobile: Collapsible; Desktop: Always visible */}
       <Collapsible
         open={isOpen}

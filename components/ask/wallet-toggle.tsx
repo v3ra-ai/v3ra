@@ -45,7 +45,7 @@ export default function WalletToggle({
   const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
 
   return (
-    <div className={`flex items-center justify-between ${context==="default" ? "mb-6" : "mb-0"} `}>
+    <div className={`flex items-center justify-between ${context==="default" ? "mb-3" : "mb-1"} `}>
       <div className="flex items-center gap-3 flex-wrap">
         {context !== "scrollbar" && (
           <div className="flex items-center gap-3 hidden md:flex">

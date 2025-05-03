@@ -1,13 +1,12 @@
-import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
-import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
 import { QueryFormInput } from "@/components/ask/query-form-input";
 import { Dispatch, SetStateAction } from "react";
+import { QueryMode } from "@/lib/types";
 
 interface QueryFormProps {
   queryText: string;
   setQueryText: Dispatch<SetStateAction<string>>;
   placeholderText: string;
-  queryMode: "factCheck" | "predict" | "create" | "shop";
+  queryMode: QueryMode;
   queriesRequested: number;
   userFreeCredits: number;
   userPaidCredits: number;
@@ -61,15 +60,19 @@ export default function QueryForm({
         userPaidCredits={userPaidCredits}
         isSubmitInteracted={isSubmitInteracted}
         setIsSubmitInteracted={setIsSubmitInteracted}
+        queryMode={queryMode}
+        queriesRequested={queriesRequested}
+        handleQueryAmountChange={handleQueryAmountChange}
+        allowedAmountQueries={allowedAmountQueries}
       />
-      <div className="flex items-center gap-0">
+      {/* <div className="flex items-center gap-0">
         <QueryFormModeSelector queryMode={queryMode} />
         <QueryFormAISlider
           queriesRequested={queriesRequested}
           handleQueryAmountChange={handleQueryAmountChange}
           allowedAmountQueries={allowedAmountQueries}
         />
-      </div>
+      </div> */}
     </div>
   );
 }

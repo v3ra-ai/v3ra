@@ -63,7 +63,7 @@ export default function AskResultsStandard() {
   }, [lastVoteResult?.id, refetch]);
 
   if (isLoading) {
-    return <LoadingSpinner type="beat" message="Loading..." />;
+    return <LoadingSpinner type="beat" message="Loading Recent Queries..." />;
   }
 
   if (error) {
@@ -91,7 +91,7 @@ export default function AskResultsStandard() {
       className={`
         container
         rounded-2xl shadow-md
-        mx-auto px-4 py-8
+        mx-auto px-4 py-4
         max-w-6xl
         bg-transparent
         border-0 border-red-500
@@ -100,9 +100,9 @@ export default function AskResultsStandard() {
       aria-live="polite"
     >
       <div
-        className={`flex items-center justify-center mb-6 ${layoutMode === "row" ? "w-full border-0 border-red-500" : ""}`}
+        className={`flex items-center mb-2 justify-center mb-3 ${layoutMode === "row" ? "w-full border-0 border-red-500" : ""}`}
       >
-        <h2 className="text-xl text-zinc-800 dark:text-zinc-200">
+        <h2 className="text-md text-zinc-800 dark:text-zinc-200 font-light uppercase">
           Recent Queries
         </h2>
         <LayoutToggle layoutMode={layoutMode} setLayoutMode={setLayoutMode} />
