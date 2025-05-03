@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-export default async function UserProfilePage({ params }: { params: { user: string } }) {
+export default async function UserProfilePage({ params }: { params: Promise<{ user: string }> }) {
   // Get Supabase session server-side
   const supabase = await createSupabaseServerClient();
 
@@ -28,7 +28,8 @@ export default async function UserProfilePage({ params }: { params: { user: stri
   }
 
   const user = sessionData.session.user;
-  if (user.id !== params.user) {
+  const resolvedParams = await params;
+  if (user.id !== resolvedParams.user) {
     redirect("/login?error=Unauthorized access to this profile");
   }
 

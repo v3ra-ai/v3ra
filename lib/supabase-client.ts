@@ -8,26 +8,41 @@ if (!supabaseAnonKey) {
   throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
 }
 
+// Custom storage to handle client-side cookies safely
+const cookieStorage = {
+  getItem(key: string) {
+    if (typeof window === 'undefined') {
+      console.log(`Storage getItem skipped on server: ${key}`);
+      return null;
+    }
+    const value = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith(`${key}=`))
+      ?.split('=')[1];
+    console.log(`Storage getItem: ${key}=${value || 'null'}`);
+    return value || null;
+  },
+  setItem(key: string, value: string) {
+    if (typeof window === 'undefined') {
+      console.log(`Storage setItem skipped on server: ${key}`);
+      return;
+    }
+    console.log(`Storage setItem: ${key}=${value}`);
+    document.cookie = `${key}=${value}; path=/; max-age=31536000; SameSite=Lax`;
+  },
+  removeItem(key: string) {
+    if (typeof window === 'undefined') {
+      console.log(`Storage removeItem skipped on server: ${key}`);
+      return;
+    }
+    console.log(`Storage removeItem: ${key}`);
+    document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+  },
+};
+
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: {
-      getItem(key: string) {
-        const value = document.cookie
-          .split('; ')
-          .find((row) => row.startsWith(`${key}=`))
-          ?.split('=')[1];
-        console.log(`Storage getItem: ${key}=${value || 'null'}`);
-        return value || null;
-      },
-      setItem(key: string, value: string) {
-        console.log(`Storage setItem: ${key}=${value}`);
-        document.cookie = `${key}=${value}; path=/; max-age=31536000; SameSite=Lax`;
-      },
-      removeItem(key: string) {
-        console.log(`Storage removeItem: ${key}`);
-        document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
-      },
-    },
+    storage: cookieStorage,
     storageKey: 'sb-quuuhdbozcmhkwzhamuh-auth-token',
   },
 });
