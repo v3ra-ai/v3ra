@@ -25,11 +25,11 @@ import { useCleanText } from "@/hooks/useCleanText";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
 import Image from "next/image";
 import { useState } from "react";
-
-import { formatTime } from "@/utils/date-utils";
-import { sanitizeQueryText, sanitizeValidatorResponse } from "@/utils/security-utils";
+import {
+  sanitizeQueryText,
+  sanitizeValidatorResponse,
+} from "@/utils/security-utils";
 import { calculateRating } from "@/utils/vote-utils";
-
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -37,6 +37,17 @@ interface AskResultsStandardCardProps {
   isOpen: boolean;
   toggleItem: (id: string) => void;
 }
+
+// Format timestamp to include date and time (e.g., "2025-05-03 14:30")
+const formatDateTime = (timestamp: string | number | Date): string => {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  return `${year}-${month}-${day} ${hours}:${minutes}`;
+};
 
 const SocialShareIcons = () => (
   <div className="flex justify-end mr-2 text-sm text-zinc-500 space-x-2 border-0">
@@ -61,7 +72,10 @@ export default function AskResultsStandardCard({
     ),
   };
 
-  const formattedDate = formatTime(sanitizedQuery.timestamp);
+  // Handle undefined timestamp with a fallback
+  const formattedDate = sanitizedQuery.timestamp
+    ? formatDateTime(sanitizedQuery.timestamp)
+    : "N/A";
 
   const { percentage, color } = calculateRating(sanitizedQuery);
 
@@ -99,7 +113,7 @@ export default function AskResultsStandardCard({
     <Card
       className={`
         bg-white dark:bg-zinc-800
-        pt-4 gap-6
+        pt-4 gap-2
         border border-zinc-200 dark:border-zinc-700
         hover:border-zinc-400 active:border-zinc-400
         dark:hover:border-zinc-500 dark:active:border-zinc-500
@@ -107,11 +121,20 @@ export default function AskResultsStandardCard({
         ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
       `}
     >
-      <div className="flex justify-between">
-        <div className="flex justify-start mr-2 text-sm text-zinc-500 space-x-2 border-0"></div>
-        <SocialShareIcons />
+      <div className="flex px-2 font-light text-xs dark:text-zinc-500 text-zinc-500">
+        <div className="w-1/2">{formattedDate}</div>
+        <div className="w-1/2 justify-end">
+          {" "}
+          <div className="flex justify-between">
+            <div className="flex justify-start mr-2 text-sm text-zinc-500 space-x-2 border-0"></div>
+            <SocialShareIcons />
+          </div>
+        </div>
       </div>
+      <hr className="h-1" />
       <CardHeader className="dark:bg-zinc-800">
+        <CardDescription className="flex font-light text-xs dark:text-zinc-500 text-zinc-500">
+        </CardDescription>
         <CardTitle className="text-lg font-medium flex">
           <div>
             {sanitizedQuery.isConsensusReached &&
@@ -124,11 +147,8 @@ export default function AskResultsStandardCard({
           </div>
           <div>{sanitizedQuery.queryText}</div>
         </CardTitle>
-        <CardDescription className="font-light text-xs dark:text-zinc-500 text-zinc-500">
-          {formattedDate}
-        </CardDescription>
       </CardHeader>
-      <hr className="h-1" />
+      <hr className="h-1 mt-2" />
       <CardContent className="space-y-2">
         <div className="my-1">
           <p className="text-4xl text-zinc-600 dark:text-zinc-300">
