@@ -14,12 +14,17 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
+  // Handle email login (send one-time code)
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      // Debug cookies before OTP initiation
+      const cookiesBefore = document.cookie.split(";").map((c) => c.trim());
+      console.log("Client-side cookies before OTP initiation:", cookiesBefore);
+
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -27,18 +32,24 @@ export default function LoginPage() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || "Failed to send login code. Please check your email or try again.");
+      }
+
+      // Debug cookies after initiating OTP
+      const cookiesAfter = document.cookie.split(";").map((c) => c.trim());
+      console.log("Client-side cookies after OTP initiation:", cookiesAfter);
 
       localStorage.setItem("signupEmail", email);
       router.push("/auth/verify");
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || "Failed to send login code");
-    } finally {
+      setError(error.message || "Failed to send login code. Please try again.");
       setLoading(false);
     }
   };
 
+  // Handle OAuth login (Google/GitHub)
   const handleOAuthLogin = async (provider: "google" | "github") => {
     setLoading(true);
     setError(null);
@@ -51,10 +62,12 @@ export default function LoginPage() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || `Failed to log in with ${provider}. Please try again.`);
+      }
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || `Failed to log in with ${provider}`);
+      setError(error.message || `Failed to log in with ${provider}. Please try again.`);
       setLoading(false);
     }
   };

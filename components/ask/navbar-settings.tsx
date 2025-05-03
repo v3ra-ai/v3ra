@@ -1,39 +1,80 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
 import { Sun, Moon, CircleUser, User } from "lucide-react";
+import { supabase } from "@/lib/supabase-client";
+import { useRouter } from "next/navigation";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-// Dynamically import WalletMultiButton with SSR disabled
 const WalletMultiButton = dynamic(
   () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
   { ssr: false }
 );
 
-// Define props interface
 interface NavbarSettingsProps {
   mounted: boolean;
   isCreditsPage: boolean;
-  isLoggedIn: boolean;
   handleToggleTheme: () => void;
 }
 
-/**
- * Renders the right-side settings section of the navbar, including theme toggle,
- * login/profile link, and wallet connect button. Designed for mobile-first layout.
- */
 export function NavbarSettings({
   mounted,
-  // isCreditsPage,
-  isLoggedIn,
+  isCreditsPage,
   handleToggleTheme,
 }: NavbarSettingsProps) {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      console.log("NavbarSettings session check:", { data, error });
+      if (error) {
+        console.error("Error checking session:", error.message);
+        return;
+      }
+      setIsLoggedIn(!!data.session);
+      setUserId(data.session?.user?.id || null);
+    };
+
+    checkSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log("Auth state change:", { event, session });
+      setIsLoggedIn(!!session);
+      setUserId(session?.user?.id || null);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      router.push("/");
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error("Sign out error:", error.message);
+    }
+  };
+
   return (
     <div className="flex items-center space-x-4">
       {mounted && (
         <button
           onClick={handleToggleTheme}
-          // disabled={isCreditsPage}
+          disabled={isCreditsPage}
           className="rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800
             focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
             disabled:opacity-50 transition-colors cursor-pointer"
@@ -44,17 +85,58 @@ export function NavbarSettings({
         </button>
       )}
 
-      <Link
-        href={isLoggedIn ? "/profile" : "/login"}
-        className="text-gray-800 dark:text-gray-200"
-        aria-label={isLoggedIn ? "Profile" : "Login"}
-      >
-        {isLoggedIn ? (
-          <User className="h-5 w-5" />
-        ) : (
-          <CircleUser className="h-5 w-5" />
-        )}
-      </Link>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <button
+            className="text-gray-800 dark:text-gray-200 focus:outline-none cursor-pointer"
+            aria-label={isLoggedIn ? "User menu" : "Login/Signup menu"}
+          >
+            {isLoggedIn ? <User className="h-5 w-5" /> : <CircleUser className="h-5 w-5" />}
+          </button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent
+          className="w-48 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-md shadow-sm"
+          align="end"
+        >
+          {isLoggedIn ? (
+            <>
+              <DropdownMenuItem asChild>
+                <Link
+                  href={userId ? `/users/profile/${userId}` : "/login"}
+                  className="w-full text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer"
+                >
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={handleSignOut}
+                className="text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer"
+              >
+                Sign Out
+              </DropdownMenuItem>
+            </>
+          ) : (
+            <>
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/login"
+                  className="w-full text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer"
+                >
+                  Login
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/signup"
+                  className="w-full text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer"
+                >
+                  Sign Up
+                </Link>
+              </DropdownMenuItem>
+            </>
+          )}
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <WalletMultiButton
         style={{

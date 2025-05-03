@@ -21,7 +21,13 @@ export default function VerifyCodePage() {
 
     try {
       const email = localStorage.getItem("signupEmail");
-      if (!email) throw new Error("No email found. Please try again.");
+      if (!email) {
+        throw new Error("No email found. Please try logging in again.");
+      }
+
+      // Debug cookies before OTP verification
+      const cookiesBefore = document.cookie.split(";").map((c) => c.trim());
+      console.log("Client-side cookies before OTP verification:", cookiesBefore);
 
       const { error } = await supabase.auth.verifyOtp({
         email,
@@ -29,13 +35,22 @@ export default function VerifyCodePage() {
         type: "magiclink",
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || "Invalid or expired code. Please try again.");
+      }
 
-      router.push("/profile");
+      // Explicitly refresh session to persist cookies
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      console.log("Session after OTP verification:", { sessionData, sessionError });
+
+      // Debug cookies after OTP verification
+      const cookiesAfter = document.cookie.split(";").map((c) => c.trim());
+      console.log("Client-side cookies after OTP verification:", cookiesAfter);
+
+      router.push("/auth/callback");
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || "Invalid or expired code");
-    } finally {
+      setError(error.message || "Invalid or expired code. Please try again.");
       setLoading(false);
     }
   };

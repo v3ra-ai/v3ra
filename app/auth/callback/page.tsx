@@ -2,9 +2,9 @@
 
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { prisma } from "@/lib/db/client";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { createOrGetUser } from "@/lib/server-actions";
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -12,33 +12,51 @@ export default function AuthCallback() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // Debug cookies before refresh
+        const cookiesBefore = document.cookie.split(";").map((c) => c.trim());
+        console.log("Client-side cookies before refresh:", cookiesBefore);
+
+        // Refresh session to ensure magic link is processed
+        const { data: refreshData, error: refreshError } = await supabase.auth.refreshSession();
+        console.log("Session refresh:", { refreshData, refreshError });
+
+        // Debug cookies after refresh
+        const cookiesAfterRefresh = document.cookie.split(";").map((c) => c.trim());
+        console.log("Client-side cookies after refresh:", cookiesAfterRefresh);
+
         const { data, error } = await supabase.auth.getSession();
-        if (error) throw error;
+        console.log("Session check:", { data, error });
 
-        const user = data.session?.user;
-        if (!user) throw new Error("No user found in session");
+        // Debug cookies after session check
+        const cookiesAfterSession = document.cookie.split(";").map((c) => c.trim());
+        console.log("Client-side cookies after session check:", cookiesAfterSession);
 
-        let dbUser = await prisma.user.findUnique({
-          where: { id: user.id },
-        });
-
-        if (!dbUser) {
-          dbUser = await prisma.user.create({
-            data: {
-              id: user.id,
-              email: user.email || "",
-              name: user.user_metadata?.username || user.email?.split("@")[0] || "User",
-              createdAt: new Date(),
-              updatedAt: new Date(),
-            },
-          });
+        if (error) {
+          throw new Error("Failed to retrieve session. Please try logging in again.");
         }
 
-        router.push("/profile");
+        const user = data.session?.user;
+        if (!user) {
+          throw new Error("No user found in session. Please try logging in again.");
+        }
+
+        // Create or get user using Server Action
+        const result = await createOrGetUser(
+          user.id,
+          user.email || "",
+          user.user_metadata?.username
+        );
+        console.log("User creation result:", result);
+
+        if (!result.success) {
+          throw new Error(result.error || "Failed to process user.");
+        }
+
+        router.push(`/users/profile/${user.id}`);
       } catch (err: unknown) {
         const error = err as Error;
         console.error("Auth callback error:", error.message);
-        router.push("/signup?error=Authentication failed");
+        router.push(`/login?error=${encodeURIComponent(error.message || "Authentication failed. Please try again.")}`);
       }
     };
 

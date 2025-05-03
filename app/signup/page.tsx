@@ -1,13 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { prisma } from "@/lib/db/client";
 import Navbar from "@/components/ask/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { checkDuplicateUser } from "@/lib/server-actions";
 
 export default function SignupPage() {
   const [email, setEmail] = useState("");
@@ -15,6 +15,29 @@ export default function SignupPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Check for error in query parameters (e.g., from /auth/callback)
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+    if (errorParam) {
+      setError(errorParam || "An error occurred during signup. Please try again.");
+    }
+  }, [searchParams]);
+
+  // Validate email and username format
+  const validateInputs = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address.");
+      return false;
+    }
+    if (username.length < 3) {
+      setError("Username must be at least 3 characters long.");
+      return false;
+    }
+    return true;
+  };
 
   // Handle email signup
   const handleEmailSignup = async (e: React.FormEvent) => {
@@ -23,21 +46,32 @@ export default function SignupPage() {
     setError(null);
 
     try {
-      const existingUser = await prisma.user.findFirst({
-        where: {
-          OR: [{ email }, { name: username }],
-        },
-      });
-
-      if (existingUser) {
-        setError(
-          existingUser.email === email
-            ? "Email already in use"
-            : "Username already taken"
-        );
+      // Client-side validation
+      if (!validateInputs()) {
+        setLoading(false);
         return;
       }
 
+      // Check for duplicate email or username using Server Action
+      const result = await checkDuplicateUser(email, username);
+
+      if (!result.success) {
+        setError(result.error || "Failed to check user availability. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      if (result.existingUser) {
+        setError(
+          result.field === "email"
+            ? "This email is already registered. Please use a different email or log in."
+            : "This username is already taken. Please choose a different username."
+        );
+        setLoading(false);
+        return;
+      }
+
+      // Initiate email signup with Supabase (magic link)
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
@@ -46,14 +80,15 @@ export default function SignupPage() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || "Failed to send verification code. Please check your email or try again.");
+      }
 
       localStorage.setItem("signupEmail", email);
       router.push("/auth/verify");
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || "Failed to sign up");
-    } finally {
+      setError(error.message || "An error occurred during signup. Please try again.");
       setLoading(false);
     }
   };
@@ -71,10 +106,12 @@ export default function SignupPage() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        throw new Error(error.message || `Failed to sign up with ${provider}. Please try again.`);
+      }
     } catch (err: unknown) {
       const error = err as Error;
-      setError(error.message || `Failed to sign up with ${provider}`);
+      setError(error.message || `Failed to sign up with ${provider}. Please try again.`);
       setLoading(false);
     }
   };
@@ -82,7 +119,7 @@ export default function SignupPage() {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Navbar />
-      <div className="w-full md:max-w-md  mx-auto p-6">
+      <div className="w-full md:max-w-md mx-auto p-6">
         <div className="p-6 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
           <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-8">
             Sign Up
