@@ -2,18 +2,22 @@
 import { redirect } from "next/navigation";
 
 export default async function Home({
-  searchParams,
+  // searchParams,
 }: {
   searchParams: Promise<{ mode?: string }>;
 }) {
-  const params = await searchParams;
-  const isDev = process.env.NODE_ENV === "development";
-  const mode = params.mode;
+  // const params = await searchParams;
+  // const isDev = process.env.NODE_ENV === "development";
+  // const mode = params.mode;
+
+  redirect("/ask");
 
   // http://localhost:3000/?mode=ask
-  if (isDev && mode === "ask") {
-    redirect("/ask");
-  } else {
-    redirect("/explorer");
-  }
+//   if (isDev && mode === "ask") {
+//     redirect("/ask");
+//   } else {
+//     redirect("/explorer");
+//   }
+//
+
 }
