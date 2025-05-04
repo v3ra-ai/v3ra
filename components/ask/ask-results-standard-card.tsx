@@ -86,13 +86,20 @@ export default function AskResultsStandardCard({
         ((sanitizedQuery.consensusValue && response.vote === "YES") ||
           (!sanitizedQuery.consensusValue && response.vote === "NO"))
     ) || [];
-  const longestRationale = matchingResponses.length
+
+  // Store the entire response object for the longest rationale
+  const longestRationaleResponse = matchingResponses.length
     ? matchingResponses.reduce((longest, response) =>
         response.rationale.length > longest.rationale.length
           ? response
           : longest
-      ).rationale
+      )
     : null;
+
+  const longestRationale = longestRationaleResponse?.rationale || null;
+  const validatorName = longestRationaleResponse?.profileName || "Unknown Validator";
+  const validatorProvider = longestRationaleResponse?.provider || "Unknown Provider";
+
   const { cleanText } = useCleanText(longestRationale);
 
   // Toggle state for rationale
@@ -124,7 +131,6 @@ export default function AskResultsStandardCard({
       <div className="flex px-2 font-light text-xs dark:text-zinc-500 text-zinc-500">
         <div className="w-1/2">{formattedDate}</div>
         <div className="w-1/2 justify-end">
-          {" "}
           <div className="flex justify-between">
             <div className="flex justify-start mr-2 text-sm text-zinc-500 space-x-2 border-0"></div>
             <SocialShareIcons />
@@ -133,8 +139,7 @@ export default function AskResultsStandardCard({
       </div>
       <hr className="h-1" />
       <CardHeader className="dark:bg-zinc-800">
-        <CardDescription className="flex font-light text-xs dark:text-zinc-500 text-zinc-500">
-        </CardDescription>
+        <CardDescription className="flex font-light text-xs dark:text-zinc-500 text-zinc-500"></CardDescription>
         <CardTitle className="text-lg font-medium flex">
           <div>
             {sanitizedQuery.isConsensusReached &&
@@ -161,23 +166,28 @@ export default function AskResultsStandardCard({
         </div>
         <div>
           {longestRationale ? (
-            <div
-              role="button"
-              tabIndex={0}
-              onClick={toggleRationale}
-              onKeyDown={handleKeyDown}
-              className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md p-1"
-              aria-expanded={isRationaleExpanded}
-              aria-label={
-                isRationaleExpanded ? "Collapse rationale" : "Expand rationale"
-              }
-            >
-              <p
-                className={`text-sm text-zinc-600 dark:text-zinc-300 leading-6 ${
-                  isRationaleExpanded ? "" : "line-clamp-5"
-                }`}
+            <div>
+              <div
+                role="button"
+                tabIndex={0}
+                onClick={toggleRationale}
+                onKeyDown={handleKeyDown}
+                className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md p-1"
+                aria-expanded={isRationaleExpanded}
+                aria-label={
+                  isRationaleExpanded ? "Collapse rationale" : "Expand rationale"
+                }
               >
-                {cleanText}
+                <p
+                  className={`text-sm text-zinc-600 dark:text-zinc-300 leading-6 ${
+                    isRationaleExpanded ? "" : "line-clamp-5"
+                  }`}
+                >
+                  {cleanText}
+                </p>
+              </div>
+              <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                Source: {validatorName} ({validatorProvider})
               </p>
             </div>
           ) : (
@@ -195,7 +205,6 @@ export default function AskResultsStandardCard({
             className="object-contain w-8 md:w-10"
           />
           <span className="text-sm font-light text-zinc-800 dark:text-zinc-200">
-            {" "}
             AI CONSENSUS:
           </span>
           <span
