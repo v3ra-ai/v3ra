@@ -1,3 +1,5 @@
+"use client";
+
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useVoteStore } from "@/store/vote-store";
 import { ErrorDisplay } from "@/components/error-display";
@@ -7,6 +9,27 @@ import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
 import DOMPurify from "dompurify";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Custom CSS for skeleton loading animation (pulse + shimmer)
+<style jsx>{`
+  @keyframes shimmer {
+    0% {
+      background-position: -468px 0;
+    }
+    100% {
+      background-position: 468px 0;
+    }
+  }
+  .skeleton-loading {
+    background: linear-gradient(to right, #e2e8f0 0%, #f1f5f9 20%, #e2e8f0 40%, #e2e8f0 100%);
+    background-size: 800px 104px;
+    animation: shimmer 1.5s infinite linear;
+  }
+  .dark .skeleton-loading {
+    background: linear-gradient(to right, #27272a 0%, #3f3f46 20%, #27272a 40%, #27272a 100%);
+  }
+`}</style>
 
 const LayoutToggle = ({
   layoutMode,
@@ -36,11 +59,82 @@ const getRecentQueries = (voteHistory: VoteResult[]) =>
     })
     .slice(0, 10);
 
+// Skeleton card component styled like AskResultsStandardCard with loading animation
+const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
+  // Debug log to confirm rendering
+  if (process.env.NODE_ENV === "development") {
+    console.log("Rendering SkeletonCard with layoutMode:", layoutMode);
+  }
+
+  return (
+    <div
+      className={`
+        bg-white dark:bg-zinc-800
+        pt-4 gap-2
+        border border-zinc-200 dark:border-zinc-700
+        transition-colors
+        ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+      `}
+    >
+      <div className="flex px-2 font-light text-xs dark:text-zinc-500 text-zinc-500">
+        <div className="w-1/2">
+          <Skeleton className="h-4 w-24 skeleton-loading" />
+        </div>
+        <div className="w-1/2 flex justify-end">
+          <div className="flex space-x-2">
+            <Skeleton className="h-4 w-4 skeleton-loading" />
+            <Skeleton className="h-4 w-4 skeleton-loading" />
+            <Skeleton className="h-4 w-4 skeleton-loading" />
+          </div>
+        </div>
+      </div>
+      <hr className="h-1" />
+      <div className="p-4">
+        <div className="flex w-full justify-center items-center space-x-2">
+          <div className="">Loading</div>
+          <Skeleton className="h-7 w-7 rounded-full skeleton-loading" />
+          <Skeleton className="h-6 w-3/4 skeleton-loading" />
+        </div>
+        <div className="mt-4">
+          <Skeleton className="h-10 w-24 skeleton-loading" />
+        </div>
+        <div className="mt-4">
+          <Skeleton className="h-4 w-full skeleton-loading" />
+          <Skeleton className="h-4 w-5/6 mt-1 skeleton-loading" />
+          <Skeleton className="h-4 w-4/5 mt-1 skeleton-loading" />
+        </div>
+        <div className="flex items-center space-x-2 mt-5 mb-5">
+          <Skeleton className="h-6 w-8 skeleton-loading" />
+          <Skeleton className="h-4 w-24 skeleton-loading" />
+          <Skeleton className="h-6 w-16 skeleton-loading" />
+        </div>
+        <div className="flex flex-wrap gap-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="flex flex-col items-center">
+              <Skeleton className="h-4 w-12 mb-1 skeleton-loading" />
+              <Skeleton className="h-10 w-10 rounded-full skeleton-loading" />
+            </div>
+          ))}
+        </div>
+      </div>
+      <hr className="h-1" />
+      <div className="p-2">
+        <Skeleton className="h-4 w-32 skeleton-loading" />
+      </div>
+    </div>
+  );
+};
+
 export default function AskResultsStandard() {
   const { voteHistory, isLoading, error, refetch } = useVoteHistory();
   const { lastVoteResult } = useVoteStore();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
+
+  // Debug log to confirm loading state
+  if (process.env.NODE_ENV === "development") {
+    console.log("AskResultsStandard isLoading:", isLoading);
+  }
 
   // Sanitize voteHistory to prevent XSS
   const sanitizedVoteHistory = voteHistory.map((vote) => ({
@@ -61,10 +155,6 @@ export default function AskResultsStandard() {
       refetch();
     }
   }, [lastVoteResult?.id, refetch]);
-
-  if (isLoading) {
-    return <LoadingSpinner type="beat" message="Loading Recent Queries..." />;
-  }
 
   if (error) {
     return (
@@ -102,12 +192,28 @@ export default function AskResultsStandard() {
       <div
         className={`flex items-center mb-2 justify-center mb-3 ${layoutMode === "row" ? "w-full border-0 border-red-500" : ""}`}
       >
-        <h2 className="text-md text-zinc-800 dark:text-zinc-200 font-light uppercase">
-          Recent Queries
-        </h2>
+        {isLoading ? (
+          <LoadingSpinner type="beat" message="Loading Recent Queries..." />
+        ) : (
+          <h2 className="text-md text-zinc-800 dark:text-zinc-200 font-light uppercase">
+            Recent Queries
+          </h2>
+        )}
         <LayoutToggle layoutMode={layoutMode} setLayoutMode={setLayoutMode} />
       </div>
-      {recentQueries.length === 0 ? (
+      {isLoading ? (
+        <div
+          className={`max-w-6xl mx-auto ${
+            layoutMode === "grid"
+              ? "flex flex-wrap justify-center gap-4"
+              : "flex flex-col gap-4 items-center justify-center"
+          }`}
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <SkeletonCard key={index} layoutMode={layoutMode} />
+          ))}
+        </div>
+      ) : recentQueries.length === 0 ? (
         <p className="text-zinc-500 dark:text-zinc-400">
           No recent queries found.
         </p>
@@ -130,6 +236,7 @@ export default function AskResultsStandard() {
           ))}
         </div>
       )}
+
     </div>
   );
 }
