@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { validatorService } from "@/lib/services/validatorService";
-// import { validatorRegistry } from "@/lib/validators/registry";
-// import { aiValidatorToUiValidator } from "@/lib/validators/types";
 import { NetworkState } from "@/lib/types";
 import { prisma } from "@/lib/db/client";
 
@@ -43,30 +41,24 @@ export async function GET() {
         `Found ${dbValidators.length} active validators in the database`,
       );
 
-      // Get the real validators from the registry to ensure we have full objects
-      // const registryValidators = await validatorRegistry.getActiveValidators();
-
       // Map to UI validators
-      const uiValidators = dbValidators.map((dbValidator) => {
-        // Try to find the validator in the registry for additional info
-        // const registryValidator = registryValidators.find(rv => rv.id === dbValidator.id);
-
-        return {
-          id: dbValidator.id,
-          publicKey: dbValidator.id,
-          provider: dbValidator.provider,
-          profileName: dbValidator.profileName,
-          modelName: dbValidator.modelName || undefined,
-          description: dbValidator.description || undefined,
-          validatorType: dbValidator.validatorType || undefined,
-          avatarUrl: getAvatarForProvider(dbValidator.provider),
-          lastVote: null,
-          lastResponse: null,
-          lastRationale: null,
-          reliability: 95,
-          isLeader: false,
-        };
-      });
+      const uiValidators = dbValidators.map((dbValidator) => ({
+        id: dbValidator.id,
+        publicKey: dbValidator.id,
+        provider: dbValidator.provider,
+        profileName: dbValidator.profileName,
+        modelName: dbValidator.modelName || "",
+        description: dbValidator.description || null,
+        validatorType: dbValidator.validatorType || null,
+        avatarUrl: getAvatarForProvider(dbValidator.provider),
+        reliability: null,
+        totalVotes: 0,
+        correctVotes: 0,
+        active: true,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        isLeader: false,
+      }));
 
       if (uiValidators.length > 0) {
         // Set the first validator as the leader
@@ -94,19 +86,6 @@ export async function GET() {
             latestVoteSession.isConsensusReached;
           networkState.lastVoteTimestamp =
             latestVoteSession.timestamp.toISOString();
-
-          // Update validator votes based on the latest session
-          for (const response of latestVoteSession.validatorResponses) {
-            const validator = networkState.validators.find(
-              (v) => v.id === response.validatorId,
-            );
-            if (validator) {
-              validator.lastVote = response.vote === "YES";
-              validator.lastRationale = response.rationale;
-              validator.lastResponse =
-                response.vote === "YES" ? "Voted YES" : "Voted NO";
-            }
-          }
 
           // Create network response summary
           networkState.lastNetworkResponse =

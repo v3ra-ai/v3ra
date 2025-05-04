@@ -16,10 +16,12 @@ export async function getValidatorById(id: string): Promise<Validator | null> {
       }
       return null;
     }
+
     // Log fetched validator data for debugging
     if (process.env.NODE_ENV === "development") {
       console.log(`Fetched validator for ID: ${id}`, validator);
     }
+
     return {
       id: validator.id,
       publicKey: validator.publicKey,
@@ -194,7 +196,7 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
     }).length;
 
     const consensusMatchPercentage = totalVotes > 0 ? (consensusMatches / totalVotes) * 100 : 0;
-    const nonConsensusPercentage = totalVotes > 0 ? ((totalVotes - consensusMatches) * totalVotes) * 100 : 0;
+    const nonConsensusPercentage = totalVotes > 0 ? ((totalVotes - consensusMatches) / totalVotes) * 100 : 0;
 
     const stats = {
       totalVotes,
@@ -228,10 +230,7 @@ export function dbValidatorToAIValidator(validator: Validator): AIValidator {
     name: validator.profileName,
     provider: validator.provider,
     modelName: validator.modelName,
-    description: validator.description || undefined,
-    validatorType: validator.validatorType || undefined,
     active: validator.active,
-    keyId: undefined,
     validate: async () => ({
       vote: false,
       confidence: 0,

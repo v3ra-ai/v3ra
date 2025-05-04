@@ -45,11 +45,21 @@ export function createValidators(count: number = 8): Validator[] {
       id: `validator-${i + 1}`,
       publicKey: generatePublicKey(),
       isLeader: i === 0, // First validator is the initial leader
-      lastVote: null,
-      lastResponse: null,
       provider: "",
       profileName: "",
+      modelName: "",
+      description: null,
+      avatarUrl: null,
+      validatorType: null,
+      reliability: null,
+      totalVotes: 0,
+      correctVotes: 0,
+      active: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastVote: null,
       lastRationale: null,
+      lastResponse: null,
     });
   }
 

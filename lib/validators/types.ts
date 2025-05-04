@@ -1,4 +1,3 @@
-import { Validator } from "../types";
 
 // Response from an AI model validator
 export interface AIValidationResponse {
@@ -38,7 +37,6 @@ export interface AIValidator {
   keyId?: string; // Reference to the API key ID, not the actual key
   validate: (request: ValidationRequest) => Promise<AIValidationResponse>;
 }
-
 // Registry of all available validators
 export interface ValidatorRegistry {
   addValidator(validator: AIValidator): Promise<AIValidator>;
@@ -50,22 +48,16 @@ export interface ValidatorRegistry {
 }
 
 // Convert AIValidator to our UI Validator type
-export function aiValidatorToUiValidator(validator: AIValidator): Validator {
+export function aiValidatorToUiValidator(aiValidator: AIValidator): AIValidator {
   return {
-    id: validator.id,
-    publicKey: validator.keyId || validator.id, // Use keyId if available, fallback to id
-    provider: validator.provider,
-    profileName: validator.name,
-    isLeader: false, // Can be determined elsewhere
-    lastVote: null,
-    lastResponse: null,
-    lastRationale: null,
-    modelName: validator.modelName || "unknown",
-    description:
-      validator.description ||
-      `${validator.provider} ${validator.modelName} AI model`,
-    avatarUrl: undefined, // Optional avatar URL
-    reliability: undefined, // Optional reliability score
-    validatorType: validator.validatorType || `${validator.provider} AI`,
+    id: aiValidator.id,
+    name: aiValidator.name,
+    provider: aiValidator.provider,
+    modelName: aiValidator.modelName,
+    description: aiValidator.description,
+    validatorType: aiValidator.validatorType,
+    active: aiValidator.active,
+    keyId: aiValidator.keyId,
+    validate: aiValidator.validate,
   };
 }

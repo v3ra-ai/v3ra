@@ -35,12 +35,19 @@ export function VoteHistory({ voteHistory }: VoteHistoryProps) {
       publicKey: validator.id, // Using ID as public key since we don't have it in responses
       provider: validator.provider,
       profileName: validator.profileName,
-      isLeader: false, // We don't know leadership from vote history
-      lastVote: validator.vote.toLowerCase() === "yes",
-      lastResponse: validator.vote,
+      modelName: "", // Default, as not provided in responses
+      description: null,
+      avatarUrl: null,
+      validatorType: null,
+      reliability: null,
+      totalVotes: 0,
+      correctVotes: 0,
+      active: true,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      isLeader: false,
+      lastVote: validator.vote.toLowerCase() === "yes" ? true : validator.vote.toLowerCase() === "no" ? false : null,
       lastRationale: validator.rationale || null,
-      // Add reasonable defaults for other required fields
-      reliability: 95,
     };
 
     // Set the selected validator for profile display

@@ -17,9 +17,14 @@ export const mockValidators: Validator[] = [
       "This validator uses OpenAI's GPT-4o model, which excels at balanced decision-making based on multiple perspectives and ethical considerations.",
     avatarUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/0/04/ChatGPT_logo.svg/512px-ChatGPT_logo.svg.png",
-    reliability: 98,
     validatorType:
       "Multimodal Reasoning Engine — OpenAI's flagship model known for balanced ethical assessments and nuanced decision-making capabilities.",
+    reliability: 98,
+    totalVotes: 100,
+    correctVotes: 98, // 98% of 100 votes
+    active: true,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-05-01"),
   },
   {
     id: "validator-2",
@@ -36,9 +41,14 @@ export const mockValidators: Validator[] = [
       "A highly sophisticated AI model from Anthropic that focuses on helpful, harmless, and honest responses with particular attention to nuanced ethical reasoning.",
     avatarUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Anthropic_logo.svg/1200px-Anthropic_logo.svg.png",
-    reliability: 96,
     validatorType:
       "Constitutional AI Reasoner — Anthropic's most capable model with exceptional ethical reasoning and nuanced perspectives on complex issues.",
+    reliability: 96,
+    totalVotes: 100,
+    correctVotes: 96, // 96% of 100 votes
+    active: true,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-05-01"),
   },
   {
     id: "validator-3",
@@ -55,9 +65,14 @@ export const mockValidators: Validator[] = [
       "Google's most capable and largest model, built to be multimodal from the ground up. Specializes in complex reasoning, planning, and instruction following.",
     avatarUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Google_Gemini_Logo.png/800px-Google_Gemini_Logo.png",
-    reliability: 95,
     validatorType:
       "Multimodal Intelligence System — Google's advanced reasoning engine with specialized knowledge in scientific domains and contextual analysis.",
+    reliability: 95,
+    totalVotes: 100,
+    correctVotes: 95, // 95% of 100 votes
+    active: true,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-05-01"),
   },
   {
     id: "validator-4",
@@ -73,9 +88,14 @@ export const mockValidators: Validator[] = [
     description:
       "An Eliza OS Agent with a Data Scientist character profile. Focuses on statistical analysis and data-driven decision making. Runs on OpenAI 4.5 architecture.",
     avatarUrl: "/images/eliza-profile.png",
-    reliability: 93,
     validatorType:
       "Specialized Agent — Eliza OS running on OpenAI 4.5 with Data Scientist character profile, optimized for statistical reasoning and critical analysis.",
+    reliability: 93,
+    totalVotes: 100,
+    correctVotes: 93, // 93% of 100 votes
+    active: true,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-05-01"),
   },
   {
     id: "validator-5",
@@ -92,9 +112,14 @@ export const mockValidators: Validator[] = [
       "A highly advanced language model developed by Cohere, focusing on generating human-like text based on the input it was given.",
     avatarUrl:
       "https://upload.wikimedia.org/wikipedia/commons/thumb/7/7e/Cohere_logo.svg/512px-Cohere_logo.svg.png",
-    reliability: 94,
     validatorType:
       "Command-R Language Expert — Cohere's enterprise-grade model designed for reliable reasoning and contextual understanding across diverse domains.",
+    reliability: 94,
+    totalVotes: 100,
+    correctVotes: 94, // 94% of 100 votes
+    active: true,
+    createdAt: new Date("2025-01-01"),
+    updatedAt: new Date("2025-05-01"),
   },
 ];
 

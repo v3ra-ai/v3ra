@@ -9,15 +9,18 @@ export interface Validator {
   provider: string;
   profileName: string;
   modelName: string;
-  description: string | null; // Allow null to match Prisma
-  avatarUrl: string | null; // Allow null to match Prisma
-  validatorType: string | null; // Allow null to match Prisma
-  reliability: number | null; // Allow null to match Prisma
+  description: string | null;
+  avatarUrl: string | null;
+  validatorType: string | null;
+  reliability: number | null;
   totalVotes: number;
   correctVotes: number;
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
+  lastVote?: boolean | null; // Added for legacy profile support
+  lastRationale?: string | null; // Added for legacy profile support
+  lastResponse?: string | null; // Added for legacy simulation support
 }
 
 export interface ValidatorResponse {

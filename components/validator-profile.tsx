@@ -24,7 +24,9 @@ export function ValidatorProfile({
     return { text: "text-orange-700", bg: "bg-orange-50" };
   };
 
-  const reliabilityColor = getReliabilityColor(validator.reliability);
+  // Convert reliability from number | null to number | undefined
+  const reliability = validator.reliability !== null ? validator.reliability : undefined;
+  const reliabilityColor = getReliabilityColor(reliability);
 
   // Prevent event bubbling
   const handleContentClick = (e: React.MouseEvent) => {
@@ -67,7 +69,7 @@ export function ValidatorProfile({
             <div className="h-32 w-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-white flex items-center justify-center">
               {validator.avatarUrl ? (
                 <Image
-                  src={validator.avatarUrl}
+                  src={`/icons/${validator.avatarUrl}`}
                   alt={validator.profileName}
                   width={128}
                   height={128}
@@ -105,13 +107,13 @@ export function ValidatorProfile({
             </div>
           )}
 
-          {validator.reliability && (
+          {reliability !== undefined && (
             <div className="flex justify-center mt-3 mb-4">
               <div
                 className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${reliabilityColor.bg} ${reliabilityColor.text}`}
               >
                 <span className="mr-1">Reliability</span>
-                <span className="font-bold">{validator.reliability}%</span>
+                <span className="font-bold">{reliability}%</span>
               </div>
             </div>
           )}
@@ -185,7 +187,7 @@ export function ValidatorProfile({
               </h3>
               <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <p className="text-sm italic text-gray-600 dark:text-gray-300">
-                  &ldquo;{validator.lastRationale}&rdquo;
+                  “{validator.lastRationale}”
                 </p>
               </div>
             </div>
