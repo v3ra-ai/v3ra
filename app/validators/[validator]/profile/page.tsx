@@ -38,17 +38,6 @@ export default async function ValidatorProfilePage({
 
   return (
     <>
-      {/* Inline script to scroll to top on page load */}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            window.scrollTo(0, 0);
-            if (${process.env.NODE_ENV === "development"}) {
-              console.log("Scrolled to top for validator ID: ${validatorId}");
-            }
-          `,
-        }}
-      />
       <div className="container mx-auto py-8">
         <Card className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
           <CardContent className="space-y-6">
