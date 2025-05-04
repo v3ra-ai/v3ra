@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db/client";
 import { Validator } from "@prisma/client";
 import { AIValidator } from "../validators/types";
 import { VoteResult } from "@/lib/types";
+import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
 
 // Fetch validator by ID from the database
 export async function getValidatorById(id: string): Promise<Validator | null> {
@@ -43,10 +44,10 @@ export async function getValidatorById(id: string): Promise<Validator | null> {
 }
 
 // Fetch vote history for a specific validator using Prisma, filtering only by validatorId
-export async function getValidatorVoteHistory(validatorId: string, limit: number = 50): Promise<VoteResult[]> {
+export async function getValidatorVoteHistory(validatorId: string, limit: number = RECENT_HISTORY_RESULTS): Promise<VoteResult[]> {
   try {
-    // Enforce maximum limit of 300
-    const effectiveLimit = limit === 0 ? 300 : Math.min(limit, 300);
+    // Enforce maximum limit of MAX_VOTE_HISTORY_RESULTS
+    const effectiveLimit = limit === 0 ? MAX_VOTE_HISTORY_RESULTS : Math.min(limit, MAX_VOTE_HISTORY_RESULTS);
     const responses = await prisma.validatorResponse.findMany({
       where: { validatorId },
       include: {
@@ -144,7 +145,7 @@ export async function getValidatorVoteHistory(validatorId: string, limit: number
 }
 
 // Fetch vote statistics for a specific validator (total votes, YES/NO counts, consensus match percentages)
-export async function getValidatorVoteStats(validatorId: string, limit: number = 50): Promise<{
+export async function getValidatorVoteStats(validatorId: string, limit: number = RECENT_HISTORY_RESULTS): Promise<{
   totalVotes: number;
   yesVotes: number;
   noVotes: number;
@@ -152,8 +153,8 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
   nonConsensusPercentage: number;
 }> {
   try {
-    // Enforce maximum limit of 300
-    const effectiveLimit = limit === 0 ? 300 : Math.min(limit, 300);
+    // Enforce maximum limit of MAX_VOTE_HISTORY_RESULTS
+    const effectiveLimit = limit === 0 ? MAX_VOTE_HISTORY_RESULTS : Math.min(limit, MAX_VOTE_HISTORY_RESULTS);
     const responses = await prisma.validatorResponse.findMany({
       where: { validatorId },
       include: {
@@ -193,7 +194,7 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
     }).length;
 
     const consensusMatchPercentage = totalVotes > 0 ? (consensusMatches / totalVotes) * 100 : 0;
-    const nonConsensusPercentage = totalVotes > 0 ? ((totalVotes - consensusMatches) / totalVotes) * 100 : 0;
+    const nonConsensusPercentage = totalVotes > 0 ? ((totalVotes - consensusMatches) * totalVotes) * 100 : 0;
 
     const stats = {
       totalVotes,

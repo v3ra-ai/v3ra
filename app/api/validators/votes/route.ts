@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidatorVoteHistory } from "@/lib/db/validators";
+import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -14,16 +15,17 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const parsedLimit = limit ? parseInt(limit) : 10;
+    const parsedLimit = limit ? parseInt(limit) : RECENT_HISTORY_RESULTS;
     if (isNaN(parsedLimit) && limit !== '') {
       if (process.env.NODE_ENV === "development") {
         console.error("Invalid limit parameter:", limit);
       }
       return NextResponse.json({ error: "Invalid limit parameter" }, { status: 400 });
     }
-    const effectiveLimit = limit === '' ? undefined : parsedLimit;
+    // Enforce maximum limit of MAX_VOTE_HISTORY_RESULTS
+    const effectiveLimit = limit === '' || parsedLimit === 0 ? MAX_VOTE_HISTORY_RESULTS : Math.min(parsedLimit, MAX_VOTE_HISTORY_RESULTS);
     if (process.env.NODE_ENV === "development") {
-      console.log(`Fetching vote history for validator ${validatorId} with limit: ${effectiveLimit || 'no limit'}`);
+      console.log(`Fetching vote history for validator ${validatorId} with limit: ${effectiveLimit}`);
     }
     const voteHistory = await getValidatorVoteHistory(validatorId, effectiveLimit);
     return NextResponse.json(voteHistory);

@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
 import { Button } from "@/components/ui/button";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
 
 interface VoteHistoryTableProps {
   validatorId: string;
@@ -19,13 +21,13 @@ interface VoteStats {
 export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps) {
   const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
   const [stats, setStats] = useState<VoteStats | null>(null);
-  const [limit, setLimit] = useState<number>(50); // Default to 50 for "Recent"
+  const [limit, setLimit] = useState<number>(RECENT_HISTORY_RESULTS); // Default to RECENT_HISTORY_RESULTS
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchVoteData = async (fetchLimit: number) => {
     setIsLoading(true);
     try {
-      const effectiveLimit = fetchLimit === 0 ? 300 : Math.min(fetchLimit, 300); // Enforce max limit of 300
+      const effectiveLimit = fetchLimit === 0 ? MAX_VOTE_HISTORY_RESULTS : Math.min(fetchLimit, MAX_VOTE_HISTORY_RESULTS);
       const [historyResponse, statsResponse] = await Promise.all([
         fetch(`/api/validators/votes?validatorId=${encodeURIComponent(validatorId)}&limit=${effectiveLimit}`),
         fetch(`/api/validators/vote-stats?validatorId=${encodeURIComponent(validatorId)}&limit=${effectiveLimit}`)
@@ -64,19 +66,22 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
   }, [limit]);
 
   const handleAllClick = () => {
-    setLimit(0); // Fetch all votes (up to 300)
+    setLimit(0); // Fetch all votes (up to MAX_VOTE_HISTORY_RESULTS)
   };
 
   const handleRecentClick = () => {
-    setLimit(50); // Fetch last 50 votes
+    setLimit(RECENT_HISTORY_RESULTS); // Fetch last RECENT_HISTORY_RESULTS votes
   };
+
+  const isRecentActive = limit === RECENT_HISTORY_RESULTS;
+  const isAllActive = limit === 0;
 
   return (
     <div className="mt-8">
       {stats && (
         <div className="mt-4">
           <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-2">
-            Vote Statistics
+            Vote Statistics {isRecentActive ? "(Recent)" : "(All)"}
           </h3>
           <p className="text-sm text-zinc-600 dark:text-zinc-300">
             <span className="font-semibold">Total Votes: </span>
@@ -112,63 +117,72 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
           <Button
             variant="outline"
             size="sm"
-            onClick={handleAllClick}
+            onClick={handleRecentClick}
             className="text-zinc-600 dark:text-zinc-300 border-zinc-300 dark:border-zinc-600 cursor-pointer"
           >
-            All
+            {isRecentActive && <span className="inline-block w-2 h-2 bg-teal-500 mr-1"></span>}
+            Recent
           </Button>
           <Button
             variant="outline"
             size="sm"
-            onClick={handleRecentClick}
+            onClick={handleAllClick}
             className="text-zinc-600 dark:text-zinc-300 border-zinc-300 dark:border-zinc-600 cursor-pointer"
           >
-            Recent
+            {isAllActive && <span className="inline-block w-2 h-2 bg-teal-500 mr-1"></span>}
+            All
           </Button>
         </div>
       </div>
       {isLoading ? (
-        <p className="text-sm text-zinc-500 dark:text-zinc-400">Loading vote history...</p>
+        <LoadingSpinner type="beat" message="Loading vote history..." />
       ) : voteHistory.length > 0 ? (
-        <table className="w-full text-sm text-left text-zinc-600 dark:text-zinc-300">
-          <thead className="text-xs uppercase bg-zinc-100 dark:bg-zinc-700">
-            <tr>
-              <th className="px-4 py-2">Query Text</th>
-              <th className="px-4 py-2">Vote</th>
-              <th className="px-4 py-2">Rationale</th>
-              <th className="px-4 py-2">Timestamp</th>
-            </tr>
-          </thead>
-          <tbody>
-            {voteHistory.map((vote, index) => {
-              // Log each vote for debugging
-              if (process.env.NODE_ENV === "development") {
-                console.log(`Rendering vote ${index}:`, {
-                  voteId: vote.id,
-                  queryText: vote.queryText,
-                  response: vote.validatorResponses,
-                  timestamp: vote.timestamp,
-                });
-              }
-              const response = vote.validatorResponses[0]; // Single response for this validator
-              return (
-                <tr
-                  key={vote.id}
-                  className="border-b dark:border-zinc-600"
-                >
-                  <td className="px-4 py-2">{vote.queryText}</td>
-                  <td className="px-4 py-2">{response.vote}</td>
-                  <td className="px-4 py-2">{response.rationale}</td>
-                  <td className="px-4 py-2">
-                    {vote.timestamp
-                      ? new Date(vote.timestamp).toLocaleString()
-                      : "N/A"}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <>
+          <table className="w-full text-sm text-left text-zinc-600 dark:text-zinc-300">
+            <thead className="text-xs uppercase bg-zinc-100 dark:bg-zinc-700">
+              <tr>
+                <th className="px-4 py-2">Query Text</th>
+                <th className="px-4 py-2">Vote</th>
+                <th className="px-4 py-2">Rationale</th>
+                <th className="px-4 py-2">Timestamp</th>
+              </tr>
+            </thead>
+            <tbody>
+              {voteHistory.map((vote, index) => {
+                // Log each vote for debugging
+                if (process.env.NODE_ENV === "development") {
+                  console.log(`Rendering vote ${index}:`, {
+                    voteId: vote.id,
+                    queryText: vote.queryText,
+                    response: vote.validatorResponses,
+                    timestamp: vote.timestamp,
+                  });
+                }
+                const response = vote.validatorResponses[0]; // Single response for this validator
+                return (
+                  <tr
+                    key={vote.id}
+                    className="border-b dark:border-zinc-600"
+                  >
+                    <td className="px-4 py-2">{vote.queryText}</td>
+                    <td className="px-4 py-2">{response.vote}</td>
+                    <td className="px-4 py-2">{response.rationale}</td>
+                    <td className="px-4 py-2">
+                      {vote.timestamp
+                        ? new Date(vote.timestamp).toLocaleString()
+                        : "N/A"}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+          <p className="text-sm text-zinc-500 dark:text-zinc-400 mt-2">
+            {isRecentActive
+              ? `Showing the most recent ${RECENT_HISTORY_RESULTS} results.`
+              : `This is currently capped at ${MAX_VOTE_HISTORY_RESULTS} results.`}
+          </p>
+        </>
       ) : (
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
           No vote history available for this validator.
