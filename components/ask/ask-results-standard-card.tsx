@@ -224,7 +224,7 @@ export default function AskResultsStandardCard({
                 return (
                   <div
                     key={response.id}
-                    className={`flex flex-col items-center justify-center max-w-[40px] overflow-wrap-anywhere`}
+                    className={`flex flex-col items-center justify-center max-w-[40px] overflow-wrap-anywhere relative group`}
                   >
                     <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-1">
                       {response.vote}
@@ -247,6 +247,25 @@ export default function AskResultsStandardCard({
                         height={38}
                         className="grayscale object-contain"
                       />
+                    </div>
+                    {/* Tooltip */}
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-100 dark:bg-zinc-700 rounded-md shadow-lg text-sm text-zinc-600 dark:text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                      <p>
+                        <span className="font-semibold">Provider: </span>
+                        {response.provider}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Profile: </span>
+                        {response.profileName}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Vote: </span>
+                        {response.vote}
+                      </p>
+                      <p>
+                        <span className="font-semibold">Rationale: </span>
+                        {response.rationale}
+                      </p>
                     </div>
                   </div>
                 );
