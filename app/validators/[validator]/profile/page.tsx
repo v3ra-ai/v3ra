@@ -1,6 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
-import { getValidatorById } from "@/lib/db/validators";
+import { getValidatorById, getValidatorVoteStats } from "@/lib/db/validators";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import VoteHistoryTable from "@/components/validators/vote-history-table";
@@ -29,7 +29,7 @@ export default async function ValidatorProfilePage({
 }) {
   const { validator: validatorId } = await params; // Await params to resolve validator
   const validator = await getValidatorById(validatorId);
-  // const stats = await getValidatorVoteStats(validatorId);
+  const stats = await getValidatorVoteStats(validatorId);
   const imageName = getValidatorImageName(validatorId);
 
   if (!validator) {
@@ -91,7 +91,11 @@ export default async function ValidatorProfilePage({
                     </div>
                   </div>
                   <div>
-                    <div className="text-3xl">97%</div>
+                    <div className="text-3xl">
+                      {stats && stats.consensusMatchPercentage !== undefined
+                        ? `${Math.round(stats.consensusMatchPercentage)}%`
+                        : <span className="text-zinc-400 dark:text-zinc-500">---</span>}
+                    </div>
                     <div className="w-24 mt-1 text-xs mr-2 text-zinc-700 dark:text-zinc-300">
                       Reliability
                     </div>
@@ -130,7 +134,6 @@ export default async function ValidatorProfilePage({
                 {validator.updatedAt.toLocaleString()}
               </p>
             </div>
-
 
             <VoteHistoryTable validatorId={validatorId} />
           </CardContent>

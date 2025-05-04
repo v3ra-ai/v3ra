@@ -138,7 +138,7 @@ export default function VoteHistoryTable({
       {stats && (
         <div className="space-y-4 py-4 border-y-2">
           <h2 className="text-lg text-center font-semibold text-zinc-800 dark:text-zinc-200">
-            Vote Statistics (Recent)
+            Vote Statistics {isRecentActive ? "(Recent)" : "(All)"}
           </h2>
           <div className="flex flex-wrap gap-4 w-full md: justify-center ">
             <div className="w-full sm:w-auto justify-center">
@@ -161,7 +161,7 @@ export default function VoteHistoryTable({
               <h3 className="text-sm text-center font-medium text-zinc-600 dark:text-zinc-300">
                 NO Votes
               </h3>
-              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
+              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200 text-red-500">
                 {stats.noVotes}
               </p>
             </div>
@@ -250,7 +250,7 @@ export default function VoteHistoryTable({
                 return (
                   <tr key={vote.id} className="border-b dark:border-zinc-600">
                     <td className="px-4 py-2">{vote.queryText}</td>
-                    <td className="px-4 py-2">{response.vote}</td>
+                    <td className={`px-4 py-2 ${response.vote==="NO" ? "text-red-600 dark:text-red-400": "text-teal-600 dark:text-teal-400"}`}>{response.vote}</td>
                     <td className="px-4 py-2">{response.rationale}</td>
                     <td className="px-4 py-2">
                       {vote.timestamp

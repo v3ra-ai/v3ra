@@ -78,48 +78,49 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
     >
       <div className="flex px-2 font-light text-xs dark:text-zinc-500 text-zinc-500">
         <div className="w-1/2">
-          <Skeleton className="h-4 w-24 skeleton-loading" />
+          <Skeleton className="h-4 w-24" />
         </div>
         <div className="w-1/2 flex justify-end">
           <div className="flex space-x-2">
-            <Skeleton className="h-4 w-4 skeleton-loading" />
-            <Skeleton className="h-4 w-4 skeleton-loading" />
-            <Skeleton className="h-4 w-4 skeleton-loading" />
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-4" />
           </div>
         </div>
       </div>
       <hr className="h-1" />
       <div className="p-4">
         <div className="flex w-full justify-center items-center space-x-2">
-          <div className="">Loading</div>
-          <Skeleton className="h-7 w-7 rounded-full skeleton-loading" />
-          <Skeleton className="h-6 w-3/4 skeleton-loading" />
+
+          <Skeleton className="h-7 w-7 rounded-full" />
+          <Skeleton className="h-6 w-3/4" />
+        </div>
+        <div className="flex mt-4">
+          <Skeleton className="h-10 w-24" />
+          <div className="w-full justify-center text-zinc-300 dark:text-zinc-600">Loading...</div>
         </div>
         <div className="mt-4">
-          <Skeleton className="h-10 w-24 skeleton-loading" />
-        </div>
-        <div className="mt-4">
-          <Skeleton className="h-4 w-full skeleton-loading" />
-          <Skeleton className="h-4 w-5/6 mt-1 skeleton-loading" />
-          <Skeleton className="h-4 w-4/5 mt-1 skeleton-loading" />
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6 mt-1" />
+          <Skeleton className="h-4 w-4/5 mt-1" />
         </div>
         <div className="flex items-center space-x-2 mt-5 mb-5">
-          <Skeleton className="h-6 w-8 skeleton-loading" />
-          <Skeleton className="h-4 w-24 skeleton-loading" />
-          <Skeleton className="h-6 w-16 skeleton-loading" />
+          <Skeleton className="h-6 w-8" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-6 w-16" />
         </div>
         <div className="flex flex-wrap gap-4">
           {Array.from({ length: 5 }).map((_, index) => (
             <div key={index} className="flex flex-col items-center">
-              <Skeleton className="h-4 w-12 mb-1 skeleton-loading" />
-              <Skeleton className="h-10 w-10 rounded-full skeleton-loading" />
+              <Skeleton className="h-4 w-12 mb-1" />
+              <Skeleton className="h-10 w-10 rounded-full" />
             </div>
           ))}
         </div>
       </div>
       <hr className="h-1" />
       <div className="p-2">
-        <Skeleton className="h-4 w-32 skeleton-loading" />
+        <Skeleton className="h-4 w-32" />
       </div>
     </div>
   );
