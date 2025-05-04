@@ -50,7 +50,7 @@ export default async function ValidatorProfilePage({
         }}
       />
       <div className="container mx-auto py-8">
-        <Card className="bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 md:mx-[5%] lg:mx-[15%]">
+        <Card className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
           <CardContent className="space-y-6">
             <div className="flex items-center space-x-4">
               <div className="flex w-full">

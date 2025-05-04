@@ -4,6 +4,44 @@ import { AIValidator } from "../validators/types";
 import { VoteResult } from "@/lib/types";
 import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
 
+// Exception list of validator IDs to skip
+const EXCLUDED_VALIDATOR_IDS = ["3d279b08-9b0a-46af-9b40-30b79ea7f787"];
+
+// Fetch all validators from the database
+export async function getValidators(): Promise<Validator[]> {
+  try {
+    const validators = await prisma.validator.findMany();
+    // Log fetched validators for debugging
+    if (process.env.NODE_ENV === "development") {
+      console.log("Fetched validators:", validators);
+    }
+    return validators
+      .filter((validator) => !EXCLUDED_VALIDATOR_IDS.includes(validator.id))
+      .map((validator) => ({
+        id: validator.id,
+        publicKey: validator.publicKey,
+        isLeader: validator.isLeader,
+        provider: validator.provider,
+        profileName: validator.profileName,
+        modelName: validator.modelName,
+        description: validator.description,
+        avatarUrl: validator.avatarUrl,
+        validatorType: validator.validatorType,
+        reliability: validator.reliability,
+        totalVotes: validator.totalVotes,
+        correctVotes: validator.correctVotes,
+        active: validator.active,
+        createdAt: validator.createdAt,
+        updatedAt: validator.updatedAt,
+      }));
+  } catch (error) {
+    console.error("Error fetching validators:", error);
+    return [];
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
 // Fetch validator by ID from the database
 export async function getValidatorById(id: string): Promise<Validator | null> {
   try {
@@ -238,6 +276,7 @@ export function dbValidatorToAIValidator(validator: Validator): AIValidator {
     }),
   };
 }
+
 
 export async function updateValidatorMetrics(
   validatorId: string,

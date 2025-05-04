@@ -39,20 +39,21 @@ export default function AskFooter() {
 
   return (
     <footer className="w-full bg-zinc-100 dark:bg-zinc-900">
-      <div className="w-full py-4 border-t border-zinc-200 dark:border-zinc-800">
-        <div className="container mx-auto px-4 max-w-6xl">
-          <QueryStoreDebugPanel />
-          <div className="text-center text-sm text-zinc-600 dark:text-zinc-400 mt-4">
-            &copy; 2025 Verafy. All rights reserved.
-          </div>
-        </div>
-      </div>
+
       {/* Three column row */}
       <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <FooterLinkColumn title="About" links={aboutLinks} />
           <FooterLinkColumn title="Support" links={supportLinks} />
           <FooterLinkColumn title="Legal" links={legalLinks} />
+        </div>
+      </div>
+      <div className="w-full py-4 border-t border-zinc-200 dark:border-zinc-800">
+        <div className="container mx-auto px-4 max-w-6xl text-zinc-500">
+          <QueryStoreDebugPanel />
+          <div className="text-center text-sm text-zinc-600 dark:text-zinc-400 mt-4">
+            &copy; 2025 Verafy. All rights reserved.
+          </div>
         </div>
       </div>
     </footer>

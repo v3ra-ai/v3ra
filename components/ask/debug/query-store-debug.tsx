@@ -19,9 +19,9 @@ export default function QueryStoreDebugPanel() {
   const { voteHistory, lastVoteResult } = useVoteStore();
 
   return (
-    <div className="p-4 bg-gray-100 text-sm text-black rounded shadow max-w-2xl mx-auto my-8">
+    <div className="p-4 text-sm text-black dark:text-zinc-200 rounded shadow max-w-2xl mx-auto my-8 bg-">
       <h2 className="text-lg font-bold mb-2">Query Store Diagnostics</h2>
-      <ul className="space-y-1">
+      <ul className="space-y-1 ">
         <li><strong>User Free Credits:</strong> {userFreeCredits}</li>
         <li><strong>User Paid Credits:</strong> {userPaidCredits}</li>
         <li><strong>User Total Credits:</strong> {userCreditsTotal}</li>

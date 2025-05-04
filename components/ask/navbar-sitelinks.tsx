@@ -16,16 +16,22 @@ export function NavbarSitelinks() {
         Home
       </Link>
       <Link
+        href="/ask"
+        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
+      >
+        Ask
+      </Link>
+      {/* <Link
         href="/explorer"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Explorer
-      </Link>
+      </Link> */}
       <Link
-        href="/become-validator"
+        href="/validators/"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
-        Start a validator
+        Validators
       </Link>
       <Link
         href="/credits"
