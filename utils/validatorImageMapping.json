@@ -2,26 +2,26 @@
   {
       "id": "650af699-4aa1-4921-8e81-28efa55aebaa",
       "profile": "OpenAI gpt-40 Validator",
-      "imageName": "chatgpt.png"
+      "avatarUrl": "chatgpt.png"
   },
   {
       "id": "31a0275e-0703-493a-8a2e-b58ab117b92a",
       "profile": "GEMINI Validator",
-      "imageName": "gemini.png"
+      "avatarUrl": "gemini.png"
   },
   {
       "id": "1192bc8f-32d9-406d-ba33-673d8996ada4",
       "profile": "GROK-1 Validator",
-      "imageName": "grok.png"
+      "avatarUrl": "grok.png"
   },
   {
       "id": "b6e88f6c-4b89-4965-8678-c7822ecd95be",
       "profile": "GPT-4O Validator",
-      "imageName": "chatgpt.png"
+      "avatarUrl": "chatgpt.png"
   },
   {
       "id": "6d9eb3aa-134c-4358-925b-edb807700b73",
       "profile": "SONNET-20240229 Validator",
-      "imageName": "claude.png"
+      "avatarUrl": "claude.png"
   }
 ]

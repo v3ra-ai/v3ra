@@ -6,16 +6,18 @@ export interface Validator {
   id: string;
   publicKey: string;
   isLeader: boolean;
-  lastVote: boolean | null;
-  lastResponse: string | null;
   provider: string;
   profileName: string;
-  lastRationale: string | null;
-  modelName?: string;
-  description?: string;
-  avatarUrl?: string;
-  reliability?: number;
-  validatorType?: string;
+  modelName: string;
+  description: string | null; // Allow null to match Prisma
+  avatarUrl: string | null; // Allow null to match Prisma
+  validatorType: string | null; // Allow null to match Prisma
+  reliability: number | null; // Allow null to match Prisma
+  totalVotes: number;
+  correctVotes: number;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export interface ValidatorResponse {

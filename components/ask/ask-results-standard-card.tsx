@@ -24,6 +24,7 @@ import {
 import { useCleanText } from "@/hooks/useCleanText";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import {
   sanitizeQueryText,
@@ -220,7 +221,17 @@ export default function AskResultsStandardCard({
               {sanitizedQuery.validatorResponses.map((response) => {
                 const mapping = validatorImageMapping.find(
                   (m) => m.id === response.id
-                );
+                ) as { id: string; profile: string; avatarUrl: string | null } | undefined;
+                // Enhanced debugging for validator data
+                if (process.env.NODE_ENV === "development") {
+                  console.log(`Validator ID: ${response.id}`);
+                  console.log(`Mapping found: ${!!mapping}`);
+                  if (mapping) {
+                    console.log(`Mapping data:`, mapping);
+                  } else {
+                    console.log(`No mapping for ID ${response.id} in validatorImageMapping`);
+                  }
+                }
                 return (
                   <div
                     key={response.id}
@@ -229,25 +240,27 @@ export default function AskResultsStandardCard({
                     <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-1">
                       {response.vote}
                     </p>
-                    <div
-                      className={`flex w-[40px] h-[40px] ${
-                        response.vote === "YES"
-                          ? "border border-green-500"
-                          : "border border-red-500"
-                      }`}
-                    >
-                      <Image
-                        src={
-                          mapping
-                            ? `/icons/${mapping.imageName}`
-                            : "/icons/placeholder.png"
-                        }
-                        alt={response.profileName}
-                        width={40}
-                        height={38}
-                        className="grayscale object-contain"
-                      />
-                    </div>
+                    <Link href={`/validators/${response.id}/profile`}>
+                      <div
+                        className={`flex w-[40px] h-[40px] ${
+                          response.vote === "YES"
+                            ? "border border-green-500"
+                            : "border border-red-500"
+                        } cursor-pointer hover:opacity-80 transition-opacity`}
+                      >
+                        <Image
+                          src={
+                            mapping?.avatarUrl
+                              ? `/icons/${mapping.avatarUrl}`
+                              : "/icons/placeholder.png"
+                          }
+                          alt={response.profileName}
+                          width={40}
+                          height={38}
+                          className="grayscale object-contain"
+                        />
+                      </div>
+                    </Link>
                     {/* Tooltip */}
                     <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-100 dark:bg-zinc-700 rounded-md shadow-lg text-sm text-zinc-600 dark:text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
                       <p>

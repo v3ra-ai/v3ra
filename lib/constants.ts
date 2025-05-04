@@ -37,3 +37,6 @@ export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT; // D
 export const VOTE_YES = "YES";
 export const VOTE_NO = "NO";
 export const VOTE_ERROR = "ERROR";
+
+export const MAX_VOTE_HISTORY_RESULTS = 300;
+export const RECENT_HISTORY_RESULTS = 50;
