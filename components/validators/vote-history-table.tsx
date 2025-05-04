@@ -4,7 +4,10 @@ import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
-import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
+import {
+  MAX_VOTE_HISTORY_RESULTS,
+  RECENT_HISTORY_RESULTS,
+} from "@/lib/constants";
 
 interface VoteHistoryTableProps {
   validatorId: string;
@@ -18,7 +21,9 @@ interface VoteStats {
   nonConsensusPercentage: number;
 }
 
-export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps) {
+export default function VoteHistoryTable({
+  validatorId,
+}: VoteHistoryTableProps) {
   const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
   const [stats, setStats] = useState<VoteStats | null>(null);
   const [limit, setLimit] = useState<number>(RECENT_HISTORY_RESULTS); // Default to RECENT_HISTORY_RESULTS
@@ -27,19 +32,30 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
   const fetchVoteData = async (fetchLimit: number) => {
     setIsLoading(true);
     try {
-      const effectiveLimit = fetchLimit === 0 ? MAX_VOTE_HISTORY_RESULTS : Math.min(fetchLimit, MAX_VOTE_HISTORY_RESULTS);
+      const effectiveLimit =
+        fetchLimit === 0
+          ? MAX_VOTE_HISTORY_RESULTS
+          : Math.min(fetchLimit, MAX_VOTE_HISTORY_RESULTS);
       const [historyResponse, statsResponse] = await Promise.all([
-        fetch(`/api/validators/votes?validatorId=${encodeURIComponent(validatorId)}&limit=${effectiveLimit}`),
-        fetch(`/api/validators/vote-stats?validatorId=${encodeURIComponent(validatorId)}&limit=${effectiveLimit}`)
+        fetch(
+          `/api/validators/votes?validatorId=${encodeURIComponent(validatorId)}&limit=${effectiveLimit}`
+        ),
+        fetch(
+          `/api/validators/vote-stats?validatorId=${encodeURIComponent(validatorId)}&limit=${effectiveLimit}`
+        ),
       ]);
 
       if (!historyResponse.ok) {
         const errorText = await historyResponse.text();
-        throw new Error(`Failed to fetch vote history: ${historyResponse.status} ${historyResponse.statusText} - ${errorText}`);
+        throw new Error(
+          `Failed to fetch vote history: ${historyResponse.status} ${historyResponse.statusText} - ${errorText}`
+        );
       }
       if (!statsResponse.ok) {
         const errorText = await statsResponse.text();
-        throw new Error(`Failed to fetch vote stats: ${statsResponse.status} ${statsResponse.statusText} - ${errorText}`);
+        throw new Error(
+          `Failed to fetch vote stats: ${statsResponse.status} ${statsResponse.statusText} - ${errorText}`
+        );
       }
 
       const historyData = await historyResponse.json();
@@ -49,11 +65,20 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
       setStats(statsData);
 
       if (process.env.NODE_ENV === "development") {
-        console.log(`Fetched vote history for validator ${validatorId}:`, historyData);
-        console.log(`Fetched vote stats for validator ${validatorId}:`, statsData);
+        console.log(
+          `Fetched vote history for validator ${validatorId}:`,
+          historyData
+        );
+        console.log(
+          `Fetched vote stats for validator ${validatorId}:`,
+          statsData
+        );
       }
     } catch (error) {
-      console.error(`Error fetching vote data for validator ${validatorId}:`, error);
+      console.error(
+        `Error fetching vote data for validator ${validatorId}:`,
+        error
+      );
       setVoteHistory([]);
       setStats(null);
     } finally {
@@ -78,7 +103,7 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
 
   return (
     <div className="mt-8">
-      {stats && (
+      {/* {stats && (
         <div className="mt-4">
           <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-2">
             Vote Statistics {isRecentActive ? "(Recent)" : "(All)"}
@@ -108,7 +133,66 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
             {stats.nonConsensusPercentage}%
           </p>
         </div>
+      )} */}
+
+      {stats && (
+        <div className="space-y-4 py-4 border-y-2">
+          <h2 className="text-lg text-center font-semibold text-zinc-800 dark:text-zinc-200">
+            Vote Statistics (Recent)
+          </h2>
+          <div className="flex flex-wrap gap-4 w-full md: justify-center ">
+            <div className="w-full sm:w-auto justify-center">
+              <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                Total Votes
+              </h3>
+              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
+                {stats.totalVotes}
+              </p>
+            </div>
+            <div className="w-full sm:w-auto">
+              <h3 className="text-sm text-center font-medium text-zinc-600 dark:text-zinc-300">
+                YES Votes
+              </h3>
+              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
+                {stats.yesVotes}
+              </p>
+            </div>
+            <div className="w-full sm:w-auto">
+              <h3 className="text-sm text-center font-medium text-zinc-600 dark:text-zinc-300">
+                NO Votes
+              </h3>
+              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
+                {stats.noVotes}
+              </p>
+            </div>
+            <div className="w-full sm:w-auto">
+              <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-300">
+                Reliability Rating
+              </h3>
+              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
+                {Math.round(stats.consensusMatchPercentage)}%
+              </p>
+            </div>
+            <div className="w-full sm:w-auto">
+              <h3 className="text-sm text-center font-medium text-zinc-600 dark:text-zinc-300">
+                Consensus
+              </h3>
+              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
+                {Math.round(stats.consensusMatchPercentage)}%
+              </p>
+            </div>
+            <div className="w-full sm:w-auto">
+              <h3 className="text-sm text-center font-medium text-zinc-600 dark:text-zinc-300">
+                Non-Consensus
+              </h3>
+              <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
+                {Math.round(stats.nonConsensusPercentage)}%
+              </p>
+            </div>
+          </div>
+        </div>
       )}
+
       <div className="flex items-center justify-between mb-4 mt-4">
         <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200">
           Vote History ({voteHistory.length})
@@ -120,7 +204,9 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
             onClick={handleRecentClick}
             className="text-zinc-600 dark:text-zinc-300 border-zinc-300 dark:border-zinc-600 cursor-pointer"
           >
-            {isRecentActive && <span className="inline-block w-2 h-2 bg-teal-500 mr-1"></span>}
+            {isRecentActive && (
+              <span className="inline-block w-2 h-2 bg-teal-500 mr-1"></span>
+            )}
             Recent
           </Button>
           <Button
@@ -129,7 +215,9 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
             onClick={handleAllClick}
             className="text-zinc-600 dark:text-zinc-300 border-zinc-300 dark:border-zinc-600 cursor-pointer"
           >
-            {isAllActive && <span className="inline-block w-2 h-2 bg-teal-500 mr-1"></span>}
+            {isAllActive && (
+              <span className="inline-block w-2 h-2 bg-teal-500 mr-1"></span>
+            )}
             All
           </Button>
         </div>
@@ -160,10 +248,7 @@ export default function VoteHistoryTable({ validatorId }: VoteHistoryTableProps)
                 }
                 const response = vote.validatorResponses[0]; // Single response for this validator
                 return (
-                  <tr
-                    key={vote.id}
-                    className="border-b dark:border-zinc-600"
-                  >
+                  <tr key={vote.id} className="border-b dark:border-zinc-600">
                     <td className="px-4 py-2">{vote.queryText}</td>
                     <td className="px-4 py-2">{response.vote}</td>
                     <td className="px-4 py-2">{response.rationale}</td>
