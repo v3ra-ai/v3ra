@@ -19,6 +19,7 @@ interface CreditSliderUIProps {
 export default function CreditSliderUI({
   creditAmount,
   setCreditAmount,
+  requiredSol,
   creditBalance,
   solBalance,
   isLoading,
@@ -29,6 +30,15 @@ export default function CreditSliderUI({
   onChangeWallet,
   decimalPlaces,
 }: CreditSliderUIProps) {
+  // Debug log to confirm cost display
+  if (process.env.NODE_ENV === "development") {
+    console.log("CreditSliderUI cost display:", {
+      requiredSol,
+      decimalPlaces,
+      formattedCost: requiredSol.toFixed(decimalPlaces),
+    });
+  }
+
   return (
     <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
       <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
@@ -66,6 +76,11 @@ export default function CreditSliderUI({
           </div>
         </div>
       </div>
+      <div className="mb-6 block">
+        <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+          Cost: {requiredSol.toFixed(decimalPlaces)} SOL
+        </p>
+      </div>
       <div className="mb-4">
         <p className="text-sm text-zinc-700 dark:text-zinc-300">
           Current Balance:{" "}
@@ -92,7 +107,7 @@ export default function CreditSliderUI({
           creditAmount === 0 ||
           (!isWalletConnected ? false : !isValid || !hasEnoughSol)
             ? "bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed"
-            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer"
+            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
         }`}
       >
         {isLoading

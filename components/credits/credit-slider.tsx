@@ -10,7 +10,7 @@ import { VERAFY_WALLET } from "@/lib/solana-constants";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, Transaction, Connection } from "@solana/web3.js";
+import { PublicKey, Transaction, Connection, SendTransactionError } from "@solana/web3.js";
 
 export default function CreditSlider() {
   const [creditAmount, setCreditAmount] = useState(10);
@@ -103,13 +103,14 @@ export default function CreditSlider() {
     const attemptTransaction = async (attempt: number): Promise<boolean> => {
       console.log(
         `Attempt ${attempt}: Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`,
+        { creditAmount, recipient: VERAFY_WALLET, requiredSol }
       );
       try {
         const result = await sendTransaction(
           creditAmount,
           new PublicKey(VERAFY_WALLET),
         );
-        console.log("Transaction data:", {
+        console.log("Transaction result:", {
           signature: result.signature,
           signedTx: result.signedTx ? "Transaction" : "null",
           publicKey: publicKey?.toString(),
@@ -139,6 +140,15 @@ export default function CreditSlider() {
         }
       } catch (error) {
         console.error(`Attempt ${attempt} failed:`, error);
+        if (error instanceof SendTransactionError) {
+          console.error("SendTransactionError details:", {
+            message: error.message,
+            logs: error.logs,
+          });
+          toast.error(`Transaction failed: ${error.message}. Check console for logs.`);
+        } else {
+          toast.error("Transaction failed to complete. Please try again.");
+        }
         return false;
       }
     };
@@ -151,7 +161,7 @@ export default function CreditSlider() {
       await new Promise((resolve) => setTimeout(resolve, 500));
       success = await attemptTransaction(2);
       if (!success) {
-        toast.error("Transaction failed to complete. Please try again.");
+        toast.error("Transaction failed after retry. Please try again.");
       }
     }
   }, [
