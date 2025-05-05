@@ -1,37 +1,57 @@
 "use client";
 
-import React from 'react';
-import { BeatLoader, ClipLoader, PulseLoader, RingLoader } from 'react-spinners';
+import React from "react";
+import {
+  BeatLoader,
+  ClipLoader,
+  PulseLoader,
+  RingLoader,
+  ScaleLoader,
+} from "react-spinners";
 
-type LoaderType = 'beat' | 'clip' | 'pulse' | 'ring';
+type LoaderType = "beat" | "clip" | "pulse" | "ring" | "scale";
 
 interface LoadingSpinnerProps {
   type?: LoaderType;
   message?: string;
   color?: string;
   size?: number;
+  noWrapper?: boolean; // New prop
 }
 
 export const LoadingSpinner = ({
-  type = 'beat',
-  message = 'Loading...',
-  color = '#14b8a6',
+  type = "beat",
+  message = "Loading...",
+  color = "#14b8a6",
   size = 15,
+  noWrapper = false, // Default to false
 }: LoadingSpinnerProps) => {
   const renderLoader = () => {
     switch (type) {
-      case 'beat':
+      case "beat":
         return <BeatLoader color={color} size={size} />;
-      case 'clip':
+      case "clip":
         return <ClipLoader color={color} size={size} />;
-      case 'pulse':
+      case "pulse":
         return <PulseLoader color={color} size={size / 2} />;
-      case 'ring':
+      case "ring":
         return <RingLoader color={color} size={size * 2} />;
+      case "scale":
+        return <ScaleLoader color={color} />;
       default:
         return <BeatLoader color={color} size={size} />;
     }
   };
+
+  if (noWrapper) {
+    console.log("Rendering LoadingSpinner with noWrapper: true"); // Debug log
+    return (
+      <>
+        {renderLoader()}
+        {message && <span className="text-lg font-light">{message}</span>}
+      </>
+    );
+  }
 
   return (
     <div className="w-full flex justify-center items-center py-8">

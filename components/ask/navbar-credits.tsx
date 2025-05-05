@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
+import { LoadingSpinner } from "@/components/loading-spinner-new"; // Import LoadingSpinner
 
 export default function NavbarCredits() {
   const { publicKey } = useWallet();
@@ -38,7 +39,6 @@ export default function NavbarCredits() {
         // Use paidCredits if available, fallback to credits
         setPaidCredits(data.paidCredits ?? data.credits ?? 0);
       } catch (error) {
-        // const errorMsg = error instanceof Error ? error.message : "Unknown error";
         console.error("Error fetching paid credits:", error);
         setPaidCredits(0);
       }
@@ -57,7 +57,20 @@ export default function NavbarCredits() {
       <Link href="/credits/">
         <span>Saved Credits:</span>{" "}
         <span className="text-sky-700 dark:text-sky-300 bg-zinc-200 dark:bg-zinc-700 ml-1 px-2 py-1 rounded-md">
-          {paidCredits !== null ? paidCredits : "Loading..."}
+          {paidCredits !== null ? (
+            paidCredits
+          ) : (
+            <>
+              {console.log("Rendering LoadingSpinner for credits fetch")} {/* Debug log */}
+              <LoadingSpinner
+                noWrapper
+                type="pulse"
+                color="#d946ef"
+                size={5}
+                message={""} // No message to keep it compact
+              />
+            </>
+          )}
         </span>
       </Link>
     </div>
