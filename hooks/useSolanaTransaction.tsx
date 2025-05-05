@@ -45,23 +45,61 @@ export const useSolanaTransaction = (
 
       let lastError: unknown;
       const maxAttempts = 3;
-      const delayMs = 1000;
+      const delayMs = 2000; // Increased delay for retries
+
+      // Log connection endpoint
+      console.log("Connection endpoint:", connection.rpcEndpoint);
+
+      // Validate accounts before transaction
+      try {
+        const senderAccount = await connection.getAccountInfo(publicKey);
+        const destAccount = await connection.getAccountInfo(destination);
+        console.log("Account validation:", {
+          sender: {
+            address: publicKey.toBase58(),
+            initialized: !!senderAccount,
+            lamports: senderAccount?.lamports || 0,
+          },
+          destination: {
+            address: destination.toBase58(),
+            initialized: !!destAccount,
+            lamports: destAccount?.lamports || 0,
+          },
+        });
+        if (!senderAccount) {
+          setError("Sender account not initialized");
+          setIsSending(false);
+          throw new Error("Sender account not initialized");
+        }
+        if (!destAccount) {
+          setError("Recipient account not initialized");
+          setIsSending(false);
+          throw new Error("Recipient account not initialized");
+        }
+      } catch (accountError: unknown) {
+        console.error("Account validation failed:", accountError);
+        const errorMessage =
+          accountError instanceof Error ? accountError.message : "Unknown account validation error";
+        setError(`Failed to validate accounts: ${errorMessage}`);
+        setIsSending(false);
+        throw new Error(errorMessage);
+      }
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-          // Create and configure transaction
+          // Create transaction
           const transaction = new Transaction();
           transaction.add(
             ComputeBudgetProgram.setComputeUnitLimit({
-              units: 200_000,
+              units: 400_000, // Increased for reliability
             }),
             ComputeBudgetProgram.setComputeUnitPrice({
-              microLamports: 100_000,
+              microLamports: 500_000, // Increased for priority
             }),
             SystemProgram.transfer({
               fromPubkey: publicKey,
               toPubkey: destination,
-              lamports: Math.round(credits * QUERY_COST * 1_000_000_000), // CREDIT_PRICE_SOL * LAMPORTS_PER_SOL
+              lamports: Math.round(credits * QUERY_COST * 1_000_000_000),
             }),
           );
 
@@ -76,6 +114,7 @@ export const useSolanaTransaction = (
             throw new Error("Transaction destination does not match expected recipient");
           }
 
+          // Fetch fresh blockhash per attempt
           const { blockhash, lastValidBlockHeight } =
             await connection.getLatestBlockhash("confirmed");
           transaction.recentBlockhash = blockhash;
@@ -109,13 +148,18 @@ export const useSolanaTransaction = (
             throw new Error("Transaction signature invalid");
           }
 
-          const sig = await connection.sendRawTransaction(signed.serialize(), {
+          // Log serialized transaction
+          const serializedTx = signed.serialize();
+          console.log("Serialized transaction:", {
+            size: serializedTx.length,
+            signatures: signed.signatures.map((s) => s.signature?.toString("hex")),
+          });
+
+          const sig = await connection.sendRawTransaction(serializedTx, {
             skipPreflight: false,
             preflightCommitment: "confirmed",
           });
-          console.log(
-            `Transaction sent, attempt ${attempt}, signature: ${sig}`,
-          );
+          console.log(`Transaction sent, attempt ${attempt}, signature: ${sig}`);
 
           await connection.confirmTransaction(
             { signature: sig, blockhash, lastValidBlockHeight },
@@ -126,27 +170,41 @@ export const useSolanaTransaction = (
           setSignedTx(signed);
           setIsSending(false);
           return { signature: sig, signedTx: signed };
-        } catch (transactionError) {
+        } catch (transactionError: unknown) {
           lastError = transactionError;
           if (transactionError instanceof SendTransactionError) {
-            console.error(sanitizeError(transactionError));
-            setError(`Transaction failed: ${transactionError.message}`);
+            console.error("SendTransactionError:", {
+              message: transactionError.message,
+              logs: transactionError.logs,
+            });
+            setError(
+              `Transaction failed: Simulation failed. Message: ${transactionError.message}. Logs: ${transactionError.logs?.join(", ") || "[]"}`,
+            );
           } else if (transactionError instanceof WalletSignTransactionError) {
             console.error(sanitizeError(transactionError));
             setError("Wallet approval denied");
           } else {
-            console.error(sanitizeError(transactionError));
-            setError("Failed to send transaction");
+            // Handle non-Error types
+            const errorMessage =
+              transactionError instanceof Error
+                ? transactionError.message
+                : String(transactionError) || "Unknown transaction error";
+            console.error("Transaction error:", {
+              error: transactionError,
+              message: errorMessage,
+            });
+            setError(`Transaction failed: ${errorMessage}`);
           }
           if (attempt < maxAttempts) {
-            console.log(
-              `Attempt ${attempt} failed, retrying in ${delayMs}ms...`,
-            );
+            console.log(`Attempt ${attempt} failed, retrying in ${delayMs}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delayMs));
+          } else {
+            setIsSending(false); // Ensure isSending is reset on final failure
+            throw lastError || new Error("Failed to send transaction after retries");
           }
         }
       }
-      setIsSending(false);
+      setIsSending(false); // Ensure isSending is reset
       throw lastError || new Error("Failed to send transaction after retries");
     },
     [publicKey, signTransaction],

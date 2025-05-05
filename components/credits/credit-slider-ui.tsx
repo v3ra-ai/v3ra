@@ -107,7 +107,7 @@ export default function CreditSliderUI({
           creditAmount === 0 ||
           (!isWalletConnected ? false : !isValid || !hasEnoughSol)
             ? "bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed"
-            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
+            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer"
         }`}
       >
         {isLoading

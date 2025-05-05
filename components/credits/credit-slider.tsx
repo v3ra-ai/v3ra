@@ -11,6 +11,7 @@ import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, Connection, SendTransactionError } from "@solana/web3.js";
+import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 
 export default function CreditSlider() {
   const [creditAmount, setCreditAmount] = useState(10);
@@ -35,6 +36,10 @@ export default function CreditSlider() {
 
   // State for solBalance
   const [solBalance, setSolBalance] = useState<number | null>(null);
+
+  console.log(`NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME ${process.env.NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME}`);
+  console.log(`NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC ${process.env.NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC}`);
+
 
   // Fetch SOL balance when wallet is connected
   useEffect(() => {
@@ -83,6 +88,7 @@ export default function CreditSlider() {
   const handlePayment = useCallback(async () => {
     if (!isWalletConnected) {
       setVisible(true);
+      toast.error("Please connect your wallet to proceed.");
       return;
     }
     if (!isValid) {
@@ -96,15 +102,44 @@ export default function CreditSlider() {
       return;
     }
     if (!publicKey || !signTransaction) {
-      toast.error("Wallet not fully connected. Please try again.");
+      setVisible(true);
+      toast.error("Wallet not fully connected. Please reconnect and try again.");
       return;
     }
 
-    const attemptTransaction = async (attempt: number): Promise<boolean> => {
+    const attemptTransaction = async (): Promise<boolean> => {
       console.log(
-        `Attempt ${attempt}: Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`,
-        { creditAmount, recipient: VERAFY_WALLET, requiredSol }
+        `Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`,
+        { creditAmount, recipient: VERAFY_WALLET, requiredSol, walletPublicKey: publicKey.toBase58() }
       );
+
+      // Debug wallet state before transaction
+      if (process.env.NODE_ENV === "development") {
+        console.log("Wallet state before transaction:", {
+          publicKey: publicKey.toBase58(),
+          signTransactionAvailable: !!signTransaction,
+          isWalletConnected,
+        });
+      }
+
+      // Check VERAFY_WALLET initialization
+      try {
+        const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+        const verafyBalance = await connection.getBalance(new PublicKey(VERAFY_WALLET));
+        console.log("VERAFY_WALLET initialization:", {
+          address: VERAFY_WALLET,
+          balanceInSol: verafyBalance / 1_000_000_000,
+        });
+        if (verafyBalance === 0) {
+          toast.error("Recipient wallet (VERAFY_WALLET) is not initialized. Contact support.");
+          return false;
+        }
+      } catch (error) {
+        console.error("Error checking VERAFY_WALLET initialization:", error);
+        toast.error("Failed to verify recipient wallet. Please try again.");
+        return false;
+      }
+
       try {
         const result = await sendTransaction(
           creditAmount,
@@ -133,36 +168,46 @@ export default function CreditSlider() {
         } else {
           console.error("Missing transaction data:", {
             signature: result.signature ?? "undefined",
-            signedTx: result.signedTx ? "Transaction" : "undefined",
+            signedTx: result.signedTx ? "Transaction" : "null",
             publicKey: publicKey?.toString() ?? "undefined",
           });
           return false;
         }
-      } catch (error) {
-        console.error(`Attempt ${attempt} failed:`, error);
-        if (error instanceof SendTransactionError) {
-          console.error("SendTransactionError details:", {
-            message: error.message,
-            logs: error.logs,
-          });
-          toast.error(`Transaction failed: ${error.message}. Check console for logs.`);
+      } catch (error: unknown) {
+        console.error("Transaction failed:", error);
+        if (error instanceof Error) {
+          if (error instanceof WalletSignTransactionError) {
+            console.error("WalletSignTransactionError details:", {
+              message: error.message,
+              name: error.name,
+            });
+            toast.error(
+              "Wallet signing failed: Ensure your wallet (e.g., Phantom) is open, unlocked, set to Devnet, and approve the transaction.",
+            );
+          } else if (error instanceof SendTransactionError) {
+            console.error("SendTransactionError details:", {
+              message: error.message,
+              logs: error.logs,
+            });
+            toast.error(`Transaction failed: ${error.message}. Check console for logs.`);
+          } else {
+            console.error("Generic error details:", {
+              message: error.message,
+              name: error.name,
+            });
+            toast.error(`Transaction failed: ${error.message}. Please try again.`);
+          }
         } else {
-          toast.error("Transaction failed to complete. Please try again.");
+          toast.error("Transaction failed: Unknown error. Please try again.");
         }
         return false;
       }
     };
 
-    // First attempt
-    let success = await attemptTransaction(1);
+    // Execute transaction
+    const success = await attemptTransaction();
     if (!success) {
-      // Retry once after a short delay
-      console.log("Retrying transaction after 500ms delay...");
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      success = await attemptTransaction(2);
-      if (!success) {
-        toast.error("Transaction failed after retry. Please try again.");
-      }
+      toast.error("Transaction failed. Please ensure your wallet is set to Devnet and try again.");
     }
   }, [
     isWalletConnected,

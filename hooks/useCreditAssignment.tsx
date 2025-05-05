@@ -1,121 +1,81 @@
-"use client";
+import { useCallback, useState } from "react";
+import { PublicKey, Transaction } from "@solana/web3.js";
 
-import { useState, useCallback } from "react";
-import { toast } from "sonner";
-import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
-import { CREDIT_PRICE_SOL } from "../lib/solana-constants";
-
-interface CreditAssignment {
-  assignCredits: (
-    signature: string,
-    signedTx: Transaction,
-    credits: number,
-    userWallet: PublicKey,
-  ) => Promise<number>;
-  isAssigning: boolean;
-  error: string | null;
-}
-
-export const useCreditAssignment = (): CreditAssignment => {
+export const useCreditAssignment = () => {
   const [isAssigning, setIsAssigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+
+  // Fetch CSRF token
+  const fetchCsrfToken = useCallback(async () => {
+    try {
+      const response = await fetch("/api/csrf-token", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch CSRF token");
+      }
+      const data = await response.json();
+      console.log("Fetched CSRF token:", { csrfToken: data.csrfToken });
+      setCsrfToken(data.csrfToken);
+      return data.csrfToken;
+    } catch (err) {
+      console.error("Error fetching CSRF token:", err);
+      throw err;
+    }
+  }, []);
 
   const assignCredits = useCallback(
     async (
       signature: string,
       signedTx: Transaction,
-      credits: number,
-      userWallet: PublicKey,
+      creditAmount: number,
+      walletPublicKey: PublicKey,
     ) => {
       setIsAssigning(true);
       setError(null);
-
       try {
-        // Validate transaction amount
-        const transferInstruction = signedTx.instructions.find((instr) =>
-          instr.programId.equals(SystemProgram.programId),
-        );
-        if (!transferInstruction) {
-          throw new Error("No SystemProgram.transfer instruction found");
-        }
-        if (transferInstruction.data.length < 12) {
-          throw new Error(
-            "Invalid instruction data: too short to contain lamports",
-          );
-        }
-        const lamports = transferInstruction.data.readBigInt64LE(4);
-        const expectedLamports = BigInt(
-          credits * CREDIT_PRICE_SOL * 1_000_000_000,
-        );
-        console.log("Validating transaction:", {
-          lamports,
-          expectedLamports,
-          credits,
-        });
+        // Fetch CSRF token if not cached
+        const token = csrfToken || (await fetchCsrfToken());
 
-        if (lamports !== expectedLamports) {
-          throw new Error(
-            `Invalid amount: expected ${expectedLamports} lamports, got ${lamports}`,
-          );
-        }
+        console.log("Sending request to /api/credits/assign with CSRF token:", { token });
 
-        const apiResponse = await fetch("/api/payment", {
+        const response = await fetch("/api/credits/assign", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": token, // Include CSRF token in header
+          },
+          credentials: "include", // Ensure cookies are sent
           body: JSON.stringify({
-            transaction: signedTx.serialize().toString("base64"),
-            signature,
-            credits,
-            userWallet: userWallet.toBase58(),
+            walletPublicKey: walletPublicKey.toBase58(),
+            creditAmount,
           }),
         });
 
-        if (!apiResponse.ok) {
-          const errorData = await apiResponse.json();
-          throw new Error(errorData.error || "Payment failed");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to assign credits");
         }
 
-        const paymentData = await apiResponse.json();
-        if (paymentData.status !== "success") {
-          throw new Error("Payment verification failed");
-        }
-
-        const assignApiResponse = await fetch("/api/credits/assign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            walletPublicKey: userWallet.toBase58(),
-            creditAmount: credits,
-          }),
+        console.log("Credit assignment response:", {
+          credits: data.credits,
+          unpaidQueries: data.unpaidQueries,
         });
 
-        if (!assignApiResponse.ok) {
-          const errorData = await assignApiResponse.json();
-          throw new Error(errorData.error || "Credit assignment failed");
-        }
-
-        const assignData = await assignApiResponse.json();
-        toast.success(
-          `${credits} credits added! New balance: ${assignData.credits}`,
-        );
-        return assignData.credits || 0;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Error processing payment";
-        setError(message);
-        toast.error(message);
-        console.error("Credit assignment error:", err);
-        throw err;
-      } finally {
         setIsAssigning(false);
+        return { credits: data.credits, unpaidQueries: data.unpaidQueries }; // Return credits and unpaidQueries
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        console.error("Credit assignment failed:", { error: err, message: errorMessage });
+        setError(errorMessage);
+        setIsAssigning(false);
+        throw err;
       }
     },
-    [],
+    [csrfToken, fetchCsrfToken],
   );
 
-  return {
-    assignCredits,
-    isAssigning,
-    error,
-  };
+  return { assignCredits, isAssigning, error };
 };
