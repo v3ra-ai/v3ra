@@ -1,6 +1,25 @@
 
 As of May 5, 2025
 
+# Verafy Testnet Payments
+
+app/api/credits/assign/route.ts
+app/api/credits/balance/route.ts
+app/api/payment/route.ts
+app/credits/page.tsx
+components/credits/credit-slider-ui.tsx
+components/credits/credit-slider.tsx
+components/credits/credits-layout.tsx
+components/credits/stake-slider.tsx
+components/ask/wallet-toggle.tsx
+components/ask/navbar-credits.tsx
+components/ask/payment-controls.tsx
+hooks/useCreditAssignment.tsx
+hooks/useCreditBalance.tsx
+hooks/useSolanaTransaction.tsx
+hooks/useSolanaWallet.tsx
+store/credit-store.ts
+lib/constants.ts
 
 
 # Verafy Testnet Payment Flow
