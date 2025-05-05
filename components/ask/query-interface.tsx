@@ -1,8 +1,7 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
-import QueryForm from "@/components/ask/query-form";
+import { QueryForm } from "@/components/ask/query-form";
 import ModeToggle from "@/components/ask/mode-toggle";
 import WalletToggle from "@/components/ask/wallet-toggle";
 import QueryStats from "@/components/ask/query-stats";
@@ -14,7 +13,6 @@ import * as Popover from "@radix-ui/react-popover";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
-  const [hasPaid, setHasPaid] = useState(false);
   const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -34,7 +32,7 @@ export default function QueryInterface() {
     viewMode,
     handleSubmit,
     handleQueryAmountChange,
-  } = useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHasPaid });
+  } = useQueryLogic({ payWithWallet, setPayWithWallet });
 
   const { setQueryMode } = useQueryStore();
 
@@ -112,8 +110,6 @@ export default function QueryInterface() {
         <WalletToggle
           payWithWallet={payWithWallet}
           setPayWithWallet={setPayWithWallet}
-          hasPaid={hasPaid}
-          setHasPaid={setHasPaid}
           queriesCostTotal={queriesCostTotal}
           userCreditsTotal={userCreditsTotal}
           userFreeCredits={userFreeCredits}
@@ -137,7 +133,6 @@ export default function QueryInterface() {
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           payWithWallet={payWithWallet}
-          hasPaid={hasPaid}
           isSubmitInteracted={isSubmitInteracted}
           setIsSubmitInteracted={setIsSubmitInteracted}
         />

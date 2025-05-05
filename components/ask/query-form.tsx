@@ -1,6 +1,7 @@
 import { QueryFormInput } from "@/components/ask/query-form-input";
 import { Dispatch, SetStateAction } from "react";
 import { QueryMode } from "@/lib/types";
+import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 
 interface QueryFormProps {
   queryText: string;
@@ -17,12 +18,11 @@ interface QueryFormProps {
   handleSubmit: () => void;
   isSubmitting: boolean;
   payWithWallet: boolean;
-  hasPaid: boolean;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
 }
 
-export default function QueryForm({
+export function QueryForm({
   queryText,
   setQueryText,
   placeholderText,
@@ -37,42 +37,28 @@ export default function QueryForm({
   handleSubmit,
   isSubmitting,
   payWithWallet,
-  hasPaid,
   isSubmitInteracted,
   setIsSubmitInteracted,
 }: QueryFormProps) {
-  const allowedAmountQueries = 20;
-
   return (
-    <div>
-      <QueryFormInput
-        queryText={queryText}
-        setQueryText={setQueryText}
-        placeholderText={placeholderText}
-        handleSubmit={handleSubmit}
-        isSubmitting={isSubmitting}
-        payWithWallet={payWithWallet}
-        queriesUnpaid={queriesUnpaid}
-        queriesCostTotal={queriesCostTotal}
-        hasPaid={hasPaid}
-        userCreditsTotal={userCreditsTotal}
-        userFreeCredits={userFreeCredits}
-        userPaidCredits={userPaidCredits}
-        isSubmitInteracted={isSubmitInteracted}
-        setIsSubmitInteracted={setIsSubmitInteracted}
-        queryMode={queryMode}
-        queriesRequested={queriesRequested}
-        handleQueryAmountChange={handleQueryAmountChange}
-        allowedAmountQueries={allowedAmountQueries}
-      />
-      {/* <div className="flex items-center gap-0">
-        <QueryFormModeSelector queryMode={queryMode} />
-        <QueryFormAISlider
-          queriesRequested={queriesRequested}
-          handleQueryAmountChange={handleQueryAmountChange}
-          allowedAmountQueries={allowedAmountQueries}
-        />
-      </div> */}
-    </div>
+    <QueryFormInput
+      queryText={queryText}
+      setQueryText={setQueryText}
+      placeholderText={placeholderText}
+      queryMode={queryMode}
+      queriesRequested={queriesRequested}
+      userFreeCredits={userFreeCredits}
+      userPaidCredits={userPaidCredits}
+      userCreditsTotal={userCreditsTotal}
+      queriesUnpaid={queriesUnpaid}
+      queriesCostTotal={queriesCostTotal}
+      handleQueryAmountChange={handleQueryAmountChange}
+      handleSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
+      payWithWallet={payWithWallet}
+      isSubmitInteracted={isSubmitInteracted}
+      setIsSubmitInteracted={setIsSubmitInteracted}
+      allowedAmountQueries={ALLOWED_AMOUNT_QUERIES}
+    />
   );
 }

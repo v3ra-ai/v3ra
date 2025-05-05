@@ -10,11 +10,6 @@ interface NavbarScrollbarProps {
   viewMode: ViewMode;
 }
 
-/**
- * Container for the scroll-based search bar that appears when scrolling past 50px.
- * Manages state and logic via useNavbarScrollbar and renders UI via NavbarScrollbarUI.
- * Users submit queries by pressing Enter.
- */
 export function NavbarScrollbar({ mounted, showSearch, viewMode }: NavbarScrollbarProps) {
   const {
     queryText,
@@ -22,8 +17,6 @@ export function NavbarScrollbar({ mounted, showSearch, viewMode }: NavbarScrollb
     isSubmitting,
     payWithWallet,
     setPayWithWallet,
-    hasPaid,
-    setHasPaid,
     hasAttemptedSubmit,
     queriesRequested,
     userCreditsTotal,
@@ -45,8 +38,6 @@ export function NavbarScrollbar({ mounted, showSearch, viewMode }: NavbarScrollb
       isSubmitting={isSubmitting}
       payWithWallet={payWithWallet}
       setPayWithWallet={setPayWithWallet}
-      hasPaid={hasPaid}
-      setHasPaid={setHasPaid}
       hasAttemptedSubmit={hasAttemptedSubmit}
       queriesRequested={queriesRequested}
       userCreditsTotal={userCreditsTotal}

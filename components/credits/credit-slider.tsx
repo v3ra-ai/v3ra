@@ -40,7 +40,6 @@ export default function CreditSlider() {
   console.log(`NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME ${process.env.NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME}`);
   console.log(`NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC ${process.env.NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC}`);
 
-
   // Fetch SOL balance when wallet is connected
   useEffect(() => {
     const fetchSolBalance = async () => {
@@ -162,7 +161,7 @@ export default function CreditSlider() {
             creditAmount,
             publicKey,
           );
-          setCreditBalance(newBalance);
+          setCreditBalance(newBalance.credits ?? 0); // Extract credits
           toast.success(`Successfully purchased ${creditAmount} credits!`);
           return true;
         } else {

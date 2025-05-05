@@ -78,6 +78,7 @@ export default function QueryStats({
     displayUnpaid,
     hasPaid,
   });
+  console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST })
 
   return (
     <div className="w-full mt-4">
@@ -110,7 +111,7 @@ export default function QueryStats({
               </span>
               {displayUnpaid > 0 && (
                 <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                  {console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST })}
+
                   {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
                 </span>
               )}
@@ -147,7 +148,6 @@ export default function QueryStats({
           </span>
           {displayUnpaid > 0 && (
             <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-              {console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST })}
               {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
             </span>
           )}

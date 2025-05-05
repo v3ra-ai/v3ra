@@ -1,26 +1,23 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback, useEffect, Dispatch, SetStateAction, KeyboardEvent } from "react";
 import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
 import { QueryMode } from "@/lib/types";
 import { useSubmitQuery } from "@/hooks/useSubmitQuery";
 import { toast } from "sonner";
 import {
-  INITIAL_AI_QUERY_AMOUNT_REQUESTED,
   ALLOWED_AMOUNT_QUERIES,
 } from "@/lib/constants";
 
 interface NavbarScrollbarState {
-  queryText: string;
   isSubmitting: boolean;
   payWithWallet: boolean;
-  hasPaid: boolean;
   hasAttemptedSubmit: boolean;
 }
 
 interface NavbarScrollbarReturn extends NavbarScrollbarState {
-  setQueryText: (text: string) => void;
+  queryText: string;
+  setQueryText: Dispatch<SetStateAction<string>>;
   setPayWithWallet: (value: boolean) => void;
-  setHasPaid: (value: boolean) => void;
   queriesRequested: number;
   userCreditsTotal: number;
   userFreeCredits: number;
@@ -29,19 +26,18 @@ interface NavbarScrollbarReturn extends NavbarScrollbarState {
   queriesCostTotal: number;
   queryMode: QueryMode;
   updateQueryAmountRequested: (newAmount: number) => void;
-  handleKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
+  handleKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
 }
 
 export function useNavbarScrollbar(): NavbarScrollbarReturn {
   const [navbarState, setNavbarState] = useState<NavbarScrollbarState>({
-    queryText: "",
     isSubmitting: false,
     payWithWallet: true,
-    hasPaid: false,
     hasAttemptedSubmit: false,
   });
+  const [queryText, setQueryText] = useState<string>("");
 
-  const { userFreeCredits, userPaidCredits, userCreditsTotal } = useCreditsStore();
+  const { userFreeCredits, userPaidCredits, userCreditsTotal, hasPaid: storeHasPaid, displayUnpaid } = useCreditsStore();
   const {
     queriesRequested,
     queriesUnpaid,
@@ -67,13 +63,22 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
       const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
       setUserAiQueryAmountRequested(clampedAmount, userCreditsTotal);
     },
-    [setUserAiQueryAmountRequested, userCreditsTotal],
+    [setUserAiQueryAmountRequested, userCreditsTotal]
   );
 
   // Submit query with validation
   const handleSubmit = async () => {
+    console.log("[useNavbarScrollbar] Submitting:", {
+      queryText,
+      queriesRequested,
+      queriesUnpaid,
+      payWithWallet: navbarState.payWithWallet,
+      storeHasPaid,
+      displayUnpaid,
+    });
+
     // Validate query submission
-    if (!navbarState.queryText.trim()) {
+    if (!queryText.trim()) {
       toast.error("Query cannot be empty", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
@@ -89,7 +94,8 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
       setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
       return;
     }
-    if (navbarState.payWithWallet && queriesUnpaid > 0 && !navbarState.hasPaid) {
+    if (navbarState.payWithWallet && displayUnpaid > 0 && !storeHasPaid) {
+      console.log("[useNavbarScrollbar] Blocked: Payment required", { displayUnpaid, storeHasPaid });
       toast.error("Please make a payment first", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
@@ -108,14 +114,13 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
 
     setNavbarState((prev) => ({ ...prev, isSubmitting: true }));
     try {
-      await submitQuery(navbarState.queryText);
-      resetAfterSubmission(userCreditsTotal); // Use resetAfterSubmission for consistency
+      await submitQuery(queryText);
+      resetAfterSubmission(userCreditsTotal);
       setNavbarState((prev) => ({
         ...prev,
-        queryText: "",
-        hasPaid: false,
         hasAttemptedSubmit: false,
       }));
+      setQueryText("");
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
       toast.error(errorMessage, {
@@ -124,11 +129,11 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
       });
       console.error("[useNavbarScrollbar] Submission failed:", {
         errorMessage,
-        queryText: navbarState.queryText,
+        queryText,
         queriesRequested,
         queriesUnpaid,
         payWithWallet: navbarState.payWithWallet,
-        hasPaid: navbarState.hasPaid,
+        storeHasPaid,
       });
     } finally {
       setNavbarState((prev) => ({ ...prev, isSubmitting: false }));
@@ -144,13 +149,11 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
   };
 
   return {
-    queryText: navbarState.queryText,
-    setQueryText: (text) => setNavbarState((prev) => ({ ...prev, queryText: text })),
+    queryText,
+    setQueryText,
     isSubmitting: navbarState.isSubmitting,
     payWithWallet: navbarState.payWithWallet,
     setPayWithWallet: (value) => setNavbarState((prev) => ({ ...prev, payWithWallet: value })),
-    hasPaid: navbarState.hasPaid,
-    setHasPaid: (value) => setNavbarState((prev) => ({ ...prev, hasPaid: value })),
     hasAttemptedSubmit: navbarState.hasAttemptedSubmit,
     queriesRequested,
     userCreditsTotal,

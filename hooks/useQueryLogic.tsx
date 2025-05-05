@@ -10,7 +10,7 @@ import { getPlaceholderText } from "@/lib/query-utils";
 import { toast } from "sonner";
 import type { VoteResult } from "@/lib/types";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
-import { sanitizeError, sanitizeQueryText } from "@/utils/security-utils";
+import { sanitizeQueryText } from "@/utils/security-utils";
 
 interface UseQueryLogicProps {
   payWithWallet: boolean;

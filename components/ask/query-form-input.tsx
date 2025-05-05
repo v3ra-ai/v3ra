@@ -10,7 +10,7 @@ interface QueryFormInputProps {
   queryText: string;
   setQueryText: Dispatch<SetStateAction<string>>;
   placeholderText: string;
-  handleSubmit: () => void; // Removed hasPaid parameter
+  handleSubmit: () => void;
   isSubmitting: boolean;
   payWithWallet: boolean;
   queriesUnpaid: number;
@@ -70,11 +70,12 @@ export function QueryFormInput({
       return;
     }
     try {
-      handleSubmit(); // No hasPaid parameter
+      handleSubmit();
       console.log("handleSubmit executed successfully");
-    } catch (error) {
+    } catch (error: unknown) {
       console.error("Query submission failed:", error);
-      toast.error(error.message || "Failed to submit query, please try again", {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit query, please try again";
+      toast.error(errorMessage, {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
     }

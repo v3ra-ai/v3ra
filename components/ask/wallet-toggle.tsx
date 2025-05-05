@@ -8,8 +8,6 @@ import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 interface WalletToggleProps {
   payWithWallet: boolean;
   setPayWithWallet: (value: boolean) => void;
-  hasPaid: boolean;
-  setHasPaid: (value: boolean) => void;
   queriesCostTotal: number;
   userCreditsTotal: number;
   userFreeCredits: number;
@@ -17,14 +15,12 @@ interface WalletToggleProps {
   queriesRequested: number;
   queriesUnpaid: number;
   highlightPayButton?: boolean;
-  context?: "scrollbar" | "default"; // Added to differentiate scrollbar view
+  context?: "scrollbar" | "default";
 }
 
 export default function WalletToggle({
   payWithWallet,
   setPayWithWallet,
-  hasPaid,
-  setHasPaid,
   queriesCostTotal,
   userCreditsTotal,
   userFreeCredits,
@@ -32,7 +28,7 @@ export default function WalletToggle({
   queriesRequested,
   queriesUnpaid,
   highlightPayButton = false,
-  context = "default", // Default to non-scrollbar view
+  context = "default",
 }: WalletToggleProps) {
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
@@ -41,11 +37,11 @@ export default function WalletToggle({
     [setPayWithWallet]
   );
 
-  const queriesLeft = Math.max(0, userCreditsTotal - queriesRequested); // Credits left after reserving queriesRequested
-  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
+  const queriesLeft = Math.max(0, userCreditsTotal - queriesRequested);
+  const displayUnpaid = Math.max(0, queriesUnpaid);
 
   return (
-    <div className={`flex items-center justify-between ${context==="default" ? "mb-3" : "mb-1"} `}>
+    <div className={`flex items-center justify-between ${context === "default" ? "mb-3" : "mb-1"} `}>
       <div className="flex items-center gap-3 flex-wrap">
         {context !== "scrollbar" && (
           <div className="flex items-center gap-3 hidden md:flex">
@@ -61,13 +57,11 @@ export default function WalletToggle({
         )}
         {payWithWallet && (
           <PaymentControls
-            hasPaid={hasPaid}
-            setHasPaid={setHasPaid}
             queriesCostTotal={queriesCostTotal}
             userCreditsTotal={userCreditsTotal}
             userFreeCredits={userFreeCredits}
             userPaidCredits={userPaidCredits}
-            queriesUnpaid={displayUnpaid} // Use displayUnpaid to avoid negative values
+            queriesUnpaid={displayUnpaid}
             highlightPayButton={highlightPayButton}
           />
         )}
