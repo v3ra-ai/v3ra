@@ -13,8 +13,6 @@ interface NavbarScrollbarUIProps {
   isSubmitting: boolean;
   payWithWallet: boolean;
   setPayWithWallet: (value: boolean) => void;
-  hasPaid: boolean;
-  setHasPaid: (value: boolean) => void;
   hasAttemptedSubmit: boolean;
   queriesRequested: number;
   userCreditsTotal: number;
