@@ -38,8 +38,6 @@ export function NavbarScrollbarUI({
   isSubmitting,
   payWithWallet,
   setPayWithWallet,
-  hasPaid,
-  setHasPaid,
   hasAttemptedSubmit,
   queriesRequested,
   userCreditsTotal,
