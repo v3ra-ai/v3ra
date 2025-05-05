@@ -81,9 +81,15 @@ export default async function ValidatorProfilePage({
                   </div>
                   <div>
                     <div className="text-3xl">
-                      {stats && stats.consensusMatchPercentage !== undefined
-                        ? `${Math.round(stats.consensusMatchPercentage)}%`
-                        : <span className="text-zinc-400 dark:text-zinc-500">---</span>}
+                      {stats && stats.consensusMatchPercentage !== undefined ? (
+                        <span className={``}>
+                          {Math.round(stats.consensusMatchPercentage)}%
+                        </span>
+                      ) : (
+                        <span className={`text-zinc-400 dark:text-zinc-500`}>
+                          ---
+                        </span>
+                      )}
                     </div>
                     <div className="w-24 mt-1 text-xs mr-2 text-zinc-700 dark:text-zinc-300">
                       Reliability
