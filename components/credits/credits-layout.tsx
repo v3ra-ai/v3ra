@@ -21,11 +21,11 @@ export function CreditsLayout() {
       <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-4">
         Get Credits
       </h1>
-      <p className="text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
+      <div className="text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
         <div className="flex w-full justify-center">
           <Landmark /> <span className="ml-2">Balance: {savedCredits} Credits</span>
         </div>
-      </p>
+      </div>
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1 p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
           <CreditSlider />
