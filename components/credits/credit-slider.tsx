@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { toast } from "sonner";
 import CreditSliderUI from "./credit-slider-ui";
 import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
@@ -10,7 +10,7 @@ import { VERAFY_WALLET } from "@/lib/solana-constants";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, Transaction } from "@solana/web3.js";
+import { PublicKey, Transaction, Connection } from "@solana/web3.js";
 
 export default function CreditSlider() {
   const [creditAmount, setCreditAmount] = useState(10);
@@ -33,18 +33,52 @@ export default function CreditSlider() {
   } = useCreditAssignment();
   const { setVisible } = useWalletModal();
 
-  // Placeholder for solBalance (fetch actual balance if needed)
-  const solBalance = 0; // TODO: Fetch balance using @solana/web3.js
+  // State for solBalance
+  const [solBalance, setSolBalance] = useState<number | null>(null);
 
-  // Debug log to confirm QUERY_COST_FIXED_DECIMALS
-  if (process.env.NODE_ENV === "development") {
-    console.log("QUERY_COST:", QUERY_COST, "QUERY_COST_FIXED_DECIMALS:", QUERY_COST_FIXED_DECIMALS);
-  }
+  // Fetch SOL balance when wallet is connected
+  useEffect(() => {
+    const fetchSolBalance = async () => {
+      if (!publicKey) {
+        setSolBalance(null);
+        return;
+      }
+      try {
+        const connection = new Connection("https://api.devnet.solana.com", "confirmed");
+        const balanceInLamports = await connection.getBalance(publicKey);
+        const balanceInSol = balanceInLamports / 1_000_000_000; // Convert lamports to SOL
+        setSolBalance(balanceInSol);
+        if (process.env.NODE_ENV === "development") {
+          console.log("Fetched solBalance:", balanceInSol);
+        }
+      } catch (error) {
+        console.error("Error fetching SOL balance:", error);
+        setSolBalance(0);
+      }
+    };
+
+    fetchSolBalance();
+  }, [publicKey]);
 
   const requiredSol = creditAmount * QUERY_COST;
-  const hasEnoughSol = solBalance >= requiredSol;
+  const hasEnoughSol = solBalance !== null && solBalance >= requiredSol;
   const isValid =
     creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
+
+  // Debug log to confirm QUERY_COST_FIXED_DECIMALS and button state
+  if (process.env.NODE_ENV === "development") {
+    console.log({
+      QUERY_COST,
+      QUERY_COST_FIXED_DECIMALS,
+      creditAmount,
+      requiredSol,
+      solBalance,
+      hasEnoughSol,
+      isValid,
+      isLoading: isSending || isAssigning,
+      isWalletConnected,
+    });
+  }
 
   const handlePayment = useCallback(async () => {
     if (!isWalletConnected) {
@@ -57,7 +91,7 @@ export default function CreditSlider() {
     }
     if (!hasEnoughSol) {
       toast.error(
-        `Insufficient SOL: Need ${requiredSol.toFixed(QUERY_COST_FIXED_DECIMALS)}, have ${solBalance.toFixed(QUERY_COST_FIXED_DECIMALS)}`,
+        `Insufficient SOL: Need ${requiredSol.toFixed(QUERY_COST_FIXED_DECIMALS)}, have ${solBalance?.toFixed(QUERY_COST_FIXED_DECIMALS) ?? "0"}`,
       );
       return;
     }
@@ -151,6 +185,7 @@ export default function CreditSlider() {
       setCreditAmount={setCreditAmount}
       requiredSol={requiredSol}
       creditBalance={creditBalance}
+      solBalance={solBalance}
       isLoading={isSending || isAssigning}
       isValid={isValid}
       hasEnoughSol={hasEnoughSol}

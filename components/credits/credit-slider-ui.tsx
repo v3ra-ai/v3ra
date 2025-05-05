@@ -6,6 +6,7 @@ interface CreditSliderUIProps {
   setCreditAmount: (value: number) => void;
   requiredSol: number;
   creditBalance: number | null;
+  solBalance: number | null;
   isLoading: boolean;
   isValid: boolean;
   hasEnoughSol: boolean;
@@ -18,8 +19,8 @@ interface CreditSliderUIProps {
 export default function CreditSliderUI({
   creditAmount,
   setCreditAmount,
-  requiredSol,
   creditBalance,
+  solBalance,
   isLoading,
   isValid,
   hasEnoughSol,
@@ -65,17 +66,20 @@ export default function CreditSliderUI({
           </div>
         </div>
       </div>
-      <div className="mb-6">
-        <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-          Cost: {requiredSol.toFixed(decimalPlaces)} SOL
+      <div className="mb-4">
+        <p className="text-sm text-zinc-700 dark:text-zinc-300">
+          Current Balance:{" "}
+          {isWalletConnected && creditBalance !== null
+            ? `${creditBalance} credits`
+            : "n/a - connect wallet"}
+        </p>
+        <p className="text-sm text-zinc-700 dark:text-zinc-300">
+          SOL Balance:{" "}
+          {isWalletConnected && solBalance !== null
+            ? `${solBalance.toFixed(decimalPlaces)} SOL`
+            : "n/a - connect wallet"}
         </p>
       </div>
-      <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">
-        Current Balance:{" "}
-        {isWalletConnected && creditBalance !== null
-          ? `${creditBalance} credits`
-          : "n/a - connect wallet"}
-      </p>
       <button
         onClick={onPay}
         disabled={
@@ -88,7 +92,7 @@ export default function CreditSliderUI({
           creditAmount === 0 ||
           (!isWalletConnected ? false : !isValid || !hasEnoughSol)
             ? "bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed"
-            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500"
+            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer"
         }`}
       >
         {isLoading

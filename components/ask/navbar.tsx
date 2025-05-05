@@ -9,7 +9,6 @@ import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
 import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
 import { NavbarSettings } from "@/components/ask/navbar-settings";
-import NavbarCredits from "@/components/ask/navbar-credits";
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
