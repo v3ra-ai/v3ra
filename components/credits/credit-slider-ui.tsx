@@ -1,4 +1,3 @@
-// components/credit-slider-ui.tsx
 import * as Slider from "@radix-ui/react-slider";
 import { Square } from "lucide-react";
 
@@ -13,6 +12,7 @@ interface CreditSliderUIProps {
   isWalletConnected: boolean;
   onPay: () => void;
   onChangeWallet: () => void;
+  decimalPlaces: number;
 }
 
 export default function CreditSliderUI({
@@ -26,6 +26,7 @@ export default function CreditSliderUI({
   isWalletConnected,
   onPay,
   onChangeWallet,
+  decimalPlaces,
 }: CreditSliderUIProps) {
   return (
     <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
@@ -66,7 +67,7 @@ export default function CreditSliderUI({
       </div>
       <div className="mb-6">
         <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-          Cost: {requiredSol.toFixed(3)} SOL
+          Cost: {requiredSol.toFixed(decimalPlaces)} SOL
         </p>
       </div>
       <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">

@@ -6,7 +6,8 @@ import CreditSliderUI from "./credit-slider-ui";
 import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
 import { useCreditAssignment } from "@/hooks/useCreditAssignment";
 import { useCreditBalance } from "@/hooks/useCreditBalance";
-import { VERAFY_WALLET, CREDIT_PRICE_SOL } from "@/lib/solana-constants";
+import { VERAFY_WALLET } from "@/lib/solana-constants";
+import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction } from "@solana/web3.js";
@@ -35,7 +36,12 @@ export default function CreditSlider() {
   // Placeholder for solBalance (fetch actual balance if needed)
   const solBalance = 0; // TODO: Fetch balance using @solana/web3.js
 
-  const requiredSol = creditAmount * CREDIT_PRICE_SOL;
+  // Debug log to confirm QUERY_COST_FIXED_DECIMALS
+  if (process.env.NODE_ENV === "development") {
+    console.log("QUERY_COST:", QUERY_COST, "QUERY_COST_FIXED_DECIMALS:", QUERY_COST_FIXED_DECIMALS);
+  }
+
+  const requiredSol = creditAmount * QUERY_COST;
   const hasEnoughSol = solBalance >= requiredSol;
   const isValid =
     creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
@@ -51,7 +57,7 @@ export default function CreditSlider() {
     }
     if (!hasEnoughSol) {
       toast.error(
-        `Insufficient SOL: Need ${requiredSol.toFixed(3)}, have ${solBalance.toFixed(3)}`,
+        `Insufficient SOL: Need ${requiredSol.toFixed(QUERY_COST_FIXED_DECIMALS)}, have ${solBalance.toFixed(QUERY_COST_FIXED_DECIMALS)}`,
       );
       return;
     }
@@ -151,6 +157,7 @@ export default function CreditSlider() {
       isWalletConnected={isWalletConnected}
       onPay={handlePayment}
       onChangeWallet={handleChangeWallet}
+      decimalPlaces={QUERY_COST_FIXED_DECIMALS}
     />
   );
 }
