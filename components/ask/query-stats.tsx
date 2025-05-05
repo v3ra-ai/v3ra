@@ -44,13 +44,6 @@ export default function QueryStats({
 
   // Auto-trigger open/close based on displayUnpaid
   useEffect(() => {
-    console.log("QueryStats collapsible state:", {
-      displayUnpaid,
-      isOpen,
-      hasTriggeredOpen,
-      hasTriggeredClose,
-      hasPaid,
-    });
     if (displayUnpaid > 0 && !hasTriggeredOpen) {
       setIsOpen(true);
       setHasTriggeredOpen(true);
@@ -60,17 +53,22 @@ export default function QueryStats({
       setHasTriggeredClose(true);
       setHasTriggeredOpen(false);
     }
-  }, [displayUnpaid, hasTriggeredOpen, hasTriggeredClose]);
+  }, [displayUnpaid, hasTriggeredOpen, hasTriggeredClose, isOpen]);
 
-  // Calculate credits left
-  const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+  // Debug logging
+  console.log("QueryStats collapsible state:", {
+    displayUnpaid,
+    isOpen,
+    hasTriggeredOpen,
+    hasTriggeredClose,
+    hasPaid,
+  });
   console.log("Credits left calculation:", {
     savedCredits,
     userCreditsTotal,
     queriesRequested,
-    creditsLeft,
+    creditsLeft: Math.max(0, totalCredits - queriesRequested),
   });
-
   console.log("Queries unpaid calculation:", {
     queriesUnpaid,
     queriesCostTotal,
@@ -78,7 +76,7 @@ export default function QueryStats({
     displayUnpaid,
     hasPaid,
   });
-  console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST })
+  console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST });
 
   return (
     <div className="w-full mt-4">
@@ -93,7 +91,7 @@ export default function QueryStats({
             variant="outline"
             className="flex items-center justify-between w-full bg-zinc-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 cursor-pointer truncate"
           >
-            <span>Credits left: {creditsLeft}</span>
+            <span>Credits left: {Math.max(0, totalCredits - queriesRequested)}</span>
             <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
           </Button>
         </CollapsibleTrigger>
@@ -102,7 +100,7 @@ export default function QueryStats({
             <div className="md:flex items-center gap-2 hidden">
               <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
               <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                {creditsLeft}
+                {Math.max(0, totalCredits - queriesRequested)}
               </span>
             </div>
             <div className="flex items-center gap-2">
@@ -111,7 +109,6 @@ export default function QueryStats({
               </span>
               {displayUnpaid > 0 && (
                 <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-
                   {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
                 </span>
               )}
@@ -139,7 +136,7 @@ export default function QueryStats({
         <div className="flex items-center gap-2">
           <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
           <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-            {creditsLeft}
+            {Math.max(0, totalCredits - queriesRequested)}
           </span>
         </div>
         <div className="flex items-center gap-2">

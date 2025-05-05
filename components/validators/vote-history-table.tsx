@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { VoteResult } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
@@ -26,10 +26,10 @@ export default function VoteHistoryTable({
 }: VoteHistoryTableProps) {
   const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
   const [stats, setStats] = useState<VoteStats | null>(null);
-  const [limit, setLimit] = useState<number>(RECENT_HISTORY_RESULTS); // Default to RECENT_HISTORY_RESULTS
+  const [limit, setLimit] = useState<number>(RECENT_HISTORY_RESULTS);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchVoteData = async (fetchLimit: number) => {
+  const fetchVoteData = useCallback(async (fetchLimit: number) => {
     setIsLoading(true);
     try {
       const effectiveLimit =
@@ -84,18 +84,18 @@ export default function VoteHistoryTable({
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [validatorId]);
 
   useEffect(() => {
     fetchVoteData(limit);
-  }, [limit]);
+  }, [limit, fetchVoteData]);
 
   const handleAllClick = () => {
-    setLimit(0); // Fetch all votes (up to MAX_VOTE_HISTORY_RESULTS)
+    setLimit(0);
   };
 
   const handleRecentClick = () => {
-    setLimit(RECENT_HISTORY_RESULTS); // Fetch last RECENT_HISTORY_RESULTS votes
+    setLimit(RECENT_HISTORY_RESULTS);
   };
 
   const isRecentActive = limit === RECENT_HISTORY_RESULTS;
@@ -103,38 +103,6 @@ export default function VoteHistoryTable({
 
   return (
     <div className="mt-8">
-      {/* {stats && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold text-zinc-800 dark:text-zinc-200 mb-2">
-            Vote Statistics {isRecentActive ? "(Recent)" : "(All)"}
-          </h3>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            <span className="font-semibold">Total Votes: </span>
-            {stats.totalVotes}
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            <span className="font-semibold">YES Votes: </span>
-            {stats.yesVotes}
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            <span className="font-semibold">NO Votes: </span>
-            {stats.noVotes}
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            <span className="font-semibold">Reliability Rating: </span>
-            {stats.consensusMatchPercentage}%
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            <span className="font-semibold">Consensus Match: </span>
-            {stats.consensusMatchPercentage}%
-          </p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-300">
-            <span className="font-semibold">Non-Consensus: </span>
-            {stats.nonConsensusPercentage}%
-          </p>
-        </div>
-      )} */}
-
       {stats && (
         <div className="space-y-4 py-4 border-y-2">
           <h2 className="text-lg text-center font-semibold text-zinc-800 dark:text-zinc-200">
@@ -237,7 +205,6 @@ export default function VoteHistoryTable({
             </thead>
             <tbody>
               {voteHistory.map((vote, index) => {
-                // Log each vote for debugging
                 if (process.env.NODE_ENV === "development") {
                   console.log(`Rendering vote ${index}:`, {
                     voteId: vote.id,
@@ -246,11 +213,11 @@ export default function VoteHistoryTable({
                     timestamp: vote.timestamp,
                   });
                 }
-                const response = vote.validatorResponses[0]; // Single response for this validator
+                const response = vote.validatorResponses[0];
                 return (
                   <tr key={vote.id} className="border-b dark:border-zinc-600">
                     <td className="px-4 py-2">{vote.queryText}</td>
-                    <td className={`px-4 py-2 ${response.vote==="NO" ? "text-red-600 dark:text-red-400": "text-teal-600 dark:text-teal-400"}`}>{response.vote}</td>
+                    <td className={`px-4 py-2 ${response.vote === "NO" ? "text-red-600 dark:text-red-400" : "text-teal-600 dark:text-teal-400"}`}>{response.vote}</td>
                     <td className="px-4 py-2">{response.rationale}</td>
                     <td className="px-4 py-2">
                       {vote.timestamp

@@ -43,15 +43,15 @@ export function QueryFormInput({
 }: QueryFormInputProps) {
   const { displayUnpaid, hasPaid: storeHasPaid } = useCreditsStore();
 
-  console.log("QueryFormInput submit button state:", {
-    isSubmitting,
-    displayUnpaid,
-    storeHasPaid,
-    queriesUnpaid,
-    queriesCostTotal,
-    queriesRequested,
-    queryText,
-  });
+  // console.log("QueryFormInput submit button state:", {
+  //   isSubmitting,
+  //   displayUnpaid,
+  //   storeHasPaid,
+  //   queriesUnpaid,
+  //   queriesCostTotal,
+  //   queriesRequested,
+  //   queryText,
+  // });
 
   const onSubmit = () => {
     console.log("QueryFormInput onSubmit called:", {

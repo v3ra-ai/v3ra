@@ -15,8 +15,8 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_REDIS === 'true'
       enableOfflineQueue: false, // Prevent queuing
     });
 
-    redis.on('error', (error) => {
-      console.warn('[ioredis] Connection error:', error.message);
+    redis.on('error', () => {
+      // console.warn('[ioredis] Connection error:', error.message);
       redis = null;
       rateLimiter = null; // Disable rate limiter if Redis fails
     });
@@ -27,8 +27,8 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_REDIS === 'true'
       points: 10, // Max 10 requests
       duration: 15 * 60, // 15 minutes in seconds
     });
-  } catch (error) {
-    console.warn('[ioredis] Failed to initialize:', (error as Error).message);
+  } catch {
+    // console.warn('[ioredis] Failed to initialize:', (error as Error).message);
     redis = null;
     rateLimiter = null;
   }

@@ -14,12 +14,12 @@ if (process.env.NODE_ENV === 'production' || process.env.ENABLE_REDIS === 'true'
       enableOfflineQueue: false, // Prevent queuing
     });
 
-    redis.on('error', (error) => {
-      console.warn('[ioredis] Connection error:', error.message);
+    redis.on('error', () => {
+      // console.warn('[ioredis] Connection error:', error.message);
       redis = null; // Fallback to null on error
     });
-  } catch (error) {
-    console.warn('[ioredis] Failed to initialize:', (error as Error).message);
+  } catch {
+    // console.warn('[ioredis] Failed to initialize:', (error as Error).message);
     redis = null;
   }
 }

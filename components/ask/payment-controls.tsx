@@ -25,7 +25,6 @@ interface PaymentControlsProps {
 
 export function PaymentControls({
   queriesCostTotal,
-  queriesUnpaid,
   highlightPayButton = false,
 }: PaymentControlsProps) {
   const { connection } = useConnection();
