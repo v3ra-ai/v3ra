@@ -224,12 +224,12 @@ export default function AskResultsStandardCard({
                 ) as { id: string; profile: string; avatarUrl: string | null } | undefined;
                 // Enhanced debugging for validator data
                 if (process.env.NODE_ENV === "development") {
-                  console.log(`Validator ID: ${response.id}`);
-                  console.log(`Mapping found: ${!!mapping}`);
+                  // console.log(`Validator ID: ${response.id}`);
+                  // console.log(`Mapping found: ${!!mapping}`);
                   if (mapping) {
-                    console.log(`Mapping data:`, mapping);
+                    // console.log(`Mapping data:`, mapping);
                   } else {
-                    console.log(`No mapping for ID ${response.id} in validatorImageMapping`);
+                    // console.log(`No mapping for ID ${response.id} in validatorImageMapping`);
                   }
                 }
                 return (
