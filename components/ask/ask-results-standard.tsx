@@ -10,6 +10,7 @@ import { VoteResult } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
 import DOMPurify from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
+import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 
 // Custom CSS for skeleton loading animation (pulse + shimmer)
 <style jsx>{`
@@ -57,7 +58,7 @@ const getRecentQueries = (voteHistory: VoteResult[]) =>
       const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
       return dateB - dateA;
     })
-    .slice(0, 10);
+    .slice(0, RESULT_QUERIES_CARDS);
 
 // Skeleton card component styled like AskResultsStandardCard with loading animation
 const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {

@@ -40,3 +40,4 @@ export const VOTE_ERROR = "ERROR";
 
 export const MAX_VOTE_HISTORY_RESULTS = 300;
 export const RECENT_HISTORY_RESULTS = 50;
+export const RESULT_QUERIES_CARDS = 12;

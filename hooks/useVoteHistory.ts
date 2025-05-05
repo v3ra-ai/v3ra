@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { VoteResult } from "@/lib/types";
 import { sanitizeError } from "@/utils/security-utils";
+import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 
 interface VoteHistoryResult {
   voteHistory: VoteResult[];
@@ -15,7 +16,7 @@ interface VoteHistoryResult {
  * @param initialLimit Number of vote sessions to fetch (default: 10).
  * @returns An object containing the vote history, loading state, error, and refetch function.
  */
-export function useVoteHistory(initialLimit: number = 10): VoteHistoryResult {
+export function useVoteHistory(initialLimit: number = RESULT_QUERIES_CARDS): VoteHistoryResult {
   const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
