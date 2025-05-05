@@ -9,6 +9,7 @@ import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
 import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
 import { NavbarSettings } from "@/components/ask/navbar-settings";
+import NavbarCredits from "@/components/ask/navbar-credits";
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
@@ -90,14 +91,20 @@ export default function Navbar() {
         </div>
 
         {/* Navigation Links */}
+        <div className="flex items-center space-x-4">
         <NavbarSitelinks />
 
-        {/* Right Side - Theme Toggle, Login, Connect Wallet */}
-        <NavbarSettings
-          mounted={mounted}
-          isCreditsPage={isCreditsPage}
-          handleToggleTheme={handleToggleTheme}
-        />
+        </div>
+
+        {/* Right Side - Credits, Theme Toggle, Login, Connect Wallet */}
+        <div className="flex items-center space-x-4">
+
+          <NavbarSettings
+            mounted={mounted}
+            isCreditsPage={isCreditsPage}
+            handleToggleTheme={handleToggleTheme}
+          />
+        </div>
       </div>
 
       <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />

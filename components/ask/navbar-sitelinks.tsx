@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import NavbarCredits from "./navbar-credits";
 
 /**
  * Renders navigation links for the site, hidden on mobile and displayed horizontally on desktop.
@@ -45,6 +46,8 @@ export function NavbarSitelinks() {
       >
         Shop
       </Link>
+      <NavbarCredits />
+
     </div>
   );
 }
