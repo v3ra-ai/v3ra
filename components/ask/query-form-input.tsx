@@ -1,20 +1,20 @@
-
 import { Button } from "@/components/ui/button";
 import { Dispatch, SetStateAction } from "react";
 import { QueryFormModeSelector } from "./query-form-mode-selector";
 import { QueryFormAISlider } from "./query-form-ai-slider";
 import { QueryMode } from "@/lib/types";
+import { useCreditsStore } from "@/store/credit-store";
+import { toast } from "sonner";
 
 interface QueryFormInputProps {
   queryText: string;
   setQueryText: Dispatch<SetStateAction<string>>;
   placeholderText: string;
-  handleSubmit: () => void;
+  handleSubmit: () => void; // Removed hasPaid parameter
   isSubmitting: boolean;
   payWithWallet: boolean;
   queriesUnpaid: number;
   queriesCostTotal: number;
-  hasPaid: boolean;
   userCreditsTotal: number;
   userFreeCredits: number;
   userPaidCredits: number;
@@ -33,7 +33,7 @@ export function QueryFormInput({
   handleSubmit,
   isSubmitting,
   queriesUnpaid,
-  hasPaid,
+  queriesCostTotal,
   isSubmitInteracted,
   setIsSubmitInteracted,
   queryMode,
@@ -41,6 +41,45 @@ export function QueryFormInput({
   handleQueryAmountChange,
   allowedAmountQueries,
 }: QueryFormInputProps) {
+  const { displayUnpaid, hasPaid: storeHasPaid } = useCreditsStore();
+
+  console.log("QueryFormInput submit button state:", {
+    isSubmitting,
+    displayUnpaid,
+    storeHasPaid,
+    queriesUnpaid,
+    queriesCostTotal,
+    queriesRequested,
+    queryText,
+  });
+
+  const onSubmit = () => {
+    console.log("QueryFormInput onSubmit called:", {
+      queryText,
+      displayUnpaid,
+      storeHasPaid,
+      isSubmitting,
+      queriesUnpaid,
+      queriesCostTotal,
+    });
+    if (displayUnpaid > 0 && !storeHasPaid) {
+      console.log("onSubmit: Blocked due to unpaid queries and no payment");
+      toast.error("Please make a payment first", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+      });
+      return;
+    }
+    try {
+      handleSubmit(); // No hasPaid parameter
+      console.log("handleSubmit executed successfully");
+    } catch (error) {
+      console.error("Query submission failed:", error);
+      toast.error(error.message || "Failed to submit query, please try again", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+      });
+    }
+  };
+
   return (
     <>
       <div className="flex flex-col mb-2">
@@ -68,18 +107,18 @@ export function QueryFormInput({
         </div>
         <div className="flex items-center justify-end w-1/2">
           <Button
-            className={`bg-gradient-to-r from-teal-400 to-blue-500 hover:from-teal-500 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer ${
-              isSubmitInteracted && queriesUnpaid > 0
+            className={`bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer ${
+              isSubmitInteracted && displayUnpaid > 0
                 ? "ring-2 ring-red-400"
                 : ""
             }`}
-            onClick={handleSubmit}
-            disabled={isSubmitting || (queriesUnpaid > 0 && !hasPaid)}
+            onClick={onSubmit}
+            disabled={isSubmitting || (displayUnpaid > 0 && !storeHasPaid)}
             onMouseEnter={() =>
-              queriesUnpaid > 0 && setIsSubmitInteracted(true)
+              displayUnpaid > 0 && setIsSubmitInteracted(true)
             }
             onMouseLeave={() => setIsSubmitInteracted(false)}
-            onMouseDown={() => queriesUnpaid > 0 && setIsSubmitInteracted(true)}
+            onMouseDown={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
             onMouseUp={() => setIsSubmitInteracted(false)}
           >
             {isSubmitting ? "Submitting..." : "Submit"}

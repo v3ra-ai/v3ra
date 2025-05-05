@@ -15,8 +15,6 @@ import { useCreditsStore } from "@/store/credit-store";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 
 interface PaymentControlsProps {
-  hasPaid: boolean;
-  setHasPaid: (value: boolean) => void;
   queriesCostTotal: number;
   userCreditsTotal: number;
   userFreeCredits: number;
@@ -26,8 +24,6 @@ interface PaymentControlsProps {
 }
 
 export function PaymentControls({
-  hasPaid,
-  setHasPaid,
   queriesCostTotal,
   queriesUnpaid,
   highlightPayButton = false,
@@ -35,7 +31,7 @@ export function PaymentControls({
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { resetCreditsAfterPayment } = useCreditsStore();
+  const { resetCreditsAfterPayment, displayUnpaid, hasPaid, setHasPaid } = useCreditsStore();
 
   const PAYMENT_RECEIVER_ADDRESS =
     process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
@@ -45,7 +41,7 @@ export function PaymentControls({
     );
   }
   const PAYMENT_RECIPIENT = new PublicKey(PAYMENT_RECEIVER_ADDRESS);
-  const PAYMENT_AMOUNT = queriesCostTotal * QUERY_COST * LAMPORTS_PER_SOL;
+  const PAYMENT_AMOUNT = Math.floor(queriesCostTotal * QUERY_COST * LAMPORTS_PER_SOL);
 
   const handlePayment = async () => {
     if (!publicKey || !sendTransaction) {
@@ -57,7 +53,15 @@ export function PaymentControls({
 
     setIsProcessing(true);
     try {
-      console.log("Payment inputs:", { queriesCostTotal, PAYMENT_AMOUNT, publicKey: publicKey.toBase58() });
+      console.log("Payment inputs:", {
+        queriesCostTotal,
+        QUERY_COST,
+        LAMPORTS_PER_SOL,
+        PAYMENT_AMOUNT,
+        publicKey: publicKey.toBase58(),
+        displayUnpaid,
+        hasPaid,
+      });
 
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -75,8 +79,8 @@ export function PaymentControls({
       await connection.confirmTransaction(signature, "confirmed");
 
       setHasPaid(true);
-      resetCreditsAfterPayment(); // Reset all credits to 0 after payment
-      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useCreditsStore.getState().userCreditsTotal);
+      resetCreditsAfterPayment();
+      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useCreditsStore.getState().userCreditsTotal, "hasPaid:", useCreditsStore.getState().hasPaid);
       toast.success(`Payment of ${queriesCostTotal} credits (${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL) completed! Credits reset to 0.`, {
         style: { background: "#dcfce7", color: "#16a34a" },
       });
@@ -88,6 +92,8 @@ export function PaymentControls({
           ? "Insufficient SOL in wallet"
           : error.message.includes("blockhash")
           ? "Transaction expired, please try again"
+          : error.message.includes("BigInt")
+          ? "Invalid payment amount, please try again"
           : errorMessage;
       }
       toast.error(errorMessage, {
@@ -98,7 +104,13 @@ export function PaymentControls({
     }
   };
 
-  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
+  console.log("PaymentControls render state:", {
+    hasPaid,
+    displayUnpaid,
+    isProcessing,
+    publicKey: publicKey?.toBase58() || "none",
+    PAYMENT_AMOUNT,
+  });
 
   return (
     <>

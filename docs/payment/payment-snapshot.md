@@ -20,6 +20,11 @@ hooks/useSolanaTransaction.tsx
 hooks/useSolanaWallet.tsx
 store/credit-store.ts
 lib/constants.ts
+utils/csrf-utils.ts
+app/api/csrf-token/route.ts
+components/ask/query-stats.tsx
+components/ask/consensus/current-query.tsx
+
 
 --------------
 
@@ -2062,4 +2067,306 @@ export const MAX_VOTE_HISTORY_RESULTS = 300;
 export const RECENT_HISTORY_RESULTS = 50;
 
 
+utils/csrf-utils.ts
 
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
+
+export function generateCsrfToken(response: NextResponse): string {
+  const token = crypto.randomBytes(32).toString("hex");
+  response.cookies.set("csrf-token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax", // Relaxed for debugging
+    maxAge: 60 * 60, // 1 hour
+  });
+  console.log("CSRF Token Generated:", {
+    token,
+    cookieSettings: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60,
+    },
+  });
+  return token;
+}
+
+app/api/csrf-token/route.ts
+
+export function verifyCsrfToken(request: NextRequest): NextResponse | null {
+  const tokenFromHeader = request.headers.get("X-CSRF-Token");
+  const tokenFromCookie = request.cookies.get("csrf-token")?.value;
+  console.log("CSRF Verification:", {
+    tokenFromHeader,
+    tokenFromCookie,
+    cookies: request.cookies.getAll(),
+  });
+  if (!tokenFromHeader || !tokenFromCookie || tokenFromHeader !== tokenFromCookie) {
+    console.error("CSRF validation failed:", {
+      tokenFromHeader,
+      tokenFromCookie,
+    });
+    return NextResponse.json(
+      { error: "Invalid or missing CSRF token" },
+      { status: 403 },
+    );
+  }
+  return null;
+}
+
+
+app/api/csrf-token/route.ts
+
+import { NextResponse } from "next/server";
+import { generateCsrfToken } from "@/utils/csrf-utils";
+
+export async function GET() {
+  try {
+    // Create response without committing JSON yet
+    const response = new NextResponse();
+    const csrfToken = generateCsrfToken(response);
+    // Set JSON body after setting cookie
+    return NextResponse.json({ csrfToken }, { status: 200, headers: response.headers });
+  } catch (error) {
+    console.error("Error generating CSRF token:", error);
+    return NextResponse.json({ error: "Failed to generate CSRF token" }, { status: 500 });
+  }
+}
+
+
+-------
+
+components/ask/query-stats.tsx
+
+
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
+import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
+
+interface QueryStatsProps {
+  userCreditsTotal: number;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
+  queriesRequested: number;
+}
+
+export default function QueryStats({
+  userCreditsTotal,
+  queriesUnpaid,
+  queriesCostTotal,
+  queriesRequested,
+}: QueryStatsProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasTriggeredOpen, setHasTriggeredOpen] = useState(false);
+  const [hasTriggeredClose, setHasTriggeredClose] = useState(false);
+
+  // Auto-trigger open/close based on queriesUnpaid
+  useEffect(() => {
+    if (queriesUnpaid > 0 && !hasTriggeredOpen) {
+      setIsOpen(true);
+      setHasTriggeredOpen(true);
+      setHasTriggeredClose(false);
+    } else if (queriesUnpaid <= 0 && !hasTriggeredClose) {
+      setIsOpen(false);
+      setHasTriggeredClose(true);
+      setHasTriggeredOpen(false);
+    }
+  }, [queriesUnpaid, hasTriggeredOpen, hasTriggeredClose]);
+
+  const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested); // Credits left after reserving queriesRequested
+  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
+
+  return (
+    <div className="w-full mt-4">
+      {/* Mobile: Collapsible; Desktop: Always visible */}
+      <Collapsible
+        open={isOpen}
+        onOpenChange={setIsOpen}
+        className="md:hidden"
+      >
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center justify-between w-full bg-zinc-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 cursor-pointer truncate"
+          >
+            <span>Credits left: {creditsLeft}</span>
+            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="md:flex items-center gap-2 hidden">
+              <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
+              <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+                {creditsLeft}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-700 dark:text-zinc-400">
+                Cost to query: ({displayUnpaid})
+              </span>
+              <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+                {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+              </span>
+            </div>
+            <Link href="/credits">
+              <Button
+                className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full"
+              >
+                Stake to get more
+              </Button>
+            </Link>
+            <Link href="/credits">
+              <Button
+                className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full"
+              >
+                Buy Credits
+              </Button>
+            </Link>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Desktop: Always visible */}
+      <div className="hidden md:flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
+          <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+            {creditsLeft}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-700 dark:text-zinc-400">
+            Cost to query: ({displayUnpaid})
+          </span>
+          <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+            {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+          </span>
+        </div>
+        <Link href="/credits">
+          <Button
+            className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
+          >
+            Stake to get more
+          </Button>
+        </Link>
+        <Link href="/credits">
+          <Button
+            className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
+          >
+            Buy Credits
+          </Button>
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+components/ask/consensus/current-query.tsx
+
+"use client";
+
+import { useNetworkState } from "@/hooks/useNetworkState";
+import { VoteResultContext } from "@/components/ask/ask-results-expert";
+import { useContext } from "react";
+import { motion } from "framer-motion";
+import { sanitizeQueryText } from "@/utils/security-utils";
+import { calculateVotePercentages } from "@/utils/vote-utils";
+import { formatErrorMessage } from "@/utils/error-utils";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
+
+const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
+  <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
+    <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
+      Current Query
+    </h3>
+    <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-40 w-full flex items-center justify-center">
+      {state === "loading" ? (
+        <span className="">
+          <LoadingSpinner type="beat" message="Loading..." />
+        </span>
+      ) : (
+        <span className="text-red-500">
+          Error: {formatErrorMessage(state.error)}
+        </span>
+      )}
+    </div>
+  </div>
+);
+
+export default function CurrentQuery() {
+  const { isLoading, error } = useNetworkState();
+  const voteResult = useContext(VoteResultContext);
+
+  if (isLoading) {
+    return <QueryState state="loading" />;
+  }
+
+  if (error) {
+    return <QueryState state={{ error: formatErrorMessage(error) }} />;
+  }
+  // Sanitize queryText to prevent XSS
+  const sanitizedQueryText =
+    sanitizeQueryText(voteResult?.queryText) || "No query available";
+
+  const {
+    yes: yesPercentage,
+    no: noPercentage,
+    notVoted: notVotedPercentage,
+  } = calculateVotePercentages(voteResult);
+
+  return (
+    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
+      <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
+        Current Query
+      </h3>
+      <div className="space-y-4">
+        <p className="text-sm text-gray-600 dark:text-gray-300">
+          {sanitizedQueryText}
+        </p>
+        <div
+          className={`
+            h-8 w-full
+            bg-gray-200 dark:bg-zinc-700
+            rounded-full overflow-hidden
+            flex
+          `}
+        >
+          {yesPercentage > 0 && (
+            <motion.div
+              className="h-full bg-green-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${yesPercentage}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          )}
+          {noPercentage > 0 && (
+            <motion.div
+              className="h-full bg-red-500"
+              initial={{ width: 0 }}
+              animate={{ width: `${noPercentage}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          )}
+          {notVotedPercentage > 0 && (
+            <motion.div
+              className="h-full bg-gray-400 dark:bg-zinc-600"
+              initial={{ width: 0 }}
+              animate={{ width: `${notVotedPercentage}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          )}
+        </div>
+        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+          <span>Yes: {yesPercentage.toFixed(0)}%</span>
+          <span>No: {noPercentage.toFixed(0)}%</span>
+          <span>Not Voted: {notVotedPercentage.toFixed(0)}%</span>
+        </div>
+      </div>
+    </div>
+  );
+}

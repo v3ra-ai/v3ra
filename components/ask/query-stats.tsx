@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useCreditsStore } from "@/store/credit-store";
 
 interface QueryStatsProps {
   userCreditsTotal: number;
@@ -21,22 +23,61 @@ export default function QueryStats({
   const [isOpen, setIsOpen] = useState(false);
   const [hasTriggeredOpen, setHasTriggeredOpen] = useState(false);
   const [hasTriggeredClose, setHasTriggeredClose] = useState(false);
+  const { publicKey } = useWallet();
+  const { fetchSavedCredits, savedCredits, totalCredits, displayUnpaid, setUserCreditsTotal, setQueriesUnpaid, setQueriesCostTotal, hasPaid } = useCreditsStore();
 
-  // Auto-trigger open/close based on queriesUnpaid
+  // Fetch saved credits and sync store props
   useEffect(() => {
-    if (queriesUnpaid > 0 && !hasTriggeredOpen) {
+    console.log("QueryStats syncing store:", {
+      userCreditsTotal,
+      queriesUnpaid,
+      queriesCostTotal,
+      queriesRequested,
+      hasPaid,
+      publicKey: publicKey?.toBase58() || "none",
+    });
+    fetchSavedCredits(publicKey);
+    setUserCreditsTotal(userCreditsTotal);
+    setQueriesUnpaid(queriesUnpaid);
+    setQueriesCostTotal(queriesCostTotal);
+  }, [publicKey, userCreditsTotal, queriesUnpaid, queriesCostTotal, queriesRequested, hasPaid, fetchSavedCredits, setUserCreditsTotal, setQueriesUnpaid, setQueriesCostTotal]);
+
+  // Auto-trigger open/close based on displayUnpaid
+  useEffect(() => {
+    console.log("QueryStats collapsible state:", {
+      displayUnpaid,
+      isOpen,
+      hasTriggeredOpen,
+      hasTriggeredClose,
+      hasPaid,
+    });
+    if (displayUnpaid > 0 && !hasTriggeredOpen) {
       setIsOpen(true);
       setHasTriggeredOpen(true);
       setHasTriggeredClose(false);
-    } else if (queriesUnpaid <= 0 && !hasTriggeredClose) {
+    } else if (displayUnpaid <= 0 && !hasTriggeredClose) {
       setIsOpen(false);
       setHasTriggeredClose(true);
       setHasTriggeredOpen(false);
     }
-  }, [queriesUnpaid, hasTriggeredOpen, hasTriggeredClose]);
+  }, [displayUnpaid, hasTriggeredOpen, hasTriggeredClose]);
 
-  const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested); // Credits left after reserving queriesRequested
-  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
+  // Calculate credits left
+  const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+  console.log("Credits left calculation:", {
+    savedCredits,
+    userCreditsTotal,
+    queriesRequested,
+    creditsLeft,
+  });
+
+  console.log("Queries unpaid calculation:", {
+    queriesUnpaid,
+    queriesCostTotal,
+    totalCredits,
+    displayUnpaid,
+    hasPaid,
+  });
 
   return (
     <div className="w-full mt-4">
@@ -67,9 +108,12 @@ export default function QueryStats({
               <span className="text-gray-700 dark:text-zinc-400">
                 Cost to query: ({displayUnpaid})
               </span>
-              <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
-              </span>
+              {displayUnpaid > 0 && (
+                <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+                  {console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST })}
+                  {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+                </span>
+              )}
             </div>
             <Link href="/credits">
               <Button
@@ -101,9 +145,12 @@ export default function QueryStats({
           <span className="text-gray-700 dark:text-zinc-400">
             Cost to query: ({displayUnpaid})
           </span>
-          <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-            {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
-          </span>
+          {displayUnpaid > 0 && (
+            <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+              {console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST })}
+              {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+            </span>
+          )}
         </div>
         <Link href="/credits">
           <Button

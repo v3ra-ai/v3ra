@@ -15,16 +15,14 @@ import { sanitizeError, sanitizeQueryText } from "@/utils/security-utils";
 interface UseQueryLogicProps {
   payWithWallet: boolean;
   setPayWithWallet: Dispatch<SetStateAction<boolean>>;
-  hasPaid: boolean;
-  setHasPaid: Dispatch<SetStateAction<boolean>>;
 }
 
-export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHasPaid }: UseQueryLogicProps) {
+export function useQueryLogic({ payWithWallet, setPayWithWallet }: UseQueryLogicProps) {
   const [queryText, setQueryText] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const { userFreeCredits, userPaidCredits, userCreditsTotal } = useCreditsStore();
+  const { userFreeCredits, userPaidCredits, userCreditsTotal, hasPaid: storeHasPaid } = useCreditsStore();
   const {
     queriesRequested,
     queriesUnpaid,
@@ -97,7 +95,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       queriesCostTotal,
       queryText,
       payWithWallet,
-      hasPaid,
+      storeHasPaid,
     });
 
     // Validate query submission
@@ -115,7 +113,8 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       });
       return;
     }
-    if (payWithWallet && queriesUnpaid > 0 && !hasPaid) {
+    if (payWithWallet && queriesUnpaid > 0 && !storeHasPaid) {
+      console.log("[useQueryLogic] Blocked: Payment required", { queriesUnpaid, storeHasPaid });
       toast.error("Please make a payment first", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
@@ -131,7 +130,6 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
       await broadcastQuery(queryText, { csrfToken });
       resetAfterSubmission(userCreditsTotal);
       setQueryText("");
-      setHasPaid(false);
       setPayWithWallet(queriesRequested > userCreditsTotal);
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
@@ -142,7 +140,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet, hasPaid, setHas
         queriesRequested,
         queriesUnpaid,
         payWithWallet,
-        hasPaid,
+        storeHasPaid,
         responseStatus: err instanceof Error && err.message.includes("Server responded") ? err.message : "Unknown",
       });
       toast.error(errorMessage, {
