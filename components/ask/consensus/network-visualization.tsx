@@ -1,10 +1,60 @@
+"use client";
+
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartLegend,
+  ChartLegendContent,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+
+const chartData = [
+  { validator: "GEMINI", reliability: 90, speed: 80 },
+  { validator: "GROK-1", reliability: 82, speed: 85 },
+  { validator: "GPT-4O", reliability: 93, speed: 91 },
+  { validator: "SONNET-20240229", reliability: 94, speed: 87 },
+  { validator: "OpenAI", reliability: 91, speed: 94 },
+  { validator: "Grok-2", reliability: 92, speed: 93 },
+];
+
+const chartConfig = {
+  reliability: {
+    label: "Reliability",
+    color: "#14b8a6",
+  },
+  speed: {
+    label: "Speed",
+    color: "#fef08a",
+  },
+} satisfies ChartConfig;
+
 export default function NetworkVisualization() {
   return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
-      <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">Network Visualization</h3>
-      <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-40 w-full flex items-center justify-center">
-        <span className="text-gray-400 dark:text-gray-500">Visualization placeholder</span>
-      </div>
-    </div>
-  )
+    <ChartContainer config={chartConfig} className="min-h-[200px] w-full">
+      <BarChart accessibilityLayer data={chartData}>
+        <CartesianGrid vertical={false} />
+        <XAxis
+          dataKey="validator"
+          tickLine={false}
+          tickMargin={6}
+          axisLine={false}
+          tickFormatter={(value) => value.slice(0, 7)}
+        />
+        <ChartTooltip content={<ChartTooltipContent />} />
+        <ChartLegend content={<ChartLegendContent />} />
+        <Bar dataKey="reliability" fill="var(--color-reliability)" radius={4}
+                animationBegin={0}
+                animationDuration={20}
+                // animationEasing={3}
+                />
+        <Bar dataKey="speed" fill="var(--color-speed)" radius={4}
+                   animationBegin={2}
+                   animationDuration={10}
+          />
+      </BarChart>
+    </ChartContainer>
+  );
 }
