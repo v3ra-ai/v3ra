@@ -1,7 +1,7 @@
 "use client";
 
 import { useVoteResult } from "@/hooks/useVoteResult";
-import NetworkVisualization from "@/components/ask/consensus/network-visualization";
+import NetworkVisualization from "@/components/ask/charts/network-visualization";
 import CurrentQuery from "@/components/ask/consensus/current-query";
 import NetworkStatus from "@/components/ask/consensus/network-status";
 import ValidatorResults from "@/components/ask/consensus/validator-results";

@@ -73,7 +73,7 @@ export default function AskResultsStandardCard({
   return (
     <Card
       className={`
-        bg-white dark:bg-zinc-800
+        bg-zinc-50 dark:bg-zinc-800
         pt-4 gap-2
         border border-zinc-200 dark:border-zinc-700
         hover:border-zinc-400 active:border-zinc-400
@@ -83,7 +83,7 @@ export default function AskResultsStandardCard({
       `}
     >
       <AskResultsStandardHeader formattedDate={formattedDate} />
-      <hr className="h-1" />
+      <hr className="h-1 mt-2" />
       <AskResultsStandardTitle sanitizedQuery={sanitizedQuery} />
       <hr className="h-1 mt-2" />
       <CardContent className="space-y-2">
@@ -103,7 +103,7 @@ export default function AskResultsStandardCard({
         <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery}/>
         </div>
       </CardContent>
-      <hr className="h-1 border" />
+      <hr className="h-1 mt-2" />
       <AskResultsStandardFooter
         sanitizedQuery={sanitizedQuery}
         isOpen={isOpen}

@@ -19,7 +19,7 @@ export function AskResultsStandardFooter({
 }: AskResultsStandardFooterProps) {
   return (
     <>
-      <hr className="h-1 border" />
+      <hr className="h-1 mt-2" />
       <div className="flex justify-start px-1">
         <Collapsible open={isOpen} onOpenChange={() => toggleItem(sanitizedQuery.id)}>
           <CollapsibleTrigger className="flex px-4 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">

@@ -23,7 +23,7 @@ export function NetworkStats({ networkState }: NetworkStatsProps) {
       <CardHeader>
         <CardTitle className="flex items-center text-lg font-semibold text-gray-900 dark:text-white">
           <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-          Network Status
+          Network Statussss
         </CardTitle>
       </CardHeader>
       <CardContent>
