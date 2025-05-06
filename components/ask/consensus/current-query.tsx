@@ -51,11 +51,11 @@ export default function CurrentQuery() {
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
-      <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
+      <h3 className="text-xl font-medium text-gray-800 dark:text-zinc-200 mb-4">
         Current Query
       </h3>
       <div className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-300">
+        <p className="text-2xl text-gray-600 dark:text-gray-300">
           {sanitizedQueryText}
         </p>
         <div
@@ -68,7 +68,7 @@ export default function CurrentQuery() {
         >
           {yesPercentage > 0 && (
             <motion.div
-              className="h-full bg-teal-500"
+              className="h-full bg-emerald-400"
               initial={{ width: 0 }}
               animate={{ width: `${yesPercentage}%` }}
               transition={{ duration: 0.5 }}
@@ -91,7 +91,7 @@ export default function CurrentQuery() {
             />
           )}
         </div>
-        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
+        <div className="flex justify-between text-md text-gray-600 dark:text-gray-300">
           <span>Yes: {yesPercentage.toFixed(0)}%</span>
           <span>No: {noPercentage.toFixed(0)}%</span>
           <span>Not Voted: {notVotedPercentage.toFixed(0)}%</span>

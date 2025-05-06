@@ -23,11 +23,11 @@ const chartData = [
 const chartConfig = {
   reliability: {
     label: "Reliability",
-    color: "#334155",
+    color: "#2dd4bf",
   },
   speed: {
     label: "Speed",
-    color: "#64748b",
+    color: "#52525b",
   },
 } satisfies ChartConfig;
 
