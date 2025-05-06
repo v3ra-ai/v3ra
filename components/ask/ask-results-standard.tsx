@@ -70,7 +70,7 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
   return (
     <div
       className={`
-        bg-white dark:bg-zinc-800
+        bg-zinc-200 dark:bg-zinc-900
         pt-4 gap-2
         border border-zinc-200 dark:border-zinc-700
         transition-colors
