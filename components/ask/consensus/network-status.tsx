@@ -52,8 +52,8 @@ export default function NetworkStatus() {
   if (isLoading) {
     return (
       <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-48 w-full">
-        <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
-          Network Statusssss
+        <h3 className="text-xl font-medium text-gray-800 dark:text-zinc-200 mb-4">
+          Network Status
         </h3>
         <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 w-full flex items-center justify-center">
           <LoadingSpinner type="beat" message="Loading..." />
@@ -65,7 +65,7 @@ export default function NetworkStatus() {
   if (error) {
     return (
       <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-48 w-full">
-        <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
+        <h3 className="text-lg font-medium text-gray-800 dark:text-zinc-200 mb-4">
           Network Status
         </h3>
         <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 w-full flex items-center justify-center">
@@ -79,10 +79,11 @@ export default function NetworkStatus() {
 
   return (
     <Card className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 w-full">
-      <CardHeader className="p-0 mb-4">
-        <CardTitle className="text-md font-medium text-gray-800 dark:text-zinc-200">
+      <CardHeader className="p-0 mb-1">
+        <CardTitle className="text-xl font-medium text-gray-800 dark:text-zinc-200">
           Network Status
         </CardTitle>
+        <div className="text-zinc-600 dark:text-zinc-400">Network overview and leader information</div>
       </CardHeader>
       <CardContent className="p-0">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
