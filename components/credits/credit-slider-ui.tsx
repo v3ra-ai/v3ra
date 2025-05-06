@@ -1,5 +1,5 @@
 import * as Slider from "@radix-ui/react-slider";
-import { Square } from "lucide-react";
+import { Coins, Square } from "lucide-react";
 
 interface CreditSliderUIProps {
   creditAmount: number;
@@ -41,9 +41,15 @@ export default function CreditSliderUI({
 
   return (
     <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-        Purchase Credits
-      </h2>
+      <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
+        <div className="flex justify-center items-center mb-2">
+          {" "}
+          <Coins size={22} />
+          <h2 className="w-full text-2xl font-semibold ml-2 text-zinc-900 dark:text-zinc-100">
+            Purchase Credits
+          </h2>
+        </div>
+      </div>
       <div className="text-center mb-6">
         <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
           {creditAmount}

@@ -8,7 +8,6 @@ import { useTheme } from "next-themes";
 import AskFooter from "@/components/ask/ask-footer";
 // import ConsensusStatus from "@/components/ask/consensus-status"
 
-
 export default function Home() {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -43,7 +42,6 @@ export default function Home() {
         <QueryInterface />
         {/* <ConsensusStatus /> */}
         <AskFooter />
-
       </main>
     </SolanaProvider>
   );

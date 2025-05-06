@@ -17,7 +17,7 @@ const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
     <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-40 w-full flex items-center justify-center">
       {state === "loading" ? (
         <span className="">
-          <LoadingSpinner type="beat" message="Loading..." />
+          <LoadingSpinner type="beat" message="Loading query..." />
         </span>
       ) : (
         <span className="text-red-500">
@@ -41,7 +41,7 @@ export default function CurrentQuery() {
   }
   // Sanitize queryText to prevent XSS
   const sanitizedQueryText =
-    sanitizeQueryText(voteResult?.queryText) || "No query available";
+    sanitizeQueryText(voteResult?.queryText) ||  <LoadingSpinner type="beat" message="Loading query..." />;
 
   const {
     yes: yesPercentage,
@@ -55,9 +55,9 @@ export default function CurrentQuery() {
         Current Query
       </h3>
       <div className="space-y-4">
-        <p className="text-2xl text-gray-600 dark:text-gray-300">
+        <div className="text-2xl text-gray-600 dark:text-gray-300">
           {sanitizedQueryText}
-        </p>
+        </div>
         <div
           className={`
             h-8 w-full

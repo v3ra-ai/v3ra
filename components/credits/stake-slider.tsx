@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
-import { Square } from "lucide-react";
+import { Layers, Square } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { QUERY_COST } from "@/lib/constants";
 
@@ -19,13 +19,19 @@ export default function StakeSlider() {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-        Stake for Credits
-      </h2>
-      <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
-          {stakeAmount}
-        </span>
+      <div className="flex flex-col w-full text-center justify-center items-center mx-auto">
+        <div className="flex justify-center items-center mb-2">
+          {" "}
+          <Layers size={22} />
+          <h2 className="w-full text-2xl font-semibold ml-2 text-zinc-900 dark:text-zinc-100">
+            Stake for Credits
+          </h2>
+        </div>
+        <div className="flex text-center mb-6">
+            <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
+              {stakeAmount}
+            </span>
+          </div>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
