@@ -15,12 +15,8 @@ import { AskResultsStandardTitle } from "@/components/ask/ask-results-standard-t
 import { AskResultsStandardConsensus } from "@/components/ask/ask-results-standard-consensus";
 import { AskResultsStandardRationale } from "@/components/ask/ask-results-standard-rationale";
 import { AskResultsStandardAiConsensus } from "@/components/ask/ask-results-standard-ai-consensus";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp } from "lucide-react";
+
+import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -39,7 +35,9 @@ export default function AskResultsStandardCard({
   const sanitizedQuery = {
     ...query,
     queryText: sanitizeQueryText(query.queryText),
-    validatorResponses: query.validatorResponses?.map(sanitizeValidatorResponse),
+    validatorResponses: query.validatorResponses?.map(
+      sanitizeValidatorResponse
+    ),
   };
 
   // Handle undefined timestamp with a fallback
@@ -60,13 +58,17 @@ export default function AskResultsStandardCard({
   // Store the entire response object for the longest rationale
   const longestRationaleResponse = matchingResponses.length
     ? matchingResponses.reduce((longest, response) =>
-        response.rationale.length > longest.rationale.length ? response : longest
+        response.rationale.length > longest.rationale.length
+          ? response
+          : longest
       )
     : null;
 
   const longestRationale = longestRationaleResponse?.rationale || null;
-  const validatorName = longestRationaleResponse?.profileName || "Unknown Validator";
-  const validatorProvider = longestRationaleResponse?.provider || "Unknown Provider";
+  const validatorName =
+    longestRationaleResponse?.profileName || "Unknown Validator";
+  const validatorProvider =
+    longestRationaleResponse?.provider || "Unknown Provider";
 
   const { cleanText } = useCleanText(longestRationale);
 
@@ -105,7 +107,9 @@ export default function AskResultsStandardCard({
               {sanitizedQuery.validatorResponses.map((response) => {
                 const mapping = validatorImageMapping.find(
                   (m) => m.id === response.id
-                ) as { id: string; profile: string; avatarUrl: string | null } | undefined;
+                ) as
+                  | { id: string; profile: string; avatarUrl: string | null }
+                  | undefined;
                 // Enhanced debugging for validator data
                 if (process.env.NODE_ENV === "development") {
                   // console.log(`Validator ID: ${response.id}`);
@@ -176,50 +180,11 @@ export default function AskResultsStandardCard({
         </div>
       </CardContent>
       <hr className="h-1 border" />
-      <Collapsible
-        open={isOpen}
-        onOpenChange={() => toggleItem(sanitizedQuery.id)}
-      >
-        <CollapsibleTrigger className="flex items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-          Validator Responses ({sanitizedQuery.validatorResponses?.length ?? 0})
-          {isOpen ? (
-            <ChevronUp className="ml-2 h-4 w-4" />
-          ) : (
-            <ChevronDown className="ml-2 h-4 w-4" />
-          )}
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-2 space-y-2">
-          {sanitizedQuery.validatorResponses?.length ? (
-            sanitizedQuery.validatorResponses.map((response) => (
-              <div
-                key={response.id}
-                className="p-2 bg-zinc-100 dark:bg-zinc-700 rounded-md"
-              >
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  <span className="font-semibold">Provider: </span>
-                  {response.provider}
-                </p>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  <span className="font-semibold">Profile: </span>
-                  {response.profileName}
-                </p>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  <span className="font-semibold">Vote: </span>
-                  {response.vote}
-                </p>
-                <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                  <span className="font-semibold">Rationale: </span>
-                  {response.rationale}
-                </p>
-              </div>
-            ))
-          ) : (
-            <p className="text-sm text-zinc-500 dark:text-zinc-400">
-              No validator responses available.
-            </p>
-          )}
-        </CollapsibleContent>
-      </Collapsible>
+      <AskResultsStandardFooter
+        sanitizedQuery={sanitizedQuery}
+        isOpen={isOpen}
+        toggleItem={toggleItem}
+      />
     </Card>
   );
 }

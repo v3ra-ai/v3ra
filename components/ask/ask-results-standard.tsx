@@ -98,7 +98,7 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
         </div>
         <div className="flex mt-4">
           <Skeleton className="h-10 w-24" />
-          <div className="w-full justify-center text-zinc-300 dark:text-zinc-600">Loading...</div>
+          <div className="w-full justify-center ml-8 text-zinc-300 dark:text-zinc-600">Loading...</div>
         </div>
         <div className="mt-4">
           <Skeleton className="h-4 w-full" />

@@ -20,10 +20,10 @@ export function AskResultsStandardFooter({
   return (
     <>
       <hr className="h-1 border" />
-      <div className="flex justify-start p-2">
+      <div className="flex justify-start px-1">
         <Collapsible open={isOpen} onOpenChange={() => toggleItem(sanitizedQuery.id)}>
-          <CollapsibleTrigger className="flex items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-            Validator Responses ({sanitizedQuery.validatorResponses?.length ?? 0})
+          <CollapsibleTrigger className="flex px-4 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
+            <span className=""></span>Validator Responses ({sanitizedQuery.validatorResponses?.length ?? 0})
             {isOpen ? (
               <ChevronUp className="ml-2 h-4 w-4" />
             ) : (

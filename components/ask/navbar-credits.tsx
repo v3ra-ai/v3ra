@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/loading-spinner-new"; // Import LoadingSpinner
+import { Coins } from "lucide-react";
 
 export default function NavbarCredits() {
   const { publicKey } = useWallet();
@@ -55,23 +56,26 @@ export default function NavbarCredits() {
   return (
     <div className="flex items-center text-md text-zinc-600 dark:text-zinc-300">
       <Link href="/credits/">
-        <span>Saved Credits:</span>{" "}
-        <span className="text-sky-700 dark:text-sky-300 bg-zinc-200 dark:bg-zinc-700 ml-1 px-2 py-1 rounded-md">
-          {paidCredits !== null ? (
-            paidCredits
-          ) : (
-            <>
-              {console.log("Rendering LoadingSpinner for credits fetch")} {/* Debug log */}
-              <LoadingSpinner
-                noWrapper
-                type="pulse"
-                color="#d946ef"
-                size={5}
-                message={""} // No message to keep it compact
-              />
-            </>
-          )}
-        </span>
+        <div className="flex items-center ">
+          <Coins size={16}/> <span className="mx-2">Paid Credits:</span>
+          <span className="text-sky-700 dark:text-sky-300 bg-zinc-200 dark:bg-zinc-700 ml-1 px-2 py-1 rounded-md">
+            {paidCredits !== null ? (
+              paidCredits
+            ) : (
+              <>
+                {console.log("Rendering LoadingSpinner for credits fetch")}{" "}
+                {/* Debug log */}
+                <LoadingSpinner
+                  noWrapper
+                  type="pulse"
+                  color="#d946ef"
+                  size={5}
+                  message={""} // No message to keep it compact
+                />
+              </>
+            )}
+          </span>
+        </div>
       </Link>
     </div>
   );
