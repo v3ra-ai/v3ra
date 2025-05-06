@@ -6,7 +6,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Coins, Layers } from "lucide-react";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCreditsStore } from "@/store/credit-store";
@@ -148,7 +148,7 @@ export default function QueryStats({
             </div>
             <Link href="/credits">
               <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
-                Stake to get more
+              Stake to get more
               </Button>
             </Link>
             <Link href="/credits">
@@ -185,12 +185,12 @@ export default function QueryStats({
         <div className="flex justify-between gap-2">
           <Link href="/credits">
             <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
-              Stake to get more
+            <Layers /> Stake to get more
             </Button>
           </Link>
           <Link href="/credits">
           <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
-              Buy Credits
+          <Coins /> Buy Credits
             </Button>
           </Link>
         </div>
