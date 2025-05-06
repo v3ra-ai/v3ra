@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useTheme } from "next-themes";
+import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase-client";
 import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
@@ -16,6 +17,7 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [, setIsLoggedIn] = useState(false);
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Handle hydration
   useEffect(() => {
@@ -69,7 +71,6 @@ export default function Navbar() {
   };
 
   // Disable toggle on /credits due to forced light theme
-  // const isCreditsPage = pathname === "/credits";
   const isCreditsPage = false; // Placeholder until pathname is used
 
   // Select logo based on theme
@@ -78,6 +79,22 @@ export default function Navbar() {
       ? "/verafy_logo_white.svg"
       : "/verafy_logo_black.svg"
     : "/verafy_logo_black.svg"; // Default to black logo before mounting
+
+  // Toggle hamburger menu
+  const toggleMenu = () => {
+    setIsMenuOpen((prev) => !prev);
+  };
+
+  // Close menu on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsMenuOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   return (
     <div className="fixed top-0 w-full bg-white dark:bg-zinc-900 z-50 height-[16px]">
@@ -90,23 +107,53 @@ export default function Navbar() {
         </div>
 
         {/* Navigation Links */}
-        <div className="flex items-center space-x-4">
-        <NavbarSitelinks />
-
+        <div className="hidden md:flex items-center space-x-4">
+          <NavbarSitelinks />
         </div>
 
-        {/* Right Side - Credits, Theme Toggle, Login, Connect Wallet */}
+        {/* Right Side - Credits, Theme Toggle, Login, Connect Wallet, Menu */}
         <div className="flex items-center space-x-4">
-
           <NavbarSettings
             mounted={mounted}
             isCreditsPage={isCreditsPage}
             handleToggleTheme={handleToggleTheme}
+            onToggleMenu={toggleMenu}
           />
         </div>
       </div>
 
       <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
+
+      {/* Mobile Menu Drawer */}
+      <AnimatePresence>
+        {isMenuOpen && (
+          <>
+            {/* Backdrop */}
+            <motion.div
+              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.5 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              onClick={toggleMenu}
+            />
+            {/* Drawer */}
+            <motion.div
+              className="fixed top-0 right-0 h-full w-64 bg-white dark:bg-zinc-900 z-50 shadow-lg p-6"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+              role="dialog"
+              aria-label="Mobile navigation menu"
+            >
+              <div className="[&>div]:flex [&>div]:flex-col [&>div]:space-y-4 [&>div]:text-base [&>div_a]:p-2 [&>div_a]:min-h-[44px] [&>div_a]:flex [&>div_a]:items-center">
+                <NavbarSitelinks />
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

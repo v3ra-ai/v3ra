@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -24,7 +28,16 @@ export default function QueryStats({
   const [hasTriggeredOpen, setHasTriggeredOpen] = useState(false);
   const [hasTriggeredClose, setHasTriggeredClose] = useState(false);
   const { publicKey } = useWallet();
-  const { fetchSavedCredits, savedCredits, totalCredits, displayUnpaid, setUserCreditsTotal, setQueriesUnpaid, setQueriesCostTotal, hasPaid } = useCreditsStore();
+  const {
+    fetchSavedCredits,
+    savedCredits,
+    totalCredits,
+    displayUnpaid,
+    setUserCreditsTotal,
+    setQueriesUnpaid,
+    setQueriesCostTotal,
+    hasPaid,
+  } = useCreditsStore();
 
   // Fetch saved credits and sync store props
   useEffect(() => {
@@ -40,7 +53,18 @@ export default function QueryStats({
     setUserCreditsTotal(userCreditsTotal);
     setQueriesUnpaid(queriesUnpaid);
     setQueriesCostTotal(queriesCostTotal);
-  }, [publicKey, userCreditsTotal, queriesUnpaid, queriesCostTotal, queriesRequested, hasPaid, fetchSavedCredits, setUserCreditsTotal, setQueriesUnpaid, setQueriesCostTotal]);
+  }, [
+    publicKey,
+    userCreditsTotal,
+    queriesUnpaid,
+    queriesCostTotal,
+    queriesRequested,
+    hasPaid,
+    fetchSavedCredits,
+    setUserCreditsTotal,
+    setQueriesUnpaid,
+    setQueriesCostTotal,
+  ]);
 
   // Auto-trigger open/close based on displayUnpaid
   useEffect(() => {
@@ -76,29 +100,34 @@ export default function QueryStats({
     displayUnpaid,
     hasPaid,
   });
-  console.log("Showing query cost:", { queriesCostTotal, solCost: queriesCostTotal * QUERY_COST });
+  console.log("Showing query cost:", {
+    queriesCostTotal,
+    solCost: queriesCostTotal * QUERY_COST,
+  });
 
   return (
     <div className="w-full mt-4">
       {/* Mobile: Collapsible; Desktop: Always visible */}
-      <Collapsible
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        className="md:hidden"
-      >
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="md:hidden">
         <CollapsibleTrigger asChild>
           <Button
             variant="outline"
             className="flex items-center justify-between w-full bg-zinc-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 cursor-pointer truncate"
           >
-            <span>Credits left: {Math.max(0, totalCredits - queriesRequested)}</span>
-            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
+            <span>
+              Credits left: {Math.max(0, totalCredits - queriesRequested)}
+            </span>
+            <ChevronDown
+              className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent>
           <div className="flex flex-col gap-4 mt-4">
             <div className="md:flex items-center gap-2 hidden">
-              <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
+              <span className="text-gray-700 dark:text-zinc-400">
+                Credits left
+              </span>
               <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
                 {Math.max(0, totalCredits - queriesRequested)}
               </span>
@@ -109,21 +138,21 @@ export default function QueryStats({
               </span>
               {displayUnpaid > 0 && (
                 <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                  {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+                  {queriesCostTotal} credits (
+                  {(queriesCostTotal * QUERY_COST).toFixed(
+                    QUERY_COST_FIXED_DECIMALS
+                  )}{" "}
+                  SOL)
                 </span>
               )}
             </div>
             <Link href="/credits">
-              <Button
-                className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full"
-              >
+              <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
                 Stake to get more
               </Button>
             </Link>
             <Link href="/credits">
-              <Button
-                className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full"
-              >
+              <Button className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
                 Buy Credits
               </Button>
             </Link>
@@ -145,24 +174,26 @@ export default function QueryStats({
           </span>
           {displayUnpaid > 0 && (
             <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-              {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+              {queriesCostTotal} credits (
+              {(queriesCostTotal * QUERY_COST).toFixed(
+                QUERY_COST_FIXED_DECIMALS
+              )}{" "}
+              SOL)
             </span>
           )}
         </div>
-        <Link href="/credits">
-          <Button
-            className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
-          >
-            Stake to get more
-          </Button>
-        </Link>
-        <Link href="/credits">
-          <Button
-            className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
-          >
-            Buy Credits
-          </Button>
-        </Link>
+        <div className="flex justify-between gap-2">
+          <Link href="/credits">
+            <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
+              Stake to get more
+            </Button>
+          </Link>
+          <Link href="/credits">
+          <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
+              Buy Credits
+            </Button>
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Sun, Moon, CircleUser, User } from "lucide-react";
+import { Sun, Moon, CircleUser, User, Menu } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import {
@@ -22,12 +22,14 @@ interface NavbarSettingsProps {
   mounted: boolean;
   isCreditsPage: boolean;
   handleToggleTheme: () => void;
+  onToggleMenu?: () => void;
 }
 
 export function NavbarSettings({
   mounted,
   isCreditsPage,
   handleToggleTheme,
+  onToggleMenu,
 }: NavbarSettingsProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
@@ -151,6 +153,14 @@ export function NavbarSettings({
           border: "1px solid #d1d5db",
         }}
       />
+
+      <button
+        onClick={onToggleMenu}
+        className="md:hidden p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 transition-colors cursor-pointer"
+        aria-label="Toggle navigation menu"
+      >
+        <Menu className="h-5 w-5 text-zinc-500 cursor-pointer" />
+      </button>
     </div>
   );
 }

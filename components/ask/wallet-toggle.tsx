@@ -51,7 +51,7 @@ export default function WalletToggle({
               className="switch data-[state=checked]:bg-[#46BBA6]"
             />
             <span className="font-medium text-gray-500 dark:text-gray-400">
-              Pay with Wallet ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+              Pay ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
             </span>
           </div>
         )}
