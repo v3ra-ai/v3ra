@@ -221,9 +221,9 @@ export default function AskResultsStandard() {
         </p>
       ) : (
         <div
-          className={`max-w-6xl mx-auto ${
+          className={`max-w-7xl mx-auto ${
             layoutMode === "grid"
-              ? "flex flex-wrap justify-center gap-4"
+              ? "flex flex-wrap justify-center gap-6"
               : "flex flex-col gap-4 items-center justify-center"
           }`}
         >

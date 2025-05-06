@@ -1,9 +1,6 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { VoteResult } from "@/lib/types";
 import { useCleanText } from "@/hooks/useCleanText";
-import validatorImageMapping from "@/utils/validatorImageMapping.json";
-import Image from "next/image";
-import Link from "next/link";
 import {
   sanitizeQueryText,
   sanitizeValidatorResponse,
