@@ -1,11 +1,10 @@
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 import CreditSliderUI from "./credit-slider-ui";
 import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
 import { useCreditAssignment } from "@/hooks/useCreditAssignment";
-import { useCreditBalance } from "@/hooks/useCreditBalance";
 import { VERAFY_WALLET } from "@/lib/solana-constants";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
@@ -13,9 +12,13 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, Connection, SendTransactionError } from "@solana/web3.js";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 
-export default function CreditSlider() {
+interface CreditSliderProps {
+  creditBalance: number | null;
+  setCreditBalance: Dispatch<SetStateAction<number | null>>;
+}
+
+export default function CreditSlider({creditBalance, setCreditBalance}: CreditSliderProps) {
   const [creditAmount, setCreditAmount] = useState(10);
-  const { creditBalance, setCreditBalance } = useCreditBalance();
   const { publicKey, signTransaction, connected: isWalletConnected, disconnect } = useWallet();
   const {
     sendTransaction,
