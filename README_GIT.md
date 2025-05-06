@@ -6,8 +6,17 @@
 
 
 ## Dev Branching instructions
-- If you are working on a new feature, create a branch from `dev` instead of `main`.
-- This is to ensure that you are working with the latest code and not on a potentially outdated version of `main`.
+
+We have a `dev` branch that is used for development and testing, before going to LIVE production.
+
+`dev` branch is where we merge our feature branches (eg. 2025050-fix-credits-page) when approved.
+
+- **Do not** work directly on the `main` branch. Thats what is live, released.
+- **Do not** push directly to `main` or `dev` without a Pull Request (PR). This ensures that all changes are reviewed and approved before being merged into the main codebase.
+- **Do not** merge your own PRs. Another developer should review and approve the PR before merging.
+
+- If you are working on a new feature, create a branch from `dev` -- not `main`.
+- This is to ensure that you are working with the latest code and not on an outdated version of `main`.
 - The `dev` branch is where we can test new features before merging them into `main`.
 
 Example of working on new code from dev and then a PR from you feature branch back to dev:
@@ -30,7 +39,7 @@ Push your branch to the remote repository:
 git push origin YYYYMMDD-feature-description
 ```
 
-PR: Then go to GitHub and create a Pull Request (PR) from `YYYYMMDD-feature-description` → `dev` (or `main` depending on what we agree for workflow).
+PR: Then go to GitHub and create a Pull Request (PR) from `YYYYMMDD-feature-description` → `dev` .
 
 - Make sure your feature branch is working locally and on the test deployment URL.
 
@@ -42,7 +51,7 @@ Tips:
 
 ### More info on Branching/Updates
 
-- Make a branch from main for any modifications you make.
+- Make a branch from dev for any modifications you make.
 - Also, I created a general "dev" branch.
 - If making modifications, make a branch off dev with the date in format YYYYMMDD + feature (so it sorts better)
 - Like YYYYMMDD-add-validator-page and
@@ -84,8 +93,11 @@ Keep updated regularly:
 
 - Make sure your feature branch is
   (1) `npm run dev` working locally,
-  (2) `npm run build` to confirm compiling on build
-  (3) deploy on a test deployment url and it;s working remotely.
+  (2) `npx tsc --noEmit` to confirm no typescript errors (testnet/blog allow `npm run ready` a combo of this and build)
+  (3) `npm run lint` to confirm no linting errors
+  (4) `npm run test` to confirm all tests are passing
+  (5) `npm run build` to confirm compiling on build
+  (6) deploy on a test deployment url and it's working remotely.
 
 If all good...
 
@@ -124,7 +136,7 @@ git pull origin dev  # Get the latest changes
 git merge YYYYMMDD-feature-description  # Merge your branch into dev
 ```
 
-Or if merging into main
+Or if merging into main (after approved in dev and ready for release)
 
 ```
 git checkout main  # Switch to main
