@@ -39,7 +39,7 @@ const LayoutToggle = ({
   layoutMode: "grid" | "row";
   setLayoutMode: (mode: "grid" | "row") => void;
 }) => (
-  <div className="flex space-x-2 ml-4">
+  <div className="flex space-x-2 ml-4 invisible lg:visible">
     <Grid3x3
       className={`h-5 w-5 cursor-pointer ${layoutMode === "grid" ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400"}`}
       onClick={() => setLayoutMode("grid")}
@@ -197,7 +197,7 @@ export default function AskResultsStandard() {
         {isLoading ? (
           <LoadingSpinner type="beat" message="Loading Recent Queries..." />
         ) : (
-          <h2 className="text-md text-zinc-800 dark:text-zinc-200 font-light uppercase">
+          <h2 className="text-md text-zinc-800 dark:text-zinc-200 font-light">
             Recent Queries
           </h2>
         )}
