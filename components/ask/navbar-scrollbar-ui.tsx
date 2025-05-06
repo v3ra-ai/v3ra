@@ -56,7 +56,9 @@ export function NavbarScrollbarUI({
             <input
               type="text"
               className={`flex-1 p-2 border rounded-md bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-teal-500 min-w-[150px] ${
-                hasAttemptedSubmit && !queryText.trim() ? "border-red-400" : "border-zinc-300 dark:border-zinc-600"
+                hasAttemptedSubmit && !queryText.trim()
+                  ? "border-red-400"
+                  : "border-zinc-300 dark:border-zinc-600"
               }`}
               placeholder={getPlaceholderText(queryMode)}
               value={isSubmitting ? "Submitting..." : queryText}
@@ -68,7 +70,10 @@ export function NavbarScrollbarUI({
             />
           </div>
         </div>
-        <div className="flex flex-row md:w-2/3 items-center h-full md:text-left flex-wrap gap-2">
+        <div
+          className="flex flex-row md:w-2/3 items-center h-full md:text-left flex-wrap
+        gap-2 py-2 md:py-0"
+        >
           <QueryFormAISlider
             queriesRequested={queriesRequested}
             handleQueryAmountChange={updateQueryAmountRequested}
