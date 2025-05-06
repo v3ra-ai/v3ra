@@ -1,14 +1,17 @@
-
 import { createContext } from "react";
 import { useVoteResult } from "@/hooks/useVoteResult";
 import { VoteResult } from "@/lib/types";
 import CurrentQuery from "@/components/ask/consensus/current-query";
 import NetworkStatus from "@/components/ask/consensus/network-status";
-import NetworkVisualization from "@/components/ask/consensus/network-visualization";
-import Staking from "@/components/ask/consensus/staking";
+import NetworkVisualization from "@/components/ask/charts/network-visualization";
+import QueriesChart from "@/components/ask/charts/queries-chart";
 import ValidatorResults from "@/components/ask/consensus/validator-results";
 import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
-import { sanitizeQueryText, sanitizeValidatorResponse } from "@/utils/security-utils";
+import {
+  sanitizeQueryText,
+  sanitizeValidatorResponse,
+} from "@/utils/security-utils";
+import StakingAreaStacked from "./charts/staking-area-stacked";
 
 export const VoteResultContext = createContext<VoteResult | null>(null);
 
@@ -17,12 +20,14 @@ export default function AskResultsExpert() {
 
   // Sanitize voteResult to prevent XSS
   const sanitizedVoteResult = voteResult
-  ? {
-      ...voteResult,
-      queryText: sanitizeQueryText(voteResult.queryText),
-      validatorResponses: voteResult.validatorResponses?.map(sanitizeValidatorResponse),
-    }
-  : null;
+    ? {
+        ...voteResult,
+        queryText: sanitizeQueryText(voteResult.queryText),
+        validatorResponses: voteResult.validatorResponses?.map(
+          sanitizeValidatorResponse
+        ),
+      }
+    : null;
 
   return (
     <VoteResultContext.Provider value={sanitizedVoteResult}>
@@ -34,7 +39,9 @@ export default function AskResultsExpert() {
           max-w-7xl
         `}
       >
-        <h2 className="text-xl text-gray-800 dark:text-zinc-200 mb-6">Expert Query Results</h2>
+        <h2 className="text-xl text-gray-800 dark:text-zinc-200 mb-6">
+          Expert Query Results
+        </h2>
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Network and Query Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -52,7 +59,10 @@ export default function AskResultsExpert() {
             <ValidatorVoteHistory />
           </div>
           <div>
-            <Staking />
+            <StakingAreaStacked />
+          </div>
+          <div>
+            <QueriesChart />
           </div>
         </div>
       </div>

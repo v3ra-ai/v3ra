@@ -16,7 +16,7 @@ import { ErrorDisplay } from "@/components/error-display";
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
-import { useAutoRefresh } from "@/hooks/useAutoRefresh";
+// import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { toast } from "sonner";
 import { sanitizeError } from "@/utils/security-utils";
 import type { VoteResult, Validator } from "@/lib/types";
@@ -81,11 +81,11 @@ const Explorer: React.FC = () => {
     refetchVoteHistory,
   );
 
-  useAutoRefresh({
-    isEnabled: autoRefresh,
-    intervalMs: 5000,
-    fetchCallbacks: [refetchNetwork, refetchVoteHistory],
-  });
+  // useAutoRefresh({
+  //   isEnabled: autoRefresh,
+  //   intervalMs: 5000,
+  //   fetchCallbacks: [refetchNetwork, refetchVoteHistory],
+  // });
 
   if (isLoading) {
     return <LoadingSpinner />;

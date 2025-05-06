@@ -8,6 +8,7 @@ import ValidatorResults from "@/components/ask/consensus/validator-results";
 import Staking from "@/components/ask/consensus/staking";
 import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
 import { VoteResultContext } from "@/components/ask/ask-results-expert";
+import AreaStackedValidators from "./charts/staking-area-stacked";
 
 export default function ConsensusStatus() {
   const { voteResult } = useVoteResult();
@@ -39,6 +40,10 @@ export default function ConsensusStatus() {
           {/* Fourth row: Validator Results and Staking */}
           <div>
             <ValidatorVoteHistory />
+          </div>
+
+          <div>
+            <AreaStackedValidators />
           </div>
 
           {/* Fifth row: Validator Results and Staking */}

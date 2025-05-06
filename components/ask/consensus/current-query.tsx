@@ -68,7 +68,7 @@ export default function CurrentQuery() {
         >
           {yesPercentage > 0 && (
             <motion.div
-              className="h-full bg-green-500"
+              className="h-full bg-teal-500"
               initial={{ width: 0 }}
               animate={{ width: `${yesPercentage}%` }}
               transition={{ duration: 0.5 }}
@@ -76,7 +76,7 @@ export default function CurrentQuery() {
           )}
           {noPercentage > 0 && (
             <motion.div
-              className="h-full bg-red-500"
+              className="h-full bg-red-400"
               initial={{ width: 0 }}
               animate={{ width: `${noPercentage}%` }}
               transition={{ duration: 0.5 }}

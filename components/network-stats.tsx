@@ -20,7 +20,7 @@ export function NetworkStats({ networkState }: NetworkStatsProps) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div className="space-y-2">
-        <h3 className="text-lg font-medium">Network Status</h3>
+        <h3 className="text-xl font-medium">Network Status</h3>
         <div className="space-y-2">
           <div className="flex justify-between">
             <span className="text-gray-500">Validators:</span>

@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useVoteResult } from "@/hooks/useVoteResult";
@@ -6,13 +5,17 @@ import { VoteResult } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sanitizeValidatorResponse } from "@/utils/security-utils";
 
-const ValidatorResponseCard = ({ response }: { response: VoteResult["validatorResponses"][number] }) => {
+const ValidatorResponseCard = ({
+  response,
+}: {
+  response: VoteResult["validatorResponses"][number];
+}) => {
   const sanitizedResponse = sanitizeValidatorResponse(response);
   return (
     <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
         <div className="flex flex-col">
-          <span className="font-medium text-gray-800 dark:text-zinc-200">
+          <span className="text-2xl font-medium text-gray-800 dark:text-zinc-200">
             {sanitizedResponse.profileName} ({sanitizedResponse.provider})
           </span>
           <span className="text-xs text-gray-500 dark:text-gray-400">
@@ -23,7 +26,7 @@ const ValidatorResponseCard = ({ response }: { response: VoteResult["validatorRe
           className={`
             px-2 py-1
             rounded-full
-            text-xs font-medium
+            text-xl font-medium
             mt-2 sm:mt-0
             ${
               sanitizedResponse.vote === "YES"
@@ -49,11 +52,14 @@ export default function ValidatorResults() {
   const validatorResponses = voteResult?.validatorResponses ?? [];
 
   return (
-    <Card className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 w-full">
+    <Card className="bg-white dark:bg-zinc-900 rounded-xl shadow-md px-6 w-full">
       <CardHeader className="p-0 mb-4">
-        <CardTitle className="text-md font-medium text-gray-800 dark:text-zinc-200">
+        <CardTitle className="text-xl font-medium text-gray-800 dark:text-zinc-200">
           Validator Results
         </CardTitle>
+        <div className="text-md text-zinc-700 dark:text-zinc-400">
+          Most recent query Validator results{" "}
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         {validatorResponses.length > 0 ? (
@@ -63,7 +69,9 @@ export default function ValidatorResults() {
             ))}
           </div>
         ) : (
-          <p className="text-gray-500 dark:text-gray-400">No validator responses available</p>
+          <p className="text-gray-500 dark:text-gray-400">
+            No validator responses available
+          </p>
         )}
       </CardContent>
     </Card>
