@@ -10,7 +10,7 @@
 - This is to ensure that you are working with the latest code and not on a potentially outdated version of `main`.
 - The `dev` branch is where we can test new features before merging them into `main`.
 
-Example of working on new code from dev and then a PR to dev:
+Example of working on new code from dev and then a PR from you feature branch back to dev:
 
 ```
 git checkout dev  # Switch to dev
@@ -30,7 +30,8 @@ Push your branch to the remote repository:
 git push origin YYYYMMDD-feature-description
 ```
 
-Then go to GitHub and create a Pull Request (PR) from `YYYYMMDD-feature-description` → `dev` (or `main` depending on what we agree for workflow).
+PR: Then go to GitHub and create a Pull Request (PR) from `YYYYMMDD-feature-description` → `dev` (or `main` depending on what we agree for workflow).
+
 - Make sure your feature branch is working locally and on the test deployment URL.
 
 Tips:
@@ -43,15 +44,15 @@ Tips:
 
 - Make a branch from main for any modifications you make.
 - Also, I created a general "dev" branch.
-- If making modifications, make a branch off main with the date in format YYYYMMDD + feature (so it sorts better)
+- If making modifications, make a branch off dev with the date in format YYYYMMDD + feature (so it sorts better)
 - Like YYYYMMDD-add-validator-page and
 - Commit that branch with your work as needed. (YYYYMMDD-add-validator-page)
 
 #### Example of checkout and branching
 
 ```
-git checkout main  # Switch to the main branch
-git pull origin main  # Ensure your local main branch is up to date from remote
+git checkout dev  # Switch to the main branch
+git pull origin dev  # Ensure your local main branch is up to date from remote
 git checkout -b YYYYMMDD-feature-description  # Create a new branch
 
 example branch name:
