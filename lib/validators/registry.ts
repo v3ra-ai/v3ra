@@ -3,6 +3,7 @@ import { dbValidatorToAIValidator } from "../db/validators";
 import { OpenAIValidator } from "./providers/openai";
 import { AnthropicValidator } from "./providers/anthropic";
 import { GeminiValidator } from "./providers/gemini";
+import { OpenRouterValidator } from "./providers/openrouter";
 import { validatorService } from "../services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
 
@@ -107,6 +108,19 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
         return {
           ...aiValidator,
           validate: anthropicValidator.validate.bind(anthropicValidator),
+        };
+      }
+
+      case "OpenRouter": {
+        const orValidator = new OpenRouterValidator({
+          id: validator.id,
+          name: validator.profileName,
+          modelName: validator.modelName,
+          active: validator.active,
+        });
+        return {
+          ...aiValidator,
+          validate: orValidator.validate.bind(orValidator),
         };
       }
 

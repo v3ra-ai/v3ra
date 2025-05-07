@@ -5,12 +5,8 @@ async function test() {
     const validators = await prisma.validator.findMany();
     console.log("Validators:", validators);
 
-    // Generate a unique ID (e.g., using timestamp)
-    const uniqueId = `test-validator-${Date.now()}`;
-
     const newValidator = await prisma.validator.create({
       data: {
-        id: uniqueId, // Use a unique ID each run
         profileName: "Test Validator",
         provider: "Test",
         modelName: "TestModel",

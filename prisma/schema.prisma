@@ -146,7 +146,7 @@ model ValidatorResponse {
   createdAt          DateTime    @default(now())
   updatedAt          DateTime    @updatedAt
   error              String?
-  validator          Validator   @relation(fields: [validatorId], references: [id])
+  validator          Validator   @relation(fields: [validatorId], references: [id], onDelete: Cascade)
   voteSession        VoteSession @relation(fields: [voteSessionId], references: [id])
 
   @@index([vote])
@@ -168,7 +168,7 @@ model GraphEdge {
   validatorId   String?
   voteSessionId String?
   voteSession   VoteSession? @relation("VoteSessionEdges", fields: [voteSessionId], references: [id])
-  validator     Validator?   @relation("ValidatorEdges", fields: [validatorId], references: [id])
+  validator     Validator?   @relation("ValidatorEdges", fields: [validatorId], references: [id], onDelete: Cascade)
 
   @@index([sourceType, sourceId])
   @@index([targetType, targetId])
