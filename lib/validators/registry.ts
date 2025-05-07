@@ -34,10 +34,12 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
     if (isServer) {
       return validatorService.addValidator(validator);
     } else {
-      console.warn(
-        "Adding validators from client is not fully implemented yet",
-      );
-      this.validators.set(validator.id, validator);
+      console.warn("Adding validators from client is not fully implemented yet");
+      if (validator.id) {
+        this.validators.set(validator.id, validator);
+      } else {
+        console.warn("Skipping validator without id:", validator);
+      }
       return validator;
     }
   }
@@ -148,15 +150,20 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       if (isServer) {
         const dbValidators = await validatorService.getAllValidators();
         const aiValidators = await Promise.all(
-          dbValidators.map((validator) =>
-            this.createValidatorImplementation(validator),
-          ),
+          dbValidators.map((validator) => this.createValidatorImplementation(validator)),
         );
+        aiValidators.forEach((validator) => {
+          if (validator.id) {
+            this.validators.set(validator.id, validator);
+          }
+        });
         return aiValidators;
       } else {
         const validators = await Promise.resolve<AIValidator[]>([]);
         validators.forEach((validator) => {
-          this.validators.set(validator.id, validator);
+          if (validator.id) {
+            this.validators.set(validator.id, validator);
+          }
         });
         return validators;
       }
@@ -171,15 +178,20 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       if (isServer) {
         const dbValidators = await validatorService.getActiveDbValidators();
         const aiValidators = await Promise.all(
-          dbValidators.map((validator) =>
-            this.createValidatorImplementation(validator),
-          ),
+          dbValidators.map((validator) => this.createValidatorImplementation(validator)),
         );
+        aiValidators.forEach((validator) => {
+          if (validator.id) {
+            this.validators.set(validator.id, validator);
+          }
+        });
         return aiValidators;
       } else {
         const validators = await Promise.resolve<AIValidator[]>([]);
         validators.forEach((validator) => {
-          this.validators.set(validator.id, validator);
+          if (validator.id) {
+            this.validators.set(validator.id, validator);
+          }
         });
         return validators;
       }

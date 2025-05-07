@@ -5,7 +5,7 @@
 import { AIValidator, ValidationRequest, AIValidationResponse } from "./types";
 
 // Type for API response (AIValidator without validate)
-type ValidatorApiResponse = Omit<AIValidator, "validate">;
+type ValidatorApiResponse = Omit<AIValidator, "validate"> & { id: string };
 
 // Mock validators for initial client-side rendering
 const MOCK_VALIDATORS: AIValidator[] = [
