@@ -103,7 +103,8 @@ export default function AskResultsStandardCard({
         <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery}/>
         </div>
       </CardContent>
-      <hr className="h-1 mt-2" />
+
+      {/* <hr className="h-1 mt-2" /> */}
       <AskResultsStandardFooter
         sanitizedQuery={sanitizedQuery}
         isOpen={isOpen}
