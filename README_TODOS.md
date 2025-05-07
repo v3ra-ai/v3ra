@@ -1,5 +1,6 @@
 # Todos
 
+* qa-testnet.verafy.ai (protected deploy)
 * Add more validators 10 minimum, 20+ ideally.
 * Able to delete/edit validators.
 * New validators included in query results

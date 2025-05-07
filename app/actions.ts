@@ -9,6 +9,7 @@ import { GrokValidator } from "@/lib/validators/providers/grok";
 import { GeminiValidator } from "@/lib/validators/providers/gemini";
 import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
+import { OpenRouterValidator } from "@/lib/validators/providers/openrouter";
 
 type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
@@ -50,12 +51,12 @@ export async function broadcastCustomQuery(
       let validator;
 
       // Skip validators without API keys
-      if (!dbValidator.apiKeys[0]?.apiKeyId) {
-        console.warn(
-          `Skipping validator ${dbValidator.id} (${dbValidator.profileName}): No API key found`,
-        );
-        continue;
-      }
+      // if (!dbValidator.apiKeys[0]?.apiKeyId) {
+      //   console.warn(
+      //     `Skipping validator ${dbValidator.id} (${dbValidator.profileName}): No API key found`,
+      //   );
+      //   continue;
+      // }
 
       if (dbValidator.provider === "OpenAI") {
         // Correct invalid model name
@@ -100,6 +101,18 @@ export async function broadcastCustomQuery(
           keyId: dbValidator.apiKeys[0].apiKeyId,
           active: dbValidator.active,
         });
+      } else if (dbValidator.provider === "OpenRouter") {
+        console.log(
+          `Creating OpenRouter validator instance for ${dbValidator.id} (${dbValidator.profileName})`,
+        );
+        validator = new OpenRouterValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName: dbValidator.modelName,
+          // apiKey: process.env.OPENROUTER_API_KEY
+          active: dbValidator.active,
+        });
+
       } else {
         console.warn(
           `Validator provider ${dbValidator.provider} not supported yet`,
@@ -147,6 +160,10 @@ export async function broadcastCustomQuery(
     const validatorResponses: VoteValidatorResponse[] = await Promise.all(
       validatorResponsePromises,
     );
+
+    console.log(`------------------validatorResponses-------------------------`);
+    console.log(`validatorResponses ${validatorResponses}`);
+    console.log(`--------------------------------------------------------------`);
 
     const yesVotes = validatorResponses.filter((r) => r.vote === "YES").length;
     const noVotes = validatorResponses.filter((r) => r.vote === "NO").length;
