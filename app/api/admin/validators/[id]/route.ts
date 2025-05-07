@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validatorService } from "@/lib/services/validatorService";
-import { prisma } from "@/lib/db/client"; // Using prisma client directly for update
+import { prisma } from "@/lib/db/client";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await context.params;
   if (!id) {
     return NextResponse.json({ message: "Validator ID is required" }, { status: 400 });
   }
@@ -38,53 +37,22 @@ export async function PATCH(
     if (!updatedValidator) {
       return NextResponse.json({ message: "Validator not found" }, { status: 404 });
     }
-    
+
     // Return the structure consistent with GET all
     const responseValidator = {
-        id: updatedValidator.id,
-        profileName: updatedValidator.profileName,
-        provider: updatedValidator.provider,
-        modelName: updatedValidator.modelName,
-        active: updatedValidator.active,
-      };
+      id: updatedValidator.id,
+      profileName: updatedValidator.profileName,
+      provider: updatedValidator.provider,
+      modelName: updatedValidator.modelName,
+      active: updatedValidator.active,
+    };
 
     return NextResponse.json(responseValidator);
   } catch (error) {
     console.error(`Error updating validator ${id}:`, error);
     const errorMessage = error instanceof Error ? error.message : "Failed to update validator";
-    if ((error as any).code === 'P2025') { // Prisma error code for record not found
-        return NextResponse.json({ message: "Validator not found" }, { status: 404 });
-    }
-    return NextResponse.json(
-      { message: errorMessage },
-      { status: 500 },
-    );
-  }
-}
-
-export async function DELETE(
-  request: NextRequest, // request param is not used but required by Next.js
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
-  if (!id) {
-    return NextResponse.json({ message: "Validator ID is required" }, { status: 400 });
-  }
-
-  try {
-    // Check if validator exists before attempting delete to return a 404 if not found.
-    const existingValidator = await prisma.validator.findUnique({ where: { id } });
-    if (!existingValidator) {
-        return NextResponse.json({ message: "Validator not found" }, { status: 404 });
-    }
-
-    await validatorService.removeValidator(id);
-    return NextResponse.json({ message: "Validator removed successfully" }, { status: 200 }); // Or 204 No Content
-  } catch (error) {
-    console.error(`Error removing validator ${id}:`, error);
-    const errorMessage = error instanceof Error ? error.message : "Failed to remove validator";
-     if ((error as any).code === 'P2025') { // Prisma error for record to delete not found (already handled by check above)
-        return NextResponse.json({ message: "Validator not found" }, { status: 404 });
+    if (error instanceof Error && 'code' in error && error.code === 'P2025') { // Prisma error code for record not found
+      return NextResponse.json({ message: "Validator not found" }, { status: 404 });
     }
     return NextResponse.json(
       { message: errorMessage },

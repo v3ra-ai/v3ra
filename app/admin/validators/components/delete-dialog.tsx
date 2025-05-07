@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { ListedValidator, deleteValidator } from '@/lib/admin/validator-client-services';
+import { ListedValidator } from '@/lib/admin/validator-client-services';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,22 +27,22 @@ export default function DeleteDialog({ validator, onConfirmDelete, onCancel }: D
     try {
       console.log("Starting delete for validator:", validator);
       setIsDeleting(true);
-      
+
       // Create direct fetch for better debugging
       const response = await fetch(`/api/admin/validators/${validator.id}`, {
         method: "DELETE",
       });
-      
+
       console.log("Delete response:", response.status, response.statusText);
-      
+
       if (!response.ok) {
         const data = await response.json().catch(() => ({ message: "Unknown error" }));
         throw new Error(data.message || `Error ${response.status}: ${response.statusText}`);
       }
-      
+
       const data = await response.json();
       console.log("Delete success:", data);
-      
+
       toast.success(`Validator "${validator.profileName}" deleted successfully`);
       onConfirmDelete(validator.id);
     } catch (error) {
@@ -60,7 +60,7 @@ export default function DeleteDialog({ validator, onConfirmDelete, onCancel }: D
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Validator</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete the validator "{validator.profileName}"?
+            Are you sure you want to delete the validator &quot;{validator.profileName}&quot;?
             <br />
             <span className="font-semibold text-destructive">This action cannot be undone.</span>
           </AlertDialogDescription>

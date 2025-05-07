@@ -4,9 +4,9 @@ import { prisma } from "@/lib/db/client";
 
 export async function POST(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const { id } = params;
+  const { id } = await context.params;
   if (!id) {
     return NextResponse.json({ message: "Validator ID is required" }, { status: 400 });
   }
@@ -21,7 +21,7 @@ export async function POST(
         { status: 400 }
       );
     }
-    
+
     // Check if validator exists
     const existingValidator = await prisma.validator.findUnique({ where: { id } });
     if (!existingValidator) {
@@ -29,7 +29,7 @@ export async function POST(
     }
 
     await validatorService.toggleValidator(id, active);
-    
+
     // Fetch the updated validator to return its new state
     const updatedValidator = await prisma.validator.findUnique({ where: {id} });
     if (!updatedValidator) { // Should not happen if toggle succeeded
