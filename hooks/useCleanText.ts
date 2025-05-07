@@ -7,14 +7,12 @@ interface CleanRule {
 
 export function useCleanText(text: string | null | undefined): { cleanText: string } {
   const rules: CleanRule[] = [
-    // Remove "confidence" mentions to avoid opinionated phrasing
     { pattern: /confidence\.?\s*/gi, replacement: "" },
-    // Remove analysis disclaimers for concise output
     { pattern: /based on my analysis\s*/gi, replacement: "" },
-    // Remove personal belief statements for neutrality
     { pattern: /i believe\s*/gi, replacement: "" },
-    // Remove opinion qualifiers for clarity
     { pattern: /in my opinion\s*/gi, replacement: "" },
+    { pattern: /level:\s*\d+\s*Explanation:/gi, replacement: "" },
+    { pattern: /Explanation: /gi, replacement: "" },
   ];
 
   const cleanText = useMemo(() => {
