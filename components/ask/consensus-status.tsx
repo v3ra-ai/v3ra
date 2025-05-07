@@ -5,7 +5,6 @@ import NetworkVisualization from "@/components/ask/charts/network-visualization"
 import CurrentQuery from "@/components/ask/consensus/current-query";
 import NetworkStatus from "@/components/ask/consensus/network-status";
 import ValidatorResults from "@/components/ask/consensus/validator-results";
-import Staking from "@/components/ask/consensus/staking";
 import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
 import { VoteResultContext } from "@/components/ask/ask-results-expert";
 import AreaStackedValidators from "./charts/staking-area-stacked";
@@ -46,10 +45,7 @@ export default function ConsensusStatus() {
             <AreaStackedValidators />
           </div>
 
-          {/* Fifth row: Validator Results and Staking */}
-          <div>
-            <Staking />
-          </div>
+
         </div>
       </VoteResultContext.Provider>
     </div>
