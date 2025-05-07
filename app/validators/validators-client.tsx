@@ -43,7 +43,12 @@ export default function ValidatorsClient({ validators }: ValidatorsClientProps) 
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {validators.map((validator) => (
+                {validators.map((validator) => {
+                  console.log(validators);
+
+                  console.log(`/icons/${validator.avatarUrl}`);
+
+                  return (
                   <TableRow
                     key={validator.id}
                     className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -83,7 +88,7 @@ export default function ValidatorsClient({ validators }: ValidatorsClientProps) 
                       </Link>
                     </TableCell>
                   </TableRow>
-                ))}
+                )})}
               </TableBody>
             </Table>
           ) : (

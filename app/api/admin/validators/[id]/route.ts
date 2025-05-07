@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
+import { validatorService } from "@/lib/services/validatorService";
 
 export async function PATCH(
   request: NextRequest,
@@ -53,6 +54,43 @@ export async function PATCH(
     const errorMessage = error instanceof Error ? error.message : "Failed to update validator";
     if (error instanceof Error && 'code' in error && error.code === 'P2025') { // Prisma error code for record not found
       return NextResponse.json({ message: "Validator not found" }, { status: 404 });
+    }
+    return NextResponse.json(
+      { message: errorMessage },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> }
+) {
+  const { id } = await context.params;
+  if (!id) {
+    return NextResponse.json({ message: "Validator ID is required" }, { status: 400 });
+  }
+
+  try {
+    // Check if validator exists before attempting delete to return a 404 if not found.
+    const existingValidator = await prisma.validator.findUnique({ where: { id } });
+    if (!existingValidator) {
+        return NextResponse.json({ message: "Validator not found" }, { status: 404 });
+    }
+
+    await validatorService.removeValidator(id);
+    return NextResponse.json({ message: "Validator removed successfully" }, { status: 200 }); // Or 204 No Content
+  } catch (error) {
+    console.error(`Error removing validator ${id}:`, error);
+    const errorMessage = error instanceof Error ? error.message : "Failed to remove validator";
+
+    // Use a more specific type for Prisma errors
+    interface PrismaError extends Error {
+      code?: string;
+    }
+
+    if ((error as PrismaError).code === 'P2025') { // Prisma error for record to delete not found (already handled by check above)
+        return NextResponse.json({ message: "Validator not found" }, { status: 404 });
     }
     return NextResponse.json(
       { message: errorMessage },

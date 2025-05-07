@@ -15,6 +15,12 @@ export async function getValidators(): Promise<Validator[]> {
     if (process.env.NODE_ENV === "development") {
       console.log("Fetched validators:", validators);
     }
+    console.log(validators);
+    console.log(`------------ VALIDATORS WITH FILTER ----------`);
+
+    console.log(validators.filter((validator) => !EXCLUDED_VALIDATOR_IDS.includes(validator.id)));
+
+
     return validators
       .filter((validator) => !EXCLUDED_VALIDATOR_IDS.includes(validator.id))
       .map((validator) => ({
