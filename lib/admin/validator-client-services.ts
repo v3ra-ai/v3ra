@@ -1,5 +1,4 @@
 // Client-side API service for the validator manager
-import { AIValidator } from "@/lib/validators/types";
 
 // This type is simplified for what the GET /api/admin/validators returns
 export interface ListedValidator {
@@ -85,12 +84,12 @@ export async function deleteValidator(id: string): Promise<{ message: string }> 
   console.log("Deleting validator with ID:", id);
   const targetUrl = resolveApiUrl(`${API_BASE_URL}/${id}`);
   console.log("Delete request URL:", targetUrl);
-  
+
   const response = await fetch(targetUrl, {
     method: "DELETE",
   });
   console.log("Delete response status:", response.status, response.statusText);
-  
+
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({ message: "Failed to delete validator" }));
     console.error("Delete error data:", errorData);
@@ -113,7 +112,7 @@ export async function toggleValidatorActive(id: string, active: boolean): Promis
 }
 
 // Placeholder for OpenRouter models fetching
-export async function fetchOpenRouterModelsClient(apiKey: string): Promise<any[]> {
+export async function fetchOpenRouterModelsClient(): Promise<unknown[]> {
   // This is a placeholder. In a real implementation, you'd call an API route that uses the OpenRouter client
   // to fetch models securely without exposing API keys on the client
   console.warn("Using placeholder fetchOpenRouterModelsClient - implement actual API integration");
