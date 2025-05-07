@@ -1,4 +1,3 @@
-// lib/services/validatorService.ts
 import { PrismaClient, Validator, ValidatorKey } from "@prisma/client";
 import { AIValidator } from "../validators/types";
 import { dbValidatorToAIValidator } from "../db/validators";
@@ -25,12 +24,11 @@ export const validatorService = {
   async addValidator(validator: AIValidator): Promise<AIValidator> {
     const dbValidator = await prisma.validator.create({
       data: {
-        id: validator.id,
         profileName: validator.name,
         provider: validator.provider,
         modelName: validator.modelName,
-        publicKey: validator.id, // Or generate a proper key
-        active: validator.active,
+        publicKey: uuidv4(), // Generate a new UUID for publicKey
+        active: validator.active ?? true,
         description: validator.description,
         validatorType: validator.validatorType,
         reliability: 0,
@@ -38,6 +36,19 @@ export const validatorService = {
         correctVotes: 0,
       },
     });
+
+    // Handle keyId if provided (create ValidatorKey record)
+    if (validator.keyId) {
+      await prisma.validatorKey.create({
+        data: {
+          id: uuidv4(),
+          validatorId: dbValidator.id,
+          apiKeyId: validator.keyId,
+          createdAt: new Date(),
+        },
+      });
+    }
+
     return dbValidatorToAIValidator(dbValidator);
   },
 

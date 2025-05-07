@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ListedValidator, toggleValidatorActive } from '@/lib/admin/validator-client-services';
 import ValidatorForm from './validator-form';
 import DeleteDialog from './delete-dialog';
@@ -20,6 +20,12 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
   const [editingValidator, setEditingValidator] = useState<ListedValidator | null>(null);
   const [deletingValidator, setDeletingValidator] = useState<ListedValidator | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Debug initialValidators on mount
+  useEffect(() => {
+    console.log('Initial Validators:', initialValidators);
+    console.log('Validators State:', validators);
+  }, [initialValidators, validators]);
 
   // Handler for the add/edit form submission (handled by the form component)
   const handleValidatorUpdated = (updatedValidator: ListedValidator) => {
@@ -48,7 +54,7 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
       setIsLoading(true);
       const newStatus = !validator.active;
       const updated = await toggleValidatorActive(validator.id, newStatus);
-      setValidators(prev => 
+      setValidators(prev =>
         prev.map(v => v.id === validator.id ? updated : v)
       );
       toast.success(`Validator ${updated.profileName} is now ${newStatus ? 'active' : 'inactive'}`);
@@ -64,8 +70,8 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-xl font-semibold text-gray-100">Validators</h2>
-        <Button 
-          onClick={() => setIsAddOpen(true)} 
+        <Button
+          onClick={() => setIsAddOpen(true)}
           className="flex items-center"
         >
           <Plus className="mr-2 h-4 w-4" />
@@ -96,29 +102,29 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
               validators.map(validator => (
                 <tr key={validator.id} className="border-b bg-gray-900 border-gray-700 hover:bg-gray-800">
                   <td className="px-6 py-4 font-medium whitespace-nowrap text-white">
-                    {validator.profileName}
+                    {validator.profileName || 'Unnamed Validator'}
                   </td>
                   <td className="px-6 py-4 text-gray-300">{validator.provider}</td>
                   <td className="px-6 py-4 text-gray-300">{validator.modelName}</td>
                   <td className="px-6 py-4">
-                    <Switch 
-                      checked={validator.active} 
+                    <Switch
+                      checked={validator.active}
                       disabled={isLoading}
                       onCheckedChange={() => handleToggleActive(validator)}
                     />
                   </td>
                   <td className="px-6 py-4 space-x-2">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => setEditingValidator(validator)}
                       className="text-gray-300 border-gray-600 hover:bg-gray-700 hover:text-white"
                     >
                       <Pencil className="h-4 w-4 mr-1" /> Edit
                     </Button>
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
+                    <Button
+                      variant="destructive"
+                      size="sm"
                       onClick={() => setDeletingValidator(validator)}
                     >
                       <Trash2 className="h-4 w-4 mr-1" /> Delete
@@ -133,7 +139,7 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
 
       {/* Add/Edit Form Modal or Drawer */}
       {isAddOpen && (
-        <ValidatorForm 
+        <ValidatorForm
           openRouterModels={openRouterModels}
           onSuccess={handleValidatorUpdated}
           onCancel={() => setIsAddOpen(false)}
@@ -141,7 +147,7 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
       )}
 
       {editingValidator && (
-        <ValidatorForm 
+        <ValidatorForm
           validator={editingValidator}
           openRouterModels={openRouterModels}
           onSuccess={handleValidatorUpdated}
@@ -151,10 +157,10 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
 
       {/* Delete Confirmation Dialog */}
       {deletingValidator && (
-        <DeleteDialog 
+        <DeleteDialog
           validator={deletingValidator}
           onConfirmDelete={handleValidatorDeleted}
-          onCancel={() => setDeletingValidator(null)} 
+          onCancel={() => setDeletingValidator(null)}
         />
       )}
     </div>

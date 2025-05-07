@@ -7,16 +7,16 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
-import { ListedValidator, ValidatorFormData, addValidator, updateValidator } from '@/lib/admin/validator-client-services';
+import { ListedValidator, addValidator, updateValidator } from '@/lib/admin/validator-client-services';
 
 // Define validator form schema
 const validatorFormSchema = z.object({
@@ -38,17 +38,17 @@ interface ValidatorFormProps {
   onCancel: () => void;
 }
 
-export default function ValidatorForm({ 
-  validator, 
-  openRouterModels, 
-  onSuccess, 
-  onCancel 
+export default function ValidatorForm({
+  validator,
+  openRouterModels,
+  onSuccess,
+  onCancel
 }: ValidatorFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Available providers
   const providers = ["OpenAI", "Anthropic", "Google", "OpenRouter"];
-  
+
   // Initialize form
   const form = useForm<ValidatorFormValues>({
     resolver: zodResolver(validatorFormSchema),
@@ -73,12 +73,12 @@ export default function ValidatorForm({
 
   // Watch provider field to conditionally render model selection
   const watchProvider = form.watch("provider");
-  
+
   // Handle form submission
   const onSubmit = async (values: ValidatorFormValues) => {
     try {
       setIsSubmitting(true);
-      
+
       let result: ListedValidator;
       if (validator) {
         // Update existing validator
@@ -89,7 +89,7 @@ export default function ValidatorForm({
         result = await addValidator(values);
         toast.success("Validator added successfully");
       }
-      
+
       onSuccess(result);
     } catch (error) {
       console.error("Form submission error:", error);
@@ -105,12 +105,12 @@ export default function ValidatorForm({
         <DialogHeader>
           <DialogTitle>{validator ? "Edit Validator" : "Add New Validator"}</DialogTitle>
           <DialogDescription>
-            {validator 
-              ? "Update the validator's details below." 
+            {validator
+              ? "Update the validator's details below."
               : "Enter the details for the new AI model validator."}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6 py-4">
           <div className="space-y-2">
             <label htmlFor="name" className="text-sm font-medium">Name</label>
@@ -123,7 +123,7 @@ export default function ValidatorForm({
               <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="provider" className="text-sm font-medium">Provider</label>
             <Select
@@ -145,7 +145,7 @@ export default function ValidatorForm({
               <p className="text-sm text-red-500">{form.formState.errors.provider.message}</p>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <label htmlFor="modelName" className="text-sm font-medium">Model</label>
             {watchProvider === "OpenRouter" ? (
@@ -189,7 +189,7 @@ export default function ValidatorForm({
               onCheckedChange={(checked) => form.setValue('active', checked)}
             />
           </div>
-          
+
           <DialogFooter className="pt-4">
             <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
               Cancel
