@@ -1,9 +1,10 @@
-
 // Response from an AI model validator
 export interface AIValidationResponse {
   vote: boolean;
   confidence: number;
   rationale: string;
+  providerName?: string;
+  modelName?: string;
   error?: string;
   latency?: number; // Add latency field for performance tracking
 }
@@ -37,6 +38,7 @@ export interface AIValidator {
   keyId?: string; // Reference to the API key ID, not the actual key
   validate: (request: ValidationRequest) => Promise<AIValidationResponse>;
 }
+
 // Registry of all available validators
 export interface ValidatorRegistry {
   addValidator(validator: AIValidator): Promise<AIValidator>;

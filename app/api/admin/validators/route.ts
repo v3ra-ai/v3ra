@@ -1,36 +1,61 @@
 // app/api/admin/validators/route.ts
-// import { NextResponse } from "next/server";
-// import { prisma } from "@/lib/db/client";
+import { NextResponse, NextRequest } from "next/server";
+import { validatorService } from "@/lib/services/validatorService";
+import { AIValidator } from "@/lib/validators/types"; 
 
 export async function GET() {
-  // try {
-  //   console.log("Fetching validators from Supabase");
-  //   const validators = await prisma.validator.findMany({
-  //     select: {
-  //       id: true,
-  //       profileName: true,
-  //       provider: true,
-  //       modelName: true,
-  //       active: true,
-  //       apiKeys: {
-  //         select: {
-  //           apiKey: {
-  //             // Navigate to ApiKey through ValidatorKey
-  //             select: {
-  //               id: true,
-  //               provider: true,
-  //             },
-  //           },
-  //         },
-  //       },
-  //     },
-  //   });
-  //   return NextResponse.json(validators);
-  // } catch (error) {
-  //   console.error("Error fetching validators:", error);
-  //   return NextResponse.json(
-  //     { error: (error as Error).message },
-  //     { status: 500 },
-  //   );
-  // }
+  try {
+    const validators = await validatorService.getAllValidators();
+    return NextResponse.json(validators.map(v => ({
+      id: v.id,
+      profileName: v.profileName,
+      provider: v.provider,
+      modelName: v.modelName,
+      active: v.active,
+    })));
+  } catch (error) {
+    console.error("Error fetching validators:", error);
+    return NextResponse.json(
+      { message: (error as Error).message || "Failed to fetch validators" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { name, provider, modelName, active, description, validatorType, keyId } = body;
+
+    if (!name || !provider || !modelName) {
+      return NextResponse.json(
+        { message: "Name, provider, and model name are required" },
+        { status: 400 },
+      );
+    }
+
+    const newValidatorData: Omit<AIValidator, 'id' | 'validate'> & { keyId?: string } = {
+      name: name,
+      provider: provider,
+      modelName: modelName,
+      active: active !== undefined ? active : true, 
+      description: description || '',
+      validatorType: validatorType || 'model_validator',
+      keyId: keyId, 
+    };
+
+    const createdValidator = await validatorService.addValidator({
+        ...newValidatorData,
+        id: '', 
+        validate: async () => ({ vote: false, confidence: 0, rationale: 'Not implemented' }) 
+    });
+
+    return NextResponse.json(createdValidator, { status: 201 });
+  } catch (error) {
+    console.error("Error creating validator:", error);
+    return NextResponse.json(
+      { message: (error as Error).message || "Failed to create validator" },
+      { status: 500 },
+    );
+  }
 }
