@@ -40,6 +40,7 @@ Example Testing Strategy for Next.js Application
 
 Filetree (example):
 
+```
 test/
 ├── __tests__/
 │   ├── components/
@@ -60,6 +61,7 @@ test/
 │   ├── login.spec.ts
 │   ├── data-fetching.spec.ts
 │   └── form-submission.spec.ts
+```
 
 ### Day 1: Setup and Unit Testing Framework
 **Objective**: Configure Jest and write unit tests for utilities, hooks, and server-side logic.
