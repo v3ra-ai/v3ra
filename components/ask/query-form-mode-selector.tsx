@@ -5,19 +5,30 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { QueryMode } from "@/lib/types";
 import { useQueryStore } from "@/store/query-store";
 
 interface QueryFormModeSelectorProps {
   queryMode: "factCheck" | "predict" | "create" | "shop";
 }
 
-export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps) {
+export function QueryFormModeSelector({
+  queryMode,
+}: QueryFormModeSelectorProps) {
   const { setQueryMode } = useQueryStore();
+
+  // Log current queryMode on render
+  console.log("[QueryFormModeSelector] Current queryMode:", queryMode);
+
+  const handleSelectMode = (mode: QueryMode) => {
+    console.log("[QueryFormModeSelector] Selecting mode:", mode); // Log mode selection
+    setQueryMode(mode);
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="text-zinc-900 dark:text-white  bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer">
+        <Button className="text-zinc-900 dark:text-white bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer">
           {queryMode === "predict"
             ? "Predict"
             : queryMode === "create"
@@ -28,27 +39,27 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-black border-gray-300">
-      <DropdownMenuItem
+        <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => setQueryMode("factCheck")}
+          onSelect={() => handleSelectMode("factCheck")}
         >
           Fact Check
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => setQueryMode("predict")}
+          onSelect={() => handleSelectMode("predict")}
         >
           Predict
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => setQueryMode("shop")}
+          onSelect={() => handleSelectMode("shop")}
         >
           Shop
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => setQueryMode("create")}
+          onSelect={() => handleSelectMode("create")}
         >
           Create
         </DropdownMenuItem>
