@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback, useEffect, Dispatch, SetStateAction, KeyboardEvent } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter for client-side navigation
 import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
 import { QueryMode } from "@/lib/types";
@@ -39,6 +40,7 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
     hasAttemptedSubmit: false,
   });
   const [queryText, setQueryText] = useState<string>("");
+  const router = useRouter(); // Initialize router for redirects
 
   const { userFreeCredits, userPaidCredits, userCreditsTotal, hasPaid: storeHasPaid, displayUnpaid } = useCreditsStore();
   const {
@@ -85,6 +87,10 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
       storeHasPaid,
       displayUnpaid,
     });
+
+    // Check current page
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+    console.log("[useNavbarScrollbar] Current page:", currentPath);
 
     // Validate query submission
     console.log("[useNavbarScrollbar] Checking query text:", queryText);
@@ -138,8 +144,15 @@ export function useNavbarScrollbar(): NavbarScrollbarReturn {
     setNavbarState((prev) => ({ ...prev, isSubmitting: true }));
     try {
       console.log("[useNavbarScrollbar] Submitting query with queryMode:", queryMode, "queriesRequested:", queriesRequested);
-      await submitQuery(queryText, { queryMode, queriesRequested }); // Pass queryMode and queriesRequested
+      await submitQuery(queryText, { queryMode, queriesRequested });
       console.log("[useNavbarScrollbar] Submission successful");
+
+      // Redirect to /ask/ if on /validators
+      if (currentPath === "/validators") {
+        console.log("[useNavbarScrollbar] Redirecting to /ask/ from /validators");
+        router.push("/ask/");
+      }
+
       resetAfterSubmission(userCreditsTotal);
       setNavbarState((prev) => ({
         ...prev,
