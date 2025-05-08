@@ -1,9 +1,9 @@
 # Todos
 
 * qa-testnet.verafy.ai (protected deploy)
-* Add more validators 10 minimum, 20+ ideally.
-* Able to delete/edit validators.
-* New validators included in query results
+* ~~Add more validators 10 minimum, 20+ ideally.~~
+* ~~Able to delete/edit validators.~~
+* ~~New validators included in query results~~
 * Adjustable LLMs per query it on ask query form but not reflected in the results
 * Changing prompts for Predict.
 * Supabase base upgrade to Pro for automatic backups
@@ -18,3 +18,6 @@
 * Live speed score. (its hardcoded for demo)
 * Staking for Credits
 * Stake to subscribe.
+* Automated testing for the app. Test Cafe
+* Unit tests for the app.
+* Snapshot tests for the app.

@@ -58,6 +58,12 @@ export async function broadcastCustomQuery(
       //   continue;
       // }
 
+      if (dbValidator.provider === "OpenRouter"){
+        console.log("Skipping OpenRouter due to errors");
+        continue;
+
+      }
+
       if (dbValidator.provider === "OpenAI") {
         // Correct invalid model name
         const modelName = dbValidator.modelName === "gpt-40" ? "gpt-4o" : dbValidator.modelName;

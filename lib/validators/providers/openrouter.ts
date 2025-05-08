@@ -14,7 +14,7 @@ export class OpenRouterValidator implements AIValidator {
     this.name = opts.name;
     this.modelName = opts.modelName;
     this.active = opts.active;
-    
+
     const envApiKey = process.env.OPENROUTER_API_KEY;
     if (!envApiKey) {
       console.error("CRITICAL: OPENROUTER_API_KEY is not set in environment variables.");
@@ -77,7 +77,7 @@ export class OpenRouterValidator implements AIValidator {
       }
 
       const data = await response.json();
-      
+
       let vote = false;
       let confidence = 0.5; // Default confidence
       let rationale = "Could not reliably determine validation outcome from model response.";
