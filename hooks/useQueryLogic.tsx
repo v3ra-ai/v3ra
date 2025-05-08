@@ -121,6 +121,7 @@ export function useQueryLogic({
         1,
         Math.min(ALLOWED_AMOUNT_QUERIES, newAmount)
       );
+      console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount);
       setQueriesRequested(clampedAmount, userCreditsTotal);
     },
     [setQueriesRequested, userCreditsTotal]
@@ -138,7 +139,7 @@ export function useQueryLogic({
       storeHasPaid,
     });
 
-    console.log("[useQueryLogic] Proceeding to validation"); // Log immediately after Submitting
+    console.log("[useQueryLogic] Proceeding to validation");
 
     // Validate query submission in a separate try-catch to catch silent errors
     try {
@@ -187,7 +188,7 @@ export function useQueryLogic({
       }
       console.log("[useQueryLogic] Payment validation passed");
     } catch (err: unknown) {
-      console.error("[useQueryLogic] Validation error:", err); // Catch silent validation errors
+      console.error("[useQueryLogic] Validation error:", err);
       const errorMessage =
         err instanceof Error ? err.message : "Validation failed unexpectedly";
       setError(sanitizeQueryText(errorMessage));
@@ -207,9 +208,15 @@ export function useQueryLogic({
       const csrfToken = await fetchCsrfToken();
       console.log(
         "[useQueryLogic] Broadcasting query with queryMode:",
-        queryMode
+        queryMode,
+        "queriesRequested:",
+        queriesRequested
       );
-      await broadcastQuery(queryText, { csrfToken, queryMode });
+      await broadcastQuery(queryText, {
+        csrfToken,
+        queryMode,
+        queriesRequested,
+      }); // Pass queriesRequested
       console.log("[useQueryLogic] Broadcast successful");
       resetAfterSubmission(userCreditsTotal);
       setQueryText("");

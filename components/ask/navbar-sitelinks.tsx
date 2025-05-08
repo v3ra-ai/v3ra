@@ -10,12 +10,12 @@ import NavbarCredits from "./navbar-credits";
 export function NavbarSitelinks() {
   return (
     <div className="hidden md:flex items-center space-x-8">
-      <Link
+      {/* <Link
         href="/"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Home
-      </Link>
+      </Link> */}
       <Link
         href="/ask"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"

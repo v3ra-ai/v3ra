@@ -1,10 +1,7 @@
+
 "use server";
 
-import type {
-  VoteResult,
-  VoteValidatorResponse,
-  QueryMode,
-} from "../lib/types";
+import type { VoteResult, VoteValidatorResponse, QueryMode } from "../lib/types";
 import { prisma } from "../lib/db/client";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAIValidator } from "@/lib/validators/providers/openai";
@@ -13,21 +10,23 @@ import { GrokValidator } from "@/lib/validators/providers/grok";
 import { GeminiValidator } from "@/lib/validators/providers/gemini";
 import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
-import { OpenRouterValidator } from "@/lib/validators/providers/openrouter";
+
+// Log to confirm file is loaded
+console.log("[actions] File loaded");
 
 type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
 export async function broadcastCustomQuery(
   query: string,
-  queryMode: QueryMode = "factCheck"
+  queryMode: QueryMode = "factCheck",
+  queriesRequested?: number // Number of validators to query
 ): Promise<VoteResult | { error: string }> {
   try {
-    console.log(
-      "[actions] Processing custom query:",
+    console.log("[actions] Processing custom query:", {
       query,
-      "with queryMode:",
-      queryMode
-    ); // Log query and queryMode
+      queryMode,
+      queriesRequested,
+    });
 
     const dbValidators: DbValidatorWithKeys[] =
       await validatorService.getActiveDbValidators();
@@ -37,8 +36,22 @@ export async function broadcastCustomQuery(
       return { error: "No active validators found" };
     }
 
+    // Filter out OpenRouterValidator before selection
+    const validValidators = dbValidators.filter(
+      (validator) => validator.provider !== "OpenRouter"
+    );
     console.log(
-      `[actions] Found ${dbValidators.length} active validators in the registry`
+      `[actions] Found ${dbValidators.length} active validators, ${validValidators.length} valid after filtering:`,
+      validValidators.map((v) => `${v.provider} (${v.profileName})`)
+    );
+
+    // Limit validators to queriesRequested (if provided and less than available)
+    const selectedValidators = queriesRequested
+      ? validValidators.slice(0, Math.min(queriesRequested, validValidators.length))
+      : validValidators;
+    console.log(
+      `[actions] Selected ${selectedValidators.length} validators for query:`,
+      selectedValidators.map((v) => `${v.provider} (${v.profileName})`)
     );
 
     const sessionId = uuidv4();
@@ -57,14 +70,12 @@ export async function broadcastCustomQuery(
 
     const validatorResponsePromises: Promise<VoteValidatorResponse>[] = [];
 
-    for (const dbValidator of dbValidators) {
+    for (const dbValidator of selectedValidators) {
       let validator;
 
-      // Note: Remove this skip once OpenRouter errors are resolved
-      if (dbValidator.provider === "OpenRouter") {
-        console.log("[actions] Skipping OpenRouter due to errors");
-        continue;
-      }
+      console.log(
+        `[actions] Initializing validator: ${dbValidator.provider} (${dbValidator.profileName})`
+      );
 
       if (dbValidator.provider === "OpenAI") {
         const modelName =
@@ -73,56 +84,44 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName,
-          keyId: dbValidator.apiKeys[0].apiKeyId,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Anthropic") {
-        console.log(
-          `[actions] Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`
-        );
         validator = new AnthropicValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0].apiKeyId,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Grok") {
-        console.log(
-          `[actions] Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`
-        );
         validator = new GrokValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0].apiKeyId,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Google") {
-        console.log(
-          `[actions] Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`
-        );
         validator = new GeminiValidator({
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0].apiKeyId,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active,
-        });
-      } else if (dbValidator.provider === "OpenRouter") {
-        console.log(
-          `[actions] Creating OpenRouter validator instance for ${dbValidator.id} (${dbValidator.profileName})`
-        );
-        validator = new OpenRouterValidator({
-          id: dbValidator.id,
-          name: dbValidator.profileName,
-          modelName: dbValidator.modelName,
-          active: dbValidator.active,
-          queryMode,
         });
       } else {
         console.warn(
-          `[actions] Validator provider ${dbValidator.provider} not supported yet`
+          `[actions] Validator provider ${dbValidator.provider} not supported, skipping`
+        );
+        continue;
+      }
+
+      // Validate API key availability
+      if (!dbValidator.apiKeys[0]?.apiKeyId) {
+        console.warn(
+          `[actions] No API key for validator ${dbValidator.provider} (${dbValidator.profileName}), skipping`
         );
         continue;
       }
@@ -131,15 +130,21 @@ export async function broadcastCustomQuery(
         "[actions] Validating with validator:",
         dbValidator.provider,
         "queryMode:",
-        queryMode
-      ); // Log before validation
+        queryMode,
+        "validatorId:",
+        dbValidator.id
+      );
 
       const validationPromise = validator
         .validate({
           statement: query,
-          queryMode, // Include queryMode in ValidationRequest
+          queryMode,
         })
         .then(async (response) => {
+          console.log(
+            `[actions] Validation response for ${dbValidator.provider} (${dbValidator.profileName}):`,
+            { vote: response.vote, confidence: response.confidence }
+          );
           await validatorService.recordValidatorResponse({
             validatorId: dbValidator.id,
             voteSessionId: sessionId,
@@ -160,7 +165,7 @@ export async function broadcastCustomQuery(
         })
         .catch((error) => {
           console.error(
-            `[actions] Error processing validator ${dbValidator.id}:`,
+            `[actions] Error processing validator ${dbValidator.provider} (${dbValidator.profileName}):`,
             error
           );
           return {
@@ -178,20 +183,21 @@ export async function broadcastCustomQuery(
     const validatorResponses: VoteValidatorResponse[] = await Promise.all(
       validatorResponsePromises
     );
+    console.log(
+      `[actions] Collected ${validatorResponses.length} validator responses:`,
+      validatorResponses.map((r) => `${r.provider} (${r.profileName}): ${r.vote}`)
+    );
 
-    console.log(
-      `[actions] ------------------validatorResponses-------------------------`
-    );
-    console.log(`[actions] validatorResponses`, validatorResponses);
-    console.log(
-      `[actions] --------------------------------------------------------------`
-    );
+    // Log if fewer responses than requested
+    if (queriesRequested && validatorResponses.length < queriesRequested) {
+      console.warn(
+        `[actions] Expected ${queriesRequested} responses, received ${validatorResponses.length}`
+      );
+    }
 
     const yesVotes = validatorResponses.filter((r) => r.vote === "YES").length;
     const noVotes = validatorResponses.filter((r) => r.vote === "NO").length;
-    const notVoted = validatorResponses.filter(
-      (r) => r.vote === "ERROR"
-    ).length;
+    const notVoted = validatorResponses.filter((r) => r.vote === "ERROR").length;
 
     const totalValidVotes = yesVotes + noVotes;
     const isConsensusReached = totalValidVotes > 0;
@@ -223,6 +229,10 @@ export async function broadcastCustomQuery(
       timestamp: new Date().toISOString(),
     };
 
+    console.log(
+      `[actions] Query result: ${result.validatorResponses.length} responses`,
+      { yesVotes, noVotes, notVoted, isConsensusReached, consensusValue }
+    );
     return result;
   } catch (error) {
     console.error("[actions] Error broadcasting custom query:", error);
