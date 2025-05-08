@@ -28,11 +28,11 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="bg-black border-gray-300">
-        <DropdownMenuItem
+      <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => setQueryMode("shop")}
+          onSelect={() => setQueryMode("factCheck")}
         >
-          Shop
+          Fact Check
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
@@ -42,15 +42,15 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => setQueryMode("create")}
+          onSelect={() => setQueryMode("shop")}
         >
-          Create
+          Shop
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => setQueryMode("factCheck")}
+          onSelect={() => setQueryMode("create")}
         >
-          Fact Check
+          Create
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
