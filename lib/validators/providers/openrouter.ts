@@ -1,10 +1,11 @@
 import { AIValidator, ValidationRequest, AIValidationResponse } from "../types";
 import type { QueryMode } from "@/lib/types";
+import { generatePrompt } from "../utils";
 
 export class OpenRouterValidator implements AIValidator {
   id: string;
   name: string;
-  provider = "OpenRouter";
+  provider = "OpenRouter"; // Ensure this matches the string used in the database and registry
   modelName: string;
   active: boolean;
   private apiKey: string;
@@ -27,6 +28,8 @@ export class OpenRouterValidator implements AIValidator {
 
   async validate(req: ValidationRequest): Promise<AIValidationResponse> {
     if (!this.apiKey) {
+      // This case should ideally be prevented by the constructor check,
+      // but as a safeguard:
       console.error("OpenRouterValidator: API key is missing. Cannot validate.");
       return {
         vote: false,
@@ -37,28 +40,32 @@ export class OpenRouterValidator implements AIValidator {
       };
     }
 
-    console.log(`OpenRouterValidator validating statement: "${req.statement}" with model ${this.modelName} in mode ${this.queryMode}`);
+    console.log(`OpenRouterValidator validating statement: "${req.statement}" with model ${this.modelName} in mode ${req.queryMode || "factCheck"}`);
 
     try {
       const startTime = Date.now();
 
-      // Construct system prompt based on queryMode
-      const systemPrompt = this.queryMode === "predict"
-        ? "You are a prediction assistant. Predict the likelihood of the statement being true in the future. Respond with only the word 'true' or 'false', followed by a brief rationale."
-        : "You are a fact-checking assistant. Determine if the following statement is true or false. Respond with only the word 'true' or 'false', followed by a brief rationale.";
+      // Generate prompt using utility function
+      const { systemMessage } = generatePrompt(req.queryMode, req.statement, req.context);
 
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
+          // Optional: Add other headers OpenRouter might recommend
+          // "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL, // Your site URL
+          // "X-Title": process.env.NEXT_PUBLIC_APP_NAME, // Your app name
         },
         body: JSON.stringify({
-          model: this.modelName,
+          model: this.modelName, // e.g., "openai/gpt-3.5-turbo"
           messages: [
-            { role: "system", content: systemPrompt },
+            // Basic system prompt for validation, can be enhanced
+            { role: "system", content: systemMessage },
             { role: "user", content: req.statement },
           ],
+          // temperature: 0.3, // Example: make it less random
+          // max_tokens: 50,   // Example: limit response length for validation
           temperature: 0.3,
           max_tokens: 50,
         }),
@@ -83,21 +90,24 @@ export class OpenRouterValidator implements AIValidator {
       const latency = Date.now() - startTime;
 
       let vote = false;
-      let confidence = 0.5;
+      let confidence = 0.5; // Default confidence
       let rationale = "Could not reliably determine validation outcome from model response.";
 
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
         const messageContent = data.choices[0].message.content.trim();
-        rationale = messageContent;
+        rationale = messageContent; // Use the full response as rationale for now
 
         const firstWord = messageContent.split(' ')[0].toLowerCase();
+
         if (firstWord.startsWith("true")) {
           vote = true;
-          confidence = 0.8;
+          confidence = 0.8; // Assign higher confidence for a clear "true"
         } else if (firstWord.startsWith("false")) {
           vote = false;
-          confidence = 0.8;
+          confidence = 0.8; // Assign higher confidence for a clear "false"
         }
+        // TODO: Enhance parsing. The current method is basic.
+        // Consider prompting for JSON output or more structured responses.
       }
 
       return {

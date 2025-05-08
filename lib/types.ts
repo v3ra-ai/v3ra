@@ -1,5 +1,6 @@
 import { ApiKey } from "@prisma/client";
 import { USER_FREE_CREDITS_DEFAULT, USER_PAID_CREDITS_DEFAULT, QUERIES_REQUESTED_DEFAULT, USER_CREDIT_CONVERSION_DEFAULT, QUERIES_COST_EACH_DEFAULT } from "@/lib/constants";
+import { AIValidationResponse } from "./validators/types";
 
 // Network state and validator interfaces
 export interface Validator {
@@ -18,9 +19,9 @@ export interface Validator {
   active: boolean;
   createdAt: Date;
   updatedAt: Date;
-  lastVote?: boolean | null; // Added for legacy profile support
-  lastRationale?: string | null; // Added for legacy profile support
-  lastResponse?: string | null; // Added for legacy simulation support
+  lastVote?: boolean | null;
+  lastRationale?: string | null;
+  lastResponse?: string | null;
 }
 
 export interface ValidatorResponse {
@@ -105,3 +106,59 @@ export const DEFAULTS = {
   USER_CREDIT_CONVERSION: USER_CREDIT_CONVERSION_DEFAULT,
   QUERIES_COST_EACH: QUERIES_COST_EACH_DEFAULT,
 };
+
+// Request to validate content
+export interface ValidationRequest {
+  statement: string;
+  context?: string;
+  queryMode?: QueryMode; // Added to support mode-specific validation
+}
+
+// Result of validation across multiple models
+export interface ValidationResult {
+  validatorId: string;
+  validatorName: string;
+  vote: boolean;
+  confidence: number;
+  rationale: string;
+  timestamp: number;
+  latency?: number;
+}
+
+// Shared interface for all AI validators
+export interface AIValidator {
+  id?: string;
+  name: string;
+  provider: string;
+  modelName: string;
+  description?: string;
+  validatorType?: string;
+  active: boolean;
+  keyId?: string;
+  validate: (request: ValidationRequest) => Promise<AIValidationResponse>;
+}
+
+// Registry of all available validators
+export interface ValidatorRegistry {
+  addValidator(validator: AIValidator): Promise<AIValidator>;
+  removeValidator(id: string): Promise<boolean>;
+  getValidator(id: string): Promise<AIValidator | undefined>;
+  getAllValidators(): Promise<AIValidator[]>;
+  getActiveValidators(): Promise<AIValidator[]>;
+  toggleValidator(id: string, active: boolean): Promise<boolean>;
+}
+
+// Convert AIValidator to our UI Validator type
+export function aiValidatorToUiValidator(aiValidator: AIValidator): AIValidator {
+  return {
+    id: aiValidator.id,
+    name: aiValidator.name,
+    provider: aiValidator.provider,
+    modelName: aiValidator.modelName,
+    description: aiValidator.description,
+    validatorType: aiValidator.validatorType,
+    active: aiValidator.active,
+    keyId: aiValidator.keyId,
+    validate: aiValidator.validate,
+  };
+}

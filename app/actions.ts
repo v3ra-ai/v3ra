@@ -1,6 +1,10 @@
 "use server";
 
-import type { VoteResult, VoteValidatorResponse, QueryMode } from "../lib/types";
+import type {
+  VoteResult,
+  VoteValidatorResponse,
+  QueryMode,
+} from "../lib/types";
 import { prisma } from "../lib/db/client";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAIValidator } from "@/lib/validators/providers/openai";
@@ -18,18 +22,23 @@ export async function broadcastCustomQuery(
   queryMode: QueryMode = "factCheck"
 ): Promise<VoteResult | { error: string }> {
   try {
-    console.log("Processing custom query:", query, "with mode:", queryMode);
+    console.log(
+      "[actions] Processing custom query:",
+      query,
+      "with queryMode:",
+      queryMode
+    ); // Log query and queryMode
 
     const dbValidators: DbValidatorWithKeys[] =
       await validatorService.getActiveDbValidators();
 
     if (!dbValidators || dbValidators.length === 0) {
-      console.warn("No active validators found in the database");
+      console.warn("[actions] No active validators found in the database");
       return { error: "No active validators found" };
     }
 
     console.log(
-      `Found ${dbValidators.length} active validators in the registry`
+      `[actions] Found ${dbValidators.length} active validators in the registry`
     );
 
     const sessionId = uuidv4();
@@ -48,14 +57,12 @@ export async function broadcastCustomQuery(
 
     const validatorResponsePromises: Promise<VoteValidatorResponse>[] = [];
 
-    console.log(`queryMode ${queryMode}`);
-
-
     for (const dbValidator of dbValidators) {
       let validator;
 
+      // Note: Remove this skip once OpenRouter errors are resolved
       if (dbValidator.provider === "OpenRouter") {
-        console.log("Skipping OpenRouter due to errors");
+        console.log("[actions] Skipping OpenRouter due to errors");
         continue;
       }
 
@@ -71,7 +78,7 @@ export async function broadcastCustomQuery(
         });
       } else if (dbValidator.provider === "Anthropic") {
         console.log(
-          `Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+          `[actions] Creating Anthropic validator instance for ${dbValidator.id} (${dbValidator.profileName})`
         );
         validator = new AnthropicValidator({
           id: dbValidator.id,
@@ -82,7 +89,7 @@ export async function broadcastCustomQuery(
         });
       } else if (dbValidator.provider === "Grok") {
         console.log(
-          `Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+          `[actions] Creating Grok validator instance for ${dbValidator.id} (${dbValidator.profileName})`
         );
         validator = new GrokValidator({
           id: dbValidator.id,
@@ -93,7 +100,7 @@ export async function broadcastCustomQuery(
         });
       } else if (dbValidator.provider === "Google") {
         console.log(
-          `Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+          `[actions] Creating Google Gemini validator instance for ${dbValidator.id} (${dbValidator.profileName})`
         );
         validator = new GeminiValidator({
           id: dbValidator.id,
@@ -104,7 +111,7 @@ export async function broadcastCustomQuery(
         });
       } else if (dbValidator.provider === "OpenRouter") {
         console.log(
-          `Creating OpenRouter validator instance for ${dbValidator.id} (${dbValidator.profileName})`
+          `[actions] Creating OpenRouter validator instance for ${dbValidator.id} (${dbValidator.profileName})`
         );
         validator = new OpenRouterValidator({
           id: dbValidator.id,
@@ -115,14 +122,22 @@ export async function broadcastCustomQuery(
         });
       } else {
         console.warn(
-          `Validator provider ${dbValidator.provider} not supported yet`
+          `[actions] Validator provider ${dbValidator.provider} not supported yet`
         );
         continue;
       }
 
+      console.log(
+        "[actions] Validating with validator:",
+        dbValidator.provider,
+        "queryMode:",
+        queryMode
+      ); // Log before validation
+
       const validationPromise = validator
         .validate({
           statement: query,
+          queryMode, // Include queryMode in ValidationRequest
         })
         .then(async (response) => {
           await validatorService.recordValidatorResponse({
@@ -144,7 +159,10 @@ export async function broadcastCustomQuery(
           } as VoteValidatorResponse;
         })
         .catch((error) => {
-          console.error(`Error processing validator ${dbValidator.id}:`, error);
+          console.error(
+            `[actions] Error processing validator ${dbValidator.id}:`,
+            error
+          );
           return {
             id: dbValidator.id,
             provider: dbValidator.provider,
@@ -162,11 +180,11 @@ export async function broadcastCustomQuery(
     );
 
     console.log(
-      `------------------validatorResponses-------------------------`
+      `[actions] ------------------validatorResponses-------------------------`
     );
-    console.log(`validatorResponses ${validatorResponses}`);
+    console.log(`[actions] validatorResponses`, validatorResponses);
     console.log(
-      `--------------------------------------------------------------`
+      `[actions] --------------------------------------------------------------`
     );
 
     const yesVotes = validatorResponses.filter((r) => r.vote === "YES").length;
@@ -207,7 +225,7 @@ export async function broadcastCustomQuery(
 
     return result;
   } catch (error) {
-    console.error("Error broadcasting custom query:", error);
+    console.error("[actions] Error broadcasting custom query:", error);
     return { error: (error as Error).message };
   }
 }
@@ -216,7 +234,7 @@ export async function fetchVoteHistory(): Promise<
   VoteResult[] | { error: string }
 > {
   try {
-    console.log("Starting fetchVoteHistory...");
+    console.log("[actions] Starting fetchVoteHistory...");
     const voteSessions = await prisma.voteSession.findMany({
       orderBy: { timestamp: "desc" },
       take: 10,
@@ -238,15 +256,15 @@ export async function fetchVoteHistory(): Promise<
       },
     });
 
-    console.log("Fetched vote sessions:", voteSessions);
+    console.log("[actions] Fetched vote sessions:", voteSessions);
 
     if (!voteSessions || voteSessions.length === 0) {
-      console.log("No vote sessions found in database");
+      console.log("[actions] No vote sessions found in database");
       return [];
     }
 
     const voteHistory: VoteResult[] = voteSessions.map((session) => {
-      console.log(`Mapping session ID: ${session.id}`);
+      console.log(`[actions] Mapping session ID: ${session.id}`);
       return {
         id: session.id,
         isConsensusReached: session.isConsensusReached,
@@ -268,10 +286,10 @@ export async function fetchVoteHistory(): Promise<
       };
     });
 
-    console.log("Returning vote history:", voteHistory);
+    console.log("[actions] Returning vote history:", voteHistory);
     return voteHistory;
   } catch (error) {
-    console.error("Error fetching vote history:", error);
+    console.error("[actions] Error fetching vote history:", error);
     return { error: (error as Error).message };
   }
 }

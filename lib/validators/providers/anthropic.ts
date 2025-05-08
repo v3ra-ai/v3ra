@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
+import { generatePrompt } from "../utils";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -171,6 +172,17 @@ export class AnthropicValidator implements AIValidator {
       console.log(
         `[Anthropic ${this.id}] Preparing to call Anthropic API with model: ${this.modelName}`,
       );
+ console.log(`-------------------------------
+       request.queryMode  ${request.queryMode}
+        ---------------------`);
+
+
+      // Generate prompt using utility function
+      const { systemMessage, userMessage } = generatePrompt(
+        request.queryMode,
+        request.statement,
+        request.context
+      );
 
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -185,13 +197,10 @@ export class AnthropicValidator implements AIValidator {
           messages: [
             {
               role: "user",
-              content: `Is this statement factually accurate? Please analyze carefully.
-
-Statement: "${request.statement}"${request.context ? `\nContext: ${request.context}` : ""}`,
+              content: userMessage,
             },
           ],
-          system:
-            "You are a fact-checking assistant. Analyze the statement and respond with a YES or NO decision, followed by your confidence level (0-100), and then a brief explanation of your reasoning.",
+          system: systemMessage,
           temperature: 0.3,
           max_tokens: 1024,
         }),

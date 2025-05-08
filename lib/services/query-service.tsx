@@ -1,51 +1,33 @@
-import { VoteResult } from "@/lib/types";
+import { broadcastCustomQuery } from "@/app/actions";
+import type { VoteResult, QueryMode } from "@/lib/types";
 
-interface SubmitQueryResponse {
-  success: boolean;
+// Log to confirm file is loaded
+console.log("[query-service] File loaded");
+
+interface QueryResponse {
   voteResult: VoteResult;
 }
 
-// Fetch CSRF token from /api/csrf-token
-async function fetchCsrfToken(): Promise<string> {
-  try {
-    const response = await fetch("/api/csrf-token", {
-      method: "GET",
-      credentials: "include",
-    });
-    const data = await response.json();
-    if (!response.ok || !data.csrfToken) {
-      throw new Error(data.error || "Failed to fetch CSRF token");
-    }
-    return data.csrfToken;
-  } catch (error) {
-    throw new Error(error instanceof Error ? error.message : "Unknown error fetching CSRF token");
-  }
-}
+export async function submitQueryService(
+  query: string,
+  queryMode?: QueryMode
+): Promise<QueryResponse> {
+  console.log("[query-service] Submitting query:", { query, queryMode }); // Log query and queryMode
 
-export async function submitQueryService(queryText: string): Promise<SubmitQueryResponse> {
   try {
-    const csrfToken = await fetchCsrfToken();
-    const response = await fetch("/api/broadcast-query", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRF-Token": csrfToken,
-      },
-      body: JSON.stringify({ queryText }),
-      credentials: "include",
-    });
+    const result = await broadcastCustomQuery(query, queryMode || "factCheck");
+    console.log("[query-service] Query submission result:", result); // Log result
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `Server responded with ${response.status}`);
+    if ("error" in result) {
+      console.error("[query-service] Submission error:", result.error);
+      throw new Error(result.error);
     }
 
-    const data = await response.json();
-    return {
-      success: true,
-      voteResult: data as VoteResult,
-    };
-  } catch (error) {
-    throw new Error(error instanceof Error ? error.message : "Unknown error");
+    return { voteResult: result };
+  } catch (error: unknown) {
+    console.error("[query-service] Unexpected error:", error);
+    const message =
+      error instanceof Error ? error.message : "Failed to submit query";
+    throw new Error(message);
   }
 }

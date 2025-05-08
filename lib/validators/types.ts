@@ -1,3 +1,5 @@
+import { QueryMode } from "../types";
+
 // Response from an AI model validator
 export interface AIValidationResponse {
   vote: boolean;
@@ -13,7 +15,9 @@ export interface AIValidationResponse {
 export interface ValidationRequest {
   statement: string;
   context?: string;
+  queryMode?: QueryMode; // Added to support mode-specific validation
 }
+
 
 // Result of validation across multiple models
 export interface ValidationResult {

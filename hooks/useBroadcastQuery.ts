@@ -1,23 +1,29 @@
 "use client";
 
 import { useCallback } from "react";
-import type { VoteResult, QueryMode } from "@/lib/types";
+import type { VoteResult } from "@/lib/types";
 import { Dispatch, SetStateAction } from "react";
 import { sanitizeError } from "@/utils/security-utils";
 
+// Log to confirm file is loaded
+console.log("[useBroadcastQuery] File loaded");
+
 interface BroadcastQueryOptions {
   csrfToken?: string;
-  queryMode?: QueryMode; // Add queryMode to options
+  queryMode?: string; // Allow string to match QueryMode
 }
 
 interface BroadcastQueryResult {
-  broadcastQuery: (query: string, options?: BroadcastQueryOptions) => Promise<void>;
+  broadcastQuery: (
+    query: string,
+    options?: BroadcastQueryOptions
+  ) => Promise<void>;
 }
 
 const refetchWithRetry = async (
   retries: number,
   fetchVoteHistory?: () => Promise<void>,
-  refetchNetworkState?: () => Promise<void>,
+  refetchNetworkState?: () => Promise<void>
 ) => {
   let lastError: Error | null = null;
   for (let i = 0; i <= retries; i++) {
@@ -41,10 +47,16 @@ export function useBroadcastQuery(
   setVoteHistory: Dispatch<SetStateAction<VoteResult[]>>,
   setLastVoteResult: Dispatch<SetStateAction<VoteResult | null>>,
   refetchNetworkState?: () => Promise<void>,
-  fetchVoteHistory?: () => Promise<void>,
+  fetchVoteHistory?: () => Promise<void>
 ): BroadcastQueryResult {
   const broadcastQuery = useCallback(
     async (query: string, options: BroadcastQueryOptions = {}) => {
+      console.log("[useBroadcastQuery] Received query with options:", {
+        query,
+        queryMode: options.queryMode,
+        csrfToken: options.csrfToken ? "[REDACTED]" : undefined,
+      }); // Log incoming query and queryMode
+
       try {
         const response = await fetch("/api/broadcast-query", {
           method: "POST",
@@ -54,14 +66,19 @@ export function useBroadcastQuery(
           },
           body: JSON.stringify({
             queryText: query,
-            queryMode: options.queryMode || "factCheck", // Include queryMode, default to factCheck
+            queryMode: options.queryMode,
           }),
           credentials: "include",
         });
 
+        console.log("[useBroadcastQuery] Sent request with body:", {
+          queryText: query,
+          queryMode: options.queryMode,
+        }); // Log request body
+
         const voteResult = await response.json();
 
-        console.log("Broadcast query response:", {
+        console.log("[useBroadcastQuery] Broadcast query response:", {
           status: response.status,
           url: response.url,
           headers: Object.fromEntries(response.headers),
@@ -78,18 +95,21 @@ export function useBroadcastQuery(
 
         setLastVoteResult(voteResult as VoteResult);
         setVoteHistory((prevHistory: VoteResult[]) =>
-          [voteResult as VoteResult, ...prevHistory].slice(0, 10),
+          [voteResult as VoteResult, ...prevHistory].slice(0, 10)
         );
 
         await new Promise((resolve) => setTimeout(resolve, 500));
         await refetchWithRetry(1, fetchVoteHistory, refetchNetworkState);
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
-        console.error(sanitizeError(error));
+        console.error("[useBroadcastQuery] Error:", sanitizeError(error), {
+          query,
+          queryMode: options.queryMode,
+        }); // Log error with queryMode
         throw error;
       }
     },
-    [setVoteHistory, setLastVoteResult, refetchNetworkState, fetchVoteHistory],
+    [setVoteHistory, setLastVoteResult, refetchNetworkState, fetchVoteHistory]
   );
 
   return { broadcastQuery };
