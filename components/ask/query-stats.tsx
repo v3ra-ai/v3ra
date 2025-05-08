@@ -134,7 +134,7 @@ export default function QueryStats({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-700 dark:text-zinc-400">
-                Cost to query: ({displayUnpaid})
+                Query cost: ({displayUnpaid})
               </span>
               {displayUnpaid > 0 && (
                 <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
@@ -170,7 +170,7 @@ export default function QueryStats({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-700 dark:text-zinc-400">
-            Cost to query: ({displayUnpaid})
+            Query cost: ({displayUnpaid})
           </span>
           {displayUnpaid > 0 && (
             <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">

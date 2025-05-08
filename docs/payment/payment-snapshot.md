@@ -2207,7 +2207,7 @@ export default function QueryStats({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-gray-700 dark:text-zinc-400">
-                Cost to query: ({displayUnpaid})
+                Query cost: ({displayUnpaid})
               </span>
               <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
                 {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
@@ -2241,7 +2241,7 @@ export default function QueryStats({
         </div>
         <div className="flex items-center gap-2">
           <span className="text-gray-700 dark:text-zinc-400">
-            Cost to query: ({displayUnpaid})
+            Query cost: ({displayUnpaid})
           </span>
           <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
             {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
