@@ -94,6 +94,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet }: UseQueryLogic
       queriesUnpaid,
       queriesCostTotal,
       queryText,
+      queryMode,
       payWithWallet,
       storeHasPaid,
     });
@@ -127,7 +128,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet }: UseQueryLogic
     try {
       // Fetch fresh CSRF token for each submission
       const csrfToken = await fetchCsrfToken();
-      await broadcastQuery(queryText, { csrfToken });
+      await broadcastQuery(queryText, { csrfToken, queryMode });
       resetAfterSubmission(userCreditsTotal);
       setQueryText("");
       setPayWithWallet(queriesRequested > userCreditsTotal);
@@ -137,6 +138,7 @@ export function useQueryLogic({ payWithWallet, setPayWithWallet }: UseQueryLogic
       console.error("[useQueryLogic] Submission failed:", {
         errorMessage,
         queryText,
+        queryMode,
         queriesRequested,
         queriesUnpaid,
         payWithWallet,

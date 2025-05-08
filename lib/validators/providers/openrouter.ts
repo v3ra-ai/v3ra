@@ -1,20 +1,22 @@
-// lib/validators/providers/openrouter.ts
 import { AIValidator, ValidationRequest, AIValidationResponse } from "../types";
+import type { QueryMode } from "@/lib/types";
 
 export class OpenRouterValidator implements AIValidator {
   id: string;
   name: string;
-  provider = "OpenRouter"; // Ensure this matches the string used in the database and registry
+  provider = "OpenRouter";
   modelName: string;
   active: boolean;
   private apiKey: string;
+  queryMode: QueryMode; // Keep as QueryMode for type safety
 
-  constructor(opts: { id: string; name: string; modelName: string; active: boolean }) {
+  constructor(opts: { id: string; name: string; modelName: string; active: boolean; queryMode?: QueryMode }) {
     this.id = opts.id;
     this.name = opts.name;
     this.modelName = opts.modelName;
     this.active = opts.active;
-    
+    this.queryMode = opts.queryMode || "factCheck"; // Default to factCheck
+
     const envApiKey = process.env.OPENROUTER_API_KEY;
     if (!envApiKey) {
       console.error("CRITICAL: OPENROUTER_API_KEY is not set in environment variables.");
@@ -25,8 +27,6 @@ export class OpenRouterValidator implements AIValidator {
 
   async validate(req: ValidationRequest): Promise<AIValidationResponse> {
     if (!this.apiKey) {
-      // This case should ideally be prevented by the constructor check,
-      // but as a safeguard:
       console.error("OpenRouterValidator: API key is missing. Cannot validate.");
       return {
         vote: false,
@@ -37,27 +37,30 @@ export class OpenRouterValidator implements AIValidator {
       };
     }
 
-    console.log(`OpenRouterValidator validating statement: "${req.statement}" with model ${this.modelName}`);
+    console.log(`OpenRouterValidator validating statement: "${req.statement}" with model ${this.modelName} in mode ${this.queryMode}`);
 
     try {
+      const startTime = Date.now();
+
+      // Construct system prompt based on queryMode
+      const systemPrompt = this.queryMode === "predict"
+        ? "You are a prediction assistant. Predict the likelihood of the statement being true in the future. Respond with only the word 'true' or 'false', followed by a brief rationale."
+        : "You are a fact-checking assistant. Determine if the following statement is true or false. Respond with only the word 'true' or 'false', followed by a brief rationale.";
+
       const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${this.apiKey}`,
           "Content-Type": "application/json",
-          // Optional: Add other headers OpenRouter might recommend
-          // "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL, // Your site URL
-          // "X-Title": process.env.NEXT_PUBLIC_APP_NAME, // Your app name
         },
         body: JSON.stringify({
-          model: this.modelName, // e.g., "openai/gpt-3.5-turbo"
+          model: this.modelName,
           messages: [
-            // Basic system prompt for validation, can be enhanced
-            { role: "system", content: "You are a fact-checking assistant. Determine if the following statement is true or false. Respond with only the word 'true' or 'false', followed by a brief rationale." },
+            { role: "system", content: systemPrompt },
             { role: "user", content: req.statement },
           ],
-          // temperature: 0.3, // Example: make it less random
-          // max_tokens: 50,   // Example: limit response length for validation
+          temperature: 0.3,
+          max_tokens: 50,
         }),
       });
 
@@ -68,35 +71,33 @@ export class OpenRouterValidator implements AIValidator {
           errorBody
         );
         return {
-            vote: false,
-            confidence: 0,
-            rationale: `OpenRouter API request failed: ${response.status} ${response.statusText}. Details: ${errorBody}`,
-            providerName: this.provider,
-            modelName: this.modelName,
+          vote: false,
+          confidence: 0,
+          rationale: `OpenRouter API request failed: ${response.status} ${response.statusText}. Details: ${errorBody}`,
+          providerName: this.provider,
+          modelName: this.modelName,
         };
       }
 
       const data = await response.json();
-      
+      const latency = Date.now() - startTime;
+
       let vote = false;
-      let confidence = 0.5; // Default confidence
+      let confidence = 0.5;
       let rationale = "Could not reliably determine validation outcome from model response.";
 
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
         const messageContent = data.choices[0].message.content.trim();
-        rationale = messageContent; // Use the full response as rationale for now
+        rationale = messageContent;
 
         const firstWord = messageContent.split(' ')[0].toLowerCase();
-
         if (firstWord.startsWith("true")) {
           vote = true;
-          confidence = 0.8; // Assign higher confidence for a clear "true"
+          confidence = 0.8;
         } else if (firstWord.startsWith("false")) {
           vote = false;
-          confidence = 0.8; // Assign higher confidence for a clear "false"
+          confidence = 0.8;
         }
-        // TODO: Enhance parsing. The current method is basic.
-        // Consider prompting for JSON output or more structured responses.
       }
 
       return {
@@ -105,8 +106,8 @@ export class OpenRouterValidator implements AIValidator {
         rationale,
         providerName: this.provider,
         modelName: this.modelName,
+        latency,
       };
-
     } catch (error) {
       console.error("Error in OpenRouterValidator validate method:", error);
       const errorMessage = error instanceof Error ? error.message : "Unknown validation error";
@@ -116,6 +117,7 @@ export class OpenRouterValidator implements AIValidator {
         rationale: `Validation failed due to an unexpected error: ${errorMessage}`,
         providerName: this.provider,
         modelName: this.modelName,
+        latency: 0,
       };
     }
   }

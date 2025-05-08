@@ -1,12 +1,13 @@
 "use client";
 
 import { useCallback } from "react";
-import type { VoteResult } from "@/lib/types";
+import type { VoteResult, QueryMode } from "@/lib/types";
 import { Dispatch, SetStateAction } from "react";
 import { sanitizeError } from "@/utils/security-utils";
 
 interface BroadcastQueryOptions {
   csrfToken?: string;
+  queryMode?: QueryMode; // Add queryMode to options
 }
 
 interface BroadcastQueryResult {
@@ -51,7 +52,10 @@ export function useBroadcastQuery(
             "Content-Type": "application/json",
             ...(options.csrfToken && { "X-CSRF-Token": options.csrfToken }),
           },
-          body: JSON.stringify({ queryText: query }),
+          body: JSON.stringify({
+            queryText: query,
+            queryMode: options.queryMode || "factCheck", // Include queryMode, default to factCheck
+          }),
           credentials: "include",
         });
 

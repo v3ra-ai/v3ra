@@ -31,6 +31,6 @@
     "prisma/migrate.js",
     "prisma/archived/migrate",
     "test/generate-transaction.mjs"
-  ],
+, "utils/fetchOpenRouterUsage.js"  ],
   "exclude": ["node_modules"]
 }

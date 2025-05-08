@@ -33,5 +33,21 @@
         "id": "fd58a6ba-054b-4db2-8d81-894c4d3574af",
         "profile": "Qwen3 14B",
         "avatarUrl": "qwen.png"
+    },
+
+    {
+        "id": "228db12f-5d5b-4e34-af58-1c0972b9164e",
+        "profile": "DeepSeek V3",
+        "avatarUrl": "deepseek.png"
+    },
+    {
+        "id": "cb943ba8-a4f1-4d8b-908a-9301a278be76",
+        "profile": "Meta Llama 4 Scout",
+        "avatarUrl": "metallama.png"
+    },
+    {
+        "id": "e3e1545f-1432-4362-8bd4-9ab1d2edf4ce",
+        "profile": "Zephyr 7B",
+        "avatarUrl": "zephyr.png"
     }
 ]
