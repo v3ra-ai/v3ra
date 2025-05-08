@@ -2,6 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
+import { generatePrompt } from "../utils";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -81,7 +82,7 @@ export class OpenAIValidator implements AIValidator {
       const waitTime = Math.min(
         errorTracking.backoffTime *
           Math.pow(2, errorTracking.consecutiveErrors - 1),
-        30000,
+        30000
       );
       const timeElapsed = now - errorTracking.lastErrorTime;
 
@@ -137,7 +138,7 @@ export class OpenAIValidator implements AIValidator {
       const backoffStatus = this.shouldBackoff();
       if (backoffStatus.shouldWait) {
         console.log(
-          `Backing off OpenAI API for ${backoffStatus.waitTime}ms due to previous errors`,
+          `Backing off OpenAI API for ${backoffStatus.waitTime}ms due to previous errors`
         );
         return {
           vote: false,
@@ -154,6 +155,13 @@ export class OpenAIValidator implements AIValidator {
       }
 
       // Make the API call
+      // Generate prompt using utility function
+      const { systemMessage, userMessage } = generatePrompt(
+        request.queryMode,
+        request.statement,
+        request.context
+      );
+
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
         {
@@ -167,18 +175,17 @@ export class OpenAIValidator implements AIValidator {
             messages: [
               {
                 role: "system",
-                content:
-                  "You are a fact-checking assistant. Your job is to determine whether statements are factually accurate. Respond with a decision of YES or NO, followed by your confidence level (0-100), and then a brief explanation of your reasoning.",
+                content: systemMessage,
               },
               {
                 role: "user",
-                content: `Is this statement factually accurate? "${request.statement}"${request.context ? `\nContext: ${request.context}` : ""}`,
+                content: userMessage,
               },
             ],
             temperature: 0.3,
           }),
           signal: AbortSignal.timeout(15000), // 15-second timeout
-        },
+        }
       );
 
       if (!response.ok) {

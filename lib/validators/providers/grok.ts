@@ -1,7 +1,9 @@
+
 import { v4 as uuidv4 } from "uuid";
 import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
+import { generatePrompt } from "../utils";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -204,6 +206,13 @@ export class GrokValidator implements AIValidator {
         `[Grok ${this.id}] Preparing to call Grok API with model: ${this.modelName}`,
       );
 
+      // Generate prompt using utility function
+      const { systemMessage, userMessage } = generatePrompt(
+        request.queryMode,
+        request.statement,
+        request.context
+      );
+
       try {
         // Make the API call using the xAI API endpoint directly with patterns from successful Rust implementation
         const response = await fetch("https://api.x.ai/v1/chat/completions", {
@@ -218,12 +227,11 @@ export class GrokValidator implements AIValidator {
             messages: [
               {
                 role: "system",
-                content:
-                  "You are a fact-checking assistant. Your job is to determine whether statements are factually accurate. Respond with a decision of YES or NO, followed by your confidence level (0-100), and then a brief explanation of your reasoning.",
+                content: systemMessage,
               },
               {
                 role: "user",
-                content: `Is this statement factually accurate? "${request.statement}"${request.context ? `\nContext: ${request.context}` : ""}`,
+                content: userMessage,
               },
             ],
             temperature: 0.3,
