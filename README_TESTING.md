@@ -1,6 +1,6 @@
 
 
-# Testing Strategy for Next.js Application
+# Testing Strategy
 
 Goal: set up a testing suite within a week, focusing on
 * Jest for unit tests,
