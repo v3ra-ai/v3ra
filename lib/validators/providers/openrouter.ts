@@ -8,12 +8,14 @@ export class OpenRouterValidator implements AIValidator {
   modelName: string;
   active: boolean;
   private apiKey: string;
+  queryMode: string;
 
-  constructor(opts: { id: string; name: string; modelName: string; active: boolean }) {
+  constructor(opts: { id: string; name: string; modelName: string; active: boolean; queryMode: string}) {
     this.id = opts.id;
     this.name = opts.name;
     this.modelName = opts.modelName;
     this.active = opts.active;
+    this.queryMode = opts.queryMode;
 
     const envApiKey = process.env.OPENROUTER_API_KEY;
     if (!envApiKey) {
