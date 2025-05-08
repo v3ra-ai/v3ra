@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import type { VoteResult } from "@/lib/types";
 import { Dispatch, SetStateAction } from "react";
 import { sanitizeError } from "@/utils/security-utils";
+import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 
 // Log to confirm file is loaded
 console.log("[useBroadcastQuery] File loaded");
@@ -95,7 +96,7 @@ export function useBroadcastQuery(
 
         setLastVoteResult(voteResult as VoteResult);
         setVoteHistory((prevHistory: VoteResult[]) =>
-          [voteResult as VoteResult, ...prevHistory].slice(0, 10)
+          [voteResult as VoteResult, ...prevHistory].slice(0,RESULT_QUERIES_CARDS)
         );
 
         await new Promise((resolve) => setTimeout(resolve, 500));
