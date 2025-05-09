@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,34 +10,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { QueryMode } from "@/lib/types";
 import { useQueryStore } from "@/store/query-store";
+import { useNavStore } from "@/store/nav-store";
 
 interface QueryFormModeSelectorProps {
-  queryMode: "factCheck" | "predict" | "create" | "shop";
+  queryMode: QueryMode;
 }
 
-export function QueryFormModeSelector({
-  queryMode,
-}: QueryFormModeSelectorProps) {
+export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps) {
   const { setQueryMode } = useQueryStore();
-  const searchParams = useSearchParams();
+  const navQueryMode = useNavStore((state) => state.queryMode);
 
   // Log current queryMode on render
-  console.log("[QueryFormModeSelector] Current queryMode:", queryMode);
+  console.log("[QueryFormModeSelector] Current queryMode:", queryMode, "navQueryMode:", navQueryMode);
 
-  // Sync queryMode with q query parameter on mount and param change
+  // Sync queryMode with navStore on mount
   useEffect(() => {
-    const q = searchParams.get("q");
     const validModes: QueryMode[] = ["factCheck", "predict", "create", "shop"];
-    if (q && validModes.includes(q as QueryMode)) {
-      console.log(
-        "[QueryFormModeSelector] Syncing queryMode from URL param q:",
-        q
-      );
-      setQueryMode(q as QueryMode);
-    } else if (q) {
-      console.warn("[QueryFormModeSelector] Invalid q param:", q);
+    if (navQueryMode && validModes.includes(navQueryMode)) {
+      console.log("[QueryFormModeSelector] Syncing queryMode from navStore:", navQueryMode);
+      setQueryMode(navQueryMode);
     }
-  }, [searchParams, setQueryMode]);
+  }, [navQueryMode, setQueryMode]);
 
   const handleSelectMode = (mode: QueryMode) => {
     console.log("[QueryFormModeSelector] Selecting mode:", mode);
