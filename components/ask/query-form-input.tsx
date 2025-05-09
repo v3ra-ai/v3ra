@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, ReactNode, SetStateAction, useEffect } from "react";
 import { QueryFormModeSelector } from "./query-form-mode-selector";
 import { QueryFormAISlider } from "./query-form-ai-slider";
 import { QueryMode } from "@/lib/types";
@@ -44,7 +44,7 @@ export function QueryFormInput({
   allowedAmountQueries,
 }: QueryFormInputProps) {
   const { displayUnpaid, hasPaid: storeHasPaid } = useCreditsStore();
-  const [buttonText, setButtonText] = useState("Submit");
+  const [buttonText, setButtonText] = useState<ReactNode>("Submit");
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
   const onSubmit = () => {
