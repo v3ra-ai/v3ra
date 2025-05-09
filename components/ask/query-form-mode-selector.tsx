@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -16,12 +20,28 @@ export function QueryFormModeSelector({
   queryMode,
 }: QueryFormModeSelectorProps) {
   const { setQueryMode } = useQueryStore();
+  const searchParams = useSearchParams();
 
   // Log current queryMode on render
   console.log("[QueryFormModeSelector] Current queryMode:", queryMode);
 
+  // Sync queryMode with q query parameter on mount and param change
+  useEffect(() => {
+    const q = searchParams.get("q");
+    const validModes: QueryMode[] = ["factCheck", "predict", "create", "shop"];
+    if (q && validModes.includes(q as QueryMode)) {
+      console.log(
+        "[QueryFormModeSelector] Syncing queryMode from URL param q:",
+        q
+      );
+      setQueryMode(q as QueryMode);
+    } else if (q) {
+      console.warn("[QueryFormModeSelector] Invalid q param:", q);
+    }
+  }, [searchParams, setQueryMode]);
+
   const handleSelectMode = (mode: QueryMode) => {
-    console.log("[QueryFormModeSelector] Selecting mode:", mode); // Log mode selection
+    console.log("[QueryFormModeSelector] Selecting mode:", mode);
     setQueryMode(mode);
   };
 
