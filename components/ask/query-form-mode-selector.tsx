@@ -57,7 +57,7 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
       <DropdownMenuContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700">
         <DropdownMenuItem
           className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
-          onClick={(e) => handleSelectMode("factCheck", e)}
+          onClick={(e) => handleSelectMode("fact-check", e)}
         >
           Fact Check
         </DropdownMenuItem>
