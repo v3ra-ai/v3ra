@@ -1,4 +1,5 @@
 import { Dispatch, SetStateAction } from "react";
+import { ReactNode } from "react";
 
 interface ButtonTextTimerResult {
   startTimer: () => void;
@@ -6,12 +7,13 @@ interface ButtonTextTimerResult {
 }
 
 /**
- * Manages dynamic button text changes with a cancellable timer.
- * @param setButtonText - State setter for the button text.
+ * Manages dynamic button content changes with a cancellable timer.
+ * Each delay is varied by ±30% randomly.
+ * @param setButtonContent - State setter for the button content (string or JSX).
  * @returns Functions to start and cancel the timer.
  */
 export function useButtonTextTimer(
-  setButtonText: Dispatch<SetStateAction<string>>
+  setButtonContent: Dispatch<SetStateAction<ReactNode>>
 ): ButtonTextTimerResult {
   let timerIds: NodeJS.Timeout[] = [];
 
@@ -19,21 +21,32 @@ export function useButtonTextTimer(
     // Clear any existing timers
     cancelTimer();
 
-    // Define text changes with cumulative delays
-    const textChanges = [
-      { text: "Broadcasting...", delay: 2000 },
-      { text: "Waiting...", delay: 3000 },
-      { text: "Validating...", delay: 3000 },
-      { text: "Merging...", delay: 1000 },
-      { text: "Finalizing...", delay: 3000 },
+    // Define variation percentage (±30%)
+    const VARIATION_PERCENTAGE = 0.3;
+
+    // Define content changes with base delays
+    const contentChanges = [
+      { content: "Broadcasting...", delay: 2000 },
+      { content: "Waiting...", delay: 3000 },
+      { content: "Validating...", delay: 3000 },
+      { content: "Merging...", delay: 1000 },
+      { content: "Finalizing...", delay: 3000 },
     ];
 
     let cumulativeDelay = 0;
-    textChanges.forEach(({ text, delay }) => {
-      cumulativeDelay += delay;
+    contentChanges.forEach(({ content, delay }) => {
+      // Calculate random variation between 0.7 and 1.3
+      const variation = 1 + (Math.random() * 2 - 1) * VARIATION_PERCENTAGE;
+      const variedDelay = Math.round(delay * variation);
+      cumulativeDelay += variedDelay;
+
+      console.log(
+        `[useButtonTextTimer] Scheduling content: ${content} at ${cumulativeDelay}ms (varied from ${delay}ms by ${Math.round((variation - 1) * 100)}%)`
+      );
+
       const id = setTimeout(() => {
-        setButtonText(text);
-        console.log(`[useButtonTextTimer] Updated button text to: ${text}`);
+        setButtonContent(content);
+        console.log(`[useButtonTextTimer] Updated button content to: ${content}`);
       }, cumulativeDelay);
       timerIds.push(id);
     });

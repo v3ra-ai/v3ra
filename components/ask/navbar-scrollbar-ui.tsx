@@ -1,11 +1,14 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { ViewMode, QueryMode } from "@/lib/types";
 import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
 import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
 import WalletToggle from "@/components/ask/wallet-toggle";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+import { useButtonTextTimer } from "@/utils/button-text-timer";
+import { ReactNode } from "react";
 
 interface NavbarScrollbarUIProps {
   queryText: string;
@@ -47,6 +50,21 @@ export function NavbarScrollbarUI({
   updateQueryAmountRequested,
   handleKeyDown,
 }: NavbarScrollbarUIProps) {
+  const [placeholderContent, setPlaceholderContent] = useState<ReactNode>(getPlaceholderText(queryMode));
+  const { startTimer, cancelTimer } = useButtonTextTimer(setPlaceholderContent);
+
+  // Start timer when submitting, reset placeholder when not submitting
+  useEffect(() => {
+    if (isSubmitting) {
+      startTimer();
+      console.log("[NavbarScrollbarUI] Started timer for placeholder content");
+    } else {
+      cancelTimer();
+      setPlaceholderContent(getPlaceholderText(queryMode));
+      console.log("[NavbarScrollbarUI] Reset placeholder to:", getPlaceholderText(queryMode));
+    }
+  }, [isSubmitting, queryMode, startTimer, cancelTimer]);
+
   return (
     <div className="container mx-auto px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800">
       <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
@@ -60,8 +78,8 @@ export function NavbarScrollbarUI({
                   ? "border-red-400"
                   : "border-zinc-300 dark:border-zinc-600"
               }`}
-              placeholder={getPlaceholderText(queryMode)}
-              value={isSubmitting ? "Submitting..." : queryText}
+              placeholder={placeholderContent as string}
+              value={isSubmitting ? "" : queryText}
               onChange={(e) => setQueryText(e.target.value)}
               onKeyDown={handleKeyDown}
               disabled={isSubmitting}
