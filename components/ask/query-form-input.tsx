@@ -1,10 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useEffect } from "react";
 import { QueryFormModeSelector } from "./query-form-mode-selector";
 import { QueryFormAISlider } from "./query-form-ai-slider";
 import { QueryMode } from "@/lib/types";
 import { useCreditsStore } from "@/store/credit-store";
 import { toast } from "sonner";
+import { useButtonTextTimer } from "@/utils/button-text-timer";
+import { useState } from "react";
 
 interface QueryFormInputProps {
   queryText: string;
@@ -42,16 +44,8 @@ export function QueryFormInput({
   allowedAmountQueries,
 }: QueryFormInputProps) {
   const { displayUnpaid, hasPaid: storeHasPaid } = useCreditsStore();
-
-  // console.log("QueryFormInput submit button state:", {
-  //   isSubmitting,
-  //   displayUnpaid,
-  //   storeHasPaid,
-  //   queriesUnpaid,
-  //   queriesCostTotal,
-  //   queriesRequested,
-  //   queryText,
-  // });
+  const [buttonText, setButtonText] = useState("Submit");
+  const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
   const onSubmit = () => {
     console.log("QueryFormInput onSubmit called:", {
@@ -70,6 +64,7 @@ export function QueryFormInput({
       return;
     }
     try {
+      startTimer();
       handleSubmit();
       console.log("handleSubmit executed successfully");
     } catch (error: unknown) {
@@ -80,6 +75,15 @@ export function QueryFormInput({
       });
     }
   };
+
+  // Reset button text and cancel timer when isSubmitting changes
+  useEffect(() => {
+    if (!isSubmitting) {
+      cancelTimer();
+      setButtonText("Submit");
+      console.log("QueryFormInput: Reset button text to Submit");
+    }
+  }, [isSubmitting, cancelTimer]);
 
   return (
     <>
@@ -122,7 +126,7 @@ export function QueryFormInput({
             onMouseDown={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
             onMouseUp={() => setIsSubmitInteracted(false)}
           >
-            {isSubmitting ? "Submitting..." : "Submit"}
+            {buttonText}
           </Button>
         </div>
       </div>
