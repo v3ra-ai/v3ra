@@ -32,20 +32,24 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
     }
   }, [navQueryMode, setQueryMode]);
 
-  const handleSelectMode = (mode: QueryMode) => {
-    console.log("[QueryFormModeSelector] Selecting mode:", mode);
+  const handleSelectMode = (mode: QueryMode, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log("[QueryFormModeSelector] Clicked mode:", mode);
     setQueryMode(mode);
   };
 
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      onOpenChange={(open) => console.log("[QueryFormModeSelector] Dropdown open state:", open)}
+    >
       <DropdownMenuTrigger asChild>
         <Button className="text-zinc-900 dark:text-white bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer">
           {queryMode === "predict"
             ? "Predict"
             : queryMode === "create"
               ? "Create"
-            : queryMode === "shop"
+              : queryMode === "shop"
                 ? "Shop"
                 : "Fact Check"}
         </Button>
@@ -53,25 +57,25 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
       <DropdownMenuContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700">
         <DropdownMenuItem
           className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
-          onSelect={() => handleSelectMode("fact-check")}
+          onClick={(e) => handleSelectMode("factCheck", e)}
         >
           Fact Check
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
-          onSelect={() => handleSelectMode("predict")}
+          onClick={(e) => handleSelectMode("predict", e)}
         >
           Predict
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
-          onSelect={() => handleSelectMode("shop")}
+          onClick={(e) => handleSelectMode("shop", e)}
         >
           Shop
         </DropdownMenuItem>
         <DropdownMenuItem
           className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
-          onSelect={() => handleSelectMode("create")}
+          onClick={(e) => handleSelectMode("create", e)}
         >
           Create
         </DropdownMenuItem>
