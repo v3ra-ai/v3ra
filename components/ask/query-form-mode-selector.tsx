@@ -45,32 +45,32 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
             ? "Predict"
             : queryMode === "create"
               ? "Create"
-              : queryMode === "shop"
+            : queryMode === "shop"
                 ? "Shop"
                 : "Fact Check"}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-black border-gray-300">
+      <DropdownMenuContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700">
         <DropdownMenuItem
-          className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+          className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
           onSelect={() => handleSelectMode("fact-check")}
         >
           Fact Check
         </DropdownMenuItem>
         <DropdownMenuItem
-          className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+          className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
           onSelect={() => handleSelectMode("predict")}
         >
           Predict
         </DropdownMenuItem>
         <DropdownMenuItem
-          className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+          className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
           onSelect={() => handleSelectMode("shop")}
         >
           Shop
         </DropdownMenuItem>
         <DropdownMenuItem
-          className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
+          className="text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer"
           onSelect={() => handleSelectMode("create")}
         >
           Create
