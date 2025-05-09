@@ -17,10 +17,22 @@ export function NavbarSitelinks() {
         Home
       </Link> */}
       <Link
-        href="/ask/?q=factCheck"
+        href="/ask/?q=fact-check"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Ask
+      </Link>
+      <Link
+        href="/ask/?q=predict"
+        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
+      >
+        Predict
+      </Link>
+      <Link
+        href="/ask/?q=shop"
+        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
+      >
+        Shop
       </Link>
       {/* <Link
         href="/explorer"
@@ -39,18 +51,6 @@ export function NavbarSitelinks() {
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Stake
-      </Link>
-      <Link
-        href="/ask/?q=predict"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Predict
-      </Link>
-      <Link
-        href="/ask/?q=shop"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Shop
       </Link>
       <NavbarCredits />
 

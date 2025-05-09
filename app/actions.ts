@@ -22,7 +22,7 @@ type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
 export async function broadcastCustomQuery(
   query: string,
-  queryMode: QueryMode = "factCheck",
+  queryMode: QueryMode = "fact-check",
   queriesRequested?: number // Number of validators to query
 ): Promise<VoteResult | { error: string }> {
   try {

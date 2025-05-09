@@ -1,4 +1,8 @@
 import type { QueryMode } from "@/lib/types";
+import { getFactCheckPrompt } from "@/lib/validators/prompts/fact-check";
+import { getPredictPrompt } from "@/lib/validators/prompts/predict";
+import { getShopPrompt } from "@/lib/validators/prompts/shop";
+import { getCreatePrompt } from "@/lib/validators/prompts/create";
 
 export function generatePrompt(
   queryMode: QueryMode | undefined,
@@ -8,24 +12,25 @@ export function generatePrompt(
   let systemMessage: string;
   let userMessage: string;
 
-  if (queryMode === "predict") {
-    console.log(`queryMode === "predict"`);
+  console.log(`[generatePrompt] queryMode: ${queryMode || "default"}`);
 
-    systemMessage =
-      "You are a prediction assistant. Predict the likelihood of the statement being true in the future. Respond with a YES or NO decision, followed by your confidence level (0-100), and a brief explanation of your reasoning.";
-    userMessage = `Predict if this statement will be true in the future: "${statement}"${context ? `\nContext: ${context}` : ""}`;
-
-    console.log(systemMessage,userMessage);
-
-  } else {
-    console.log(`queryMode === "default"`);
-    // Default to factCheck for all other modes or if queryMode is undefined
-    systemMessage =
-      "You are a fact-checking assistant. Determine if the statement is factually accurate. Respond with a YES or NO decision, followed by your confidence level (0-100), and a brief explanation of your reasoning.";
-    userMessage = `Is this statement factually accurate? "${statement}"${context ? `\nContext: ${context}` : ""}`;
-
-    console.log(systemMessage,userMessage);
+  switch (queryMode) {
+    case "predict":
+      ({ systemMessage, userMessage } = getPredictPrompt(statement, context));
+      break;
+    case "shop":
+      ({ systemMessage, userMessage } = getShopPrompt(statement, context));
+      break;
+    case "create":
+      ({ systemMessage, userMessage } = getCreatePrompt(statement, context));
+      break;
+    case "fact-check":
+    default:
+      ({ systemMessage, userMessage } = getFactCheckPrompt(statement, context));
+      break;
   }
+
+  console.log("[generatePrompt] Generated prompt:", { systemMessage, userMessage });
 
   return { systemMessage, userMessage };
 }

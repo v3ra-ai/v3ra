@@ -95,7 +95,7 @@ export interface ExtendedApiKey extends ApiKey {
 }
 
 // Query-related types
-export type QueryMode = "factCheck" | "predict" | "create" | "shop";
+export type QueryMode = "fact-check" | "predict" | "create" | "shop";
 export type ViewMode = "viewStandard" | "viewExpert";
 
 // Constants

@@ -56,7 +56,7 @@ export const useQueryStore = create<QueryStore>((set) => {
           (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS)
       ) * DEFAULTS.QUERIES_COST_EACH,
     userCreditConversion: DEFAULTS.USER_CREDIT_CONVERSION,
-    queryMode: "factCheck" as QueryMode,
+    queryMode: "fact-check" as QueryMode,
     viewMode: "viewExpert" as ViewMode,
   };
   console.log("[query-store] Initial state:", initialState); // Log initial state

@@ -59,10 +59,11 @@ export function AskResultsStandardValidatorAvatars({
                 </Link>
                 {/* Tooltip */}
                 <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-100 dark:bg-zinc-700 rounded-md shadow-lg text-sm text-zinc-600 dark:text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
-                  <p>
+
+                  {/* <p>
                     <span className="font-semibold">Provider: </span>
                     {response.provider}
-                  </p>
+                  </p> */}
                   <p>
                     <span className="font-semibold">Profile: </span>
                     {response.profileName}
