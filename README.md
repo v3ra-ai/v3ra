@@ -768,7 +768,7 @@ PGPASSWORD="your_password" pg_dump \
 or (may need to update variables)
 
 ```bash
-pg_dump -h aws-0-us-east-1.pooler.supabase.com -U postgres.quuuhdbozcmhkwzhamuh -p 5432 -d postgres -F c -f 20250501-remote_supabase_backup.dump
+pg_dump -h aws-0-us-east-1.pooler.supabase.com -U postgres.quuuhdbozcmhkwzhamuh -p 5432 -d postgres -F c -f 20250509-remote_supabase_backup.dump
 ```
 
 Restore (only use if db is new in another location):
