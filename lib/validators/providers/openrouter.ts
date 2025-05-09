@@ -16,7 +16,7 @@ export class OpenRouterValidator implements AIValidator {
     this.name = opts.name;
     this.modelName = opts.modelName;
     this.active = opts.active;
-    this.queryMode = opts.queryMode || "factCheck"; // Default to factCheck
+    this.queryMode = opts.queryMode || "fact-check"; // Default to factCheck
 
     const envApiKey = process.env.OPENROUTER_API_KEY;
     if (!envApiKey) {
@@ -40,7 +40,7 @@ export class OpenRouterValidator implements AIValidator {
       };
     }
 
-    console.log(`OpenRouterValidator validating statement: "${req.statement}" with model ${this.modelName} in mode ${req.queryMode || "factCheck"}`);
+    console.log(`OpenRouterValidator validating statement: "${req.statement}" with model ${this.modelName} in mode ${req.queryMode || "fact-check"}`);
 
     try {
       const startTime = Date.now();

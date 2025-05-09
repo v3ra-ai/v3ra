@@ -44,7 +44,7 @@ export default function QueryInterface() {
   }, [queriesUnpaid, payWithWallet]);
 
   const formatQueryMode = (mode: QueryMode) => {
-    if (mode === "factCheck") {
+    if (mode === "fact-check") {
       return "Fact Check";
     }
     return mode.charAt(0).toUpperCase() + mode.slice(1);
@@ -69,7 +69,7 @@ export default function QueryInterface() {
                 className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors cursor-pointer"
                 aria-label={`Change query mode, current mode: ${formatQueryMode(queryMode)}`}
               >
-                {queryMode === "factCheck" ? "fact check" : queryMode}
+                {queryMode === "fact-check" ? "fact check" : queryMode}
               </button>
             </Popover.Trigger>
             <Popover.Portal>
@@ -78,7 +78,7 @@ export default function QueryInterface() {
                 sideOffset={5}
                 align="center"
               >
-                {(["factCheck", "predict", "create", "shop"] as QueryMode[]).map(
+                {(["fact-check", "predict", "create", "shop"] as QueryMode[]).map(
                   (mode) => (
                     <button
                       key={mode}

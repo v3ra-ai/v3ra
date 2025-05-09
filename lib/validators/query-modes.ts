@@ -1,7 +1,7 @@
 import { QueryMode } from "@/lib/types";
 
 export const VALID_QUERY_MODES: QueryMode[] = [
-  "factCheck",
+  "fact-check",
   "predict",
   "create",
   "shop",

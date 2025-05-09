@@ -25,7 +25,7 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
 
   // Sync queryMode with navStore on mount
   useEffect(() => {
-    const validModes: QueryMode[] = ["factCheck", "predict", "create", "shop"];
+    const validModes: QueryMode[] = ["fact-check", "predict", "create", "shop"];
     if (navQueryMode && validModes.includes(navQueryMode)) {
       console.log("[QueryFormModeSelector] Syncing queryMode from navStore:", navQueryMode);
       setQueryMode(navQueryMode);
@@ -53,7 +53,7 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
       <DropdownMenuContent className="bg-black border-gray-300">
         <DropdownMenuItem
           className="text-gray-200 hover:bg-gray-800 focus:bg-gray-800 cursor-pointer"
-          onSelect={() => handleSelectMode("factCheck")}
+          onSelect={() => handleSelectMode("fact-check")}
         >
           Fact Check
         </DropdownMenuItem>

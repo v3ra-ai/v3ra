@@ -24,7 +24,7 @@ export function generatePrompt(
     case "create":
       ({ systemMessage, userMessage } = getCreatePrompt(statement, context));
       break;
-    case "factCheck":
+    case "fact-check":
     default:
       ({ systemMessage, userMessage } = getFactCheckPrompt(statement, context));
       break;
