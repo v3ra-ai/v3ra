@@ -26,10 +26,6 @@ components/ask/query-stats.tsx
 components/ask/consensus/current-query.tsx
 
 
---------------
-
-# Files
-
 app/api/credits/assign/route.ts
 
 import { NextRequest, NextResponse } from "next/server";
@@ -564,18 +560,49 @@ export async function POST(req: NextRequest) {
   }
 }
 
-
 app/credits/page.tsx
 
+"use client";
 import { CreditsLayout } from "@/components/credits/credits-layout";
 import Navbar from "@/components/ask/navbar";
 import { SolanaProvider } from "@/components/solana-provider";
+import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
 
 export default function CreditsPage() {
+  const { theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  // Handle hydration to avoid theme mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+
+
+  const backgroundImage = mounted
+    ? theme === "dark"
+      ? "url(/bg_home_black.jpg)"
+      : "url(/bg_home_white.jpg)"
+    : "url(/bg_home_white.jpg)"; // Default to light theme before mounting
+
   return (
     <SolanaProvider>
+      <div
+        className="min-h-screen"
+        style={{
+          backgroundImage,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+          backgroundRepeat: "no-repeat",
+          width: "100vw",
+          height: "100vh",
+        }}
+      >
       <Navbar />
       <CreditsLayout />
+      </div>
     </SolanaProvider>
   );
 }
@@ -585,7 +612,7 @@ components/credits/credit-slider-ui.tsx
 
 
 import * as Slider from "@radix-ui/react-slider";
-import { Square } from "lucide-react";
+import { Coins, Square } from "lucide-react";
 
 interface CreditSliderUIProps {
   creditAmount: number;
@@ -627,9 +654,15 @@ export default function CreditSliderUI({
 
   return (
     <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-        Purchase Credits
-      </h2>
+      <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
+        <div className="flex justify-center items-center mb-2">
+          {" "}
+          <Coins size={22} />
+          <h2 className="w-full text-2xl font-semibold ml-2 text-zinc-900 dark:text-zinc-100">
+            Purchase Credits
+          </h2>
+        </div>
+      </div>
       <div className="text-center mb-6">
         <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
           {creditAmount}
@@ -722,20 +755,13 @@ export default function CreditSliderUI({
   );
 }
 
-
-
-components/credits/credit-slider.tsx
-
-
-
 "use client";
 
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback, useEffect, Dispatch, SetStateAction } from "react";
 import { toast } from "sonner";
 import CreditSliderUI from "./credit-slider-ui";
 import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
 import { useCreditAssignment } from "@/hooks/useCreditAssignment";
-import { useCreditBalance } from "@/hooks/useCreditBalance";
 import { VERAFY_WALLET } from "@/lib/solana-constants";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
@@ -743,9 +769,13 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { PublicKey, Transaction, Connection, SendTransactionError } from "@solana/web3.js";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 
-export default function CreditSlider() {
+interface CreditSliderProps {
+  creditBalance: number | null;
+  setCreditBalance: Dispatch<SetStateAction<number | null>>;
+}
+
+export default function CreditSlider({creditBalance, setCreditBalance}: CreditSliderProps) {
   const [creditAmount, setCreditAmount] = useState(10);
-  const { creditBalance, setCreditBalance } = useCreditBalance();
   const { publicKey, signTransaction, connected: isWalletConnected, disconnect } = useWallet();
   const {
     sendTransaction,
@@ -766,6 +796,9 @@ export default function CreditSlider() {
 
   // State for solBalance
   const [solBalance, setSolBalance] = useState<number | null>(null);
+
+  console.log(`NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME ${process.env.NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME}`);
+  console.log(`NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC ${process.env.NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC}`);
 
   // Fetch SOL balance when wallet is connected
   useEffect(() => {
@@ -888,7 +921,7 @@ export default function CreditSlider() {
             creditAmount,
             publicKey,
           );
-          setCreditBalance(newBalance);
+          setCreditBalance(newBalance.credits ?? 0); // Extract credits
           toast.success(`Successfully purchased ${creditAmount} credits!`);
           return true;
         } else {
@@ -979,31 +1012,45 @@ export default function CreditSlider() {
 }
 
 
-
-components/credits/credits-layout.tsx
-
-
 "use client";
 
+// import { useEffect } from "react";
 import CreditSlider from "@/components/credits/credit-slider";
 import StakeSlider from "@/components/credits/stake-slider";
+// import { useCreditsStore } from "@/store/credit-store";
+// import { useWallet } from "@solana/wallet-adapter-react";
+import { Landmark } from "lucide-react";
+import { useCreditBalance } from "@/hooks/useCreditBalance";
 
-// interface CreditsLayoutProps {}
-
-/**
- * Presentational component for the Credits page UI.
- * Renders a heading and two sliders (CreditSlider, StakeSlider) in a responsive layout
- * with Zinc-based styling to match other pages.
- */
 export function CreditsLayout() {
+  // const { savedCredits, fetchSavedCredits } = useCreditsStore();
+  // const { publicKey } = useWallet();
+  const { creditBalance, setCreditBalance } = useCreditBalance();
+
+  // Fetch saved credits when the page loads or publicKey changes
+  // useEffect(() => {
+  //   fetchSavedCredits(publicKey);
+  // }, [publicKey, fetchSavedCredits, savedCredits]);
+
   return (
-    <div className="w-full md-round max-w-4xl mx-auto p-6  dark:bg-zinc-950 dark:border-zinc-700">
-      <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-8">
+    <div className="w-full md-round max-w-4xl mx-auto p-6 dark:bg-zinc-950 dark:border-zinc-700">
+      <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-4">
         Get Credits
       </h1>
+      <div className="flex text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
+        <div className="flex flex-col  w-full justify-center">
+          <div className="flex justify-center">
+            <Landmark />{" "}
+            <span className="ml-2">Balance: {creditBalance} Credits</span>
+          </div>
+          <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-600">
+            Paid Credits
+          </div>
+        </div>
+      </div>
       <div className="flex flex-col md:flex-row gap-6">
         <div className="flex-1 p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-          <CreditSlider />
+          <CreditSlider creditBalance={creditBalance} setCreditBalance={setCreditBalance}/>
         </div>
         <div className="flex-1 p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
           <StakeSlider />
@@ -1015,7 +1062,6 @@ export function CreditsLayout() {
 
 
 
-
 components/credits/stake-slider.tsx
 
 
@@ -1023,7 +1069,7 @@ components/credits/stake-slider.tsx
 
 import { useState } from "react";
 import * as Slider from "@radix-ui/react-slider";
-import { Square } from "lucide-react";
+import { Layers, Square } from "lucide-react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { QUERY_COST } from "@/lib/constants";
 
@@ -1040,13 +1086,19 @@ export default function StakeSlider() {
 
   return (
     <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-      <h2 className="text-xl font-semibold mb-4 text-zinc-900 dark:text-zinc-100">
-        Stake for Credits
-      </h2>
-      <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
-          {stakeAmount}
-        </span>
+      <div className="flex flex-col w-full text-center justify-center items-center mx-auto">
+        <div className="flex justify-center items-center mb-2">
+          {" "}
+          <Layers size={22} />
+          <h2 className="w-full text-2xl font-semibold ml-2 text-zinc-900 dark:text-zinc-100">
+            Stake for Credits
+          </h2>
+        </div>
+        <div className="flex text-center mb-6">
+            <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
+              {stakeAmount}
+            </span>
+          </div>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -1107,6 +1159,7 @@ export default function StakeSlider() {
   );
 }
 
+
 components/ask/wallet-toggle.tsx
 
 
@@ -1121,8 +1174,6 @@ import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 interface WalletToggleProps {
   payWithWallet: boolean;
   setPayWithWallet: (value: boolean) => void;
-  hasPaid: boolean;
-  setHasPaid: (value: boolean) => void;
   queriesCostTotal: number;
   userCreditsTotal: number;
   userFreeCredits: number;
@@ -1130,14 +1181,12 @@ interface WalletToggleProps {
   queriesRequested: number;
   queriesUnpaid: number;
   highlightPayButton?: boolean;
-  context?: "scrollbar" | "default"; // Added to differentiate scrollbar view
+  context?: "scrollbar" | "default";
 }
 
 export default function WalletToggle({
   payWithWallet,
   setPayWithWallet,
-  hasPaid,
-  setHasPaid,
   queriesCostTotal,
   userCreditsTotal,
   userFreeCredits,
@@ -1145,7 +1194,7 @@ export default function WalletToggle({
   queriesRequested,
   queriesUnpaid,
   highlightPayButton = false,
-  context = "default", // Default to non-scrollbar view
+  context = "default",
 }: WalletToggleProps) {
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
@@ -1154,11 +1203,11 @@ export default function WalletToggle({
     [setPayWithWallet]
   );
 
-  const queriesLeft = Math.max(0, userCreditsTotal - queriesRequested); // Credits left after reserving queriesRequested
-  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
+  const queriesLeft = Math.max(0, userCreditsTotal - queriesRequested);
+  const displayUnpaid = Math.max(0, queriesUnpaid);
 
   return (
-    <div className={`flex items-center justify-between ${context==="default" ? "mb-3" : "mb-1"} `}>
+    <div className={`flex items-center justify-between ${context === "default" ? "mb-3" : "mb-1"} `}>
       <div className="flex items-center gap-3 flex-wrap">
         {context !== "scrollbar" && (
           <div className="flex items-center gap-3 hidden md:flex">
@@ -1174,13 +1223,11 @@ export default function WalletToggle({
         )}
         {payWithWallet && (
           <PaymentControls
-            hasPaid={hasPaid}
-            setHasPaid={setHasPaid}
             queriesCostTotal={queriesCostTotal}
             userCreditsTotal={userCreditsTotal}
             userFreeCredits={userFreeCredits}
             userPaidCredits={userPaidCredits}
-            queriesUnpaid={displayUnpaid} // Use displayUnpaid to avoid negative values
+            queriesUnpaid={displayUnpaid}
             highlightPayButton={highlightPayButton}
           />
         )}
@@ -1197,11 +1244,7 @@ export default function WalletToggle({
   );
 }
 
-
-
-
 components/ask/navbar-credits.tsx
-
 
 
 "use client";
@@ -1209,6 +1252,8 @@ components/ask/navbar-credits.tsx
 import { useState, useEffect } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
+import { LoadingSpinner } from "@/components/loading-spinner-new"; // Import LoadingSpinner
+import { Coins } from "lucide-react";
 
 export default function NavbarCredits() {
   const { publicKey } = useWallet();
@@ -1244,7 +1289,6 @@ export default function NavbarCredits() {
         // Use paidCredits if available, fallback to credits
         setPaidCredits(data.paidCredits ?? data.credits ?? 0);
       } catch (error) {
-        // const errorMsg = error instanceof Error ? error.message : "Unknown error";
         console.error("Error fetching paid credits:", error);
         setPaidCredits(0);
       }
@@ -1261,17 +1305,31 @@ export default function NavbarCredits() {
   return (
     <div className="flex items-center text-md text-zinc-600 dark:text-zinc-300">
       <Link href="/credits/">
-        <span>Saved Credits:</span>{" "}
-        <span className="text-sky-700 dark:text-sky-300 bg-zinc-200 dark:bg-zinc-700 ml-1 px-2 py-1 rounded-md">
-          {paidCredits !== null ? paidCredits : "Loading..."}
-        </span>
+        <div className="flex items-center ">
+          <Coins size={16}/> <span className="mx-2">Paid Credits:</span>
+          <span className="text-sky-700 dark:text-sky-300 bg-zinc-200 dark:bg-zinc-700 ml-1 px-2 py-1 rounded-md">
+            {paidCredits !== null ? (
+              paidCredits
+            ) : (
+              <>
+                {console.log("Rendering LoadingSpinner for credits fetch")}{" "}
+                {/* Debug log */}
+                <LoadingSpinner
+                  noWrapper
+                  type="pulse"
+                  color="#d946ef"
+                  size={5}
+                  message={""} // No message to keep it compact
+                />
+              </>
+            )}
+          </span>
+        </div>
       </Link>
     </div>
   );
 }
 
-
-components/ask/payment-controls.tsx
 
 
 
@@ -1292,8 +1350,6 @@ import { useCreditsStore } from "@/store/credit-store";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 
 interface PaymentControlsProps {
-  hasPaid: boolean;
-  setHasPaid: (value: boolean) => void;
   queriesCostTotal: number;
   userCreditsTotal: number;
   userFreeCredits: number;
@@ -1303,16 +1359,13 @@ interface PaymentControlsProps {
 }
 
 export function PaymentControls({
-  hasPaid,
-  setHasPaid,
   queriesCostTotal,
-  queriesUnpaid,
   highlightPayButton = false,
 }: PaymentControlsProps) {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { resetCreditsAfterPayment } = useCreditsStore();
+  const { resetCreditsAfterPayment, displayUnpaid, hasPaid, setHasPaid } = useCreditsStore();
 
   const PAYMENT_RECEIVER_ADDRESS =
     process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
@@ -1322,7 +1375,7 @@ export function PaymentControls({
     );
   }
   const PAYMENT_RECIPIENT = new PublicKey(PAYMENT_RECEIVER_ADDRESS);
-  const PAYMENT_AMOUNT = queriesCostTotal * QUERY_COST * LAMPORTS_PER_SOL;
+  const PAYMENT_AMOUNT = Math.floor(queriesCostTotal * QUERY_COST * LAMPORTS_PER_SOL);
 
   const handlePayment = async () => {
     if (!publicKey || !sendTransaction) {
@@ -1334,7 +1387,15 @@ export function PaymentControls({
 
     setIsProcessing(true);
     try {
-      console.log("Payment inputs:", { queriesCostTotal, PAYMENT_AMOUNT, publicKey: publicKey.toBase58() });
+      console.log("Payment inputs:", {
+        queriesCostTotal,
+        QUERY_COST,
+        LAMPORTS_PER_SOL,
+        PAYMENT_AMOUNT,
+        publicKey: publicKey.toBase58(),
+        displayUnpaid,
+        hasPaid,
+      });
 
       const transaction = new Transaction().add(
         SystemProgram.transfer({
@@ -1352,8 +1413,8 @@ export function PaymentControls({
       await connection.confirmTransaction(signature, "confirmed");
 
       setHasPaid(true);
-      resetCreditsAfterPayment(); // Reset all credits to 0 after payment
-      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useCreditsStore.getState().userCreditsTotal);
+      resetCreditsAfterPayment();
+      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useCreditsStore.getState().userCreditsTotal, "hasPaid:", useCreditsStore.getState().hasPaid);
       toast.success(`Payment of ${queriesCostTotal} credits (${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL) completed! Credits reset to 0.`, {
         style: { background: "#dcfce7", color: "#16a34a" },
       });
@@ -1365,6 +1426,8 @@ export function PaymentControls({
           ? "Insufficient SOL in wallet"
           : error.message.includes("blockhash")
           ? "Transaction expired, please try again"
+          : error.message.includes("BigInt")
+          ? "Invalid payment amount, please try again"
           : errorMessage;
       }
       toast.error(errorMessage, {
@@ -1375,7 +1438,13 @@ export function PaymentControls({
     }
   };
 
-  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
+  console.log("PaymentControls render state:", {
+    hasPaid,
+    displayUnpaid,
+    isProcessing,
+    publicKey: publicKey?.toBase58() || "none",
+    PAYMENT_AMOUNT,
+  });
 
   return (
     <>
@@ -1424,139 +1493,92 @@ export function PaymentControls({
 
 
 
-
 hooks/useCreditAssignment.tsx
+import { useCallback, useState } from "react";
+import { PublicKey, Transaction } from "@solana/web3.js";
 
-"use client";
-
-import { useState, useCallback } from "react";
-import { toast } from "sonner";
-import { PublicKey, Transaction, SystemProgram } from "@solana/web3.js";
-import { CREDIT_PRICE_SOL } from "../lib/solana-constants";
-
-interface CreditAssignment {
-  assignCredits: (
-    signature: string,
-    signedTx: Transaction,
-    credits: number,
-    userWallet: PublicKey,
-  ) => Promise<number>;
-  isAssigning: boolean;
-  error: string | null;
-}
-
-export const useCreditAssignment = (): CreditAssignment => {
+export const useCreditAssignment = () => {
   const [isAssigning, setIsAssigning] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+
+  // Fetch CSRF token
+  const fetchCsrfToken = useCallback(async () => {
+    try {
+      const response = await fetch("/api/csrf-token", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+      if (!response.ok) {
+        throw new Error("Failed to fetch CSRF token");
+      }
+      const data = await response.json();
+      console.log("Fetched CSRF token:", { csrfToken: data.csrfToken });
+      setCsrfToken(data.csrfToken);
+      return data.csrfToken;
+    } catch (err) {
+      console.error("Error fetching CSRF token:", err);
+      throw err;
+    }
+  }, []);
 
   const assignCredits = useCallback(
     async (
       signature: string,
       signedTx: Transaction,
-      credits: number,
-      userWallet: PublicKey,
+      creditAmount: number,
+      walletPublicKey: PublicKey,
     ) => {
       setIsAssigning(true);
       setError(null);
-
       try {
-        // Validate transaction amount
-        const transferInstruction = signedTx.instructions.find((instr) =>
-          instr.programId.equals(SystemProgram.programId),
-        );
-        if (!transferInstruction) {
-          throw new Error("No SystemProgram.transfer instruction found");
-        }
-        if (transferInstruction.data.length < 12) {
-          throw new Error(
-            "Invalid instruction data: too short to contain lamports",
-          );
-        }
-        const lamports = transferInstruction.data.readBigInt64LE(4);
-        const expectedLamports = BigInt(
-          credits * CREDIT_PRICE_SOL * 1_000_000_000,
-        );
-        console.log("Validating transaction:", {
-          lamports,
-          expectedLamports,
-          credits,
-        });
+        // Fetch CSRF token if not cached
+        const token = csrfToken || (await fetchCsrfToken());
 
-        if (lamports !== expectedLamports) {
-          throw new Error(
-            `Invalid amount: expected ${expectedLamports} lamports, got ${lamports}`,
-          );
-        }
+        console.log("Sending request to /api/credits/assign with CSRF token:", { token });
 
-        const apiResponse = await fetch("/api/payment", {
+        const response = await fetch("/api/credits/assign", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-Token": token, // Include CSRF token in header
+          },
+          credentials: "include", // Ensure cookies are sent
           body: JSON.stringify({
-            transaction: signedTx.serialize().toString("base64"),
-            signature,
-            credits,
-            userWallet: userWallet.toBase58(),
+            walletPublicKey: walletPublicKey.toBase58(),
+            creditAmount,
           }),
         });
 
-        if (!apiResponse.ok) {
-          const errorData = await apiResponse.json();
-          throw new Error(errorData.error || "Payment failed");
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || "Failed to assign credits");
         }
 
-        const paymentData = await apiResponse.json();
-        if (paymentData.status !== "success") {
-          throw new Error("Payment verification failed");
-        }
-
-        const assignApiResponse = await fetch("/api/credits/assign", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            walletPublicKey: userWallet.toBase58(),
-            creditAmount: credits,
-          }),
+        console.log("Credit assignment response:", {
+          credits: data.credits,
+          unpaidQueries: data.unpaidQueries,
         });
 
-        if (!assignApiResponse.ok) {
-          const errorData = await assignApiResponse.json();
-          throw new Error(errorData.error || "Credit assignment failed");
-        }
-
-        const assignData = await assignApiResponse.json();
-        toast.success(
-          `${credits} credits added! New balance: ${assignData.credits}`,
-        );
-        return assignData.credits || 0;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Error processing payment";
-        setError(message);
-        toast.error(message);
-        console.error("Credit assignment error:", err);
-        throw err;
-      } finally {
         setIsAssigning(false);
+        return { credits: data.credits, unpaidQueries: data.unpaidQueries }; // Return credits and unpaidQueries
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : "Unknown error";
+        console.error("Credit assignment failed:", { error: err, message: errorMessage });
+        setError(errorMessage);
+        setIsAssigning(false);
+        throw err;
       }
     },
-    [],
+    [csrfToken, fetchCsrfToken],
   );
 
-  return {
-    assignCredits,
-    isAssigning,
-    error,
-  };
+  return { assignCredits, isAssigning, error };
 };
 
 
-
-
-
-
-
-
 hooks/useCreditBalance.tsx
+
 
 "use client";
 
@@ -1616,14 +1638,7 @@ export const useCreditBalance = () => {
 
 
 
-
-
-
-
 hooks/useSolanaTransaction.tsx
-
-
-
 
 import { useCallback, useState } from "react";
 import {
@@ -1672,23 +1687,61 @@ export const useSolanaTransaction = (
 
       let lastError: unknown;
       const maxAttempts = 3;
-      const delayMs = 1000;
+      const delayMs = 2000; // Increased delay for retries
+
+      // Log connection endpoint
+      console.log("Connection endpoint:", connection.rpcEndpoint);
+
+      // Validate accounts before transaction
+      try {
+        const senderAccount = await connection.getAccountInfo(publicKey);
+        const destAccount = await connection.getAccountInfo(destination);
+        console.log("Account validation:", {
+          sender: {
+            address: publicKey.toBase58(),
+            initialized: !!senderAccount,
+            lamports: senderAccount?.lamports || 0,
+          },
+          destination: {
+            address: destination.toBase58(),
+            initialized: !!destAccount,
+            lamports: destAccount?.lamports || 0,
+          },
+        });
+        if (!senderAccount) {
+          setError("Sender account not initialized");
+          setIsSending(false);
+          throw new Error("Sender account not initialized");
+        }
+        if (!destAccount) {
+          setError("Recipient account not initialized");
+          setIsSending(false);
+          throw new Error("Recipient account not initialized");
+        }
+      } catch (accountError: unknown) {
+        console.error("Account validation failed:", accountError);
+        const errorMessage =
+          accountError instanceof Error ? accountError.message : "Unknown account validation error";
+        setError(`Failed to validate accounts: ${errorMessage}`);
+        setIsSending(false);
+        throw new Error(errorMessage);
+      }
 
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
-          // Create and configure transaction
+          // Create transaction
           const transaction = new Transaction();
           transaction.add(
             ComputeBudgetProgram.setComputeUnitLimit({
-              units: 700_000,
+              units: 400_000, // Increased for reliability
             }),
             ComputeBudgetProgram.setComputeUnitPrice({
-              microLamports: 500_000,
+              microLamports: 500_000, // Increased for priority
             }),
             SystemProgram.transfer({
               fromPubkey: publicKey,
               toPubkey: destination,
-              lamports: Math.round(credits * QUERY_COST * 1_000_000_000), // CREDIT_PRICE_SOL * LAMPORTS_PER_SOL
+              lamports: Math.round(credits * QUERY_COST * 1_000_000_000),
             }),
           );
 
@@ -1703,6 +1756,7 @@ export const useSolanaTransaction = (
             throw new Error("Transaction destination does not match expected recipient");
           }
 
+          // Fetch fresh blockhash per attempt
           const { blockhash, lastValidBlockHeight } =
             await connection.getLatestBlockhash("confirmed");
           transaction.recentBlockhash = blockhash;
@@ -1736,13 +1790,18 @@ export const useSolanaTransaction = (
             throw new Error("Transaction signature invalid");
           }
 
-          const sig = await connection.sendRawTransaction(signed.serialize(), {
+          // Log serialized transaction
+          const serializedTx = signed.serialize();
+          console.log("Serialized transaction:", {
+            size: serializedTx.length,
+            signatures: signed.signatures.map((s) => s.signature?.toString("hex")),
+          });
+
+          const sig = await connection.sendRawTransaction(serializedTx, {
             skipPreflight: false,
             preflightCommitment: "confirmed",
           });
-          console.log(
-            `Transaction sent, attempt ${attempt}, signature: ${sig}`,
-          );
+          console.log(`Transaction sent, attempt ${attempt}, signature: ${sig}`);
 
           await connection.confirmTransaction(
             { signature: sig, blockhash, lastValidBlockHeight },
@@ -1753,27 +1812,41 @@ export const useSolanaTransaction = (
           setSignedTx(signed);
           setIsSending(false);
           return { signature: sig, signedTx: signed };
-        } catch (transactionError) {
+        } catch (transactionError: unknown) {
           lastError = transactionError;
           if (transactionError instanceof SendTransactionError) {
-            console.error(sanitizeError(transactionError));
-            setError(`Transaction failed: ${transactionError.message}`);
+            console.error("SendTransactionError:", {
+              message: transactionError.message,
+              logs: transactionError.logs,
+            });
+            setError(
+              `Transaction failed: Simulation failed. Message: ${transactionError.message}. Logs: ${transactionError.logs?.join(", ") || "[]"}`,
+            );
           } else if (transactionError instanceof WalletSignTransactionError) {
             console.error(sanitizeError(transactionError));
             setError("Wallet approval denied");
           } else {
-            console.error(sanitizeError(transactionError));
-            setError("Failed to send transaction");
+            // Handle non-Error types
+            const errorMessage =
+              transactionError instanceof Error
+                ? transactionError.message
+                : String(transactionError) || "Unknown transaction error";
+            console.error("Transaction error:", {
+              error: transactionError,
+              message: errorMessage,
+            });
+            setError(`Transaction failed: ${errorMessage}`);
           }
           if (attempt < maxAttempts) {
-            console.log(
-              `Attempt ${attempt} failed, retrying in ${delayMs}ms...`,
-            );
+            console.log(`Attempt ${attempt} failed, retrying in ${delayMs}ms...`);
             await new Promise((resolve) => setTimeout(resolve, delayMs));
+          } else {
+            setIsSending(false); // Ensure isSending is reset on final failure
+            throw lastError || new Error("Failed to send transaction after retries");
           }
         }
       }
-      setIsSending(false);
+      setIsSending(false); // Ensure isSending is reset
       throw lastError || new Error("Failed to send transaction after retries");
     },
     [publicKey, signTransaction],
@@ -1787,8 +1860,6 @@ export const useSolanaTransaction = (
     signedTx,
   };
 };
-
-
 
 
 
@@ -1969,56 +2040,206 @@ export const useSolanaTransaction = (
 };
 
 
-store/credit-store.ts
-
 
 import { create } from "zustand";
 import { DEFAULTS } from "@/lib/types";
+import { PublicKey } from "@solana/web3.js";
 
-export interface CreditsStore {
+interface CreditsStore {
   userFreeCredits: number;
   userPaidCredits: number;
   userCreditsTotal: number;
+  savedCredits: number | null;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
+  totalCredits: number;
+  displayUnpaid: number;
+  hasPaid: boolean;
   decrementFreeCredits: (amount: number) => void;
   decrementPaidCredits: (amount: number) => void;
   incrementPaidCredits: (amount: number) => void;
   resetCreditsAfterPayment: () => void;
+  setUserCreditsTotal: (credits: number) => void;
+  setQueriesUnpaid: (queries: number) => void;
+  setQueriesCostTotal: (cost: number) => void;
+  setHasPaid: (paid: boolean) => void;
+  fetchSavedCredits: (publicKey: PublicKey | null) => Promise<void>;
 }
 
-export const useCreditsStore = create<CreditsStore>((set) => ({
+export const useCreditsStore = create<CreditsStore>((set, get) => ({
   userFreeCredits: DEFAULTS.USER_FREE_CREDITS,
   userPaidCredits: DEFAULTS.USER_PAID_CREDITS,
   userCreditsTotal: DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS,
+  savedCredits: null,
+  queriesUnpaid: 0,
+  queriesCostTotal: 0,
+  totalCredits: DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS,
+  displayUnpaid: 0,
+  hasPaid: false,
 
-  decrementFreeCredits: (amount: number) => set((state) => {
-    const newFreeCredits = Math.max(0, state.userFreeCredits - amount);
-    return {
-      userFreeCredits: newFreeCredits,
-      userCreditsTotal: newFreeCredits + state.userPaidCredits,
-    };
-  }),
+  decrementFreeCredits: (amount: number) =>
+    set((state) => {
+      const newFreeCredits = Math.max(0, state.userFreeCredits - amount);
+      const newUserCreditsTotal = newFreeCredits + state.userPaidCredits;
+      const newTotalCredits = (state.savedCredits ?? 0) + newUserCreditsTotal;
+      const newState = {
+        userFreeCredits: newFreeCredits,
+        userCreditsTotal: newUserCreditsTotal,
+        totalCredits: newTotalCredits,
+        displayUnpaid: state.hasPaid ? 0 : Math.max(0, state.queriesUnpaid),
+      };
+      console.log("decrementFreeCredits: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
 
-  decrementPaidCredits: (amount: number) => set((state) => {
-    const newPaidCredits = Math.max(0, state.userPaidCredits - amount);
-    return {
-      userPaidCredits: newPaidCredits,
-      userCreditsTotal: state.userFreeCredits + newPaidCredits,
-    };
-  }),
+  decrementPaidCredits: (amount: number) =>
+    set((state) => {
+      const newPaidCredits = Math.max(0, state.userPaidCredits - amount);
+      const newUserCreditsTotal = state.userFreeCredits + newPaidCredits;
+      const newTotalCredits = (state.savedCredits ?? 0) + newUserCreditsTotal;
+      const newState = {
+        userPaidCredits: newPaidCredits,
+        userCreditsTotal: newUserCreditsTotal,
+        totalCredits: newTotalCredits,
+        displayUnpaid: state.hasPaid ? 0 : Math.max(0, state.queriesUnpaid),
+      };
+      console.log("decrementPaidCredits: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
 
-  incrementPaidCredits: (amount: number) => set((state) => {
-    const newPaidCredits = state.userPaidCredits + amount;
-    return {
-      userPaidCredits: newPaidCredits,
-      userCreditsTotal: state.userFreeCredits + newPaidCredits,
-    };
-  }),
+  incrementPaidCredits: (amount: number) =>
+    set((state) => {
+      const newPaidCredits = state.userPaidCredits + amount;
+      const newUserCreditsTotal = state.userFreeCredits + newPaidCredits;
+      const newTotalCredits = (state.savedCredits ?? 0) + newUserCreditsTotal;
+      const newState = {
+        userPaidCredits: newPaidCredits,
+        userCreditsTotal: newUserCreditsTotal,
+        totalCredits: newTotalCredits,
+        displayUnpaid: state.hasPaid ? 0 : Math.max(0, state.queriesUnpaid),
+      };
+      console.log("incrementPaidCredits: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
 
-  resetCreditsAfterPayment: () => set(() => ({
-    userFreeCredits: 0,
-    userPaidCredits: 0,
-    userCreditsTotal: 0,
-  })),
+  resetCreditsAfterPayment: () =>
+    set((state) => {
+      const newTotalCredits = state.savedCredits ?? 0;
+      const newState = {
+        userFreeCredits: 0,
+        userPaidCredits: 0,
+        userCreditsTotal: 0,
+        queriesUnpaid: 0,
+        queriesCostTotal: 0,
+        totalCredits: newTotalCredits,
+        displayUnpaid: 0,
+        hasPaid: true,
+      };
+      console.log("resetCreditsAfterPayment: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
+
+  setUserCreditsTotal: (credits) =>
+    set((state) => {
+      const newUserCreditsTotal = credits;
+      const newTotalCredits = (state.savedCredits ?? 0) + newUserCreditsTotal;
+      const newState = {
+        userCreditsTotal: newUserCreditsTotal,
+        totalCredits: newTotalCredits,
+        displayUnpaid: state.hasPaid ? 0 : Math.max(0, state.queriesUnpaid),
+      };
+      console.log("setUserCreditsTotal: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
+
+  setQueriesUnpaid: (queries) =>
+    set((state) => {
+      const newQueriesCostTotal = queries; // 1 credit per query
+      const newState = {
+        queriesUnpaid: queries,
+        queriesCostTotal: newQueriesCostTotal,
+        displayUnpaid: state.hasPaid ? 0 : Math.max(0, queries),
+      };
+      console.log("setQueriesUnpaid: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
+
+  setQueriesCostTotal: (cost) =>
+    set((state) => {
+      const newState = {
+        queriesCostTotal: cost,
+        queriesUnpaid: cost, // 1 credit per query
+        displayUnpaid: state.hasPaid ? 0 : Math.max(0, cost),
+      };
+      console.log("setQueriesCostTotal: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
+
+  setHasPaid: (paid) =>
+    set((state) => {
+      const newState = {
+        hasPaid: paid,
+        displayUnpaid: paid ? 0 : Math.max(0, state.queriesUnpaid),
+      };
+      console.log("setHasPaid: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
+      return newState;
+    }),
+
+  fetchSavedCredits: async (publicKey) => {
+    const currentState = get();
+    if (!publicKey) {
+      const newTotalCredits = currentState.userCreditsTotal;
+      const newState = {
+        savedCredits: null,
+        totalCredits: newTotalCredits,
+        displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
+      };
+      console.log("fetchSavedCredits: No publicKey, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
+      set(newState);
+      return;
+    }
+    try {
+      const response = await fetch("/api/credits/balance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletPublicKey: publicKey.toBase58() }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        const errorMsg = errorData.error || response.statusText || "Unknown error";
+        console.error("Failed to fetch saved credits:", errorMsg);
+        const newTotalCredits = currentState.userCreditsTotal;
+        const newState = {
+          savedCredits: 0,
+          totalCredits: newTotalCredits,
+          displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
+        };
+        console.log("fetchSavedCredits: API failure, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
+        set(newState);
+        return;
+      }
+      const data = await response.json();
+      console.log("Fetched saved credits for store:", data);
+      const newTotalCredits = (data.credits ?? 0) + currentState.userCreditsTotal;
+      const newState = {
+        savedCredits: data.credits ?? 0,
+        totalCredits: newTotalCredits,
+        displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
+      };
+      console.log("fetchSavedCredits: Success, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
+      set(newState);
+    } catch (error) {
+      console.error("Error fetching saved credits:", error);
+      const newTotalCredits = currentState.userCreditsTotal;
+      const newState = {
+        savedCredits: 0,
+        totalCredits: newTotalCredits,
+        displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
+      };
+      console.log("fetchSavedCredits: Error, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
+      set(newState);
+    }
+  },
 }));
 
 lib/constants.ts
@@ -2065,308 +2286,340 @@ export const VOTE_ERROR = "ERROR";
 
 export const MAX_VOTE_HISTORY_RESULTS = 300;
 export const RECENT_HISTORY_RESULTS = 50;
+export const RESULT_QUERIES_CARDS = 12;
 
-
-utils/csrf-utils.ts
-
-import { NextRequest, NextResponse } from "next/server";
-import crypto from "crypto";
-
-export function generateCsrfToken(response: NextResponse): string {
-  const token = crypto.randomBytes(32).toString("hex");
-  response.cookies.set("csrf-token", token, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax", // Relaxed for debugging
-    maxAge: 60 * 60, // 1 hour
-  });
-  console.log("CSRF Token Generated:", {
-    token,
-    cookieSettings: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 60 * 60,
-    },
-  });
-  return token;
-}
-
-app/api/csrf-token/route.ts
-
-export function verifyCsrfToken(request: NextRequest): NextResponse | null {
-  const tokenFromHeader = request.headers.get("X-CSRF-Token");
-  const tokenFromCookie = request.cookies.get("csrf-token")?.value;
-  console.log("CSRF Verification:", {
-    tokenFromHeader,
-    tokenFromCookie,
-    cookies: request.cookies.getAll(),
-  });
-  if (!tokenFromHeader || !tokenFromCookie || tokenFromHeader !== tokenFromCookie) {
-    console.error("CSRF validation failed:", {
-      tokenFromHeader,
-      tokenFromCookie,
-    });
-    return NextResponse.json(
-      { error: "Invalid or missing CSRF token" },
-      { status: 403 },
-    );
-  }
-  return null;
-}
-
-
-app/api/csrf-token/route.ts
-
-import { NextResponse } from "next/server";
-import { generateCsrfToken } from "@/utils/csrf-utils";
-
-export async function GET() {
-  try {
-    // Create response without committing JSON yet
-    const response = new NextResponse();
-    const csrfToken = generateCsrfToken(response);
-    // Set JSON body after setting cookie
-    return NextResponse.json({ csrfToken }, { status: 200, headers: response.headers });
-  } catch (error) {
-    console.error("Error generating CSRF token:", error);
-    return NextResponse.json({ error: "Failed to generate CSRF token" }, { status: 500 });
-  }
-}
-
-
--------
-
-components/ask/query-stats.tsx
-
-
-import { useState, useEffect } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown } from "lucide-react";
-import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
-
-interface QueryStatsProps {
-  userCreditsTotal: number;
-  queriesUnpaid: number;
-  queriesCostTotal: number;
-  queriesRequested: number;
-}
-
-export default function QueryStats({
-  userCreditsTotal,
-  queriesUnpaid,
-  queriesCostTotal,
-  queriesRequested,
-}: QueryStatsProps) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [hasTriggeredOpen, setHasTriggeredOpen] = useState(false);
-  const [hasTriggeredClose, setHasTriggeredClose] = useState(false);
-
-  // Auto-trigger open/close based on queriesUnpaid
-  useEffect(() => {
-    if (queriesUnpaid > 0 && !hasTriggeredOpen) {
-      setIsOpen(true);
-      setHasTriggeredOpen(true);
-      setHasTriggeredClose(false);
-    } else if (queriesUnpaid <= 0 && !hasTriggeredClose) {
-      setIsOpen(false);
-      setHasTriggeredClose(true);
-      setHasTriggeredOpen(false);
-    }
-  }, [queriesUnpaid, hasTriggeredOpen, hasTriggeredClose]);
-
-  const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested); // Credits left after reserving queriesRequested
-  const displayUnpaid = Math.max(0, queriesUnpaid); // Never show negative queriesUnpaid
-
-  return (
-    <div className="w-full mt-4">
-      {/* Mobile: Collapsible; Desktop: Always visible */}
-      <Collapsible
-        open={isOpen}
-        onOpenChange={setIsOpen}
-        className="md:hidden"
-      >
-        <CollapsibleTrigger asChild>
-          <Button
-            variant="outline"
-            className="flex items-center justify-between w-full bg-zinc-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 cursor-pointer truncate"
-          >
-            <span>Credits left: {creditsLeft}</span>
-            <ChevronDown className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`} />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="flex flex-col gap-4 mt-4">
-            <div className="md:flex items-center gap-2 hidden">
-              <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
-              <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                {creditsLeft}
-              </span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="text-gray-700 dark:text-zinc-400">
-                Query cost: ({displayUnpaid})
-              </span>
-              <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-                {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
-              </span>
-            </div>
-            <Link href="/credits">
-              <Button
-                className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full"
-              >
-                Stake to get more
-              </Button>
-            </Link>
-            <Link href="/credits">
-              <Button
-                className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full"
-              >
-                Buy Credits
-              </Button>
-            </Link>
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Desktop: Always visible */}
-      <div className="hidden md:flex items-center gap-4">
-        <div className="flex items-center gap-2">
-          <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
-          <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-            {creditsLeft}
-          </span>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-gray-700 dark:text-zinc-400">
-            Query cost: ({displayUnpaid})
-          </span>
-          <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-            {queriesCostTotal} credits ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
-          </span>
-        </div>
-        <Link href="/credits">
-          <Button
-            className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
-          >
-            Stake to get more
-          </Button>
-        </Link>
-        <Link href="/credits">
-          <Button
-            className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer"
-          >
-            Buy Credits
-          </Button>
-        </Link>
-      </div>
-    </div>
-  );
-}
-
-components/ask/consensus/current-query.tsx
+export const EXPORT_MAX_VALIDATORS = 20;
 
 "use client";
 
-import { useNetworkState } from "@/hooks/useNetworkState";
-import { VoteResultContext } from "@/components/ask/ask-results-expert";
-import { useContext } from "react";
-import { motion } from "framer-motion";
+import { useCallback, useState, useEffect } from "react";
+import { useCreditsStore } from "@/store/credit-store";
+import { useQueryStore } from "@/store/query-store";
+import { useVoteStore } from "@/store/vote-store";
+import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
+import { Dispatch, SetStateAction } from "react";
+import { getPlaceholderText } from "@/lib/query-utils";
+import { toast } from "sonner";
+import type { VoteResult } from "@/lib/types";
+import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { sanitizeQueryText } from "@/utils/security-utils";
-import { calculateVotePercentages } from "@/utils/vote-utils";
-import { formatErrorMessage } from "@/utils/error-utils";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
 
-const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
-  <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
-    <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
-      Current Query
-    </h3>
-    <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-40 w-full flex items-center justify-center">
-      {state === "loading" ? (
-        <span className="">
-          <LoadingSpinner type="beat" message="Loading..." />
-        </span>
-      ) : (
-        <span className="text-red-500">
-          Error: {formatErrorMessage(state.error)}
-        </span>
-      )}
-    </div>
-  </div>
-);
+interface UseQueryLogicProps {
+  payWithWallet: boolean;
+  setPayWithWallet: Dispatch<SetStateAction<boolean>>;
+}
 
-export default function CurrentQuery() {
-  const { isLoading, error } = useNetworkState();
-  const voteResult = useContext(VoteResultContext);
-
-  if (isLoading) {
-    return <QueryState state="loading" />;
-  }
-
-  if (error) {
-    return <QueryState state={{ error: formatErrorMessage(error) }} />;
-  }
-  // Sanitize queryText to prevent XSS
-  const sanitizedQueryText =
-    sanitizeQueryText(voteResult?.queryText) || "No query available";
+export function useQueryLogic({
+  payWithWallet,
+  setPayWithWallet,
+}: UseQueryLogicProps) {
+  const [queryText, setQueryText] = useState<string>("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const {
-    yes: yesPercentage,
-    no: noPercentage,
-    notVoted: notVotedPercentage,
-  } = calculateVotePercentages(voteResult);
+    userFreeCredits,
+    userPaidCredits,
+    userCreditsTotal,
+    hasPaid: storeHasPaid,
+  } = useCreditsStore();
+  const {
+    queriesRequested,
+    queriesUnpaid,
+    queriesCostTotal,
+    queryMode,
+    viewMode,
+    setQueriesRequested,
+    setQueryMode,
+    resetAfterSubmission,
+  } = useQueryStore();
+  const { voteHistory, lastVoteResult, setVoteHistory, setLastVoteResult } =
+    useVoteStore();
 
-  return (
-    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
-      <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
-        Current Query
-      </h3>
-      <div className="space-y-4">
-        <p className="text-sm text-gray-600 dark:text-gray-300">
-          {sanitizedQueryText}
-        </p>
-        <div
-          className={`
-            h-8 w-full
-            bg-gray-200 dark:bg-zinc-700
-            rounded-full overflow-hidden
-            flex
-          `}
-        >
-          {yesPercentage > 0 && (
-            <motion.div
-              className="h-full bg-green-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${yesPercentage}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          )}
-          {noPercentage > 0 && (
-            <motion.div
-              className="h-full bg-red-500"
-              initial={{ width: 0 }}
-              animate={{ width: `${noPercentage}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          )}
-          {notVotedPercentage > 0 && (
-            <motion.div
-              className="h-full bg-gray-400 dark:bg-zinc-600"
-              initial={{ width: 0 }}
-              animate={{ width: `${notVotedPercentage}%` }}
-              transition={{ duration: 0.5 }}
-            />
-          )}
-        </div>
-        <div className="flex justify-between text-sm text-gray-600 dark:text-gray-300">
-          <span>Yes: {yesPercentage.toFixed(0)}%</span>
-          <span>No: {noPercentage.toFixed(0)}%</span>
-          <span>Not Voted: {notVotedPercentage.toFixed(0)}%</span>
-        </div>
-      </div>
-    </div>
+  const placeholderText = getPlaceholderText(queryMode);
+
+  // Log queryMode on hook initialization
+  console.log("[useQueryLogic] Initial queryMode:", queryMode);
+
+  // Fetch CSRF token dynamically
+  const fetchCsrfToken = async (): Promise<string> => {
+    console.log("[useQueryLogic] Starting CSRF token fetch");
+    try {
+      const response = await fetch("/api/csrf-token", {
+        method: "GET",
+        credentials: "include",
+      });
+      console.log(
+        "[useQueryLogic] CSRF fetch response status:",
+        response.status
+      );
+      const data = await response.json();
+      if (!response.ok || !data.csrfToken) {
+        throw new Error(
+          data.error || `Failed to fetch CSRF token: ${response.status}`
+        );
+      }
+      console.log(
+        "[useQueryLogic] CSRF token fetched successfully:",
+        data.csrfToken
+      );
+      return data.csrfToken;
+    } catch (err) {
+      console.error("[useQueryLogic] CSRF token fetch failed:", err);
+      throw new Error(
+        err instanceof Error ? err.message : "Unknown error fetching CSRF token"
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const q = params.get("q");
+      if (q === "shop") {
+        setQueryMode("shop");
+      }
+      console.log(
+        "[useQueryLogic] URL param 'q':",
+        q,
+        "Current queryMode:",
+        queryMode
+      );
+    }
+  }, [setQueryMode]);
+
+  const handleSetVoteHistory: Dispatch<SetStateAction<VoteResult[]>> = (
+    history
+  ) => {
+    setVoteHistory(history);
+  };
+
+  const handleSetLastVoteResult: Dispatch<SetStateAction<VoteResult | null>> = (
+    result
+  ) => {
+    setLastVoteResult(result);
+  };
+
+  const { broadcastQuery } = useBroadcastQuery(
+    handleSetVoteHistory,
+    handleSetLastVoteResult,
+    undefined,
+    undefined
   );
+
+  const handleQueryAmountChange = useCallback(
+    (newAmount: number) => {
+      const clampedAmount = Math.max(
+        1,
+        Math.min(ALLOWED_AMOUNT_QUERIES, newAmount)
+      );
+      console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount);
+      setQueriesRequested(clampedAmount, userCreditsTotal);
+    },
+    [setQueriesRequested, userCreditsTotal]
+  );
+
+  const handleSubmit = async () => {
+    console.log("[useQueryLogic] handleSubmit called", {
+      queryText,
+      queryMode,
+      userCreditsTotal,
+      queriesRequested,
+      queriesUnpaid,
+      queriesCostTotal,
+      payWithWallet,
+      storeHasPaid,
+    });
+
+    console.log("[useQueryLogic] Proceeding to validation");
+
+    // Validate query submission in a separate try-catch to catch silent errors
+    try {
+      console.log("[useQueryLogic] Checking query text:", queryText);
+      if (!queryText.trim()) {
+        console.log("[useQueryLogic] Validation failed: Query cannot be empty");
+        toast.error("Query cannot be empty", {
+          style: { background: "#fee2e2", color: "#dc2626" },
+          duration: 5000,
+        });
+        return;
+      }
+      console.log("[useQueryLogic] Query text validation passed");
+
+      console.log("[useQueryLogic] Checking queriesUnpaid and payWithWallet:", {
+        queriesUnpaid,
+        payWithWallet,
+      });
+      if (queriesUnpaid > 0 && !payWithWallet) {
+        console.log(
+          "[useQueryLogic] Validation failed: Pay with Wallet required"
+        );
+        toast.error("Please enable Pay with Wallet for additional queries", {
+          style: { background: "#fee2e2", color: "#dc2626" },
+          duration: 5000,
+        });
+        return;
+      }
+      console.log("[useQueryLogic] Wallet validation passed");
+
+      console.log("[useQueryLogic] Checking payment status:", {
+        payWithWallet,
+        queriesUnpaid,
+        storeHasPaid,
+      });
+      if (payWithWallet && queriesUnpaid > 0 && !storeHasPaid) {
+        console.log("[useQueryLogic] Validation failed: Payment required", {
+          queriesUnpaid,
+          storeHasPaid,
+        });
+        toast.error("Please make a payment first", {
+          style: { background: "#fee2e2", color: "#dc2626" },
+          duration: 5000,
+        });
+        return;
+      }
+      console.log("[useQueryLogic] Payment validation passed");
+    } catch (err: unknown) {
+      console.error("[useQueryLogic] Validation error:", err);
+      const errorMessage =
+        err instanceof Error ? err.message : "Validation failed unexpectedly";
+      setError(sanitizeQueryText(errorMessage));
+      toast.error(errorMessage, {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    console.log("[useQueryLogic] Entering try block");
+    try {
+      // Fetch fresh CSRF token for each submission
+      const csrfToken = await fetchCsrfToken();
+      console.log(
+        "[useQueryLogic] Broadcasting query with queryMode:",
+        queryMode,
+        "queriesRequested:",
+        queriesRequested
+      );
+      await broadcastQuery(queryText, {
+        csrfToken,
+        queryMode,
+        queriesRequested,
+      }); // Pass queriesRequested
+      console.log("[useQueryLogic] Broadcast successful");
+      resetAfterSubmission(userCreditsTotal);
+      setQueryText("");
+      setPayWithWallet(queriesRequested > userCreditsTotal);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to submit query";
+      setError(sanitizeQueryText(errorMessage));
+      console.error("[useQueryLogic] Submission failed:", {
+        errorMessage,
+        queryText,
+        queryMode,
+        queriesRequested,
+        queriesUnpaid,
+        payWithWallet,
+        storeHasPaid,
+        responseStatus:
+          err instanceof Error && err.message.includes("Server responded")
+            ? err.message
+            : "Unknown",
+      });
+      toast.error(errorMessage, {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+      console.log("[useQueryLogic] Submission completed, isSubmitting:", false);
+    }
+  };
+
+  return {
+    queriesRequested,
+    queryText,
+    setQueryText,
+    isSubmitting,
+    error,
+    setError,
+    placeholderText,
+    availableQueries: userCreditsTotal,
+    queriesCostTotal,
+    queriesUnpaid,
+    userFreeCredits,
+    userPaidCredits,
+    userCreditsTotal,
+    queryMode,
+    viewMode,
+    voteHistory,
+    lastVoteResult,
+    handleSubmit,
+    handleQueryAmountChange,
+  };
 }
+
+
+
+
+"use client";
+
+import { useCallback } from "react";
+import { useVoteStore } from "@/store/vote-store";
+import { VoteResult, QueryMode } from "@/lib/types";
+import { submitQueryService } from "@/lib/services/query-service";
+import { sanitizeQueryText } from "@/utils/security-utils";
+import { RESULT_QUERIES_CARDS } from "@/lib/constants";
+
+// Log to confirm file is loaded
+console.log("[useSubmitQuery] File loaded");
+
+interface SubmitQueryOptions {
+  queryMode?: QueryMode; // Allow QueryMode for type safety
+  queriesRequested?: number; // Number of validators to query
+}
+
+interface SubmitQueryReturn {
+  submitQuery: (
+    queryText: string,
+    options?: SubmitQueryOptions
+  ) => Promise<void>;
+}
+
+export function useSubmitQuery(): SubmitQueryReturn {
+  const { setVoteHistory, setLastVoteResult } = useVoteStore();
+
+  const submitQuery = useCallback(
+    async (queryText: string, options: SubmitQueryOptions = {}) => {
+      console.log("[useSubmitQuery] Received query with options:", {
+        queryText,
+        queryMode: options.queryMode,
+        queriesRequested: options.queriesRequested,
+      });
+
+      // Submit query and update vote history
+      const sanitizedQuery = sanitizeQueryText(queryText);
+      console.log("[useSubmitQuery] Submitting query with queryMode:", options.queryMode, "queriesRequested:", options.queriesRequested);
+      const queryResponse = await submitQueryService(
+        sanitizedQuery,
+        options.queryMode,
+        options.queriesRequested
+      );
+      console.log("[useSubmitQuery] Submission successful, response:", queryResponse);
+      setVoteHistory((prev: VoteResult[]) => {
+        const newHistory = [...prev, queryResponse.voteResult].slice(0, RESULT_QUERIES_CARDS);
+        console.log("[useSubmitQuery] Updating voteHistory:", newHistory.length, "items");
+        return newHistory;
+      });
+      setLastVoteResult(queryResponse.voteResult);
+    },
+    [setVoteHistory, setLastVoteResult]
+  );
+
+  return { submitQuery };
+}
+
