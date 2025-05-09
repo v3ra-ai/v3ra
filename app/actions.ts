@@ -1,13 +1,17 @@
-
 "use server";
 
-import type { VoteResult, VoteValidatorResponse, QueryMode } from "../lib/types";
+import type {
+  VoteResult,
+  VoteValidatorResponse,
+  QueryMode,
+} from "../lib/types";
 import { prisma } from "../lib/db/client";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAIValidator } from "@/lib/validators/providers/openai";
 import { AnthropicValidator } from "@/lib/validators/providers/anthropic";
 import { GrokValidator } from "@/lib/validators/providers/grok";
 import { GeminiValidator } from "@/lib/validators/providers/gemini";
+import { OpenRouterValidator } from "@/lib/validators/providers/openrouter";
 import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
 
@@ -36,19 +40,15 @@ export async function broadcastCustomQuery(
       return { error: "No active validators found" };
     }
 
-    // Filter out OpenRouterValidator before selection
-    const validValidators = dbValidators.filter(
-      (validator) => validator.provider !== "OpenRouter"
-    );
     console.log(
-      `[actions] Found ${dbValidators.length} active validators, ${validValidators.length} valid after filtering:`,
-      validValidators.map((v) => `${v.provider} (${v.profileName})`)
+      `[actions] Found ${dbValidators.length} active validators:`,
+      dbValidators.map((v) => `${v.provider} (${v.profileName})`)
     );
 
     // Limit validators to queriesRequested (if provided and less than available)
     const selectedValidators = queriesRequested
-      ? validValidators.slice(0, Math.min(queriesRequested, validValidators.length))
-      : validValidators;
+      ? dbValidators.slice(0, Math.min(queriesRequested, dbValidators.length))
+      : dbValidators;
     console.log(
       `[actions] Selected ${selectedValidators.length} validators for query:`,
       selectedValidators.map((v) => `${v.provider} (${v.profileName})`)
@@ -111,6 +111,14 @@ export async function broadcastCustomQuery(
           keyId: dbValidator.apiKeys[0]?.apiKeyId,
           active: dbValidator.active,
         });
+      } else if (dbValidator.provider === "OpenRouter") {
+        validator = new OpenRouterValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName: dbValidator.modelName,
+          active: dbValidator.active,
+          queryMode,
+        });
       } else {
         console.warn(
           `[actions] Validator provider ${dbValidator.provider} not supported, skipping`
@@ -118,8 +126,11 @@ export async function broadcastCustomQuery(
         continue;
       }
 
-      // Validate API key availability
-      if (!dbValidator.apiKeys[0]?.apiKeyId) {
+      // Validate API key availability (except for OpenRouter, which uses env variable)
+      if (
+        dbValidator.provider !== "OpenRouter" &&
+        !dbValidator.apiKeys[0]?.apiKeyId
+      ) {
         console.warn(
           `[actions] No API key for validator ${dbValidator.provider} (${dbValidator.profileName}), skipping`
         );
@@ -185,7 +196,9 @@ export async function broadcastCustomQuery(
     );
     console.log(
       `[actions] Collected ${validatorResponses.length} validator responses:`,
-      validatorResponses.map((r) => `${r.provider} (${r.profileName}): ${r.vote}`)
+      validatorResponses.map(
+        (r) => `${r.provider} (${r.profileName}): ${r.vote}`
+      )
     );
 
     // Log if fewer responses than requested
@@ -197,7 +210,9 @@ export async function broadcastCustomQuery(
 
     const yesVotes = validatorResponses.filter((r) => r.vote === "YES").length;
     const noVotes = validatorResponses.filter((r) => r.vote === "NO").length;
-    const notVoted = validatorResponses.filter((r) => r.vote === "ERROR").length;
+    const notVoted = validatorResponses.filter(
+      (r) => r.vote === "ERROR"
+    ).length;
 
     const totalValidVotes = yesVotes + noVotes;
     const isConsensusReached = totalValidVotes > 0;
