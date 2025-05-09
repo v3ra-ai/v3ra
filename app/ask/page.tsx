@@ -8,8 +8,13 @@ import { useTheme } from "next-themes";
 import AskFooter from "@/components/ask/ask-footer";
 import { useNavStore } from "@/store/nav-store";
 import { QueryMode } from "@/lib/types";
+import { VALID_QUERY_MODES } from "@/lib/validators/query-modes";
 
-export default function Home({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default function Home({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string }>;
+}) {
   const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const setQueryMode = useNavStore((state) => state.setQueryMode);
@@ -24,8 +29,7 @@ export default function Home({ searchParams }: { searchParams: Promise<{ q?: str
     async function initializeQueryMode() {
       const params = await searchParams;
       const q = params.q;
-      const validModes: QueryMode[] = ["factCheck", "predict", "create", "shop"];
-      if (q && validModes.includes(q as QueryMode)) {
+      if (q && VALID_QUERY_MODES.includes(q as QueryMode)) {
         console.log("[ask/page] Setting queryMode from URL param q:", q);
         setQueryMode(q as QueryMode);
       } else if (q) {
