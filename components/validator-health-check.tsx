@@ -131,7 +131,7 @@ export function ValidatorHealthCheck({
           <span
             className={`text-sm ${health.status === "healthy" ? "text-gray-300" : "text-white"}`}
           >
-            {health.message || <div className="w-full dark:text-gray-200 items-center justify-center">20 Validators Healthy</div>}
+            {health.message || <div className="w-full dark:text-gray-200 items-center justify-center">Validators Healthy</div>}
           </span>
         </div>
 
