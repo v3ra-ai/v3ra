@@ -32,6 +32,7 @@ export default function WalletToggle({
 }: WalletToggleProps) {
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
+      console.log("[WalletToggle] handleCheckedChange:", { checked, queriesUnpaid, context });
       setPayWithWallet(checked);
     },
     [setPayWithWallet]
@@ -40,8 +41,16 @@ export default function WalletToggle({
   const queriesLeft = Math.max(0, userCreditsTotal - queriesRequested);
   const displayUnpaid = Math.max(0, queriesUnpaid);
 
+  console.log("[WalletToggle] render:", {
+    payWithWallet,
+    queriesUnpaid,
+    userPaidCredits,
+    context,
+    shouldShowPaymentControls: context === "scrollbar" ? payWithWallet : queriesUnpaid > 0,
+  });
+
   return (
-    <div className={`flex items-center justify-between ${context === "default" ? "mb-3" : "mb-1"} `}>
+    <div className={`flex items-center justify-between ${context === "default" ? "mb-3" : "mb-1"}`}>
       <div className="flex items-center gap-3 flex-wrap">
         {context !== "scrollbar" && (
           <div className="flex items-center gap-3 hidden md:flex">
@@ -55,7 +64,7 @@ export default function WalletToggle({
             </span>
           </div>
         )}
-        {payWithWallet && (
+        {(context === "scrollbar" ? payWithWallet : queriesUnpaid > 0) && (
           <PaymentControls
             queriesCostTotal={queriesCostTotal}
             userCreditsTotal={userCreditsTotal}

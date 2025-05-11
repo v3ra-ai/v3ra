@@ -34,6 +34,15 @@ export default function QueryInterface() {
     handleQueryAmountChange,
   } = useQueryLogic({ payWithWallet, setPayWithWallet });
 
+
+  console.log("QueryInterface render:", {
+    payWithWallet,
+    queriesUnpaid,
+    userPaidCredits,
+    queriesCostTotal,
+    error,
+  });
+
   const formatQueryMode = (mode: QueryMode) => {
     if (mode === "fact-check") {
       return "fact check";

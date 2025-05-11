@@ -25,6 +25,9 @@ interface PaymentControlsProps {
 
 export function PaymentControls({
   queriesCostTotal,
+  userCreditsTotal,
+  userPaidCredits,
+  queriesUnpaid,
   highlightPayButton = false,
 }: PaymentControlsProps) {
   const { connection } = useConnection();
@@ -32,12 +35,9 @@ export function PaymentControls({
   const [isProcessing, setIsProcessing] = useState(false);
   const { resetCreditsAfterPayment, displayUnpaid, hasPaid, setHasPaid } = useCreditsStore();
 
-  const PAYMENT_RECEIVER_ADDRESS =
-    process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
+  const PAYMENT_RECEIVER_ADDRESS = process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
   if (!PAYMENT_RECEIVER_ADDRESS) {
-    throw new Error(
-      "NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS environment variable is not set",
-    );
+    throw new Error("NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS environment variable is not set");
   }
   const PAYMENT_RECIPIENT = new PublicKey(PAYMENT_RECEIVER_ADDRESS);
   const PAYMENT_AMOUNT = Math.floor(queriesCostTotal * QUERY_COST * LAMPORTS_PER_SOL);
@@ -52,10 +52,8 @@ export function PaymentControls({
 
     setIsProcessing(true);
     try {
-      console.log("Payment inputs:", {
+      console.log("[PaymentControls] Initiating payment:", {
         queriesCostTotal,
-        QUERY_COST,
-        LAMPORTS_PER_SOL,
         PAYMENT_AMOUNT,
         publicKey: publicKey.toBase58(),
         displayUnpaid,
@@ -79,12 +77,19 @@ export function PaymentControls({
 
       setHasPaid(true);
       resetCreditsAfterPayment();
-      console.log("Payment successful, queriesCostTotal:", queriesCostTotal, "userCreditsTotal:", useCreditsStore.getState().userCreditsTotal, "hasPaid:", useCreditsStore.getState().hasPaid);
-      toast.success(`Payment of ${queriesCostTotal} credits (${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL) completed! Credits reset to 0.`, {
-        style: { background: "#dcfce7", color: "#16a34a" },
+      console.log("[PaymentControls] Payment successful:", {
+        queriesCostTotal,
+        userCreditsTotal,
+        hasPaid: true,
       });
+      toast.success(
+        `Payment of ${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL completed! Credits reset to 0.`,
+        {
+          style: { background: "#dcfce7", color: "#16a34a" },
+        }
+      );
     } catch (error: unknown) {
-      console.error("Payment failed:", error);
+      console.error("[PaymentControls] Payment failed:", error);
       let errorMessage = "Payment failed. Please try again.";
       if (error instanceof Error) {
         errorMessage = error.message.includes("insufficient funds")
@@ -103,17 +108,19 @@ export function PaymentControls({
     }
   };
 
-  console.log("PaymentControls render state:", {
-    hasPaid,
+  console.log("[PaymentControls] render:", {
+    queriesUnpaid,
+    userPaidCredits,
     displayUnpaid,
-    isProcessing,
+    hasPaid,
     publicKey: publicKey?.toBase58() || "none",
     PAYMENT_AMOUNT,
+    shouldShowButtons: queriesUnpaid > 0,
   });
 
   return (
-    <>
-      {!hasPaid && displayUnpaid > 0 && (
+    <div className="flex items-center gap-2">
+      {queriesUnpaid > 0 && (
         <>
           <WalletMultiButton
             style={{
@@ -132,13 +139,12 @@ export function PaymentControls({
             type="button"
             onClick={handlePayment}
             disabled={!publicKey || hasPaid || isProcessing || displayUnpaid <= 0}
-            className={`px-4 py-[6px] rounded-sm focus:outline-none focus:ring-2
-              focus:ring-offset-2 focus:ring-gray-500 flex items-center text-sm border ${
+            className={`px-4 py-[6px] rounded-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 flex items-center text-sm border ${
               highlightPayButton
                 ? "bg-green-500 text-white hover:bg-green-600 cursor-pointer"
                 : !publicKey || hasPaid || isProcessing || displayUnpaid <= 0
-                  ? "bg-gray-200 text-zinc-900 cursor-not-allowed"
-                  : "bg-blue-500 text-white hover:bg-blue-500 cursor-pointer"
+                ? "bg-gray-200 text-zinc-900 cursor-not-allowed"
+                : "bg-blue-500 text-white hover:bg-blue-500 cursor-pointer"
             }`}
           >
             {isProcessing ? (
@@ -152,6 +158,6 @@ export function PaymentControls({
           </button>
         </>
       )}
-    </>
+    </div>
   );
 }

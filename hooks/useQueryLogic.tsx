@@ -98,6 +98,20 @@ export function useQueryLogic({
     }
   }, [setQueryMode]);
 
+  useEffect(() => {
+    console.log("[useQueryLogic] payWithWallet effect running:", {
+      queriesUnpaid,
+      currentPayWithWallet: payWithWallet,
+    });
+    const shouldPayWithWallet = queriesUnpaid > 0;
+    if (payWithWallet !== shouldPayWithWallet) {
+      console.log("[useQueryLogic] Setting payWithWallet to:", shouldPayWithWallet);
+      setPayWithWallet(shouldPayWithWallet);
+    } else {
+      console.log("[useQueryLogic] No change needed for payWithWallet");
+    }
+  }, [queriesUnpaid, payWithWallet, setPayWithWallet]);
+
   const handleSetVoteHistory: Dispatch<SetStateAction<VoteResult[]>> = (
     history
   ) => {
