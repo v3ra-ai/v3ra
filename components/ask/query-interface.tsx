@@ -1,20 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { QueryForm } from "@/components/ask/query-form";
 import ModeToggle from "@/components/ask/mode-toggle";
 import WalletToggle from "@/components/ask/wallet-toggle";
 import QueryStats from "@/components/ask/query-stats";
 import QueryResults from "@/components/ask/query-results";
 import { useQueryLogic } from "@/hooks/useQueryLogic";
-import { useQueryStore } from "@/store/query-store";
 import { QueryMode } from "@/lib/types";
 import * as Popover from "@radix-ui/react-popover";
+import Link from "next/link";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
   const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const {
     queriesRequested,
@@ -34,25 +33,11 @@ export default function QueryInterface() {
     handleQueryAmountChange,
   } = useQueryLogic({ payWithWallet, setPayWithWallet });
 
-  const { setQueryMode } = useQueryStore();
-
-  useEffect(() => {
-    const shouldPayWithWallet = queriesUnpaid > 0;
-    if (payWithWallet !== shouldPayWithWallet) {
-      setPayWithWallet(shouldPayWithWallet);
-    }
-  }, [queriesUnpaid, payWithWallet]);
-
   const formatQueryMode = (mode: QueryMode) => {
     if (mode === "fact-check") {
-      return "Fact Check";
+      return "fact check";
     }
-    return mode.charAt(0).toUpperCase() + mode.slice(1);
-  };
-
-  const handleModeSelect = (mode: QueryMode) => {
-    setQueryMode(mode);
-    setIsPopoverOpen(false);
+    return mode;
   };
 
   return (
@@ -63,13 +48,13 @@ export default function QueryInterface() {
         </div>
         <h1 className="text-zinc-900 dark:text-zinc-200 text-lg md:text-2xl font-bold text-center">
           How can we help you{" "}
-          <Popover.Root open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
+          <Popover.Root>
             <Popover.Trigger asChild>
               <button
                 className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors cursor-pointer"
                 aria-label={`Change query mode, current mode: ${formatQueryMode(queryMode)}`}
               >
-                {queryMode === "fact-check" ? "fact check" : queryMode}
+                {formatQueryMode(queryMode)}
               </button>
             </Popover.Trigger>
             <Popover.Portal>
@@ -80,10 +65,10 @@ export default function QueryInterface() {
               >
                 {(["fact-check", "predict", "create", "shop"] as QueryMode[]).map(
                   (mode) => (
-                    <button
+                    <Link
                       key={mode}
-                      onClick={() => handleModeSelect(mode)}
-                      className={`w-full px-4 py-2 text-sm font-medium rounded-md text-left cursor-pointer transition-colors dark:border-b dark:border-zinc-700 dark:last:border-none ${
+                      href={`/ask/${mode}`}
+                      className={`block w-full px-4 py-2 text-sm font-medium rounded-md text-left cursor-pointer transition-colors dark:border-b dark:border-zinc-700 dark:last:border-none ${
                         queryMode === mode
                           ? "bg-teal-500 text-white"
                           : "bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600"
@@ -91,7 +76,7 @@ export default function QueryInterface() {
                       role="menuitem"
                     >
                       {formatQueryMode(mode)}
-                    </button>
+                    </Link>
                   )
                 )}
                 <Popover.Arrow className="fill-zinc-200 dark:fill-zinc-900" />
@@ -143,14 +128,6 @@ export default function QueryInterface() {
           queriesRequested={queriesRequested}
         />
       </div>
-      {/* <p className="text-center text-gray-700 dark:text-zinc-200 mt-6 max-w-4xl mx-auto">
-        Submit Questions to the network intelligence,{" "}
-        <span className="font-medium">(187)</span> will compete to respond.
-      </p>
-      <p className="text-center text-gray-700 dark:text-zinc-200 max-w-4xl mx-auto">
-        Stake to unlock more queries and earn{" "}
-        <span className="font-medium">11%</span> yield
-      </p> */}
       <QueryResults viewMode={viewMode} />
     </div>
   );
