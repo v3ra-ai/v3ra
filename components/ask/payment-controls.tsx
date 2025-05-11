@@ -20,6 +20,7 @@ interface PaymentControlsProps {
   userFreeCredits: number;
   userPaidCredits: number;
   queriesUnpaid: number;
+  queriesRequested: number;
   highlightPayButton?: boolean;
 }
 
@@ -28,6 +29,7 @@ export function PaymentControls({
   userCreditsTotal,
   userPaidCredits,
   queriesUnpaid,
+  queriesRequested,
   highlightPayButton = false,
 }: PaymentControlsProps) {
   const { connection } = useConnection();
@@ -108,21 +110,24 @@ export function PaymentControls({
     }
   };
 
+  const shouldShowButtons = totalCredits < queriesRequested;
+
   console.log("[PaymentControls] render:", {
     queriesUnpaid,
-    userPaidCredits,
     totalCredits,
     queriesCostTotal,
+    queriesRequested,
     displayUnpaid,
     hasPaid,
+    userPaidCredits,
     publicKey: publicKey?.toBase58() || "none",
     PAYMENT_AMOUNT,
-    shouldShowButtons: queriesUnpaid > 0 && totalCredits < queriesCostTotal,
+    shouldShowButtons,
   });
 
   return (
     <div className="flex items-center gap-2">
-      {queriesUnpaid > 0 && totalCredits < queriesCostTotal && (
+      {shouldShowButtons && (
         <>
           <WalletMultiButton
             style={{

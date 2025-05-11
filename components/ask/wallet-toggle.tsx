@@ -43,16 +43,21 @@ export default function WalletToggle({
 
   const queriesLeft = Math.max(0, totalCredits - queriesRequested);
   const displayUnpaid = Math.max(0, queriesUnpaid);
-  const shouldShowPaymentControls = queriesUnpaid > 0 && totalCredits < queriesRequested;
+  const shouldShowPaymentControls = totalCredits < queriesRequested;
+  const paymentAmount = Math.max(0, queriesRequested - totalCredits) * QUERY_COST;
 
   console.log("[WalletToggle] render:", {
     payWithWallet,
     queriesUnpaid,
-    userPaidCredits,
     totalCredits,
+    queriesCostTotal,
     queriesRequested,
+    queriesLeft,
+    paymentAmount,
+    userPaidCredits,
     context,
     shouldShowPaymentControls,
+    screenWidth: typeof window !== "undefined" ? window.innerWidth : "unknown",
   });
 
   return (
@@ -66,7 +71,7 @@ export default function WalletToggle({
               className="switch data-[state=checked]:bg-[#46BBA6]"
             />
             <span className="font-medium text-gray-500 dark:text-gray-400">
-              Pay ({(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
+              Pay ({paymentAmount.toFixed(QUERY_COST_FIXED_DECIMALS)} SOL)
             </span>
           </div>
         )}
@@ -77,17 +82,25 @@ export default function WalletToggle({
             userFreeCredits={userFreeCredits}
             userPaidCredits={userPaidCredits}
             queriesUnpaid={displayUnpaid}
+            queriesRequested={queriesRequested}
             highlightPayButton={highlightPayButton}
           />
         )}
-        {!payWithWallet && (
-          <div className="md:flex items-center gap-2 hidden">
-            <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
-            <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
-              {queriesLeft}
+        <div className="flex flex-row md:flex-row flex-col gap-1 items-center">
+          {!shouldShowPaymentControls && (
+            <>
+              <span className="text-gray-700 dark:text-zinc-400 text-sm">Credits left</span>
+              <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300 text-sm">
+                {queriesLeft}
+              </span>
+            </>
+          )}
+          {context === "scrollbar" && !shouldShowPaymentControls && queriesCostTotal > 0 && (
+            <span className="text-gray-700 dark:text-zinc-400 text-sm">
+              Query cost: {queriesCostTotal} credits
             </span>
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

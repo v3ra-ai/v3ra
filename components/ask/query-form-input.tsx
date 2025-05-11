@@ -43,7 +43,7 @@ export function QueryFormInput({
   handleQueryAmountChange,
   allowedAmountQueries,
 }: QueryFormInputProps) {
-  const { displayUnpaid, hasPaid: storeHasPaid, totalCredits } = useCreditsStore();
+  const { displayUnpaid, hasPaid: storeHasPaid, totalCredits, userFreeCredits } = useCreditsStore();
   const [buttonText, setButtonText] = useState<ReactNode>("Submit");
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
@@ -59,7 +59,7 @@ export function QueryFormInput({
       queriesRequested,
     });
     if (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested) {
-      console.log("[QueryFormInput] Blocked: Unpaid queries and insufficient credits");
+      console.log("[QueryFormInput] Blocked: Unpaid queries and insufficient total credits");
       toast.error("Please make a payment first", {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
@@ -89,13 +89,18 @@ export function QueryFormInput({
   }, [isSubmitting, cancelTimer]);
 
   const isSubmitDisabled = isSubmitting || (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested);
+  const queriesLeft = Math.max(0, totalCredits - queriesRequested);
+  const displayedQueryCost = Math.max(0, queriesRequested - userFreeCredits);
 
   console.log("[QueryFormInput] render:", {
     isSubmitting,
     displayUnpaid,
     storeHasPaid,
     totalCredits,
+    queriesCostTotal,
+    displayedQueryCost,
     queriesRequested,
+    queriesLeft,
     isSubmitDisabled,
   });
 
@@ -105,7 +110,7 @@ export function QueryFormInput({
         <textarea
           className={`w-full p-4 border rounded-lg h-24 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg ${
             isSubmitInteracted && !queryText.trim()
-              ? "border-red-400"
+              ? "border-teal-400 ring-2 ring-teal-500"
               : "border-gray-200"
           }`}
           placeholder={placeholderText}
@@ -128,7 +133,7 @@ export function QueryFormInput({
           <Button
             className={`bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer ${
               isSubmitInteracted && displayUnpaid > 0
-                ? "ring-2 ring-red-400"
+                ? "ring-2 ring-teal-500"
                 : ""
             }`}
             onClick={onSubmit}
