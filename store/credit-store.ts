@@ -12,6 +12,7 @@ interface CreditsStore {
   totalCredits: number;
   displayUnpaid: number;
   hasPaid: boolean;
+  savedCreditsTimestamp: number | null; // New: Cache timestamp
   decrementFreeCredits: (amount: number) => void;
   decrementPaidCredits: (amount: number) => void;
   incrementPaidCredits: (amount: number) => void;
@@ -23,6 +24,8 @@ interface CreditsStore {
   fetchSavedCredits: (publicKey: PublicKey | null) => Promise<void>;
 }
 
+const CACHE_DURATION = 60 * 1000; // 60 seconds in milliseconds
+
 export const useCreditsStore = create<CreditsStore>((set, get) => ({
   userFreeCredits: DEFAULTS.USER_FREE_CREDITS,
   userPaidCredits: DEFAULTS.USER_PAID_CREDITS,
@@ -33,6 +36,7 @@ export const useCreditsStore = create<CreditsStore>((set, get) => ({
   totalCredits: DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS,
   displayUnpaid: 0,
   hasPaid: false,
+  savedCreditsTimestamp: null, // New: Initialize timestamp
 
   decrementFreeCredits: (amount: number) =>
     set((state) => {
@@ -132,37 +136,66 @@ export const useCreditsStore = create<CreditsStore>((set, get) => ({
       return newState;
     }),
 
-    setHasPaid: (paid) =>
-      set((state) => {
-        const newState = {
-          hasPaid: paid,
-          displayUnpaid: paid ? 0 : Math.max(0, state.queriesUnpaid),
-        };
-        console.log("setHasPaid:", newState);
-        return newState;
-      }),
+  setHasPaid: (paid) =>
+    set((state) => {
+      const newState = {
+        hasPaid: paid,
+        displayUnpaid: paid ? 0 : Math.max(0, state.queriesUnpaid),
+      };
+      console.log("setHasPaid:", newState);
+      return newState;
+    }),
 
-    fetchSavedCredits: async (publicKey) => {
-      const currentState = get();
-      if (!publicKey) {
-        set({ savedCredits: null, totalCredits: currentState.userCreditsTotal });
-        return;
-      }
-      try {
-        const response = await fetch("/api/credits/balance", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ walletPublicKey: publicKey.toBase58() }),
-        });
-        const data = await response.json();
-        console.log("fetchSavedCredits:", data);
-        set({
-          savedCredits: data.credits ?? 0,
-          totalCredits: (data.credits ?? 0) + currentState.userCreditsTotal,
-        });
-      } catch (error) {
-        console.error("Error fetching saved credits:", error);
-        set({ savedCredits: 0, totalCredits: currentState.userCreditsTotal });
-      }
-    },
-  }));
+  fetchSavedCredits: async (publicKey) => {
+    const currentState = get();
+    const now = Date.now();
+
+    // Check cache validity
+    if (
+      currentState.savedCreditsTimestamp &&
+      now - currentState.savedCreditsTimestamp < CACHE_DURATION &&
+      currentState.savedCredits !== null
+    ) {
+      console.log("[credit-store] Using cached savedCredits:", {
+        savedCredits: currentState.savedCredits,
+        timestamp: currentState.savedCreditsTimestamp,
+      });
+      return;
+    }
+
+    console.log("[credit-store] Fetching savedCredits:", {
+      publicKey: publicKey ? publicKey.toBase58() : null,
+    });
+
+    if (!publicKey) {
+      set({
+        savedCredits: null,
+        totalCredits: currentState.userCreditsTotal,
+        savedCreditsTimestamp: now,
+      });
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/credits/balance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ walletPublicKey: publicKey.toBase58() }),
+      });
+      const data = await response.json();
+      console.log("[credit-store] fetchSavedCredits response:", data);
+      set({
+        savedCredits: data.credits ?? 0,
+        totalCredits: (data.credits ?? 0) + currentState.userCreditsTotal,
+        savedCreditsTimestamp: now,
+      });
+    } catch (error) {
+      console.error("[credit-store] Error fetching saved credits:", error);
+      set({
+        savedCredits: 0,
+        totalCredits: currentState.userCreditsTotal,
+        savedCreditsTimestamp: now,
+      });
+    }
+  },
+}));

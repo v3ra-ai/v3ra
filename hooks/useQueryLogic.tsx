@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from "react";
+import { useCallback, useState, useEffect, useRef } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
@@ -25,6 +25,7 @@ export function useQueryLogic({
   const [queryText, setQueryText] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const hasFetchedCredits = useRef(false); // Track initial fetch
 
   const { publicKey } = useWallet();
   const { fetchSavedCredits, decrementFreeCredits } = useCreditsStore();
@@ -81,6 +82,21 @@ export function useQueryLogic({
       );
     }
   };
+
+  // Fetch saved credits only on initial mount
+  useEffect(() => {
+    if (publicKey && !hasFetchedCredits.current) {
+      console.log("[useQueryLogic] Initial fetchSavedCredits:", {
+        publicKey: publicKey.toBase58(),
+      });
+      fetchSavedCredits(publicKey);
+      hasFetchedCredits.current = true;
+    } else if (!publicKey && !hasFetchedCredits.current) {
+      console.log("[useQueryLogic] Initial fetchSavedCredits with null publicKey");
+      fetchSavedCredits(null);
+      hasFetchedCredits.current = true;
+    }
+  }, [publicKey, fetchSavedCredits]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -262,7 +278,7 @@ export function useQueryLogic({
           queryMode,
           queriesRequested,
         });
-        await fetchSavedCredits(publicKey!);
+        await fetchSavedCredits(publicKey); // Refresh credits after payment
         toast.success(`Query submitted, ${queriesRequested} credits deducted!`);
       }
       resetAfterSubmission(userCreditsTotal);
