@@ -33,7 +33,7 @@ export function PaymentControls({
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
   const [isProcessing, setIsProcessing] = useState(false);
-  const { resetCreditsAfterPayment, displayUnpaid, hasPaid, setHasPaid } = useCreditsStore();
+  const { resetCreditsAfterPayment, displayUnpaid, hasPaid, setHasPaid, totalCredits } = useCreditsStore();
 
   const PAYMENT_RECEIVER_ADDRESS = process.env.NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS;
   if (!PAYMENT_RECEIVER_ADDRESS) {
@@ -111,16 +111,18 @@ export function PaymentControls({
   console.log("[PaymentControls] render:", {
     queriesUnpaid,
     userPaidCredits,
+    totalCredits,
+    queriesCostTotal,
     displayUnpaid,
     hasPaid,
     publicKey: publicKey?.toBase58() || "none",
     PAYMENT_AMOUNT,
-    shouldShowButtons: queriesUnpaid > 0,
+    shouldShowButtons: queriesUnpaid > 0 && totalCredits < queriesCostTotal,
   });
 
   return (
     <div className="flex items-center gap-2">
-      {queriesUnpaid > 0 && (
+      {queriesUnpaid > 0 && totalCredits < queriesCostTotal && (
         <>
           <WalletMultiButton
             style={{

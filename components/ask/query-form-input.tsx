@@ -43,21 +43,23 @@ export function QueryFormInput({
   handleQueryAmountChange,
   allowedAmountQueries,
 }: QueryFormInputProps) {
-  const { displayUnpaid, hasPaid: storeHasPaid } = useCreditsStore();
+  const { displayUnpaid, hasPaid: storeHasPaid, totalCredits } = useCreditsStore();
   const [buttonText, setButtonText] = useState<ReactNode>("Submit");
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
   const onSubmit = () => {
-    console.log("QueryFormInput onSubmit called:", {
+    console.log("[QueryFormInput] onSubmit called:", {
       queryText,
       displayUnpaid,
       storeHasPaid,
       isSubmitting,
       queriesUnpaid,
       queriesCostTotal,
+      totalCredits,
+      queriesRequested,
     });
-    if (displayUnpaid > 0 && !storeHasPaid) {
-      console.log("onSubmit: Blocked due to unpaid queries and no payment");
+    if (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested) {
+      console.log("[QueryFormInput] Blocked: Unpaid queries and insufficient credits");
       toast.error("Please make a payment first", {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
@@ -66,10 +68,11 @@ export function QueryFormInput({
     try {
       startTimer();
       handleSubmit();
-      console.log("handleSubmit executed successfully");
+      console.log("[QueryFormInput] handleSubmit executed successfully");
     } catch (error: unknown) {
-      console.error("Query submission failed:", error);
-      const errorMessage = error instanceof Error ? error.message : "Failed to submit query, please try again";
+      console.error("[QueryFormInput] Query submission failed:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "Failed to submit query, please try again";
       toast.error(errorMessage, {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
@@ -81,9 +84,20 @@ export function QueryFormInput({
     if (!isSubmitting) {
       cancelTimer();
       setButtonText("Submit");
-      console.log("QueryFormInput: Reset button text to Submit");
+      console.log("[QueryFormInput] Reset button text to Submit");
     }
   }, [isSubmitting, cancelTimer]);
+
+  const isSubmitDisabled = isSubmitting || (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested);
+
+  console.log("[QueryFormInput] render:", {
+    isSubmitting,
+    displayUnpaid,
+    storeHasPaid,
+    totalCredits,
+    queriesRequested,
+    isSubmitDisabled,
+  });
 
   return (
     <>
@@ -118,7 +132,7 @@ export function QueryFormInput({
                 : ""
             }`}
             onClick={onSubmit}
-            disabled={isSubmitting || (displayUnpaid > 0 && !storeHasPaid)}
+            disabled={isSubmitDisabled}
             onMouseEnter={() =>
               displayUnpaid > 0 && setIsSubmitInteracted(true)
             }

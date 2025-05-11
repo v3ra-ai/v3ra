@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { Switch } from "@/components/ui/switch";
 import { PaymentControls } from "@/components/ask/payment-controls";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
+import { useCreditsStore } from "@/store/credit-store";
 
 interface WalletToggleProps {
   payWithWallet: boolean;
@@ -30,6 +31,8 @@ export default function WalletToggle({
   highlightPayButton = false,
   context = "default",
 }: WalletToggleProps) {
+  const { totalCredits } = useCreditsStore();
+
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
       console.log("[WalletToggle] handleCheckedChange:", { checked, queriesUnpaid, context });
@@ -38,15 +41,18 @@ export default function WalletToggle({
     [setPayWithWallet]
   );
 
-  const queriesLeft = Math.max(0, userCreditsTotal - queriesRequested);
+  const queriesLeft = Math.max(0, totalCredits - queriesRequested);
   const displayUnpaid = Math.max(0, queriesUnpaid);
+  const shouldShowPaymentControls = queriesUnpaid > 0 && totalCredits < queriesRequested;
 
   console.log("[WalletToggle] render:", {
     payWithWallet,
     queriesUnpaid,
     userPaidCredits,
+    totalCredits,
+    queriesRequested,
     context,
-    shouldShowPaymentControls: context === "scrollbar" ? payWithWallet : queriesUnpaid > 0,
+    shouldShowPaymentControls,
   });
 
   return (
@@ -64,7 +70,7 @@ export default function WalletToggle({
             </span>
           </div>
         )}
-        {(context === "scrollbar" ? payWithWallet : queriesUnpaid > 0) && (
+        {(context === "scrollbar" ? payWithWallet && shouldShowPaymentControls : shouldShowPaymentControls) && (
           <PaymentControls
             queriesCostTotal={queriesCostTotal}
             userCreditsTotal={userCreditsTotal}
