@@ -132,69 +132,37 @@ export const useCreditsStore = create<CreditsStore>((set, get) => ({
       return newState;
     }),
 
-  setHasPaid: (paid) =>
-    set((state) => {
-      const newState = {
-        hasPaid: paid,
-        displayUnpaid: paid ? 0 : Math.max(0, state.queriesUnpaid),
-      };
-      console.log("setHasPaid: Updated state:", { ...newState, previousHasPaid: state.hasPaid });
-      return newState;
-    }),
-
-  fetchSavedCredits: async (publicKey) => {
-    const currentState = get();
-    if (!publicKey) {
-      const newTotalCredits = currentState.userCreditsTotal;
-      const newState = {
-        savedCredits: null,
-        totalCredits: newTotalCredits,
-        displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
-      };
-      console.log("fetchSavedCredits: No publicKey, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
-      set(newState);
-      return;
-    }
-    try {
-      const response = await fetch("/api/credits/balance", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ walletPublicKey: publicKey.toBase58() }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        const errorMsg = errorData.error || response.statusText || "Unknown error";
-        console.error("Failed to fetch saved credits:", errorMsg);
-        const newTotalCredits = currentState.userCreditsTotal;
+    setHasPaid: (paid) =>
+      set((state) => {
         const newState = {
-          savedCredits: 0,
-          totalCredits: newTotalCredits,
-          displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
+          hasPaid: paid,
+          displayUnpaid: paid ? 0 : Math.max(0, state.queriesUnpaid),
         };
-        console.log("fetchSavedCredits: API failure, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
-        set(newState);
+        console.log("setHasPaid:", newState);
+        return newState;
+      }),
+
+    fetchSavedCredits: async (publicKey) => {
+      const currentState = get();
+      if (!publicKey) {
+        set({ savedCredits: null, totalCredits: currentState.userCreditsTotal });
         return;
       }
-      const data = await response.json();
-      console.log("Fetched saved credits for store:", data);
-      const newTotalCredits = (data.credits ?? 0) + currentState.userCreditsTotal;
-      const newState = {
-        savedCredits: data.credits ?? 0,
-        totalCredits: newTotalCredits,
-        displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
-      };
-      console.log("fetchSavedCredits: Success, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
-      set(newState);
-    } catch (error) {
-      console.error("Error fetching saved credits:", error);
-      const newTotalCredits = currentState.userCreditsTotal;
-      const newState = {
-        savedCredits: 0,
-        totalCredits: newTotalCredits,
-        displayUnpaid: currentState.hasPaid ? 0 : Math.max(0, currentState.queriesUnpaid),
-      };
-      console.log("fetchSavedCredits: Error, updated state:", { ...newState, previousHasPaid: currentState.hasPaid });
-      set(newState);
-    }
-  },
-}));
+      try {
+        const response = await fetch("/api/credits/balance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ walletPublicKey: publicKey.toBase58() }),
+        });
+        const data = await response.json();
+        console.log("fetchSavedCredits:", data);
+        set({
+          savedCredits: data.credits ?? 0,
+          totalCredits: (data.credits ?? 0) + currentState.userCreditsTotal,
+        });
+      } catch (error) {
+        console.error("Error fetching saved credits:", error);
+        set({ savedCredits: 0, totalCredits: currentState.userCreditsTotal });
+      }
+    },
+  }));

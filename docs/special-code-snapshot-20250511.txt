@@ -1,46 +1,443 @@
-This is code related to payments being made on Verafy Testnet
+--- Project Directory Structure ---
+Current directory: ./
+.
+├── README.md
+├── README_GIT.md
+├── README_PAYMENTS.md
+├── README_TESTING.md
+├── README_TODOS.md
+├── README_WORKFLOWS.md
+├── app
+│   ├── actions.ts
+│   ├── admin
+│   │   ├── layout.tsx
+│   │   └── validators
+│   │       ├── components
+│   │       │   ├── delete-dialog.tsx
+│   │       │   ├── validator-form.tsx
+│   │       │   └── validator-list-client.tsx
+│   │       └── page.tsx
+│   ├── api
+│   │   ├── admin
+│   │   │   ├── diagnose-keys
+│   │   │   │   └── route.ts
+│   │   │   ├── health-check
+│   │   │   │   └── route.ts
+│   │   │   ├── keys
+│   │   │   │   └── route.ts
+│   │   │   ├── repair-keys
+│   │   │   │   └── route.ts
+│   │   │   └── validators
+│   │   │       ├── [id]
+│   │   │       │   ├── route.ts
+│   │   │       │   └── toggle
+│   │   │       │       └── route.ts
+│   │   │       └── route.ts
+│   │   ├── broadcast
+│   │   │   └── route.ts
+│   │   ├── broadcast-query
+│   │   │   └── route.ts
+│   │   ├── credits
+│   │   │   ├── assign
+│   │   │   │   └── route.ts
+│   │   │   ├── balance
+│   │   │   │   └── route.ts
+│   │   │   └── decrement
+│   │   │       └── route.tsx
+│   │   ├── cron
+│   │   │   └── route.ts
+│   │   ├── csrf-token
+│   │   │   └── route.ts
+│   │   ├── network
+│   │   │   ├── broadcast
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── payment
+│   │   │   └── route.ts
+│   │   ├── replies
+│   │   │   └── [replyId]
+│   │   │       └── upvote
+│   │   │           └── route.ts
+│   │   ├── test-validators
+│   │   │   └── route.ts
+│   │   ├── threads
+│   │   │   └── [threadId]
+│   │   │       ├── downvote
+│   │   │       │   └── route.ts
+│   │   │       ├── replies
+│   │   │       │   └── route.ts
+│   │   │       ├── route.ts
+│   │   │       └── upvote
+│   │   │           └── route.ts
+│   │   ├── validate
+│   │   │   └── route.ts
+│   │   ├── validators
+│   │   │   ├── [id]
+│   │   │   │   └── toggle
+│   │   │   │       └── route.ts
+│   │   │   ├── active
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   ├── vote-stats
+│   │   │   │   └── route.ts
+│   │   │   └── votes
+│   │   │       └── route.ts
+│   │   ├── vote-history
+│   │   │   └── route.ts
+│   │   └── vote-sessions
+│   │       └── [voteSessionId]
+│   │           ├── route.ts
+│   │           └── threads
+│   │               └── route.ts
+│   ├── apple-icon.png
+│   ├── ask
+│   │   ├── create
+│   │   │   └── page.tsx
+│   │   ├── fact-check
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   ├── predict
+│   │   │   └── page.tsx
+│   │   └── shop
+│   │       └── page.tsx
+│   ├── auth
+│   │   ├── callback
+│   │   │   └── page.tsx
+│   │   └── verify
+│   │       └── page.tsx
+│   ├── credits
+│   │   └── page.tsx
+│   ├── explorer
+│   │   └── page.tsx
+│   ├── favicon-32x32.png
+│   ├── favicon.ico
+│   ├── favicon.png
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── login
+│   │   └── page.tsx
+│   ├── page.tsx
+│   ├── signup
+│   │   └── page.tsx
+│   ├── users
+│   │   ├── layout.tsx
+│   │   └── profile
+│   │       └── [user]
+│   │           └── page.tsx
+│   └── validators
+│       ├── [validator]
+│       │   ├── pages.tsx
+│       │   └── profile
+│       │       └── page.tsx
+│       ├── layout.tsx
+│       ├── page.tsx
+│       └── validators-client.tsx
+├── backup_db
+│   ├── 20250501-remote_supabase_backup-2.dump
+│   ├── 20250501-remote_supabase_backup.dump
+│   ├── 20250502-remote_supabase_backup-cs.dump
+│   └── 20250509-remote_supabase_backup.dump
+├── components
+│   ├── ask
+│   │   ├── ask-footer.tsx
+│   │   ├── ask-results-expert.tsx
+│   │   ├── ask-results-standard-ai-consensus.tsx
+│   │   ├── ask-results-standard-card.tsx
+│   │   ├── ask-results-standard-consensus.tsx
+│   │   ├── ask-results-standard-footer.tsx
+│   │   ├── ask-results-standard-header.tsx
+│   │   ├── ask-results-standard-rationale.tsx
+│   │   ├── ask-results-standard-social-icons.tsx
+│   │   ├── ask-results-standard-title.tsx
+│   │   ├── ask-results-standard-validator-avatars.tsx
+│   │   ├── ask-results-standard.tsx
+│   │   ├── charts
+│   │   │   ├── network-visualization.tsx
+│   │   │   ├── queries-chart.tsx
+│   │   │   └── staking-area-stacked.tsx
+│   │   ├── consensus
+│   │   │   ├── current-query.tsx
+│   │   │   ├── network-status.tsx
+│   │   │   ├── validator-results.tsx
+│   │   │   ├── vote-history-empty.tsx
+│   │   │   ├── vote-history-error.tsx
+│   │   │   ├── vote-history-header.tsx
+│   │   │   ├── vote-history-loading.tsx
+│   │   │   ├── vote-history-table-row.tsx
+│   │   │   ├── vote-history-table.tsx
+│   │   │   └── vote-history.tsx
+│   │   ├── consensus-status.tsx
+│   │   ├── debug
+│   │   │   └── query-store-debug.tsx
+│   │   ├── mode-toggle.tsx
+│   │   ├── navbar
+│   │   ├── navbar-credits.tsx
+│   │   ├── navbar-scrollbar-ui.tsx
+│   │   ├── navbar-scrollbar.tsx
+│   │   ├── navbar-settings.tsx
+│   │   ├── navbar-sitelinks.tsx
+│   │   ├── navbar.tsx
+│   │   ├── network-stats.tsx
+│   │   ├── payment-controls.tsx
+│   │   ├── query
+│   │   ├── query-form-ai-slider.tsx
+│   │   ├── query-form-input.tsx
+│   │   ├── query-form-mode-selector.tsx
+│   │   ├── query-form.tsx
+│   │   ├── query-interface.tsx
+│   │   ├── query-results.tsx
+│   │   ├── query-stats.tsx
+│   │   ├── results
+│   │   └── wallet-toggle.tsx
+│   ├── credits
+│   │   ├── credit-slider-ui.tsx
+│   │   ├── credit-slider.tsx
+│   │   ├── credits-layout.tsx
+│   │   └── stake-slider.tsx
+│   ├── error-display.tsx
+│   ├── explorer
+│   │   ├── consensus-visualization.tsx
+│   │   ├── custom-query-form.tsx
+│   │   ├── explorer-header.tsx
+│   │   ├── network-visualization.tsx
+│   │   ├── payment-controls.tsx
+│   │   ├── query-input.tsx
+│   │   ├── submit-button.tsx
+│   │   ├── toggle-header.tsx
+│   │   ├── validator-admin.tsx
+│   │   ├── validator-detail.tsx
+│   │   ├── validator-list.tsx
+│   │   ├── vote-history.tsx
+│   │   └── vote-results.tsx
+│   ├── key-manager.tsx
+│   ├── loading-spinner-new.tsx
+│   ├── loading-spinner.tsx
+│   ├── network-stats.tsx
+│   ├── shimmer-message.tsx
+│   ├── signup-error.tsx
+│   ├── solana-provider.tsx
+│   ├── theme-provider.tsx
+│   ├── ui
+│   │   ├── accordion.tsx
+│   │   ├── alert-dialog.tsx
+│   │   ├── aspect-ratio.tsx
+│   │   ├── avatar.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── chart.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── collapsible.tsx
+│   │   ├── context-menu.tsx
+│   │   ├── dialog.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── hover-card.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── menubar.tsx
+│   │   ├── navigation-menu.tsx
+│   │   ├── popover.tsx
+│   │   ├── progress.tsx
+│   │   ├── radio-group.tsx
+│   │   ├── scroll-area.tsx
+│   │   ├── select.tsx
+│   │   ├── separator.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── slider.tsx
+│   │   ├── sonner.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   └── tabs.tsx
+│   ├── validator-health-check.tsx
+│   ├── validator-initializer.tsx
+│   ├── validator-profile.tsx
+│   └── validators
+│       └── vote-history-table.tsx
+├── components.json
+├── docs
+│   ├── FILETREE.md
+│   └── payment
+│       ├── debug1.md
+│       └── payment-snapshot.md
+├── eslint.config.mjs
+├── get_code-snapshot.js
+├── hooks
+│   ├── useAutoRefresh.tsx
+│   ├── useBroadcastQuery.ts
+│   ├── useCleanText.ts
+│   ├── useCreditAssignment.tsx
+│   ├── useCreditBalance.tsx
+│   ├── useNavbarScrollbar.ts
+│   ├── useNetworkState.ts
+│   ├── useQueryLogic.tsx
+│   ├── useSolanaTransaction.tsx
+│   ├── useSolanaWallet.tsx
+│   ├── useSubmitQuery.ts
+│   ├── useVoteHistory.ts
+│   └── useVoteResult.ts
+├── lib
+│   ├── admin
+│   │   └── validator-client-services.ts
+│   ├── constants.ts
+│   ├── crypto.ts
+│   ├── database.ts
+│   ├── db
+│   │   ├── apiKeys.ts
+│   │   ├── client.ts
+│   │   ├── schema-adapter.ts
+│   │   ├── setup.ts
+│   │   ├── validators.ts
+│   │   └── voteSessions.ts
+│   ├── keyManager.ts
+│   ├── llmIntegration.ts
+│   ├── mock-store.ts
+│   ├── mocks.ts
+│   ├── prisma-debug.ts
+│   ├── query-utils.tsx
+│   ├── redis.ts
+│   ├── server-actions.ts
+│   ├── services
+│   │   ├── keyService.ts
+│   │   ├── openrouterService.ts
+│   │   ├── query-service.tsx
+│   │   └── validatorService.ts
+│   ├── solana-constants.ts
+│   ├── store.ts
+│   ├── supabase-client.ts
+│   ├── types.ts
+│   ├── utils.ts
+│   ├── validators
+│   │   ├── client-data.ts
+│   │   ├── init.ts
+│   │   ├── prompts
+│   │   │   ├── create.ts
+│   │   │   ├── fact-check.ts
+│   │   │   ├── predict.ts
+│   │   │   └── shop.ts
+│   │   ├── providers
+│   │   │   ├── anthropic.ts
+│   │   │   ├── gemini.ts
+│   │   │   ├── grok.ts
+│   │   │   ├── index.ts
+│   │   │   ├── openai.ts
+│   │   │   └── openrouter.ts
+│   │   ├── query-modes.ts
+│   │   ├── registry.ts
+│   │   ├── types.ts
+│   │   └── utils.ts
+│   └── validators.ts
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── prisma
+│   ├── archived
+│   │   ├── migrate
+│   │   └── schema-sqlite.prisma
+│   ├── dev.db
+│   ├── migration.sql
+│   ├── migrations
+│   │   ├── 20250324161635_initial_setup
+│   │   │   └── migration.sql
+│   │   ├── 20250328131012_add_thread_reply_models
+│   │   │   └── migration.sql
+│   │   ├── 20250328174829_add_downvotes_to_thread
+│   │   │   └── migration.sql
+│   │   ├── 20250501_add_user_auth
+│   │   │   └── migration.sql
+│   │   ├── 20250501_baseline
+│   │   └── 20250502_remove_password_field
+│   │       └── migration.sql
+│   ├── schema.prisma
+│   └── test-prisma.ts
+├── prisma_migrations_backup
+│   ├── 20250324161635_initial_setup
+│   │   └── migration.sql
+│   ├── 20250328131012_add_thread_reply_models
+│   │   └── migration.sql
+│   ├── 20250328174829_add_downvotes_to_thread
+│   │   └── migration.sql
+│   ├── 20250401221213_add_default_model_name
+│   │   └── migration.sql
+│   └── migration_lock.toml
+├── public
+│   ├── Verafy-Logo@0.1x.png
+│   ├── Verafy-Logo@0.25x.png
+│   ├── Verafy-Logo@0.2x.png
+│   ├── Verafy-Logo@0.5x.png
+│   ├── Verafy-Logo@0.75x.png
+│   ├── bg_home_black.jpg
+│   ├── bg_home_white.jpg
+│   ├── content
+│   │   ├── 202504
+│   │   └── 20250510-scaling-verafys-ai-network-for-global-impact.jpg
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── icons
+│   │   ├── chatgpt.png
+│   │   ├── claude.jpg
+│   │   ├── claude.png
+│   │   ├── deepseek.png
+│   │   ├── gemini.png
+│   │   ├── grok.png
+│   │   ├── metallama.png
+│   │   ├── qwen.png
+│   │   ├── raw copy.png
+│   │   └── zephyr.png
+│   ├── logos
+│   │   ├── android-chrome-192x192.png
+│   │   ├── android-chrome-512x512.png
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon-16x16.png
+│   │   ├── favicon-32x32.png
+│   │   ├── logo_verafy_imagemark_black.svg
+│   │   ├── logo_verafy_imagemark_blue.svg
+│   │   └── logo_verafy_imagemark_white.svg
+│   ├── next.svg
+│   ├── site.webmanifest
+│   ├── verafy-logo.png
+│   ├── verafy_logo_black.svg
+│   ├── verafy_logo_white.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── remote_supabase_backup.dump
+├── store
+│   ├── credit-store.ts
+│   ├── nav-store.ts
+│   ├── network-store.ts
+│   ├── query-store.ts
+│   └── vote-store.ts
+├── test
+│   ├── __tests__
+│   ├── e2e
+│   ├── inspect-transaction.js
+│   ├── send-transaction-devnet.js
+│   ├── test-qa.ts
+│   ├── test-transaction.mjs
+│   └── test-wallet-bas64-output.js
+├── tsconfig.json
+├── tsconfig.scripts.json
+├── tsconfig.services.json
+├── tsconfig.tsbuildinfo
+└── utils
+    ├── button-text-timer.ts
+    ├── csrf-utils.ts
+    ├── css-utils.ts
+    ├── date-utils.ts
+    ├── error-utils.ts
+    ├── fetchOpenRouterUsage.js
+    ├── log-utils.ts
+    ├── network-utils.ts
+    ├── rate-limit-utils.ts
+    ├── security-utils.ts
+    ├── text-utils.ts
+    ├── validatorImageMapping.json
+    └── vote-utils.ts
+
+109 directories, 323 files
 
 
-# Verafy Testnet Payments
-
-app/api/credits/assign/route.ts, app/api/credits/balance/route.ts, app/api/payment/route.ts, app/credits/page.tsx, components/credits/credit-slider-ui.tsx, components/credits/credit-slider.tsx, components/credits/credits-layout.tsx, components/credits/stake-slider.tsx, components/ask/wallet-toggle.tsx, components/ask/navbar-credits.tsx, components/ask/payment-controls.tsx, components/ask/query-form-ai-slider.tsx, components/ask/query-form-input.tsx, components/ask/query-form.tsx, components/ask/query-interface.tsx, hooks/useCreditAssignment.tsx, hooks/useCreditBalance.tsx, hooks/useSolanaTransaction.tsx, hooks/useSolanaWallet.tsx, hooks/useBroadcastQuery.ts, store/credit-store.ts, lib/constants.ts, utils/csrf-utils.ts, app/api/csrf-token/route.ts, components/ask/query-stats.tsx, components/ask/consensus/current-query.tsx, hooks/useNavbarScrollbar.ts
-
-
-app/api/credits/assign/route.ts
-app/api/credits/balance/route.ts
-app/api/payment/route.ts
-app/credits/page.tsx
-components/credits/credit-slider-ui.tsx
-components/credits/credit-slider.tsx
-components/credits/credits-layout.tsx
-components/credits/stake-slider.tsx
-components/ask/wallet-toggle.tsx
-components/ask/navbar-credits.tsx
-components/ask/payment-controls.tsx
-components/ask/query-form-ai-slider.tsx
-components/ask/query-form-input.tsx
-components/ask/query-form.tsx
-components/ask/query-interface.tsx
-components/ask/wallet-toggle.tsx
-hooks/useCreditAssignment.tsx
-hooks/useCreditBalance.tsx
-hooks/useSolanaTransaction.tsx
-hooks/useSolanaWallet.tsx
-hooks/useBroadcastQuery.ts
-store/credit-store.ts
-lib/constants.ts
-utils/csrf-utils.ts
-app/api/csrf-token/route.ts
-components/ask/query-stats.tsx
-components/ask/consensus/current-query.tsx
-hooks/useBroadcastQuery.ts
-hooks/useCreditAssignment.tsx
-hooks/useCreditBalance.tsx
-app/api/credits/assign/route.ts
-hooks/useNavbarScrollbar.ts
-
-
-
+--- app/api/credits/assign/route.ts ---
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { PublicKey } from "@solana/web3.js";
@@ -144,10 +541,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 }
-
-
-app/api/credits/balance/route.ts
-
+--- app/api/credits/balance/route.ts ---
 // app/api/credits/balance/route.ts
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
@@ -187,9 +581,7 @@ export async function POST(request: Request) {
   }
 }
 
-
-app/api/payment/route.ts
-
+--- app/api/payment/route.ts ---
 import { NextRequest, NextResponse } from "next/server";
 import {
   Connection,
@@ -572,9 +964,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 }
-
-app/credits/page.tsx
-
+--- app/credits/page.tsx ---
 "use client";
 import { CreditsLayout } from "@/components/credits/credits-layout";
 import Navbar from "@/components/ask/navbar";
@@ -620,10 +1010,7 @@ export default function CreditsPage() {
   );
 }
 
-
-components/credits/credit-slider-ui.tsx
-
-
+--- components/credits/credit-slider-ui.tsx ---
 import * as Slider from "@radix-ui/react-slider";
 import { Coins, Square } from "lucide-react";
 
@@ -768,6 +1155,7 @@ export default function CreditSliderUI({
   );
 }
 
+--- components/credits/credit-slider.tsx ---
 "use client";
 
 import { useState, useMemo, useCallback, useEffect, Dispatch, SetStateAction } from "react";
@@ -775,11 +1163,11 @@ import { toast } from "sonner";
 import CreditSliderUI from "./credit-slider-ui";
 import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
 import { useCreditAssignment } from "@/hooks/useCreditAssignment";
-import { VERAFY_WALLET } from "@/lib/solana-constants";
+import { VERAFY_WALLET, connection } from "@/lib/solana-constants";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, Transaction, Connection, SendTransactionError } from "@solana/web3.js";
+import { PublicKey, Transaction, SendTransactionError } from "@solana/web3.js";
 import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
 
 interface CreditSliderProps {
@@ -787,7 +1175,7 @@ interface CreditSliderProps {
   setCreditBalance: Dispatch<SetStateAction<number | null>>;
 }
 
-export default function CreditSlider({creditBalance, setCreditBalance}: CreditSliderProps) {
+export default function CreditSlider({ creditBalance, setCreditBalance }: CreditSliderProps) {
   const [creditAmount, setCreditAmount] = useState(10);
   const { publicKey, signTransaction, connected: isWalletConnected, disconnect } = useWallet();
   const {
@@ -796,9 +1184,7 @@ export default function CreditSlider({creditBalance, setCreditBalance}: CreditSl
     error: txError,
   } = useSolanaTransaction(
     publicKey,
-    signTransaction
-      ? (tx: Transaction) => signTransaction(tx)
-      : null
+    signTransaction ? (tx: Transaction) => signTransaction(tx) : null
   );
   const {
     assignCredits,
@@ -806,12 +1192,7 @@ export default function CreditSlider({creditBalance, setCreditBalance}: CreditSl
     error: assignError,
   } = useCreditAssignment();
   const { setVisible } = useWalletModal();
-
-  // State for solBalance
   const [solBalance, setSolBalance] = useState<number | null>(null);
-
-  console.log(`NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME ${process.env.NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME}`);
-  console.log(`NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC ${process.env.NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC}`);
 
   // Fetch SOL balance when wallet is connected
   useEffect(() => {
@@ -821,16 +1202,17 @@ export default function CreditSlider({creditBalance, setCreditBalance}: CreditSl
         return;
       }
       try {
-        const connection = new Connection("https://api.devnet.solana.com", "confirmed");
         const balanceInLamports = await connection.getBalance(publicKey);
         const balanceInSol = balanceInLamports / 1_000_000_000; // Convert lamports to SOL
         setSolBalance(balanceInSol);
         if (process.env.NODE_ENV === "development") {
           console.log("Fetched solBalance:", balanceInSol);
         }
-      } catch (error) {
-        console.error("Error fetching SOL balance:", error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Error fetching SOL balance:", errorMessage);
         setSolBalance(0);
+        toast.error(`Failed to fetch SOL balance: ${errorMessage}`);
       }
     };
 
@@ -839,23 +1221,7 @@ export default function CreditSlider({creditBalance, setCreditBalance}: CreditSl
 
   const requiredSol = creditAmount * QUERY_COST;
   const hasEnoughSol = solBalance !== null && solBalance >= requiredSol;
-  const isValid =
-    creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
-
-  // Debug log to confirm QUERY_COST_FIXED_DECIMALS and button state
-  if (process.env.NODE_ENV === "development") {
-    console.log({
-      QUERY_COST,
-      QUERY_COST_FIXED_DECIMALS,
-      creditAmount,
-      requiredSol,
-      solBalance,
-      hasEnoughSol,
-      isValid,
-      isLoading: isSending || isAssigning,
-      isWalletConnected,
-    });
-  }
+  const isValid = creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
 
   const handlePayment = useCallback(async () => {
     if (!isWalletConnected) {
@@ -869,7 +1235,7 @@ export default function CreditSlider({creditBalance, setCreditBalance}: CreditSl
     }
     if (!hasEnoughSol) {
       toast.error(
-        `Insufficient SOL: Need ${requiredSol.toFixed(QUERY_COST_FIXED_DECIMALS)}, have ${solBalance?.toFixed(QUERY_COST_FIXED_DECIMALS) ?? "0"}`,
+        `Insufficient SOL: Need ${requiredSol.toFixed(QUERY_COST_FIXED_DECIMALS)}, have ${solBalance?.toFixed(QUERY_COST_FIXED_DECIMALS) ?? "0"}`
       );
       return;
     }
@@ -880,106 +1246,57 @@ export default function CreditSlider({creditBalance, setCreditBalance}: CreditSl
     }
 
     const attemptTransaction = async (): Promise<boolean> => {
-      console.log(
-        `Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`,
-        { creditAmount, recipient: VERAFY_WALLET, requiredSol, walletPublicKey: publicKey.toBase58() }
-      );
+      console.log(`Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`, {
+        creditAmount,
+        recipient: VERAFY_WALLET,
+        requiredSol,
+        walletPublicKey: publicKey.toBase58(),
+      });
 
-      // Debug wallet state before transaction
-      if (process.env.NODE_ENV === "development") {
-        console.log("Wallet state before transaction:", {
-          publicKey: publicKey.toBase58(),
-          signTransactionAvailable: !!signTransaction,
-          isWalletConnected,
-        });
-      }
-
-      // Check VERAFY_WALLET initialization
       try {
-        const connection = new Connection("https://api.devnet.solana.com", "confirmed");
         const verafyBalance = await connection.getBalance(new PublicKey(VERAFY_WALLET));
-        console.log("VERAFY_WALLET initialization:", {
-          address: VERAFY_WALLET,
-          balanceInSol: verafyBalance / 1_000_000_000,
-        });
         if (verafyBalance === 0) {
-          toast.error("Recipient wallet (VERAFY_WALLET) is not initialized. Contact support.");
+          toast.error("Recipient wallet is not initialized. Contact support.");
           return false;
         }
-      } catch (error) {
-        console.error("Error checking VERAFY_WALLET initialization:", error);
+      } catch (error: unknown) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Error checking VERAFY_WALLET:", errorMessage);
         toast.error("Failed to verify recipient wallet. Please try again.");
         return false;
       }
 
       try {
-        const result = await sendTransaction(
-          creditAmount,
-          new PublicKey(VERAFY_WALLET),
-        );
-        console.log("Transaction result:", {
-          signature: result.signature,
-          signedTx: result.signedTx ? "Transaction" : "null",
-          publicKey: publicKey?.toString(),
-        });
-
+        const result = await sendTransaction(creditAmount, new PublicKey(VERAFY_WALLET));
         if (result.signature && result.signedTx && publicKey) {
-          console.log(
-            "Transaction sent, assigning credits with signature:",
-            result.signature,
-          );
           const newBalance = await assignCredits(
             result.signature,
             result.signedTx,
             creditAmount,
-            publicKey,
+            publicKey
           );
-          setCreditBalance(newBalance.credits ?? 0); // Extract credits
+          setCreditBalance(newBalance.credits ?? 0);
           toast.success(`Successfully purchased ${creditAmount} credits!`);
           return true;
-        } else {
-          console.error("Missing transaction data:", {
-            signature: result.signature ?? "undefined",
-            signedTx: result.signedTx ? "Transaction" : "null",
-            publicKey: publicKey?.toString() ?? "undefined",
-          });
-          return false;
         }
+        return false;
       } catch (error: unknown) {
-        console.error("Transaction failed:", error);
-        if (error instanceof Error) {
-          if (error instanceof WalletSignTransactionError) {
-            console.error("WalletSignTransactionError details:", {
-              message: error.message,
-              name: error.name,
-            });
-            toast.error(
-              "Wallet signing failed: Ensure your wallet (e.g., Phantom) is open, unlocked, set to Devnet, and approve the transaction.",
-            );
-          } else if (error instanceof SendTransactionError) {
-            console.error("SendTransactionError details:", {
-              message: error.message,
-              logs: error.logs,
-            });
-            toast.error(`Transaction failed: ${error.message}. Check console for logs.`);
-          } else {
-            console.error("Generic error details:", {
-              message: error.message,
-              name: error.name,
-            });
-            toast.error(`Transaction failed: ${error.message}. Please try again.`);
-          }
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Transaction failed:", errorMessage);
+        if (error instanceof WalletSignTransactionError) {
+          toast.error("Transaction not approved. Please check your wallet and try again.");
+        } else if (error instanceof SendTransactionError) {
+          toast.error(`Transaction failed: ${errorMessage}. Check console for details.`);
         } else {
-          toast.error("Transaction failed: Unknown error. Please try again.");
+          toast.error(`Transaction failed: ${errorMessage}. Please try again.`);
         }
         return false;
       }
     };
 
-    // Execute transaction
     const success = await attemptTransaction();
     if (!success) {
-      toast.error("Transaction failed. Please ensure your wallet is set to Devnet and try again.");
+      toast.error("Transaction failed. Please ensure your wallet is set to the correct network.");
     }
   }, [
     isWalletConnected,
@@ -1023,8 +1340,7 @@ export default function CreditSlider({creditBalance, setCreditBalance}: CreditSl
     />
   );
 }
-
-
+--- components/credits/credits-layout.tsx ---
 "use client";
 
 // import { useEffect } from "react";
@@ -1073,11 +1389,7 @@ export function CreditsLayout() {
   );
 }
 
-
-
-components/credits/stake-slider.tsx
-
-
+--- components/credits/stake-slider.tsx ---
 "use client";
 
 import { useState } from "react";
@@ -1172,11 +1484,7 @@ export default function StakeSlider() {
   );
 }
 
-
-components/ask/wallet-toggle.tsx
-
-
-
+--- components/ask/wallet-toggle.tsx ---
 "use client";
 
 import { useCallback } from "react";
@@ -1256,10 +1564,7 @@ export default function WalletToggle({
     </div>
   );
 }
-
-components/ask/navbar-credits.tsx
-
-
+--- components/ask/navbar-credits.tsx ---
 "use client";
 
 import { useState, useEffect } from "react";
@@ -1343,9 +1648,7 @@ export default function NavbarCredits() {
   );
 }
 
-
-
-
+--- components/ask/payment-controls.tsx ---
 "use client";
 
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
@@ -1503,10 +1806,410 @@ export function PaymentControls({
     </>
   );
 }
+--- components/ask/query-form-ai-slider.tsx ---
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
 
+interface QueryFormAISliderProps {
+  queriesRequested: number;
+  handleQueryAmountChange: (newAmount: number) => void;
+  allowedAmountQueries: number;
+  context?: string;
+}
 
+export function QueryFormAISlider({
+  queriesRequested,
+  handleQueryAmountChange,
+  allowedAmountQueries,
+  context,
+}: QueryFormAISliderProps) {
+  return (
+    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md px-2 py-0">
+      <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-2 py-1 rounded-md min-w-[120px] text-center">
+        <span className="text-gray-500 dark:text-gray-200 ml-1 whitespace-nowrap i">
+          Query {queriesRequested} AIs:
+        </span>
+      </div>
+      <Slider
+        value={[queriesRequested]}
+        onValueChange={(value) => handleQueryAmountChange(value[0])}
+        min={1}
+        max={allowedAmountQueries}
+        step={1}
+        className="w-20
+          [&_[role=slider]]:h-5 [&_[role=slider]]:w-5
+          [&>*]:bg-gray-100
+          [&_[role=slider]]:bg-zinc-300
+          [&_[role=slider]]:dark:bg-zinc-300
+          [&_[role=slider]]:border
+          [&_[role=slider]]:border-zinc-400 [&_[role=slider]]:dark:border-zinc-500
+          [&_[role=slider]]:focus:ring-1
+          [&_[role=slider]]:focus:ring-zinc-500
+          [&>*]:h-5
+          [&>*]:bg-zinc-200
+          [&>*]:dark:bg-zinc-600
+          [&>*]:rounded-full"
+      />
+      {context !== "scrollbar" && (
+        <div className="invisible md:visible min-w-24">
+          <Button
+            className="border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer md:visible"
+            onClick={() => handleQueryAmountChange(queriesRequested - 1)}
+            disabled={queriesRequested <= 1}
+          >
+            -
+          </Button>
+          <Button
+            className="border-zinc-300 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer ml-1 md:visible"
+            onClick={() => handleQueryAmountChange(queriesRequested + 1)}
+            disabled={queriesRequested >= allowedAmountQueries}
+          >
+            +
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+}
 
-hooks/useCreditAssignment.tsx
+--- components/ask/query-form-input.tsx ---
+import { Button } from "@/components/ui/button";
+import { Dispatch, ReactNode, SetStateAction, useEffect } from "react";
+import { QueryFormModeSelector } from "./query-form-mode-selector";
+import { QueryFormAISlider } from "./query-form-ai-slider";
+import { QueryMode } from "@/lib/types";
+import { useCreditsStore } from "@/store/credit-store";
+import { toast } from "sonner";
+import { useButtonTextTimer } from "@/utils/button-text-timer";
+import { useState } from "react";
+
+interface QueryFormInputProps {
+  queryText: string;
+  setQueryText: Dispatch<SetStateAction<string>>;
+  placeholderText: string;
+  handleSubmit: () => void;
+  isSubmitting: boolean;
+  payWithWallet: boolean;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
+  userCreditsTotal: number;
+  userFreeCredits: number;
+  userPaidCredits: number;
+  isSubmitInteracted: boolean;
+  setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
+  queryMode: QueryMode;
+  queriesRequested: number;
+  handleQueryAmountChange: (newAmount: number) => void;
+  allowedAmountQueries: number;
+}
+
+export function QueryFormInput({
+  queryText,
+  setQueryText,
+  placeholderText,
+  handleSubmit,
+  isSubmitting,
+  queriesUnpaid,
+  queriesCostTotal,
+  isSubmitInteracted,
+  setIsSubmitInteracted,
+  queryMode,
+  queriesRequested,
+  handleQueryAmountChange,
+  allowedAmountQueries,
+}: QueryFormInputProps) {
+  const { displayUnpaid, hasPaid: storeHasPaid } = useCreditsStore();
+  const [buttonText, setButtonText] = useState<ReactNode>("Submit");
+  const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
+
+  const onSubmit = () => {
+    console.log("QueryFormInput onSubmit called:", {
+      queryText,
+      displayUnpaid,
+      storeHasPaid,
+      isSubmitting,
+      queriesUnpaid,
+      queriesCostTotal,
+    });
+    if (displayUnpaid > 0 && !storeHasPaid) {
+      console.log("onSubmit: Blocked due to unpaid queries and no payment");
+      toast.error("Please make a payment first", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+      });
+      return;
+    }
+    try {
+      startTimer();
+      handleSubmit();
+      console.log("handleSubmit executed successfully");
+    } catch (error: unknown) {
+      console.error("Query submission failed:", error);
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit query, please try again";
+      toast.error(errorMessage, {
+        style: { background: "#fee2e2", color: "#dc2626" },
+      });
+    }
+  };
+
+  // Reset button text and cancel timer when isSubmitting changes
+  useEffect(() => {
+    if (!isSubmitting) {
+      cancelTimer();
+      setButtonText("Submit");
+      console.log("QueryFormInput: Reset button text to Submit");
+    }
+  }, [isSubmitting, cancelTimer]);
+
+  return (
+    <>
+      <div className="flex flex-col mb-2">
+        <textarea
+          className={`w-full p-4 border rounded-lg h-24 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg ${
+            isSubmitInteracted && !queryText.trim()
+              ? "border-red-400"
+              : "border-gray-200"
+          }`}
+          placeholder={placeholderText}
+          value={queryText}
+          onChange={(e) => setQueryText(e.target.value)}
+        />
+      </div>
+      <div className="flex w-full">
+        <div className="flex items-center justify-start w-1/2">
+          <div className="flex items-center gap-0">
+            <QueryFormModeSelector queryMode={queryMode} />
+            <QueryFormAISlider
+              queriesRequested={queriesRequested}
+              handleQueryAmountChange={handleQueryAmountChange}
+              allowedAmountQueries={allowedAmountQueries}
+            />
+          </div>
+        </div>
+        <div className="flex items-center justify-end w-1/2">
+          <Button
+            className={`bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer ${
+              isSubmitInteracted && displayUnpaid > 0
+                ? "ring-2 ring-red-400"
+                : ""
+            }`}
+            onClick={onSubmit}
+            disabled={isSubmitting || (displayUnpaid > 0 && !storeHasPaid)}
+            onMouseEnter={() =>
+              displayUnpaid > 0 && setIsSubmitInteracted(true)
+            }
+            onMouseLeave={() => setIsSubmitInteracted(false)}
+            onMouseDown={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
+            onMouseUp={() => setIsSubmitInteracted(false)}
+          >
+            {buttonText}
+          </Button>
+        </div>
+      </div>
+    </>
+  );
+}
+--- components/ask/query-form.tsx ---
+import { QueryFormInput } from "@/components/ask/query-form-input";
+import { Dispatch, SetStateAction } from "react";
+import { QueryMode } from "@/lib/types";
+import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+
+interface QueryFormProps {
+  queryText: string;
+  setQueryText: Dispatch<SetStateAction<string>>;
+  placeholderText: string;
+  queryMode: QueryMode;
+  queriesRequested: number;
+  userFreeCredits: number;
+  userPaidCredits: number;
+  userCreditsTotal: number;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
+  handleQueryAmountChange: (newAmount: number) => void;
+  handleSubmit: () => void;
+  isSubmitting: boolean;
+  payWithWallet: boolean;
+  isSubmitInteracted: boolean;
+  setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
+}
+
+export function QueryForm({
+  queryText,
+  setQueryText,
+  placeholderText,
+  queryMode,
+  queriesRequested,
+  userFreeCredits,
+  userPaidCredits,
+  userCreditsTotal,
+  queriesUnpaid,
+  queriesCostTotal,
+  handleQueryAmountChange,
+  handleSubmit,
+  isSubmitting,
+  payWithWallet,
+  isSubmitInteracted,
+  setIsSubmitInteracted,
+}: QueryFormProps) {
+  return (
+    <QueryFormInput
+      queryText={queryText}
+      setQueryText={setQueryText}
+      placeholderText={placeholderText}
+      queryMode={queryMode}
+      queriesRequested={queriesRequested}
+      userFreeCredits={userFreeCredits}
+      userPaidCredits={userPaidCredits}
+      userCreditsTotal={userCreditsTotal}
+      queriesUnpaid={queriesUnpaid}
+      queriesCostTotal={queriesCostTotal}
+      handleQueryAmountChange={handleQueryAmountChange}
+      handleSubmit={handleSubmit}
+      isSubmitting={isSubmitting}
+      payWithWallet={payWithWallet}
+      isSubmitInteracted={isSubmitInteracted}
+      setIsSubmitInteracted={setIsSubmitInteracted}
+      allowedAmountQueries={ALLOWED_AMOUNT_QUERIES}
+    />
+  );
+}
+--- components/ask/query-interface.tsx ---
+"use client";
+
+import { useState } from "react";
+import { QueryForm } from "@/components/ask/query-form";
+import ModeToggle from "@/components/ask/mode-toggle";
+import WalletToggle from "@/components/ask/wallet-toggle";
+import QueryStats from "@/components/ask/query-stats";
+import QueryResults from "@/components/ask/query-results";
+import { useQueryLogic } from "@/hooks/useQueryLogic";
+import { QueryMode } from "@/lib/types";
+import * as Popover from "@radix-ui/react-popover";
+import Link from "next/link";
+import { capitalizeWords } from "@/utils/text-utils";
+
+export default function QueryInterface() {
+  const [payWithWallet, setPayWithWallet] = useState(false);
+  const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
+
+  const {
+    queriesRequested,
+    queryText,
+    setQueryText,
+    isSubmitting,
+    error,
+    placeholderText,
+    queriesCostTotal,
+    queriesUnpaid,
+    userCreditsTotal,
+    userFreeCredits,
+    userPaidCredits,
+    queryMode,
+    viewMode,
+    handleSubmit,
+    handleQueryAmountChange,
+  } = useQueryLogic({ payWithWallet, setPayWithWallet });
+
+  const formatQueryMode = (mode: QueryMode) => {
+    if (mode === "fact-check") {
+      return "fact check";
+    }
+    return mode;
+  };
+
+  return (
+    <div className="container mx-auto px-4 py-1">
+      <div className="flex flex-col md:flex-row items-center justify-center flex-wrap md:flex-nowrap space-x-4 mb-2 mt-2">
+        <div className="inline-flex">
+          <ModeToggle viewMode={viewMode} />
+        </div>
+        <h1 className="text-zinc-900 dark:text-zinc-200 text-lg md:text-2xl font-bold text-center">
+          How can we help you{" "}
+          <Popover.Root>
+            <Popover.Trigger asChild>
+              <button
+                className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors cursor-pointer"
+                aria-label={`Change query mode, current mode: ${formatQueryMode(queryMode)}`}
+              >
+                {formatQueryMode(queryMode)}
+              </button>
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Content
+                className="bg-zinc-200 dark:bg-zinc-900 rounded-lg p-1 shadow-lg max-w-[160px] w-full z-50"
+                sideOffset={5}
+                align="center"
+              >
+                {(["fact-check", "predict", "create", "shop"] as QueryMode[]).map(
+                  (mode) => (
+                    <Link
+                      key={mode}
+                      href={`/ask/${mode}`}
+                      className={`block w-full px-4 py-2 text-sm font-medium rounded-md text-left cursor-pointer transition-colors dark:border-b dark:border-zinc-700 dark:last:border-none ${
+                        queryMode === mode
+                          ? "bg-teal-500 text-white"
+                          : "bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                      }`}
+                      role="menuitem"
+                    >
+                      {capitalizeWords(formatQueryMode(mode))}
+                    </Link>
+                  )
+                )}
+                <Popover.Arrow className="fill-zinc-200 dark:fill-zinc-900" />
+              </Popover.Content>
+            </Popover.Portal>
+          </Popover.Root>
+          ?
+        </h1>
+      </div>
+      <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-lg/20 p-4 max-w-4xl mx-auto">
+        {error && (
+          <p className="text-red-500 text-sm mb-2" role="alert">
+            {error}
+          </p>
+        )}
+        <WalletToggle
+          payWithWallet={payWithWallet}
+          setPayWithWallet={setPayWithWallet}
+          queriesCostTotal={queriesCostTotal}
+          userCreditsTotal={userCreditsTotal}
+          userFreeCredits={userFreeCredits}
+          userPaidCredits={userPaidCredits}
+          queriesRequested={queriesRequested}
+          queriesUnpaid={queriesUnpaid}
+          highlightPayButton={isSubmitInteracted && queriesUnpaid > 0}
+        />
+        <QueryForm
+          queryText={queryText}
+          setQueryText={setQueryText}
+          placeholderText={placeholderText}
+          queryMode={queryMode}
+          queriesRequested={queriesRequested}
+          userFreeCredits={userFreeCredits}
+          userPaidCredits={userPaidCredits}
+          userCreditsTotal={userCreditsTotal}
+          queriesUnpaid={queriesUnpaid}
+          queriesCostTotal={queriesCostTotal}
+          handleQueryAmountChange={handleQueryAmountChange}
+          handleSubmit={handleSubmit}
+          isSubmitting={isSubmitting}
+          payWithWallet={payWithWallet}
+          isSubmitInteracted={isSubmitInteracted}
+          setIsSubmitInteracted={setIsSubmitInteracted}
+        />
+        <QueryStats
+          userCreditsTotal={userCreditsTotal}
+          queriesUnpaid={queriesUnpaid}
+          queriesCostTotal={queriesCostTotal}
+          queriesRequested={queriesRequested}
+        />
+      </div>
+      <QueryResults viewMode={viewMode} />
+    </div>
+  );
+}
+--- hooks/useCreditAssignment.tsx ---
 import { useCallback, useState } from "react";
 import { PublicKey, Transaction } from "@solana/web3.js";
 
@@ -1588,11 +2291,7 @@ export const useCreditAssignment = () => {
 
   return { assignCredits, isAssigning, error };
 };
-
-
-hooks/useCreditBalance.tsx
-
-
+--- hooks/useCreditBalance.tsx ---
 "use client";
 
 import { useState, useEffect } from "react";
@@ -1647,12 +2346,7 @@ export const useCreditBalance = () => {
 
   return { creditBalance, setCreditBalance };
 };
-
-
-
-
-hooks/useSolanaTransaction.tsx
-
+--- hooks/useSolanaTransaction.tsx ---
 import { useCallback, useState } from "react";
 import {
   PublicKey,
@@ -1873,11 +2567,7 @@ export const useSolanaTransaction = (
     signedTx,
   };
 };
-
-
-
-hooks/useSolanaWallet.tsx
-
+--- hooks/useSolanaWallet.tsx ---
 import { useState, useCallback } from "react";
 import {
   PublicKey,
@@ -2051,9 +2741,143 @@ export const useSolanaTransaction = (
     signedTx,
   };
 };
+--- hooks/useBroadcastQuery.ts ---
+"use client";
 
+import { useCallback } from "react";
+import type { VoteResult } from "@/lib/types";
+import { Dispatch, SetStateAction } from "react";
+import { sanitizeError } from "@/utils/security-utils";
+import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 
+// Log to confirm file is loaded
+console.log("[useBroadcastQuery] File loaded");
 
+interface BroadcastQueryOptions {
+  csrfToken?: string;
+  queryMode?: string; // Allow string to match QueryMode
+  queriesRequested?: number; // Number of validators to query
+}
+
+interface BroadcastQueryResult {
+  broadcastQuery: (
+    query: string,
+    options?: BroadcastQueryOptions
+  ) => Promise<void>;
+}
+
+const refetchWithRetry = async (
+  retries: number,
+  fetchVoteHistory?: () => Promise<void>,
+  refetchNetworkState?: () => Promise<void>
+) => {
+  let lastError: Error | null = null;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      await Promise.all([
+        fetchVoteHistory ? fetchVoteHistory() : Promise.resolve(),
+        refetchNetworkState ? refetchNetworkState() : Promise.resolve(),
+      ]);
+      console.log(`[useBroadcastQuery] Refetch successful after ${i} retries`);
+      return;
+    } catch (err: unknown) {
+      lastError = err instanceof Error ? err : new Error(String(err));
+      console.warn(
+        `[useBroadcastQuery] Refetch attempt ${i + 1} failed:`,
+        lastError
+      );
+      if (i < retries) await new Promise((resolve) => setTimeout(resolve, 500));
+    }
+  }
+  if (lastError) console.error(sanitizeError(lastError));
+};
+
+export function useBroadcastQuery(
+  setVoteHistory: Dispatch<SetStateAction<VoteResult[]>>,
+  setLastVoteResult: Dispatch<SetStateAction<VoteResult | null>>,
+  refetchNetworkState?: () => Promise<void>,
+  fetchVoteHistory?: () => Promise<void>
+): BroadcastQueryResult {
+  const broadcastQuery = useCallback(
+    async (query: string, options: BroadcastQueryOptions = {}) => {
+      console.log("[useBroadcastQuery] Received query with options:", {
+        query,
+        queryMode: options.queryMode,
+        queriesRequested: options.queriesRequested,
+        csrfToken: options.csrfToken ? "[REDACTED]" : undefined,
+      });
+
+      try {
+        const response = await fetch("/api/broadcast-query", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            ...(options.csrfToken && { "X-CSRF-Token": options.csrfToken }),
+          },
+          body: JSON.stringify({
+            queryText: query,
+            queryMode: options.queryMode,
+            queriesRequested: options.queriesRequested,
+          }),
+          credentials: "include",
+        });
+
+        console.log("[useBroadcastQuery] Sent request with body:", {
+          queryText: query,
+          queryMode: options.queryMode,
+          queriesRequested: options.queriesRequested,
+        });
+
+        const voteResult = await response.json();
+
+        console.log("[useBroadcastQuery] Broadcast query response:", {
+          status: response.status,
+          url: response.url,
+          headers: Object.fromEntries(response.headers),
+          body: voteResult,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}`);
+        }
+
+        if ("error" in voteResult) {
+          throw new Error(voteResult.error);
+        }
+
+        setLastVoteResult(voteResult as VoteResult);
+        setVoteHistory((prevHistory: VoteResult[]) => {
+          const newHistory = [voteResult as VoteResult, ...prevHistory].slice(
+            0,
+            RESULT_QUERIES_CARDS
+          );
+          console.log(
+            "[useBroadcastQuery] Updating voteHistory:",
+            newHistory.length,
+            "items"
+          );
+          return newHistory;
+        });
+
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        await refetchWithRetry(1, fetchVoteHistory, refetchNetworkState);
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("[useBroadcastQuery] Error:", sanitizeError(error), {
+          query,
+          queryMode: options.queryMode,
+          queriesRequested: options.queriesRequested,
+        });
+        throw error;
+      }
+    },
+    [setVoteHistory, setLastVoteResult, refetchNetworkState, fetchVoteHistory]
+  );
+
+  return { broadcastQuery };
+}
+
+--- store/credit-store.ts ---
 import { create } from "zustand";
 import { DEFAULTS } from "@/lib/types";
 import { PublicKey } from "@solana/web3.js";
@@ -2254,9 +3078,7 @@ export const useCreditsStore = create<CreditsStore>((set, get) => ({
     }
   },
 }));
-
-lib/constants.ts
-
+--- lib/constants.ts ---
 // Solana Network Configuration
 // Constants for configuring the Solana network (Devnet or Mainnet) based on environment variables
 export const CURRENT_SOLANA_NETWORK_NAME =
@@ -2302,337 +3124,579 @@ export const RECENT_HISTORY_RESULTS = 50;
 export const RESULT_QUERIES_CARDS = 12;
 
 export const EXPORT_MAX_VALIDATORS = 20;
+--- utils/csrf-utils.ts ---
+import { NextRequest, NextResponse } from "next/server";
+import crypto from "crypto";
 
-"use client";
-
-import { useCallback, useState, useEffect } from "react";
-import { useCreditsStore } from "@/store/credit-store";
-import { useQueryStore } from "@/store/query-store";
-import { useVoteStore } from "@/store/vote-store";
-import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
-import { Dispatch, SetStateAction } from "react";
-import { getPlaceholderText } from "@/lib/query-utils";
-import { toast } from "sonner";
-import type { VoteResult } from "@/lib/types";
-import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
-import { sanitizeQueryText } from "@/utils/security-utils";
-
-interface UseQueryLogicProps {
-  payWithWallet: boolean;
-  setPayWithWallet: Dispatch<SetStateAction<boolean>>;
+export function generateCsrfToken(response: NextResponse): string {
+  const token = crypto.randomBytes(32).toString("hex");
+  response.cookies.set("csrf-token", token, {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax", // Relaxed for debugging
+    maxAge: 60 * 60, // 1 hour
+  });
+  console.log("CSRF Token Generated:", {
+    token,
+    cookieSettings: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 60 * 60,
+    },
+  });
+  return token;
 }
 
-export function useQueryLogic({
-  payWithWallet,
-  setPayWithWallet,
-}: UseQueryLogicProps) {
-  const [queryText, setQueryText] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+export function verifyCsrfToken(request: NextRequest): NextResponse | null {
+  const tokenFromHeader = request.headers.get("X-CSRF-Token");
+  const tokenFromCookie = request.cookies.get("csrf-token")?.value;
+  console.log("CSRF Verification:", {
+    tokenFromHeader,
+    tokenFromCookie,
+    cookies: request.cookies.getAll(),
+  });
+  if (!tokenFromHeader || !tokenFromCookie || tokenFromHeader !== tokenFromCookie) {
+    console.error("CSRF validation failed:", {
+      tokenFromHeader,
+      tokenFromCookie,
+    });
+    return NextResponse.json(
+      { error: "Invalid or missing CSRF token" },
+      { status: 403 },
+    );
+  }
+  return null;
+}
+--- app/api/csrf-token/route.ts ---
+import { NextResponse } from "next/server";
+import { generateCsrfToken } from "@/utils/csrf-utils";
+
+export async function GET() {
+  try {
+    // Create response without committing JSON yet
+    const response = new NextResponse();
+    const csrfToken = generateCsrfToken(response);
+    // Set JSON body after setting cookie
+    return NextResponse.json({ csrfToken }, { status: 200, headers: response.headers });
+  } catch (error) {
+    console.error("Error generating CSRF token:", error);
+    return NextResponse.json({ error: "Failed to generate CSRF token" }, { status: 500 });
+  }
+}
+--- components/ask/query-stats.tsx ---
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, Coins, Layers } from "lucide-react";
+import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useCreditsStore } from "@/store/credit-store";
+
+interface QueryStatsProps {
+  userCreditsTotal: number;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
+  queriesRequested: number;
+}
+
+export default function QueryStats({
+  userCreditsTotal,
+  queriesUnpaid,
+  queriesCostTotal,
+  queriesRequested,
+}: QueryStatsProps) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [hasTriggeredOpen, setHasTriggeredOpen] = useState(false);
+  const [hasTriggeredClose, setHasTriggeredClose] = useState(false);
+  const { publicKey } = useWallet();
+  const {
+    fetchSavedCredits,
+    savedCredits,
+    totalCredits,
+    displayUnpaid,
+    setUserCreditsTotal,
+    setQueriesUnpaid,
+    setQueriesCostTotal,
+    hasPaid,
+  } = useCreditsStore();
+
+  // Fetch saved credits and sync store props
+  useEffect(() => {
+    console.log("QueryStats syncing store:", {
+      userCreditsTotal,
+      queriesUnpaid,
+      queriesCostTotal,
+      queriesRequested,
+      hasPaid,
+      publicKey: publicKey?.toBase58() || "none",
+    });
+    fetchSavedCredits(publicKey);
+    setUserCreditsTotal(userCreditsTotal);
+    setQueriesUnpaid(queriesUnpaid);
+    setQueriesCostTotal(queriesCostTotal);
+  }, [
+    publicKey,
+    userCreditsTotal,
+    queriesUnpaid,
+    queriesCostTotal,
+    queriesRequested,
+    hasPaid,
+    fetchSavedCredits,
+    setUserCreditsTotal,
+    setQueriesUnpaid,
+    setQueriesCostTotal,
+  ]);
+
+  // Auto-trigger open/close based on displayUnpaid
+  useEffect(() => {
+    if (displayUnpaid > 0 && !hasTriggeredOpen) {
+      setIsOpen(true);
+      setHasTriggeredOpen(true);
+      setHasTriggeredClose(false);
+    } else if (displayUnpaid <= 0 && !hasTriggeredClose) {
+      setIsOpen(false);
+      setHasTriggeredClose(true);
+      setHasTriggeredOpen(false);
+    }
+  }, [displayUnpaid, hasTriggeredOpen, hasTriggeredClose, isOpen]);
+
+  // Debug logging
+  console.log("QueryStats collapsible state:", {
+    displayUnpaid,
+    isOpen,
+    hasTriggeredOpen,
+    hasTriggeredClose,
+    hasPaid,
+  });
+  console.log("Credits left calculation:", {
+    savedCredits,
+    userCreditsTotal,
+    queriesRequested,
+    creditsLeft: Math.max(0, totalCredits - queriesRequested),
+  });
+  console.log("Queries unpaid calculation:", {
+    queriesUnpaid,
+    queriesCostTotal,
+    totalCredits,
+    displayUnpaid,
+    hasPaid,
+  });
+  console.log("Showing query cost:", {
+    queriesCostTotal,
+    solCost: queriesCostTotal * QUERY_COST,
+  });
+
+  return (
+    <div className="w-full mt-4">
+      {/* Mobile: Collapsible; Desktop: Always visible */}
+      <Collapsible open={isOpen} onOpenChange={setIsOpen} className="md:hidden">
+        <CollapsibleTrigger asChild>
+          <Button
+            variant="outline"
+            className="flex items-center justify-between w-full bg-zinc-200 dark:bg-zinc-700 text-gray-700 dark:text-zinc-300 cursor-pointer truncate"
+          >
+            <span>
+              Credits left: {Math.max(0, totalCredits - queriesRequested)}
+            </span>
+            <ChevronDown
+              className={`h-5 w-5 transition-transform ${isOpen ? "rotate-180" : ""}`}
+            />
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="flex flex-col gap-4 mt-4">
+            <div className="md:flex items-center gap-2 hidden">
+              <span className="text-gray-700 dark:text-zinc-400">
+                Credits left
+              </span>
+              <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+                {Math.max(0, totalCredits - queriesRequested)}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-gray-700 dark:text-zinc-400">
+                Query cost: ({displayUnpaid})
+              </span>
+              {displayUnpaid > 0 && (
+                <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+                  {queriesCostTotal} credits (
+                  {(queriesCostTotal * QUERY_COST).toFixed(
+                    QUERY_COST_FIXED_DECIMALS
+                  )}{" "}
+                  SOL)
+                </span>
+              )}
+            </div>
+            <Link href="/credits">
+              <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
+              Stake to get more
+              </Button>
+            </Link>
+            <Link href="/credits">
+              <Button className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
+                Buy Credits
+              </Button>
+            </Link>
+          </div>
+        </CollapsibleContent>
+      </Collapsible>
+
+      {/* Desktop: Always visible */}
+      <div className="hidden md:flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-gray-700 dark:text-zinc-400">Credits left</span>
+          <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+            {Math.max(0, totalCredits - queriesRequested)}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-gray-700 dark:text-zinc-400">
+            Query cost: ({displayUnpaid})
+          </span>
+          {displayUnpaid > 0 && (
+            <span className="bg-zinc-100 dark:bg-zinc-800 px-3 py-1 rounded-full text-zinc-700 dark:text-zinc-300">
+              {queriesCostTotal} credits (
+              {(queriesCostTotal * QUERY_COST).toFixed(
+                QUERY_COST_FIXED_DECIMALS
+              )}{" "}
+              SOL)
+            </span>
+          )}
+        </div>
+        <div className="flex justify-between gap-2">
+          <Link href="/credits">
+            <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
+            <Layers /> Stake to get more
+            </Button>
+          </Link>
+          <Link href="/credits">
+          <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
+          <Coins /> Buy Credits
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+--- components/ask/consensus/current-query.tsx ---
+"use client";
+
+import { useNetworkState } from "@/hooks/useNetworkState";
+import { VoteResultContext } from "@/components/ask/ask-results-expert";
+import { useContext } from "react";
+import { motion } from "framer-motion";
+import { sanitizeQueryText } from "@/utils/security-utils";
+import { calculateVotePercentages } from "@/utils/vote-utils";
+import { formatErrorMessage } from "@/utils/error-utils";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
+
+const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
+  <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
+    <h3 className="text-md font-medium text-gray-800 dark:text-zinc-200 mb-4">
+      Current Query
+    </h3>
+    <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-40 w-full flex items-center justify-center">
+      {state === "loading" ? (
+        <span className="">
+          <LoadingSpinner type="beat" message="Loading query..." />
+        </span>
+      ) : (
+        <span className="text-red-500">
+          Error: {formatErrorMessage(state.error)}
+        </span>
+      )}
+    </div>
+  </div>
+);
+
+export default function CurrentQuery() {
+  const { isLoading, error } = useNetworkState();
+  const voteResult = useContext(VoteResultContext);
+
+  if (isLoading) {
+    return <QueryState state="loading" />;
+  }
+
+  if (error) {
+    return <QueryState state={{ error: formatErrorMessage(error) }} />;
+  }
+  // Sanitize queryText to prevent XSS
+  const sanitizedQueryText =
+    sanitizeQueryText(voteResult?.queryText) ||  <LoadingSpinner type="beat" message="Loading query..." />;
 
   const {
-    userFreeCredits,
-    userPaidCredits,
-    userCreditsTotal,
-    hasPaid: storeHasPaid,
-  } = useCreditsStore();
+    yes: yesPercentage,
+    no: noPercentage,
+    notVoted: notVotedPercentage,
+  } = calculateVotePercentages(voteResult);
+
+  return (
+    <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
+      <h3 className="text-xl font-medium text-gray-800 dark:text-zinc-200 mb-4">
+        Current Query
+      </h3>
+      <div className="space-y-4">
+        <div className="text-2xl text-gray-600 dark:text-gray-300">
+          {sanitizedQueryText}
+        </div>
+        <div
+          className={`
+            h-8 w-full
+            bg-gray-200 dark:bg-zinc-700
+            rounded-full overflow-hidden
+            flex
+          `}
+        >
+          {yesPercentage > 0 && (
+            <motion.div
+              className="h-full bg-emerald-400"
+              initial={{ width: 0 }}
+              animate={{ width: `${yesPercentage}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          )}
+          {noPercentage > 0 && (
+            <motion.div
+              className="h-full bg-red-400"
+              initial={{ width: 0 }}
+              animate={{ width: `${noPercentage}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          )}
+          {notVotedPercentage > 0 && (
+            <motion.div
+              className="h-full bg-gray-400 dark:bg-zinc-600"
+              initial={{ width: 0 }}
+              animate={{ width: `${notVotedPercentage}%` }}
+              transition={{ duration: 0.5 }}
+            />
+          )}
+        </div>
+        <div className="flex justify-between text-md text-gray-600 dark:text-gray-300">
+          <span>Yes: {yesPercentage.toFixed(0)}%</span>
+          <span>No: {noPercentage.toFixed(0)}%</span>
+          <span>Not Voted: {notVotedPercentage.toFixed(0)}%</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+--- hooks/useNavbarScrollbar.ts ---
+"use client";
+
+import { useState, useCallback, useEffect, Dispatch, SetStateAction, KeyboardEvent } from "react";
+import { useRouter } from "next/navigation"; // Import useRouter for client-side navigation
+import { useCreditsStore } from "@/store/credit-store";
+import { useQueryStore } from "@/store/query-store";
+import { QueryMode } from "@/lib/types";
+import { useSubmitQuery } from "@/hooks/useSubmitQuery";
+import { toast } from "sonner";
+import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+
+// Log to confirm file is loaded
+console.log("[useNavbarScrollbar] File loaded");
+
+interface NavbarScrollbarState {
+  isSubmitting: boolean;
+  payWithWallet: boolean;
+  hasAttemptedSubmit: boolean;
+}
+
+interface NavbarScrollbarReturn extends NavbarScrollbarState {
+  queryText: string;
+  setQueryText: Dispatch<SetStateAction<string>>;
+  setPayWithWallet: (value: boolean) => void;
+  queriesRequested: number;
+  userCreditsTotal: number;
+  userFreeCredits: number;
+  userPaidCredits: number;
+  queriesUnpaid: number;
+  queriesCostTotal: number;
+  queryMode: QueryMode;
+  updateQueryAmountRequested: (newAmount: number) => void;
+  handleKeyDown: (event: KeyboardEvent<HTMLInputElement>) => void;
+}
+
+export function useNavbarScrollbar(): NavbarScrollbarReturn {
+  const [navbarState, setNavbarState] = useState<NavbarScrollbarState>({
+    isSubmitting: false,
+    payWithWallet: true,
+    hasAttemptedSubmit: false,
+  });
+  const [queryText, setQueryText] = useState<string>("");
+  const router = useRouter(); // Initialize router for redirects
+
+  const { userFreeCredits, userPaidCredits, userCreditsTotal, hasPaid: storeHasPaid, displayUnpaid } = useCreditsStore();
   const {
     queriesRequested,
     queriesUnpaid,
     queriesCostTotal,
     queryMode,
-    viewMode,
-    setQueriesRequested,
-    setQueryMode,
+    setUserAiQueryAmountRequested,
     resetAfterSubmission,
   } = useQueryStore();
-  const { voteHistory, lastVoteResult, setVoteHistory, setLastVoteResult } =
-    useVoteStore();
 
-  const placeholderText = getPlaceholderText(queryMode);
+  const { submitQuery } = useSubmitQuery();
 
-  // Log queryMode on hook initialization
-  console.log("[useQueryLogic] Initial queryMode:", queryMode);
+  // Log queryMode and queriesRequested on hook initialization
+  console.log("[useNavbarScrollbar] Initial queryMode:", queryMode, "queriesRequested:", queriesRequested);
 
-  // Fetch CSRF token dynamically
-  const fetchCsrfToken = async (): Promise<string> => {
-    console.log("[useQueryLogic] Starting CSRF token fetch");
-    try {
-      const response = await fetch("/api/csrf-token", {
-        method: "GET",
-        credentials: "include",
-      });
-      console.log(
-        "[useQueryLogic] CSRF fetch response status:",
-        response.status
-      );
-      const data = await response.json();
-      if (!response.ok || !data.csrfToken) {
-        throw new Error(
-          data.error || `Failed to fetch CSRF token: ${response.status}`
-        );
-      }
-      console.log(
-        "[useQueryLogic] CSRF token fetched successfully:",
-        data.csrfToken
-      );
-      return data.csrfToken;
-    } catch (err) {
-      console.error("[useQueryLogic] CSRF token fetch failed:", err);
-      throw new Error(
-        err instanceof Error ? err.message : "Unknown error fetching CSRF token"
-      );
-    }
-  };
-
+  // Sync payWithWallet with queriesUnpaid
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const params = new URLSearchParams(window.location.search);
-      const q = params.get("q");
-      if (q === "shop") {
-        setQueryMode("shop");
-      }
-      console.log(
-        "[useQueryLogic] URL param 'q':",
-        q,
-        "Current queryMode:",
-        queryMode
-      );
+    const shouldPayWithWallet = queriesUnpaid > 0;
+    if (navbarState.payWithWallet !== shouldPayWithWallet) {
+      console.log("[useNavbarScrollbar] Syncing payWithWallet:", shouldPayWithWallet);
+      setNavbarState((prev) => ({ ...prev, payWithWallet: shouldPayWithWallet }));
     }
-  }, [setQueryMode]);
+  }, [queriesUnpaid, navbarState.payWithWallet]);
 
-  const handleSetVoteHistory: Dispatch<SetStateAction<VoteResult[]>> = (
-    history
-  ) => {
-    setVoteHistory(history);
-  };
-
-  const handleSetLastVoteResult: Dispatch<SetStateAction<VoteResult | null>> = (
-    result
-  ) => {
-    setLastVoteResult(result);
-  };
-
-  const { broadcastQuery } = useBroadcastQuery(
-    handleSetVoteHistory,
-    handleSetLastVoteResult,
-    undefined,
-    undefined
-  );
-
-  const handleQueryAmountChange = useCallback(
+  // Update query amount with clamping
+  const updateQueryAmountRequested = useCallback(
     (newAmount: number) => {
-      const clampedAmount = Math.max(
-        1,
-        Math.min(ALLOWED_AMOUNT_QUERIES, newAmount)
-      );
-      console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount);
-      setQueriesRequested(clampedAmount, userCreditsTotal);
+      const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
+      console.log("[useNavbarScrollbar] Updating queriesRequested:", clampedAmount);
+      setUserAiQueryAmountRequested(clampedAmount, userCreditsTotal);
     },
-    [setQueriesRequested, userCreditsTotal]
+    [setUserAiQueryAmountRequested, userCreditsTotal]
   );
 
+  // Submit query with validation
   const handleSubmit = async () => {
-    console.log("[useQueryLogic] handleSubmit called", {
+    console.log("[useNavbarScrollbar] handleSubmit called", {
       queryText,
       queryMode,
-      userCreditsTotal,
       queriesRequested,
       queriesUnpaid,
-      queriesCostTotal,
-      payWithWallet,
+      payWithWallet: navbarState.payWithWallet,
       storeHasPaid,
+      displayUnpaid,
     });
 
-    console.log("[useQueryLogic] Proceeding to validation");
+    // Check current page
+    const currentPath = typeof window !== "undefined" ? window.location.pathname : "";
+    console.log("[useNavbarScrollbar] Current page:", currentPath);
 
-    // Validate query submission in a separate try-catch to catch silent errors
-    try {
-      console.log("[useQueryLogic] Checking query text:", queryText);
-      if (!queryText.trim()) {
-        console.log("[useQueryLogic] Validation failed: Query cannot be empty");
-        toast.error("Query cannot be empty", {
-          style: { background: "#fee2e2", color: "#dc2626" },
-          duration: 5000,
-        });
-        return;
-      }
-      console.log("[useQueryLogic] Query text validation passed");
-
-      console.log("[useQueryLogic] Checking queriesUnpaid and payWithWallet:", {
-        queriesUnpaid,
-        payWithWallet,
-      });
-      if (queriesUnpaid > 0 && !payWithWallet) {
-        console.log(
-          "[useQueryLogic] Validation failed: Pay with Wallet required"
-        );
-        toast.error("Please enable Pay with Wallet for additional queries", {
-          style: { background: "#fee2e2", color: "#dc2626" },
-          duration: 5000,
-        });
-        return;
-      }
-      console.log("[useQueryLogic] Wallet validation passed");
-
-      console.log("[useQueryLogic] Checking payment status:", {
-        payWithWallet,
-        queriesUnpaid,
-        storeHasPaid,
-      });
-      if (payWithWallet && queriesUnpaid > 0 && !storeHasPaid) {
-        console.log("[useQueryLogic] Validation failed: Payment required", {
-          queriesUnpaid,
-          storeHasPaid,
-        });
-        toast.error("Please make a payment first", {
-          style: { background: "#fee2e2", color: "#dc2626" },
-          duration: 5000,
-        });
-        return;
-      }
-      console.log("[useQueryLogic] Payment validation passed");
-    } catch (err: unknown) {
-      console.error("[useQueryLogic] Validation error:", err);
-      const errorMessage =
-        err instanceof Error ? err.message : "Validation failed unexpectedly";
-      setError(sanitizeQueryText(errorMessage));
-      toast.error(errorMessage, {
+    // Validate query submission
+    console.log("[useNavbarScrollbar] Checking query text:", queryText);
+    if (!queryText.trim()) {
+      console.log("[useNavbarScrollbar] Validation failed: Query cannot be empty");
+      toast.error("Query cannot be empty", {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
-      setIsSubmitting(false);
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
       return;
     }
+    console.log("[useNavbarScrollbar] Query text validation passed");
 
-    setIsSubmitting(true);
-    setError(null);
-    console.log("[useQueryLogic] Entering try block");
+    console.log("[useNavbarScrollbar] Checking queriesUnpaid and payWithWallet:", { queriesUnpaid, payWithWallet: navbarState.payWithWallet });
+    if (queriesUnpaid > 0 && !navbarState.payWithWallet) {
+      console.log("[useNavbarScrollbar] Validation failed: Pay with Wallet required");
+      toast.error("Please enable Pay with Wallet for additional queries", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
+      return;
+    }
+    console.log("[useNavbarScrollbar] Wallet validation passed");
+
+    console.log("[useNavbarScrollbar] Checking payment status:", { payWithWallet: navbarState.payWithWallet, queriesUnpaid, storeHasPaid });
+    if (navbarState.payWithWallet && displayUnpaid > 0 && !storeHasPaid) {
+      console.log("[useNavbarScrollbar] Validation failed: Payment required", { displayUnpaid, storeHasPaid });
+      toast.error("Please make a payment first", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
+      return;
+    }
+    console.log("[useNavbarScrollbar] Payment validation passed");
+
+    console.log("[useNavbarScrollbar] Checking credit availability:", { userCreditsTotal, queriesRequested });
+    if (userCreditsTotal > 0 && userCreditsTotal < queriesRequested) {
+      console.log("[useNavbarScrollbar] Validation failed: Not enough queries available");
+      toast.error("Not enough queries available", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+      setNavbarState((prev) => ({ ...prev, hasAttemptedSubmit: true }));
+      return;
+    }
+    console.log("[useNavbarScrollbar] Credit validation passed");
+
+    setNavbarState((prev) => ({ ...prev, isSubmitting: true }));
     try {
-      // Fetch fresh CSRF token for each submission
-      const csrfToken = await fetchCsrfToken();
-      console.log(
-        "[useQueryLogic] Broadcasting query with queryMode:",
-        queryMode,
-        "queriesRequested:",
-        queriesRequested
-      );
-      await broadcastQuery(queryText, {
-        csrfToken,
-        queryMode,
-        queriesRequested,
-      }); // Pass queriesRequested
-      console.log("[useQueryLogic] Broadcast successful");
+      console.log("[useNavbarScrollbar] Submitting query with queryMode:", queryMode, "queriesRequested:", queriesRequested);
+      await submitQuery(queryText, { queryMode, queriesRequested });
+      console.log("[useNavbarScrollbar] Submission successful");
+
+      // Redirect to /ask/ if on /validators
+      if (currentPath === "/validators") {
+        console.log("[useNavbarScrollbar] Redirecting to /ask/ from /validators");
+        router.push("/ask/");
+      }
+
       resetAfterSubmission(userCreditsTotal);
+      setNavbarState((prev) => ({
+        ...prev,
+        hasAttemptedSubmit: false,
+      }));
       setQueryText("");
-      setPayWithWallet(queriesRequested > userCreditsTotal);
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to submit query";
-      setError(sanitizeQueryText(errorMessage));
-      console.error("[useQueryLogic] Submission failed:", {
+      const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
+      console.error("[useNavbarScrollbar] Submission failed:", {
         errorMessage,
         queryText,
         queryMode,
         queriesRequested,
         queriesUnpaid,
-        payWithWallet,
+        payWithWallet: navbarState.payWithWallet,
         storeHasPaid,
-        responseStatus:
-          err instanceof Error && err.message.includes("Server responded")
-            ? err.message
-            : "Unknown",
       });
       toast.error(errorMessage, {
         style: { background: "#fee2e2", color: "#dc2626" },
         duration: 5000,
       });
     } finally {
-      setIsSubmitting(false);
-      console.log("[useQueryLogic] Submission completed, isSubmitting:", false);
+      setNavbarState((prev) => ({ ...prev, isSubmitting: false }));
+      console.log("[useNavbarScrollbar] Submission completed, isSubmitting:", false);
+    }
+  };
+
+  // Handle Enter key for submission
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter" && !navbarState.isSubmitting) {
+      e.preventDefault();
+      console.log("[useNavbarScrollbar] Enter key pressed, triggering handleSubmit");
+      handleSubmit();
     }
   };
 
   return {
-    queriesRequested,
     queryText,
     setQueryText,
-    isSubmitting,
-    error,
-    setError,
-    placeholderText,
-    availableQueries: userCreditsTotal,
-    queriesCostTotal,
-    queriesUnpaid,
+    isSubmitting: navbarState.isSubmitting,
+    payWithWallet: navbarState.payWithWallet,
+    setPayWithWallet: (value) => setNavbarState((prev) => ({ ...prev, payWithWallet: value })),
+    hasAttemptedSubmit: navbarState.hasAttemptedSubmit,
+    queriesRequested,
+    userCreditsTotal,
     userFreeCredits,
     userPaidCredits,
-    userCreditsTotal,
+    queriesUnpaid,
+    queriesCostTotal,
     queryMode,
-    viewMode,
-    voteHistory,
-    lastVoteResult,
-    handleSubmit,
-    handleQueryAmountChange,
+    updateQueryAmountRequested,
+    handleKeyDown,
   };
 }
-
-
-
-
-"use client";
-
-import { useCallback } from "react";
-import { useVoteStore } from "@/store/vote-store";
-import { VoteResult, QueryMode } from "@/lib/types";
-import { submitQueryService } from "@/lib/services/query-service";
-import { sanitizeQueryText } from "@/utils/security-utils";
-import { RESULT_QUERIES_CARDS } from "@/lib/constants";
-
-// Log to confirm file is loaded
-console.log("[useSubmitQuery] File loaded");
-
-interface SubmitQueryOptions {
-  queryMode?: QueryMode; // Allow QueryMode for type safety
-  queriesRequested?: number; // Number of validators to query
-}
-
-interface SubmitQueryReturn {
-  submitQuery: (
-    queryText: string,
-    options?: SubmitQueryOptions
-  ) => Promise<void>;
-}
-
-export function useSubmitQuery(): SubmitQueryReturn {
-  const { setVoteHistory, setLastVoteResult } = useVoteStore();
-
-  const submitQuery = useCallback(
-    async (queryText: string, options: SubmitQueryOptions = {}) => {
-      console.log("[useSubmitQuery] Received query with options:", {
-        queryText,
-        queryMode: options.queryMode,
-        queriesRequested: options.queriesRequested,
-      });
-
-      // Submit query and update vote history
-      const sanitizedQuery = sanitizeQueryText(queryText);
-      console.log("[useSubmitQuery] Submitting query with queryMode:", options.queryMode, "queriesRequested:", options.queriesRequested);
-      const queryResponse = await submitQueryService(
-        sanitizedQuery,
-        options.queryMode,
-        options.queriesRequested
-      );
-      console.log("[useSubmitQuery] Submission successful, response:", queryResponse);
-      setVoteHistory((prev: VoteResult[]) => {
-        const newHistory = [...prev, queryResponse.voteResult].slice(0, RESULT_QUERIES_CARDS);
-        console.log("[useSubmitQuery] Updating voteHistory:", newHistory.length, "items");
-        return newHistory;
-      });
-      setLastVoteResult(queryResponse.voteResult);
-    },
-    [setVoteHistory, setLastVoteResult]
-  );
-
-  return { submitQuery };
-}
-
