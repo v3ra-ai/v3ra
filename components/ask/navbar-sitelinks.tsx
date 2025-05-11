@@ -5,7 +5,7 @@ import NavbarCredits from "./navbar-credits";
 
 /**
  * Renders navigation links for the site, hidden on mobile and displayed horizontally on desktop.
- * Includes links to Home, Explorer, Start a validator, Stake, and Shop.
+ * Includes links to Home, Ask, Predict, Shop, Validators, and Stake.
  */
 export function NavbarSitelinks() {
   return (
@@ -17,19 +17,19 @@ export function NavbarSitelinks() {
         Home
       </Link> */}
       <Link
-        href="/ask/?q=fact-check"
+        href="/ask/fact-check"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
-        Ask
+        Facts
       </Link>
       <Link
-        href="/ask/?q=predict"
+        href="/ask/predict"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Predict
       </Link>
       <Link
-        href="/ask/?q=shop"
+        href="/ask/shop"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Shop
@@ -53,7 +53,6 @@ export function NavbarSitelinks() {
         Stake
       </Link>
       <NavbarCredits />
-
     </div>
   );
 }

@@ -10,3 +10,10 @@ export function truncateText(text: string | undefined, maxLength: number = 45): 
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + "...";
 }
+
+export function capitalizeWords(text: string): string {
+  return text
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+}
