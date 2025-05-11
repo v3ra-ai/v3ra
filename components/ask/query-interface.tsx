@@ -10,6 +10,7 @@ import { useQueryLogic } from "@/hooks/useQueryLogic";
 import { QueryMode } from "@/lib/types";
 import * as Popover from "@radix-ui/react-popover";
 import Link from "next/link";
+import { capitalizeWords } from "@/utils/text-utils";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
@@ -75,7 +76,7 @@ export default function QueryInterface() {
                       }`}
                       role="menuitem"
                     >
-                      {formatQueryMode(mode)}
+                      {capitalizeWords(formatQueryMode(mode))}
                     </Link>
                   )
                 )}
