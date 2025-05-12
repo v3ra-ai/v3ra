@@ -1,6 +1,8 @@
 import { create } from "zustand";
 import { DEFAULTS } from "@/lib/types";
+import { FREE_CREDITS_COOKIE_NAME } from "@/lib/constants"; // Updated: Import from constants.ts
 import { PublicKey } from "@solana/web3.js";
+import Cookies from "js-cookie";
 
 interface CreditsStore {
   userFreeCredits: number;
@@ -12,7 +14,7 @@ interface CreditsStore {
   totalCredits: number;
   displayUnpaid: number;
   hasPaid: boolean;
-  savedCreditsTimestamp: number | null; // New: Cache timestamp
+  savedCreditsTimestamp: number | null;
   decrementFreeCredits: (amount: number) => void;
   decrementPaidCredits: (amount: number) => void;
   incrementPaidCredits: (amount: number) => void;
@@ -26,23 +28,81 @@ interface CreditsStore {
 
 const CACHE_DURATION = 60 * 1000; // 60 seconds in milliseconds
 
+// Helper function to get the current date string in browser timezone (YYYY-MM-DD)
+const getCurrentDateString = (): string => {
+  const now = new Date();
+  return now.toLocaleDateString("en-CA"); // YYYY-MM-DD format
+};
+
+// Helper function to manage free credits cookie
+const manageFreeCreditsCookie = () => {
+  const currentDate = getCurrentDateString();
+  const cookieData = Cookies.get(FREE_CREDITS_COOKIE_NAME);
+  let freeCredits = DEFAULTS.USER_FREE_CREDITS;
+  let lastResetDate = currentDate;
+
+  if (cookieData) {
+    try {
+      const parsed = JSON.parse(cookieData);
+      freeCredits = parsed.freeCredits ?? DEFAULTS.USER_FREE_CREDITS;
+      lastResetDate = parsed.lastResetDate ?? currentDate;
+      console.log("[credit-store] Loaded cookie:", { freeCredits, lastResetDate });
+    } catch (error) {
+      console.error("[credit-store] Error parsing cookie:", error);
+    }
+  }
+
+  // Reset credits if it's a new day
+  if (lastResetDate !== currentDate) {
+    freeCredits = DEFAULTS.USER_FREE_CREDITS;
+    lastResetDate = currentDate;
+    console.log("[credit-store] Reset free credits for new day:", { freeCredits, lastResetDate });
+  }
+
+  // Update cookie with current state
+  Cookies.set(
+    FREE_CREDITS_COOKIE_NAME,
+    JSON.stringify({ freeCredits, lastResetDate }),
+    { expires: 7 } // Cookie persists for 7 days
+  );
+  console.log("[credit-store] Set cookie:", { freeCredits, lastResetDate });
+
+  return freeCredits;
+};
+
+// Initialize free credits from cookie
+const initialFreeCredits = manageFreeCreditsCookie();
+
 export const useCreditsStore = create<CreditsStore>((set, get) => ({
-  userFreeCredits: DEFAULTS.USER_FREE_CREDITS,
+  userFreeCredits: initialFreeCredits,
   userPaidCredits: DEFAULTS.USER_PAID_CREDITS,
-  userCreditsTotal: DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS,
+  userCreditsTotal: initialFreeCredits + DEFAULTS.USER_PAID_CREDITS,
   savedCredits: null,
   queriesUnpaid: 0,
   queriesCostTotal: 0,
-  totalCredits: DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS,
+  totalCredits: initialFreeCredits + DEFAULTS.USER_PAID_CREDITS,
   displayUnpaid: 0,
   hasPaid: false,
-  savedCreditsTimestamp: null, // New: Initialize timestamp
+  savedCreditsTimestamp: null,
 
   decrementFreeCredits: (amount: number) =>
     set((state) => {
       const newFreeCredits = Math.max(0, state.userFreeCredits - amount);
       const newUserCreditsTotal = newFreeCredits + state.userPaidCredits;
       const newTotalCredits = (state.savedCredits ?? 0) + newUserCreditsTotal;
+      const currentDate = getCurrentDateString();
+      // Update cookie
+      Cookies.set(
+        FREE_CREDITS_COOKIE_NAME,
+        JSON.stringify({ freeCredits: newFreeCredits, lastResetDate: currentDate }),
+        { expires: 7 }
+      );
+      console.log("[credit-store] Decremented free credits:", {
+        amount,
+        newFreeCredits,
+        newUserCreditsTotal,
+        newTotalCredits,
+      });
       const newState = {
         userFreeCredits: newFreeCredits,
         userCreditsTotal: newUserCreditsTotal,

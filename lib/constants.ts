@@ -31,6 +31,7 @@ export const QUERIES_COST_EACH_DEFAULT = 1;
 export const ALLOWED_AMOUNT_QUERIES = 20;
 export const INITIAL_AVAILABLE_QUERIES = USER_FREE_CREDITS_DEFAULT; // Initial queries available, matches USER_FREE_CREDITS_DEFAULT
 export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT; // Default AI query amount, matches QUERIES_REQUESTED_DEFAULT
+export const FREE_CREDITS_COOKIE_NAME = "verafy_free_credits"; // New: Cookie name for free credits
 
 // Voting Outcomes
 // Constants for representing possible voting results
