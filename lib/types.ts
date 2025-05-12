@@ -1,5 +1,11 @@
 import { ApiKey } from "@prisma/client";
-import { USER_FREE_CREDITS_DEFAULT, USER_PAID_CREDITS_DEFAULT, QUERIES_REQUESTED_DEFAULT, USER_CREDIT_CONVERSION_DEFAULT, QUERIES_COST_EACH_DEFAULT } from "@/lib/constants";
+import {
+  USER_FREE_CREDITS_DEFAULT,
+  USER_PAID_CREDITS_DEFAULT,
+  QUERIES_REQUESTED_DEFAULT,
+  USER_CREDIT_CONVERSION_DEFAULT,
+  QUERIES_COST_EACH_DEFAULT,
+} from "@/lib/constants";
 import { AIValidationResponse } from "./validators/types";
 
 // Network state and validator interfaces
@@ -98,6 +104,12 @@ export interface ExtendedApiKey extends ApiKey {
 export type QueryMode = "fact-check" | "predict" | "create" | "shop";
 export type ViewMode = "viewStandard" | "viewExpert";
 
+// Cookie-related types
+export interface FreeCreditsCookie {
+  freeCredits: number;
+  lastResetDate: string;
+}
+
 // Constants
 export const DEFAULTS = {
   USER_FREE_CREDITS: USER_FREE_CREDITS_DEFAULT,
@@ -105,6 +117,7 @@ export const DEFAULTS = {
   QUERIES_REQUESTED: QUERIES_REQUESTED_DEFAULT,
   USER_CREDIT_CONVERSION: USER_CREDIT_CONVERSION_DEFAULT,
   QUERIES_COST_EACH: QUERIES_COST_EACH_DEFAULT,
+  FREE_CREDITS_COOKIE_NAME: "verafy_free_credits", // Define directly, no import
 };
 
 // Request to validate content
