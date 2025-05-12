@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import * as Slider from "@radix-ui/react-slider";
-import { Layers, Square } from "lucide-react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { QUERY_COST } from "@/lib/constants";
+// import { useState } from "react";
+// import * as Slider from "@radix-ui/react-slider";
+import { Layers } from "lucide-react";
+// import { useWallet } from "@solana/wallet-adapter-react";
+// import { QUERY_COST } from "@/lib/constants";
 import Image from "next/image";
 import Link from "next/link";
 
