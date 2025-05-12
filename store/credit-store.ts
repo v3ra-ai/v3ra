@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { DEFAULTS } from "@/lib/types";
-import { FREE_CREDITS_COOKIE_NAME } from "@/lib/constants"; // Updated: Import from constants.ts
+import { FREE_CREDITS_COOKIE_NAME, USER_FREE_CREDITS_DEFAULT } from "@/lib/constants";
 import { PublicKey } from "@solana/web3.js";
 import Cookies from "js-cookie";
 
@@ -34,17 +34,41 @@ const getCurrentDateString = (): string => {
   return now.toLocaleDateString("en-CA"); // YYYY-MM-DD format
 };
 
+// Helper function to validate free credits server-side
+const validateFreeCreditsServerSide = async (
+  freeCredits: number,
+  lastResetDate: string
+): Promise<number> => {
+  try {
+    const response = await fetch("/api/credits/validate-free-credits", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ freeCredits, lastResetDate }),
+    });
+    const data = await response.json();
+    if (!response.ok || typeof data.freeCredits !== "number") {
+      console.warn("[credit-store] Server validation failed:", data);
+      return USER_FREE_CREDITS_DEFAULT;
+    }
+    console.log("[credit-store] Server validated freeCredits:", data.freeCredits);
+    return data.freeCredits;
+  } catch (error) {
+    console.error("[credit-store] Error validating free credits server-side:", error);
+    return USER_FREE_CREDITS_DEFAULT;
+  }
+};
+
 // Helper function to manage free credits cookie
-const manageFreeCreditsCookie = () => {
+const manageFreeCreditsCookie = async () => {
   const currentDate = getCurrentDateString();
   const cookieData = Cookies.get(FREE_CREDITS_COOKIE_NAME);
-  let freeCredits = DEFAULTS.USER_FREE_CREDITS;
+  let freeCredits = USER_FREE_CREDITS_DEFAULT;
   let lastResetDate = currentDate;
 
   if (cookieData) {
     try {
       const parsed = JSON.parse(cookieData);
-      freeCredits = parsed.freeCredits ?? DEFAULTS.USER_FREE_CREDITS;
+      freeCredits = parsed.freeCredits ?? USER_FREE_CREDITS_DEFAULT;
       lastResetDate = parsed.lastResetDate ?? currentDate;
       console.log("[credit-store] Loaded cookie:", { freeCredits, lastResetDate });
     } catch (error) {
@@ -54,12 +78,15 @@ const manageFreeCreditsCookie = () => {
 
   // Reset credits if it's a new day
   if (lastResetDate !== currentDate) {
-    freeCredits = DEFAULTS.USER_FREE_CREDITS;
+    freeCredits = USER_FREE_CREDITS_DEFAULT;
     lastResetDate = currentDate;
     console.log("[credit-store] Reset free credits for new day:", { freeCredits, lastResetDate });
   }
 
-  // Update cookie with current state
+  // Validate freeCredits server-side
+  freeCredits = await validateFreeCreditsServerSide(freeCredits, lastResetDate);
+
+  // Update cookie with validated state
   Cookies.set(
     FREE_CREDITS_COOKIE_NAME,
     JSON.stringify({ freeCredits, lastResetDate }),
@@ -71,7 +98,7 @@ const manageFreeCreditsCookie = () => {
 };
 
 // Initialize free credits from cookie
-const initialFreeCredits = manageFreeCreditsCookie();
+const initialFreeCredits = await manageFreeCreditsCookie();
 
 export const useCreditsStore = create<CreditsStore>((set, get) => ({
   userFreeCredits: initialFreeCredits,
