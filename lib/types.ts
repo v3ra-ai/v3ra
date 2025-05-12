@@ -175,3 +175,9 @@ export function aiValidatorToUiValidator(aiValidator: AIValidator): AIValidator 
     validate: aiValidator.validate,
   };
 }
+
+
+export interface User {
+  id: string;
+  email?: string;
+}
