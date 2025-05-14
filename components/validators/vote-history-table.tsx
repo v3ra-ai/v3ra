@@ -107,16 +107,16 @@ export default function VoteHistoryTable({
   return (
     <div className="mt-8">
       {stats && (
-        <div className="space-y-4 py-4 border-y-2">
+        <div className="flex flex-col space-y-4 py-4 border-y-2 border-0 justify-center items-center">
           <h2 className="text-lg text-center font-semibold text-zinc-800 dark:text-zinc-200">
             Vote Statistics {isRecentActive ? "(Recent)" : "(All)"}
           </h2>
-          <div className="flex flex-wrap gap-8 w-full md: justify-center ">
+          <div className="flex flex-wrap text-center gap-8 w-[50%] md:w-full justify-center border-0">
             <div className="w-full sm:w-auto justify-center ">
               <p className="text-2xl text-center font-semibold text-zinc-800 dark:text-zinc-200">
                 {stats.totalVotes}
               </p>
-              <h3 className="text-sm text-zinc-600 dark:text-zinc-300">
+              <h3 className="text-sm text-center text-zinc-600 dark:text-zinc-300">
                 Total Votes
               </h3>
             </div>

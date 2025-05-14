@@ -35,7 +35,7 @@ export default function WalletToggle({
 
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
-      console.log("[WalletToggle] handleCheckedChange:", { checked, queriesUnpaid, context });
+      // console.log("[WalletToggle] handleCheckedChange:", { checked, queriesUnpaid, context });
       setPayWithWallet(checked);
     },
     [setPayWithWallet]
@@ -46,19 +46,19 @@ export default function WalletToggle({
   const shouldShowPaymentControls = totalCredits < queriesRequested;
   const paymentAmount = Math.max(0, queriesRequested - totalCredits) * QUERY_COST;
 
-  console.log("[WalletToggle] render:", {
-    payWithWallet,
-    queriesUnpaid,
-    totalCredits,
-    queriesCostTotal,
-    queriesRequested,
-    queriesLeft,
-    paymentAmount,
-    userPaidCredits,
-    context,
-    shouldShowPaymentControls,
-    screenWidth: typeof window !== "undefined" ? window.innerWidth : "unknown",
-  });
+  // console.log("[WalletToggle] render:", {
+  //   payWithWallet,
+  //   queriesUnpaid,
+  //   totalCredits,
+  //   queriesCostTotal,
+  //   queriesRequested,
+  //   queriesLeft,
+  //   paymentAmount,
+  //   userPaidCredits,
+  //   context,
+  //   shouldShowPaymentControls,
+  //   screenWidth: typeof window !== "undefined" ? window.innerWidth : "unknown",
+  // });
 
   return (
     <div className={`flex items-center justify-between ${context === "default" ? "mb-3" : "mb-1"}`}>
