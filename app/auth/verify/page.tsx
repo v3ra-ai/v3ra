@@ -22,7 +22,7 @@ export default function VerifyCodePage() {
     try {
       const email = localStorage.getItem("signupEmail");
       if (!email) {
-        throw new Error("No email found. Please try logging in again.");
+        throw new Error("No email found. Please try signing up again.");
       }
 
       // Debug cookies before OTP verification
@@ -32,16 +32,20 @@ export default function VerifyCodePage() {
       const { error } = await supabase.auth.verifyOtp({
         email,
         token: code,
-        type: "magiclink",
+        type: "magiclink", // Use 'signup' for OTP if magiclink isn't working
       });
 
       if (error) {
         throw new Error(error.message || "Invalid or expired code. Please try again.");
       }
 
-      // Explicitly refresh session to persist cookies
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      // Refresh session to persist cookies
+      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
       console.log("Session after OTP verification:", { sessionData, sessionError });
+
+      if (sessionError) {
+        throw new Error(sessionError.message || "Failed to refresh session after verification.");
+      }
 
       // Debug cookies after OTP verification
       const cookiesAfter = document.cookie.split(";").map((c) => c.trim());
@@ -50,6 +54,7 @@ export default function VerifyCodePage() {
       router.push("/auth/callback");
     } catch (err: unknown) {
       const error = err as Error;
+      console.error("Verification error:", error.message, error.stack); // Debug log
       setError(error.message || "Invalid or expired code. Please try again.");
       setLoading(false);
     }
@@ -64,9 +69,9 @@ export default function VerifyCodePage() {
             Verify Email
           </h1>
           <p className="mb-4 text-center text-zinc-600 dark:text-zinc-400">
-            Enter the code sent to your email.
+            Enter the code sent to your email or click the magic link.
           </p>
-          {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
+          {error && <p className="text-red-500 mb-4 text-center text-sm sm:text-base">{error}</p>}
           <form onSubmit={handleVerify} className="space-y-6">
             <div>
               <Label htmlFor="code" className="text-zinc-800 dark:text-zinc-200 mb-2">

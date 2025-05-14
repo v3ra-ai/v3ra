@@ -7,6 +7,7 @@ import { useCreditsStore } from "@/store/credit-store";
 import { toast } from "sonner";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { useState } from "react";
+import { formatQueryMode } from "@/utils/text-utils";
 
 interface QueryFormInputProps {
   queryText: string;
@@ -44,7 +45,7 @@ export function QueryFormInput({
   allowedAmountQueries,
 }: QueryFormInputProps) {
   const { displayUnpaid, hasPaid: storeHasPaid, totalCredits, userFreeCredits } = useCreditsStore();
-  const [buttonText, setButtonText] = useState<ReactNode>("Submit");
+  const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
   const onSubmit = () => {
@@ -57,6 +58,7 @@ export function QueryFormInput({
       queriesCostTotal,
       totalCredits,
       queriesRequested,
+      queryMode,
     });
     if (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested) {
       console.log("[QueryFormInput] Blocked: Unpaid queries and insufficient total credits");
@@ -79,14 +81,14 @@ export function QueryFormInput({
     }
   };
 
-  // Reset button text and cancel timer when isSubmitting changes
+  // Update button text when isSubmitting or queryMode changes
   useEffect(() => {
     if (!isSubmitting) {
       cancelTimer();
-      setButtonText("Submit");
-      console.log("[QueryFormInput] Reset button text to Submit");
+      setButtonText(formatQueryMode(queryMode));
+      console.log("[QueryFormInput] Set button text to:", formatQueryMode(queryMode));
     }
-  }, [isSubmitting, cancelTimer]);
+  }, [isSubmitting, queryMode, cancelTimer]);
 
   const isSubmitDisabled = isSubmitting || (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested);
   const queriesLeft = Math.max(0, totalCredits - queriesRequested);
@@ -102,6 +104,8 @@ export function QueryFormInput({
     queriesRequested,
     queriesLeft,
     isSubmitDisabled,
+    queryMode,
+    buttonText,
   });
 
   return (
