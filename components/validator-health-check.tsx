@@ -34,11 +34,22 @@ export function ValidatorHealthCheck({
   const [loading, setLoading] = React.useState<boolean>(false);
   const [expanded, setExpanded] = React.useState<boolean>(false);
 
+  // Singleton interval management
+  const intervalRef = React.useRef<NodeJS.Timeout | null>(null);
+  const isCheckingRef = React.useRef<boolean>(false);
+
   // Function to check validator and API key health
   const checkHealth = React.useCallback(async () => {
+    if (isCheckingRef.current) {
+      console.log("[ValidatorHealthCheck] Skipping checkHealth: already in progress");
+      return;
+    }
+
+    isCheckingRef.current = true;
     setLoading(true);
 
     try {
+      console.log("[ValidatorHealthCheck] Fetching /api/admin/health-check");
       const response = await fetch("/api/admin/health-check");
       if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
@@ -52,7 +63,7 @@ export function ValidatorHealthCheck({
         onHealthIssue(data.message);
       }
     } catch (error) {
-      console.error("Failed to check validator health:", error);
+      console.error("[ValidatorHealthCheck] Failed to check validator health:", error);
       setHealth({
         status: "error",
         message: "Failed to check validator health",
@@ -69,18 +80,31 @@ export function ValidatorHealthCheck({
       }
     } finally {
       setLoading(false);
+      isCheckingRef.current = false;
     }
   }, [onHealthIssue]);
 
-  // Fetch health data when component mounts
+  // Singleton interval setup
   React.useEffect(() => {
-    checkHealth();
+    // Only set up interval if not already running
+    if (!intervalRef.current) {
+      console.log("[ValidatorHealthCheck] Setting up singleton interval");
+      checkHealth(); // Initial check on mount
 
-    // Set up interval to check health every 30 seconds
-    const interval = setInterval(checkHealth, 30000);
+      intervalRef.current = setInterval(() => {
+        console.log("[ValidatorHealthCheck] Running scheduled health check");
+        checkHealth();
+      }, 30000);
+    }
 
-    // Clean up interval on unmount
-    return () => clearInterval(interval);
+    // Cleanup on unmount
+    return () => {
+      if (intervalRef.current) {
+        console.log("[ValidatorHealthCheck] Clearing singleton interval");
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
   }, [checkHealth]);
 
   // Function to toggle expanded state
