@@ -112,6 +112,16 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Ensure dark theme background applies immediately for SSR */
+:where(html.dark) body {
+  background-color: oklch(0.145 0 0);
+}
+
+/* Light theme background for reference */
+:where(html:not(.dark)) body {
+  background-color: oklch(1 0 0);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -152,7 +162,6 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --chart-10: #0ea5e9;
-    --chart-10: #0ea5e9;
   }
 
   .dark {
@@ -160,7 +169,6 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-10: #0ea5e9;
     --chart-10: #0ea5e9;
   }
 }

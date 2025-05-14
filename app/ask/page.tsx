@@ -1,32 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Navbar from "@/components/ask/navbar";
 import QueryInterface from "@/components/ask/query-interface";
 import { SolanaProvider } from "@/components/solana-provider";
-import { useTheme } from "next-themes";
 import AskFooter from "@/components/ask/ask-footer";
 import { useQueryStore } from "@/store/query-store";
+import { useBackgroundImage } from "@/hooks/useBackgroundImage";
 
 export default function AskPage() {
-  const { theme } = useTheme();
-  const [mounted, setMounted] = useState(false);
-  const setQueryMode = useQueryStore((state) => state.setQueryMode);
+  const backgroundImage = useBackgroundImage();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const setQueryMode = useQueryStore((state) => state.setQueryMode);
 
   useEffect(() => {
     setQueryMode("fact-check");
     console.log("[ask/page] Set queryMode to fact-check");
   }, [setQueryMode]);
-
-  const backgroundImage = mounted
-    ? theme === "dark"
-      ? "url(/bg_home_black.jpg)"
-      : "url(/bg_home_white.jpg)"
-    : "url(/bg_home_white.jpg)";
 
   return (
     <SolanaProvider>

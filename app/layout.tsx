@@ -1,4 +1,3 @@
-// app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -13,14 +12,21 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Verafy v0 Testnet",
-  description:
-    "A simulated blockchain testnet with Solana-like leader rotation",
-  generator: "v0.dev",
+  description: "Verafy Testnet interface and explorer",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en">
+      <head>
+        <link rel="preload" as="style" href="/globals.css" />
+        <link rel="preload" as="image" href="/bg_home_black.jpg" />
+        <style>{`
+          html.dark body {
+            background-color: oklch(0.145 0 0);
+          }
+        `}</style>
+      </head>
       <body className={inter.className}>
         <ThemeProvider
           attribute="class"
@@ -38,7 +44,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               richColors
               position="bottom-center"
               closeButton
-
               visibleToasts={1}
             />
           </SolanaProvider>

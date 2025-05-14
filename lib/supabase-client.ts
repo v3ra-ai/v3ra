@@ -12,19 +12,19 @@ if (!supabaseAnonKey) {
 const cookieStorage = {
   getItem(key: string) {
     if (typeof window === 'undefined') {
-      console.log(`Storage getItem skipped on server: ${key}`);
+      // console.log(`Storage getItem skipped on server: ${key}`);
       return null;
     }
     const value = document.cookie
       .split('; ')
       .find((row) => row.startsWith(`${key}=`))
       ?.split('=')[1];
-    console.log(`Storage getItem: ${key}=${value || 'null'}`);
+    // console.log(`Storage getItem: ${key}=${value || 'null'}`);
     return value || null;
   },
   setItem(key: string, value: string) {
     if (typeof window === 'undefined') {
-      console.log(`Storage setItem skipped on server: ${key}`);
+      // console.log(`Storage setItem skipped on server: ${key}`);
       return;
     }
     console.log(`Storage setItem: ${key}=${value}`);

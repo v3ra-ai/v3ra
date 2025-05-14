@@ -40,19 +40,19 @@ export async function broadcastCustomQuery(
       return { error: "No active validators found" };
     }
 
-    console.log(
-      `[actions] Found ${dbValidators.length} active validators:`,
-      dbValidators.map((v) => `${v.provider} (${v.profileName})`)
-    );
+    // console.log(
+    //   `[actions] Found ${dbValidators.length} active validators:`,
+    //   dbValidators.map((v) => `${v.provider} (${v.profileName})`)
+    // );
 
     // Limit validators to queriesRequested (if provided and less than available)
     const selectedValidators = queriesRequested
       ? dbValidators.slice(0, Math.min(queriesRequested, dbValidators.length))
       : dbValidators;
-    console.log(
-      `[actions] Selected ${selectedValidators.length} validators for query:`,
-      selectedValidators.map((v) => `${v.provider} (${v.profileName})`)
-    );
+    // console.log(
+    //   `[actions] Selected ${selectedValidators.length} validators for query:`,
+    //   selectedValidators.map((v) => `${v.provider} (${v.profileName})`)
+    // );
 
     const sessionId = uuidv4();
 
@@ -73,9 +73,9 @@ export async function broadcastCustomQuery(
     for (const dbValidator of selectedValidators) {
       let validator;
 
-      console.log(
-        `[actions] Initializing validator: ${dbValidator.provider} (${dbValidator.profileName})`
-      );
+      // console.log(
+      //   `[actions] Initializing validator: ${dbValidator.provider} (${dbValidator.profileName})`
+      // );
 
       if (dbValidator.provider === "OpenAI") {
         const modelName =
@@ -137,14 +137,14 @@ export async function broadcastCustomQuery(
         continue;
       }
 
-      console.log(
-        "[actions] Validating with validator:",
-        dbValidator.provider,
-        "queryMode:",
-        queryMode,
-        "validatorId:",
-        dbValidator.id
-      );
+      // console.log(
+      //   "[actions] Validating with validator:",
+      //   dbValidator.provider,
+      //   "queryMode:",
+      //   queryMode,
+      //   "validatorId:",
+      //   dbValidator.id
+      // );
 
       const validationPromise = validator
         .validate({
@@ -152,10 +152,10 @@ export async function broadcastCustomQuery(
           queryMode,
         })
         .then(async (response) => {
-          console.log(
-            `[actions] Validation response for ${dbValidator.provider} (${dbValidator.profileName}):`,
-            { vote: response.vote, confidence: response.confidence }
-          );
+          // console.log(
+          //   `[actions] Validation response for ${dbValidator.provider} (${dbValidator.profileName}):`,
+          //   { vote: response.vote, confidence: response.confidence }
+          // );
           await validatorService.recordValidatorResponse({
             validatorId: dbValidator.id,
             voteSessionId: sessionId,
