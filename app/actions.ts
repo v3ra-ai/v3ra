@@ -194,12 +194,12 @@ export async function broadcastCustomQuery(
     const validatorResponses: VoteValidatorResponse[] = await Promise.all(
       validatorResponsePromises
     );
-    console.log(
-      `[actions] Collected ${validatorResponses.length} validator responses:`,
-      validatorResponses.map(
-        (r) => `${r.provider} (${r.profileName}): ${r.vote}`
-      )
-    );
+    // console.log(
+    //   `[actions] Collected ${validatorResponses.length} validator responses:`,
+    //   validatorResponses.map(
+    //     (r) => `${r.provider} (${r.profileName}): ${r.vote}`
+    //   )
+    // );
 
     // Log if fewer responses than requested
     if (queriesRequested && validatorResponses.length < queriesRequested) {

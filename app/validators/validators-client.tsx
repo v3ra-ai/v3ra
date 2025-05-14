@@ -44,9 +44,9 @@ export default function ValidatorsClient({ validators }: ValidatorsClientProps) 
               </TableHeader>
               <TableBody>
                 {validators.map((validator) => {
-                  console.log(validators);
+                  // console.log(validators);
 
-                  console.log(`/icons/${validator.avatarUrl}`);
+                  // console.log(`/icons/${validator.avatarUrl}`);
 
                   return (
                   <TableRow
