@@ -42,10 +42,9 @@ export default function QueryInterface() {
     error,
     viewMode,
   });
-
   return (
-    <div className="container mx-auto px-4 py-1">
-      <div className="flex flex-col md:flex-row items-center justify-center flex-wrap md:flex-nowrap space-x-4 mb-2 mt-2">
+    <div className="container mx-auto px-4 py-1 min-h-screen">
+      <div className="flex flex-col md:flex-row items-center justify-center flex-wrap md:flex-nowrap space-x-4 mb-2">
         <div className="inline-flex">
           <ModeToggle viewMode={viewMode} />
         </div>
