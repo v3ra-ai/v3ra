@@ -112,25 +112,22 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Ensure dark theme background applies immediately for SSR */
-:where(html.dark) body {
-  background-color: oklch(0.145 0 0);
+/* Apply background to body */
+body {
+  @apply bg-background text-foreground;
 }
 
-/* Light theme background for reference */
-:where(html:not(.dark)) body {
-  background-color: oklch(1 0 0);
+/* Remove redundant background rules */
+:where(html.dark) body, :where(html:not(.dark)) body {
+  /* Removed; bg-background handles both themes */
 }
 
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
 
-  /* In your global CSS or component stylesheet */
+  /* Switch styles */
   .switch[data-state="unchecked"] {
     background-color: #e0e0e0 !important; /* Light gray background */
   }

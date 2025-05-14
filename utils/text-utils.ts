@@ -17,3 +17,10 @@ export function capitalizeWords(text: string): string {
     .map(word => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 }
+
+export function formatQueryMode(mode: string): string {
+  if (mode === "fact-check") {
+    return "Fact Check";
+  }
+  return capitalizeWords(mode);
+}

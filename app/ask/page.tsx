@@ -10,7 +10,6 @@ import { useBackgroundImage } from "@/hooks/useBackgroundImage";
 
 export default function AskPage() {
   const backgroundImage = useBackgroundImage();
-
   const setQueryMode = useQueryStore((state) => state.setQueryMode);
 
   useEffect(() => {
@@ -21,7 +20,7 @@ export default function AskPage() {
   return (
     <SolanaProvider>
       <main
-        className="min-h-screen"
+        className="min-h-screen bg-background"
         style={{
           backgroundImage,
           backgroundSize: "cover",

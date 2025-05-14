@@ -10,7 +10,7 @@ import { useQueryLogic } from "@/hooks/useQueryLogic";
 import { QueryMode } from "@/lib/types";
 import * as Popover from "@radix-ui/react-popover";
 import Link from "next/link";
-import { capitalizeWords } from "@/utils/text-utils";
+import { capitalizeWords, formatQueryMode } from "@/utils/text-utils";
 
 export default function QueryInterface() {
   const [payWithWallet, setPayWithWallet] = useState(false);
@@ -34,21 +34,14 @@ export default function QueryInterface() {
     handleQueryAmountChange,
   } = useQueryLogic({ payWithWallet, setPayWithWallet });
 
-
   console.log("QueryInterface render:", {
     payWithWallet,
     queriesUnpaid,
     userPaidCredits,
     queriesCostTotal,
     error,
+    viewMode,
   });
-
-  const formatQueryMode = (mode: QueryMode) => {
-    if (mode === "fact-check") {
-      return "fact check";
-    }
-    return mode;
-  };
 
   return (
     <div className="container mx-auto px-4 py-1">

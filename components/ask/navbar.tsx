@@ -73,12 +73,8 @@ export default function Navbar() {
   // Disable toggle on /credits due to forced light theme
   const isCreditsPage = false; // Placeholder until pathname is used
 
-  // Select logo based on theme
-  const logoSrc = mounted
-    ? theme === "dark"
-      ? "/verafy_logo_white.svg"
-      : "/verafy_logo_black.svg"
-    : "/verafy_logo_black.svg"; // Default to black logo before mounting
+  // Select logo based on theme, default to dark logo before mounting
+  const logoSrc = !mounted || theme === "dark" ? "/verafy_logo_white.svg" : "/verafy_logo_black.svg";
 
   // Toggle hamburger menu
   const toggleMenu = () => {
@@ -97,7 +93,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <div className="fixed top-0 w-full bg-white dark:bg-zinc-900 z-50 height-[16px]">
+    <div className="fixed top-0 w-full bg-background z-50 h-[80px]">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         {/* Logo */}
         <div className="flex items-center">
@@ -139,7 +135,7 @@ export default function Navbar() {
             />
             {/* Drawer */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-64 bg-white dark:bg-zinc-900 z-50 shadow-lg p-6"
+              className="fixed top-0 right-0 h-full w-64 bg-background z-50 shadow-lg p-6"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
