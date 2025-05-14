@@ -244,13 +244,13 @@ export async function broadcastCustomQuery(
       timestamp: new Date().toISOString(),
     };
 
-    console.log(
-      `[actions] Query result: ${result.validatorResponses.length} responses`,
-      { yesVotes, noVotes, notVoted, isConsensusReached, consensusValue }
-    );
+    // console.log(
+    //   `[actions] Query result: ${result.validatorResponses.length} responses`,
+    //   { yesVotes, noVotes, notVoted, isConsensusReached, consensusValue }
+    // );
     return result;
   } catch (error) {
-    console.error("[actions] Error broadcasting custom query:", error);
+    // console.error("[actions] Error broadcasting custom query:", error);
     return { error: (error as Error).message };
   }
 }
@@ -259,7 +259,7 @@ export async function fetchVoteHistory(): Promise<
   VoteResult[] | { error: string }
 > {
   try {
-    console.log("[actions] Starting fetchVoteHistory...");
+    // console.log("[actions] Starting fetchVoteHistory...");
     const voteSessions = await prisma.voteSession.findMany({
       orderBy: { timestamp: "desc" },
       take: 10,
