@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     const voteHistory = await getValidatorVoteHistory(validatorId, effectiveLimit);
     return NextResponse.json(voteHistory);
   } catch (error) {
-    console.error(`Error fetching vote history for validator ${validatorId}:`, error);
+    // console.error(`Error fetching vote history for validator ${validatorId}:`, error);
     return NextResponse.json({ error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
   }
 }

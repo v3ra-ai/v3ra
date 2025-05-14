@@ -24,7 +24,7 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    console.log('Received validator data:', body); // Debug log
+    // console.log('Received validator data:', body); // Debug log
     const { name, provider, modelName, active, description, validatorType, keyId } = body;
 
     if (!name || !provider || !modelName) {
