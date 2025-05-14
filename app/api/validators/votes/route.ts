@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     // Enforce maximum limit of MAX_VOTE_HISTORY_RESULTS
     const effectiveLimit = limit === '' || parsedLimit === 0 ? MAX_VOTE_HISTORY_RESULTS : Math.min(parsedLimit, MAX_VOTE_HISTORY_RESULTS);
     if (process.env.NODE_ENV === "development") {
-      console.log(`Fetching vote history for validator ${validatorId} with limit: ${effectiveLimit}`);
+      // console.log(`Fetching vote history for validator ${validatorId} with limit: ${effectiveLimit}`);
     }
     const voteHistory = await getValidatorVoteHistory(validatorId, effectiveLimit);
     return NextResponse.json(voteHistory);
