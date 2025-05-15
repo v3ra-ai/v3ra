@@ -112,15 +112,22 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* Apply background to body */
+body {
+  @apply bg-background text-foreground;
+}
+
+/* Remove redundant background rules */
+:where(html.dark) body, :where(html:not(.dark)) body {
+  /* Removed; bg-background handles both themes */
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
   }
-  body {
-    @apply bg-background text-foreground;
-  }
 
-  /* In your global CSS or component stylesheet */
+  /* Switch styles */
   .switch[data-state="unchecked"] {
     background-color: #e0e0e0 !important; /* Light gray background */
   }
@@ -152,7 +159,6 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
     --chart-10: #0ea5e9;
-    --chart-10: #0ea5e9;
   }
 
   .dark {
@@ -160,7 +166,6 @@
     --chart-2: 160 60% 45%;
     --chart-3: 30 80% 55%;
     --chart-4: 280 65% 60%;
-    --chart-10: #0ea5e9;
     --chart-10: #0ea5e9;
   }
 }

@@ -1,11 +1,10 @@
 import { Suspense } from "react";
-import { supabase } from "@/lib/supabase-client";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 import Navbar from "@/components/ask/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SignupError from "@/components/signup-error";
-import { createOrGetUser } from "@/lib/server-actions";
 import { redirect } from "next/navigation";
 
 export default async function SignupPage() {
@@ -15,7 +14,9 @@ export default async function SignupPage() {
     const username = formData.get("username") as string;
 
     try {
-      const { error } = await supabase.auth.signInWithOtp({
+      const supabaseServer = await createSupabaseServerClient();
+
+      const { error: otpError } = await supabaseServer.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: "http://localhost:3000/auth/callback",
@@ -23,22 +24,40 @@ export default async function SignupPage() {
         },
       });
 
-      if (error) {
-        throw new Error(error.message || "Failed to send signup code. Please try again.");
+      if (otpError) {
+        if (otpError.message.includes("rate limit")) {
+          redirect(
+            `/signup?error=${encodeURIComponent(
+              "Too many signup attempts. Please wait 60 seconds and try again."
+            )}`
+          );
+        }
+        redirect(
+          `/signup?error=${encodeURIComponent(
+            otpError.message || "Failed to send signup code. Please try again."
+          )}`
+        );
       }
 
-      await createOrGetUser("", email, username);
-      redirect("/auth/verify");
+      console.log("OTP sent for email:", email); // Debug log
+
+      redirect("/auth/verify?from=signup");
     } catch (err) {
       const error = err as Error;
-      redirect(`/signup?error=${encodeURIComponent(error.message || "Signup failed. Please try again.")}`);
+      console.error("Signup error:", error.message, error.stack); // Debug log
+      redirect(
+        `/signup?error=${encodeURIComponent(
+          error.message || "Signup failed. Please try again."
+        )}`
+      );
     }
   }
 
   async function handleOAuthSignup(provider: "google" | "github") {
     "use server";
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
+      const supabaseServer = await createSupabaseServerClient();
+      const { error } = await supabaseServer.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: "http://localhost:3000/auth/callback",
@@ -46,11 +65,20 @@ export default async function SignupPage() {
       });
 
       if (error) {
-        throw new Error(error.message || `Failed to sign up with ${provider}. Please try again.`);
+        redirect(
+          `/signup?error=${encodeURIComponent(
+            error.message || `Failed to sign up with ${provider}. Please try again.`
+          )}`
+        );
       }
     } catch (err) {
       const error = err as Error;
-      redirect(`/signup?error=${encodeURIComponent(error.message || `Signup with ${provider} failed. Please try again.`)}`);
+      console.error("OAuth signup error:", error.message, error.stack); // Debug log
+      redirect(
+        `/signup?error=${encodeURIComponent(
+          error.message || `Signup with ${provider} failed. Please try again.`
+        )}`
+      );
     }
   }
 

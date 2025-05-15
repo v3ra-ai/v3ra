@@ -23,8 +23,8 @@ export default function ValidatorListClient({ initialValidators, openRouterModel
 
   // Debug initialValidators on mount
   useEffect(() => {
-    console.log('Initial Validators:', initialValidators);
-    console.log('Validators State:', validators);
+    // console.log('Initial Validators:', initialValidators);
+    // console.log('Validators State:', validators);
   }, [initialValidators, validators]);
 
   // Handler for the add/edit form submission (handled by the form component)

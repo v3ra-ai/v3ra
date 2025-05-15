@@ -1,4 +1,3 @@
-// app/layout.tsx
 import "./globals.css";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -13,15 +12,37 @@ const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Verafy v0 Testnet",
-  description:
-    "A simulated blockchain testnet with Solana-like leader rotation",
-  generator: "v0.dev",
+  description: "Verafy Testnet interface and explorer",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preload" as="style" href="/globals.css" />
+        <link rel="preload" as="image" href="/bg_home_black.jpg" />
+        {/* Inline script to apply theme before render */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  const theme = localStorage.getItem('theme') || 'dark';
+                  if (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                  } else {
+                    document.documentElement.classList.remove('dark');
+                  }
+                  document.documentElement.setAttribute('data-theme', theme);
+                } catch (e) {
+                  console.error('Theme script error:', e);
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
+      <body className={inter.className} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -38,7 +59,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               richColors
               position="bottom-center"
               closeButton
-
               visibleToasts={1}
             />
           </SolanaProvider>

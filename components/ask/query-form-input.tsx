@@ -7,6 +7,7 @@ import { useCreditsStore } from "@/store/credit-store";
 import { toast } from "sonner";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { useState } from "react";
+import { formatQueryMode } from "@/utils/text-utils";
 
 interface QueryFormInputProps {
   queryText: string;
@@ -44,7 +45,7 @@ export function QueryFormInput({
   allowedAmountQueries,
 }: QueryFormInputProps) {
   const { displayUnpaid, hasPaid: storeHasPaid, totalCredits, userFreeCredits } = useCreditsStore();
-  const [buttonText, setButtonText] = useState<ReactNode>("Submit");
+  const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
   const onSubmit = () => {
@@ -57,6 +58,7 @@ export function QueryFormInput({
       queriesCostTotal,
       totalCredits,
       queriesRequested,
+      queryMode,
     });
     if (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested) {
       console.log("[QueryFormInput] Blocked: Unpaid queries and insufficient total credits");
@@ -79,14 +81,14 @@ export function QueryFormInput({
     }
   };
 
-  // Reset button text and cancel timer when isSubmitting changes
+  // Update button text when isSubmitting or queryMode changes
   useEffect(() => {
     if (!isSubmitting) {
       cancelTimer();
-      setButtonText("Submit");
-      console.log("[QueryFormInput] Reset button text to Submit");
+      setButtonText(formatQueryMode(queryMode));
+      console.log("[QueryFormInput] Set button text to:", formatQueryMode(queryMode));
     }
-  }, [isSubmitting, cancelTimer]);
+  }, [isSubmitting, queryMode, cancelTimer]);
 
   const isSubmitDisabled = isSubmitting || (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested);
   const queriesLeft = Math.max(0, totalCredits - queriesRequested);
@@ -102,6 +104,8 @@ export function QueryFormInput({
     queriesRequested,
     queriesLeft,
     isSubmitDisabled,
+    queryMode,
+    buttonText,
   });
 
   return (
@@ -118,9 +122,9 @@ export function QueryFormInput({
           onChange={(e) => setQueryText(e.target.value)}
         />
       </div>
-      <div className="flex w-full">
-        <div className="flex items-center justify-start w-1/2">
-          <div className="flex items-center gap-0">
+      <div className="flex flex-col sm:flex-row w-full gap-4">
+        <div className="flex items-center justify-start w-full sm:w-1/2">
+          <div className="flex items-center gap-0 w-full">
             <QueryFormModeSelector queryMode={queryMode} />
             <QueryFormAISlider
               queriesRequested={queriesRequested}
@@ -129,9 +133,9 @@ export function QueryFormInput({
             />
           </div>
         </div>
-        <div className="flex items-center justify-end w-1/2">
+        <div className="flex items-center justify-end w-full sm:w-1/2">
           <Button
-            className={`bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer ${
+            className={`bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full px-8 py-2 cursor-pointer w-full sm:w-auto ${
               isSubmitInteracted && displayUnpaid > 0
                 ? "ring-2 ring-teal-500"
                 : ""

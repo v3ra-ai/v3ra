@@ -41,9 +41,9 @@ export default async function ValidatorProfilePage({
       <div className="container mx-auto py-8">
         <Card className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
           <CardContent className="space-y-6">
-            <div className="flex items-center space-x-4">
-              <div className="flex w-full">
-                <div className="flex w-1/2 items-center">
+            <div className="flex  items-center space-x-4">
+              <div className="flex w-full flex-col md:flex-row">
+                <div className="flex md:w-1/2 items-center border-0">
                   <div className="w-[80px]">
                     <Image
                       src={
@@ -72,7 +72,7 @@ export default async function ValidatorProfilePage({
                     </p>
                   </div>
                 </div>
-                <div className="flex justify-end w-1/2">
+                <div className="flex justify-end w-1/2 mt-4 md:mt-0">
                   <div>
                     <div className="text-3xl">94%</div>
                     <div className="w-24 mt-1 text-xs mr-2 text-zinc-700 dark:text-zinc-300">
@@ -130,7 +130,9 @@ export default async function ValidatorProfilePage({
               </p>
             </div>
 
-            <VoteHistoryTable validatorId={validatorId} />
+            <div className="overflow-x-auto">
+              <VoteHistoryTable validatorId={validatorId} />
+            </div>
           </CardContent>
         </Card>
       </div>

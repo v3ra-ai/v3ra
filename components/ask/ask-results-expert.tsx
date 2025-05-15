@@ -1,5 +1,8 @@
+"use client";
+
 import { createContext } from "react";
 import { useVoteResult } from "@/hooks/useVoteResult";
+import { useQueryStore } from "@/store/query-store";
 import { VoteResult } from "@/lib/types";
 import CurrentQuery from "@/components/ask/consensus/current-query";
 import NetworkStatus from "@/components/ask/consensus/network-status";
@@ -17,6 +20,7 @@ export const VoteResultContext = createContext<VoteResult | null>(null);
 
 export default function AskResultsExpert() {
   const { voteResult } = useVoteResult();
+  const viewMode = useQueryStore((state) => state.viewMode);
 
   // Sanitize voteResult to prevent XSS
   const sanitizedVoteResult = voteResult
@@ -28,6 +32,14 @@ export default function AskResultsExpert() {
         ),
       }
     : null;
+
+  // Only render in expert mode
+  if (viewMode !== "viewExpert") {
+    console.log("[AskResultsExpert] Not rendering: viewMode is", viewMode);
+    return null;
+  }
+
+  console.log("[AskResultsExpert] Rendering in expert mode with components including CurrentQuery");
 
   return (
     <VoteResultContext.Provider value={sanitizedVoteResult}>
