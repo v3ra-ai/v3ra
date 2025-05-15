@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { QueryForm } from "@/components/ask/query-form";
 import ModeToggle from "@/components/ask/mode-toggle";
-import WalletToggle from "@/components/ask/wallet-toggle";
+import dynamic from 'next/dynamic';
+const WalletToggle = dynamic(() => import('@/components/ask/wallet-toggle'), { ssr: false });
 import QueryStats from "@/components/ask/query-stats";
 import QueryResults from "@/components/ask/query-results";
 import { useQueryLogic } from "@/hooks/useQueryLogic";

@@ -38,7 +38,7 @@ export default function WalletToggle({
       console.log("[WalletToggle] handleCheckedChange:", { checked, queriesUnpaid, context });
       setPayWithWallet(checked);
     },
-    [setPayWithWallet]
+    [setPayWithWallet, queriesUnpaid, context]
   );
 
   const queriesLeft = Math.max(0, totalCredits - queriesRequested);

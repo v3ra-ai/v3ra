@@ -15,6 +15,7 @@ import { AskResultsStandardAiConsensus } from "@/components/ask/ask-results-stan
 
 import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
+import { parseRationale } from "@/lib/utils";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -62,13 +63,18 @@ export default function AskResultsStandardCard({
       )
     : null;
 
-  const longestRationale = longestRationaleResponse?.rationale || null;
+  // Get the raw rationale string
+  const rawLongestRationale = longestRationaleResponse?.rationale || null;
+
+  // Parse the rationale object and extract the text
+  const { rationale: displayRationale, answer, confidence, warning } = parseRationale(rawLongestRationale);
+
   const validatorName =
     longestRationaleResponse?.profileName || "Unknown Validator";
   const validatorProvider =
     longestRationaleResponse?.provider || "Unknown Provider";
 
-  const { cleanText } = useCleanText(longestRationale);
+  const { cleanText } = useCleanText(displayRationale);
 
   return (
     <Card
@@ -89,7 +95,7 @@ export default function AskResultsStandardCard({
       <CardContent className="space-y-2">
         <AskResultsStandardConsensus sanitizedQuery={sanitizedQuery} />
         <AskResultsStandardRationale
-          longestRationale={longestRationale}
+          longestRationale={displayRationale}
           validatorName={validatorName}
           validatorProvider={validatorProvider}
           cleanText={cleanText}

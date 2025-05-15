@@ -1,6 +1,8 @@
 import { AIValidator, ValidationRequest, AIValidationResponse } from "../types";
 import type { QueryMode } from "@/lib/types";
 import { generatePrompt } from "../utils";
+import { parseLLMReply as parseVote } from "../responseParser";
+import { getAdapter } from "../modeAdapters";
 
 export class OpenRouterValidator implements AIValidator {
   id: string;
@@ -60,7 +62,7 @@ export class OpenRouterValidator implements AIValidator {
       const startTime = Date.now();
 
       // Generate prompt using utility function
-      const { systemMessage } = generatePrompt(
+      const { systemMessage, userMessage } = generatePrompt(
         req.queryMode,
         req.statement,
         req.context
@@ -82,7 +84,7 @@ export class OpenRouterValidator implements AIValidator {
             messages: [
               // Basic system prompt for validation, can be enhanced
               { role: "system", content: systemMessage },
-              { role: "user", content: req.statement },
+              { role: "user", content: userMessage },
             ],
             // temperature: 0.3, // Example: make it less random
             // max_tokens: 50,   // Example: limit response length for validation
@@ -110,29 +112,25 @@ export class OpenRouterValidator implements AIValidator {
       const data = await response.json();
       const latency = Date.now() - startTime;
 
-      let vote = false;
-      let confidence = 0.5; // Default confidence
-      let rationale =
-        "Could not reliably determine validation outcome from model response.";
+      let vote: boolean;
+      let confidence: number;
+      let rationale: string;
 
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-        const messageContent = data.choices[0].message.content.trim();
-        rationale = messageContent; // Use the full response as rationale for now
-
-        const firstWord = messageContent.split(" ")[0].toLowerCase();
-
-        if (firstWord.startsWith("true") || firstWord.startsWith("yes")) {
-          vote = true;
-          confidence = 0.8; // Assign higher confidence for a clear "true"
-        } else if (
-          firstWord.startsWith("false") ||
-          firstWord.startsWith("no")
-        ) {
-          vote = false;
-          confidence = 0.8; // Assign higher confidence for a clear "false"
-        }
-        // TODO: Enhance parsing. The current method is basic.
-        // Consider prompting for JSON output or more structured responses.
+        const rawContent = data.choices[0].message.content;
+        console.log(`[OpenRouter - ${this.modelName}] Raw response content:`, rawContent);
+        const content = rawContent.trim();
+        console.log(`[OpenRouter - ${this.modelName}] Trimmed content:`, content);
+        const parsed = parseVote(content);
+        console.log(`[OpenRouter - ${this.modelName}] Parsed reply object:`, parsed);
+        const { vote: v, confidence: c, rationale: r } = getAdapter(req.queryMode).interpret(parsed);
+        vote = v;
+        confidence = c;
+        rationale = r;
+      } else {
+        vote = false;
+        confidence = 0;
+        rationale = "Empty response from model.";
       }
 
       return {

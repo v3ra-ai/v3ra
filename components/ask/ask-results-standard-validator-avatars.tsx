@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { VoteResult } from "@/lib/types";
 import validatorImageMapping from "@/utils/validatorImageMapping.json";
+import { parseRationale } from "@/lib/utils";
 
 interface AskResultsStandardValidatorAvatarsProps {
   sanitizedQuery: VoteResult;
@@ -72,9 +73,9 @@ export function AskResultsStandardValidatorAvatars({
                     <span className="font-semibold">Vote: </span>
                     {response.vote}
                   </p>
-                  <p>
+                  <p className="text-xs">
                     <span className="font-semibold">Rationale: </span>
-                    {response.rationale}
+                    {parseRationale(response.rationale)}
                   </p>
                 </div>
               </div>

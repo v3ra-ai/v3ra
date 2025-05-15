@@ -12,6 +12,7 @@ import {
 } from "@/utils/security-utils";
 import { formatTime } from "@/utils/date-utils";
 import { truncateText } from "@/utils/text-utils";
+import { parseRationale } from "@/lib/utils";
 
 interface VoteHistoryTableRowProps {
   vote: VoteResult;
@@ -52,7 +53,9 @@ const ValidatorResponseItem = ({
         </span>
       </div>
       <div className="mt-2 text-sm text-gray-700 dark:text-zinc-200">
-        {sanitizedValidator?.rationale || "No rationale provided"}
+        <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+          {parseRationale(sanitizedValidator?.rationale)}
+        </p>
       </div>
     </div>
   );

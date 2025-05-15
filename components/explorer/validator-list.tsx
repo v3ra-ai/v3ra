@@ -1,6 +1,7 @@
 import React from "react";
 import type { Validator } from "@/lib/types";
 import { ValidatorProfile } from "@/components/validator-profile";
+import { parseRationale } from "@/lib/utils";
 
 interface ValidatorListProps {
   validators: Validator[];
@@ -129,11 +130,7 @@ export function ValidatorList(props: ValidatorListProps) {
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-300 max-w-md">
-                    {validator.lastRationale || (
-                      <span className="text-gray-400 dark:text-gray-500 italic">
-                        No rationale available
-                      </span>
-                    )}
+                    {parseRationale(validator.lastRationale)}
                   </td>
                 </tr>
               ))

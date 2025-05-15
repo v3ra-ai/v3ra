@@ -1,9 +1,10 @@
-
 import { v4 as uuidv4 } from "uuid";
 import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
+import { parseLLMReply as parseVote } from "../responseParser";
+import { getAdapter } from "../modeAdapters";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -295,7 +296,8 @@ export class GrokValidator implements AIValidator {
           const endTime = Date.now();
 
           // Parse the response to determine validity and confidence
-          const { vote, confidence, rationale } = this.parseResponse(reply);
+          const parsed = parseVote(reply);
+          const { vote, confidence, rationale } = getAdapter(request.queryMode).interpret(parsed);
           console.log(
             `[Grok ${this.id}] Parsed Grok response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`,
           );
@@ -378,50 +380,6 @@ export class GrokValidator implements AIValidator {
         latency: endTime - startTime,
       };
     }
-  }
-
-  private parseResponse(response: string): {
-    vote: boolean;
-    confidence: number;
-    rationale: string;
-  } {
-    const lowerResponse = response.toLowerCase().trim();
-
-    // Detect vote (yes/no)
-    const vote = lowerResponse.startsWith("yes");
-
-    // Try to extract confidence
-    let confidence = 70; // Default confidence
-    const confidenceMatch =
-      lowerResponse.match(/confidence[:\s]+(\d+)/i) ||
-      lowerResponse.match(/(\d+)%/);
-
-    if (confidenceMatch && confidenceMatch[1]) {
-      const parsedConfidence = parseInt(confidenceMatch[1], 10);
-      if (
-        !isNaN(parsedConfidence) &&
-        parsedConfidence >= 0 &&
-        parsedConfidence <= 100
-      ) {
-        confidence = parsedConfidence;
-      }
-    }
-
-    // Get rationale (everything after the yes/no and confidence)
-    let rationale = response
-      .replace(/^(yes|no)[^a-z]+(confidence[:\s]+\d+|\d+%)?/i, "")
-      .trim();
-
-    // If no rationale was extracted, use the whole response
-    if (!rationale) {
-      rationale = response;
-    }
-
-    console.log(
-      `[Grok ${this.id}] Grok vote: ${vote}, confidence: ${confidence / 100}, rationale length: ${rationale.length}`,
-    );
-
-    return { vote, confidence: confidence / 100, rationale };
   }
 
   private simulateResponse(text: string): AIValidationResponse {

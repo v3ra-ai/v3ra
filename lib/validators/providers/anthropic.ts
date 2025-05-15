@@ -3,6 +3,8 @@ import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
+import { parseLLMReply as parseVote } from "../responseParser";
+import { getAdapter } from "../modeAdapters";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -172,10 +174,9 @@ export class AnthropicValidator implements AIValidator {
       console.log(
         `[Anthropic ${this.id}] Preparing to call Anthropic API with model: ${this.modelName}`,
       );
- console.log(`-------------------------------
+      console.log(`-------------------------------
        request.queryMode  ${request.queryMode}
         ---------------------`);
-
 
       // Generate prompt using utility function
       const { systemMessage, userMessage } = generatePrompt(
@@ -283,7 +284,9 @@ export class AnthropicValidator implements AIValidator {
         );
         const endTime = Date.now();
 
-        const { vote, confidence, rationale } = this.parseResponse(reply);
+        const parsed = parseVote(reply);
+        const { vote, confidence, rationale } = getAdapter(request.queryMode).interpret(parsed);
+
         console.log(
           `[Anthropic ${this.id}] Parsed Anthropic response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`,
         );
@@ -325,64 +328,6 @@ export class AnthropicValidator implements AIValidator {
         latency: endTime - startTime,
       };
     }
-  }
-
-  private parseResponse(response: string): {
-    vote: boolean;
-    confidence: number;
-    rationale: string;
-  } {
-    const lowerResponse = response.toLowerCase().trim();
-
-    let vote = false;
-    if (
-      lowerResponse.startsWith("yes") ||
-      lowerResponse.includes("yes.") ||
-      lowerResponse.includes("the statement is accurate") ||
-      lowerResponse.includes("this statement is correct")
-    ) {
-      vote = true;
-    }
-
-    let confidence = 75;
-    const confidenceMatch =
-      lowerResponse.match(/confidence[:\s]+(\d+)/i) ||
-      lowerResponse.match(/(\d+)%/) ||
-      lowerResponse.match(/(\d+)\s*percent/) ||
-      lowerResponse.match(/confidence[:\s]+(high|medium|low)/i);
-
-    if (confidenceMatch) {
-      if (confidenceMatch[1].match(/^\d+$/)) {
-        const parsedConfidence = parseInt(confidenceMatch[1], 10);
-        if (
-          !isNaN(parsedConfidence) &&
-          parsedConfidence >= 0 &&
-          parsedConfidence <= 100
-        ) {
-          confidence = parsedConfidence;
-        }
-      } else if (confidenceMatch[1].match(/high/i)) {
-        confidence = 90;
-      } else if (confidenceMatch[1].match(/medium/i)) {
-        confidence = 70;
-      } else if (confidenceMatch[1].match(/low/i)) {
-        confidence = 50;
-      }
-    }
-
-    const rationale =
-      response
-        .replace(/^(yes|no)[^a-z]+(confidence[:\s]+\d+|\d+%)?/i, "")
-        .trim() ||
-      (vote
-        ? "Based on my analysis, this statement appears to be factually accurate."
-        : "Based on my analysis, this statement contains inaccuracies or unverifiable claims.");
-
-    console.log(
-      `[Anthropic ${this.id}] Anthropic vote: ${vote}, confidence: ${confidence / 100}, rationale length: ${rationale.length}`,
-    );
-
-    return { vote, confidence: confidence / 100, rationale };
   }
 
   private simulateResponse(text: string): AIValidationResponse {

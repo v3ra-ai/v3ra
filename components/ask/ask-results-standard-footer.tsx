@@ -5,6 +5,7 @@ import {
 } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { VoteResult } from "@/lib/types";
+import { parseRationale } from "@/lib/utils";
 
 interface AskResultsStandardFooterProps {
   sanitizedQuery: VoteResult;
@@ -51,7 +52,7 @@ export function AskResultsStandardFooter({
                   </p>
                   <p className="text-sm text-zinc-600 dark:text-zinc-300">
                     <span className="font-semibold">Rationale: </span>
-                    {response.rationale}
+                    {parseRationale(response.rationale)}
                   </p>
                 </div>
               ))

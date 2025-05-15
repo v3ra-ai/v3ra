@@ -4,6 +4,7 @@ import React from "react";
 import Link from "next/link";
 import { VoteResult, Validator } from "@/lib/types";
 import { ValidatorProfile } from "@/components/validator-profile";
+import { parseRationale } from "@/lib/utils";
 
 interface VoteHistoryProps {
   voteHistory: VoteResult[];
@@ -261,10 +262,9 @@ export function VoteHistory({ voteHistory }: VoteHistoryProps) {
                                   {validator?.vote || "No Vote"}
                                 </span>
                               </div>
-                              <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
-                                {validator?.rationale ||
-                                  "No rationale provided"}
-                              </div>
+                              <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">
+                                {parseRationale(validator?.rationale)}
+                              </p>
                             </div>
                           ))}
                         </div>

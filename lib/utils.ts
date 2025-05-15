@@ -13,3 +13,99 @@ export function createErrorResponse(error: unknown, status: number = 500) {
     error instanceof Error ? error.stack || String(error) : String(error);
   return NextResponse.json({ error: message, details }, { status });
 }
+
+/**
+ * Recursively parses rationale JSON, extracting rationale, answer, and confidence if present.
+ * Returns an object with rationale, answer, and confidence. If the rationale is not JSON, returns as plain text.
+ * Handles various edge cases including incomplete JSON and code blocks.
+ */
+// Detailed parser returning object with possible answer/confidence
+export function parseRationaleDetailed(rawRationale: string | null | undefined): {
+  rationale: string;
+  answer?: string;
+  confidence?: number | string;
+} {
+  if (!rawRationale) {
+    return { rationale: "No rationale provided" };
+  }
+  
+  try {
+    // Clean up the rationale text first
+    let cleaned = rawRationale.trim();
+    
+    // Handle markdown code blocks with json syntax highlighting
+    if (cleaned.includes("```json") || cleaned.startsWith("```")) {
+      cleaned = cleaned.replace(/^```json\s*|^```\s*|\s*```$/g, "");
+    }
+    
+    // Check for partial JSON by looking for key patterns
+    const jsonPattern = /\{\s*"(?:answer|rationale|confidence)"\s*:/i;
+    if (jsonPattern.test(cleaned)) {
+      // Try to extract a complete JSON object
+      const jsonMatch = cleaned.match(/\{[^\}]*\}/); 
+      if (jsonMatch) {
+        try {
+          const extractedJson = jsonMatch[0];
+          const parsed = JSON.parse(extractedJson);
+          
+          // If we successfully parsed JSON, extract the fields
+          if (parsed) {
+            let rationale = parsed.rationale || "";
+            const answer = parsed.answer;
+            const confidence = parsed.confidence;
+            
+            // If we have a rationale, use it; otherwise, remove the JSON from the original text
+            if (rationale) {
+              return { 
+                rationale: rationale.trim(), 
+                answer, 
+                confidence 
+              };
+            } else {
+              // If no rationale in the JSON, remove the JSON from the text
+              cleaned = cleaned.replace(jsonMatch[0], "").trim();
+            }
+          }
+        } catch (e) {
+          // Failed to parse the extracted JSON, continue with other approaches
+        }
+      }
+    }
+    
+    // Try to parse the full string as JSON
+    try {
+      const parsed = JSON.parse(cleaned);
+      let rationale = parsed.rationale || "";
+      const answer = parsed.answer;
+      const confidence = parsed.confidence;
+      
+      // Handle nested JSON in rationale
+      if (typeof rationale === "string") {
+        rationale = rationale.trim();
+        if (rationale.startsWith("{") && rationale.endsWith("}")) {
+          try {
+            const inner = JSON.parse(rationale);
+            rationale = inner.rationale || rationale;
+          } catch {}
+        }
+      }
+      
+      return { 
+        rationale: rationale || "", 
+        answer, 
+        confidence 
+      };
+    } catch {
+      // Not valid JSON, use the cleaned text
+      return { rationale: cleaned };
+    }
+  } catch (error) {
+    // Fallback to raw rationale if all parsing attempts fail
+    return { rationale: rawRationale };
+  }
+}
+
+// Simple helper returning just the rationale string (backwards compatibility)
+export function parseRationale(rawRationale: string | null | undefined): string {
+  return parseRationaleDetailed(rawRationale).rationale;
+}

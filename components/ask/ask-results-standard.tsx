@@ -6,11 +6,12 @@ import { ErrorDisplay } from "@/components/error-display";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { Grid3x3, Rows3 } from "lucide-react";
 import { useState, useEffect } from "react";
-import { VoteResult } from "@/lib/types";
+import { VoteResult, ValidatorResponse } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
-import DOMPurify from "dompurify";
+import { default as DOMPurify } from "dompurify"; // Ensure default import
 import { Skeleton } from "@/components/ui/skeleton";
 import { RESULT_QUERIES_CARDS } from "@/lib/constants";
+import { parseRationale } from "@/lib/utils";
 
 // Custom CSS for skeleton loading animation (pulse + shimmer)
 <style jsx>{`
@@ -147,7 +148,7 @@ export default function AskResultsStandard() {
       profileName: DOMPurify.sanitize(response.profileName),
       provider: DOMPurify.sanitize(response.provider),
       id: DOMPurify.sanitize(response.id),
-      rationale: DOMPurify.sanitize(response.rationale || ""),
+      rationale: DOMPurify.sanitize(parseRationale(response.rationale) || ""), // Keep sanitize call
     })),
   }));
 
