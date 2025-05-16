@@ -50,7 +50,7 @@ export function parseRationaleDetailed(rawRationale: string | null | undefined):
           
           // If we successfully parsed JSON, extract the fields
           if (parsed) {
-            let rationale = parsed.rationale || "";
+            const rationale = parsed.rationale || "";
             const answer = parsed.answer;
             const confidence = parsed.confidence;
             
@@ -66,7 +66,7 @@ export function parseRationaleDetailed(rawRationale: string | null | undefined):
               cleaned = cleaned.replace(jsonMatch[0], "").trim();
             }
           }
-        } catch (e) {
+        } catch {
           // Failed to parse the extracted JSON, continue with other approaches
         }
       }
@@ -99,7 +99,7 @@ export function parseRationaleDetailed(rawRationale: string | null | undefined):
       // Not valid JSON, use the cleaned text
       return { rationale: cleaned };
     }
-  } catch (error) {
+  } catch {
     // Fallback to raw rationale if all parsing attempts fail
     return { rationale: rawRationale };
   }

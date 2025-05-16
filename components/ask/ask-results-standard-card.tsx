@@ -15,7 +15,7 @@ import { AskResultsStandardAiConsensus } from "@/components/ask/ask-results-stan
 
 import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
-import { parseRationale } from "@/lib/utils";
+import { parseRationaleDetailed } from "@/lib/utils";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -67,7 +67,7 @@ export default function AskResultsStandardCard({
   const rawLongestRationale = longestRationaleResponse?.rationale || null;
 
   // Parse the rationale object and extract the text
-  const { rationale: displayRationale, answer, confidence, warning } = parseRationale(rawLongestRationale);
+  const displayRationale = parseRationaleDetailed(rawLongestRationale).rationale;
 
   const validatorName =
     longestRationaleResponse?.profileName || "Unknown Validator";

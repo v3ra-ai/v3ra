@@ -1,8 +1,8 @@
 import React from "react";
 import { Validator } from "@/lib/types";
 import Image from "next/image";
-import { Badge } from "@/components/ui/badge";
-import { parseRationale } from "@/lib/utils";
+// (Removed unused Badge import)
+import { parseRationaleDetailed } from "@/lib/utils";
 
 interface ValidatorProfileProps {
   validator: Validator | null;
@@ -189,7 +189,7 @@ export function ValidatorProfile({
               </h3>
               <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
                 <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 italic">
-                  “{parseRationale(validator.lastRationale)}”
+                  &quot;{parseRationaleDetailed(validator.lastRationale).rationale}&quot;
                 </p>
               </div>
             </div>
