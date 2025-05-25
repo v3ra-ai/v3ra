@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import type { VoteResult } from "@/lib/types";
 import { useVoteStore } from "@/store/vote-store";
@@ -66,12 +65,53 @@ export function useVoteHistory(initialLimit: number = RESULT_QUERIES_CARDS): Vot
         const data = await response.json();
         console.log("[useVoteHistory] Refetch response data:", data);
 
-        if (Array.isArray(data)) {
-          console.log("[useVoteHistory] Updating voteHistory with", data.length, "items");
-          setVoteHistory([...data]); // Force new array to trigger re-render
-        } else {
+        if (!Array.isArray(data)) {
           throw new Error("Invalid vote history data format");
         }
+
+        // Validate and filter vote history
+        const validatedHistory: VoteResult[] = data
+          .filter((item): item is VoteResult =>
+            item &&
+            typeof item.id === 'string' &&
+            typeof item.queryText === 'string' &&
+            item.queryText.trim() !== '' &&
+            Array.isArray(item.validatorResponses) &&
+            typeof item.votingResult === 'object' &&
+            typeof item.votingResult.yes === 'number' &&
+            typeof item.votingResult.no === 'number' &&
+            typeof item.votingResult.notVoted === 'number'
+          )
+          .map((item) => ({
+            id: item.id,
+            queryText: item.queryText,
+            isConsensusReached: item.isConsensusReached ?? false,
+            consensusValue: item.consensusValue ?? null,
+            validatorResponses: item.validatorResponses.map((res) => ({
+              id: res.id,
+              provider: res.provider || 'Unknown',
+              profileName: res.profileName || 'Unknown',
+              vote: res.vote || 'UNKNOWN',
+              rationale: res.rationale || '',
+            })),
+            votingResult: {
+              yes: item.votingResult.yes,
+              no: item.votingResult.no,
+              notVoted: item.votingResult.notVoted,
+            },
+            timestamp: item.timestamp ?? undefined,
+          }));
+
+        // Log invalid entries
+        const invalidEntries = data.filter(
+          (item) => !item || !item.id || !item.queryText || item.queryText.trim() === '' || !Array.isArray(item.validatorResponses)
+        );
+        if (invalidEntries.length > 0) {
+          console.warn("[useVoteHistory] Invalid vote history entries filtered out:", invalidEntries);
+        }
+
+        console.log("[useVoteHistory] Updating voteHistory with", validatedHistory.length, "valid items");
+        setVoteHistory(validatedHistory);
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error("[useVoteHistory] Error:", sanitizeError(error));
