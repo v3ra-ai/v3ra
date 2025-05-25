@@ -1,6 +1,7 @@
 import { Twitter, Share2, Share } from "lucide-react";
 import { VoteResult } from "@/lib/types";
 import { useMemo } from "react";
+import { CURRENT_DOMAIN } from "@/lib/constants";
 
 interface AskResultsStandardSocialIconsProps {
   query?: VoteResult;
@@ -14,15 +15,15 @@ export function AskResultsStandardSocialIcons({
       return encodeURIComponent("Check this truth report card!");
     }
     return encodeURIComponent(
-      `Check this truth report card: ${query.queryText} - ${
+      `Check this VERAFY truth report card: ${query.queryText} - ${
         query.isConsensusReached ? (query.consensusValue ? 'True' : 'False') : 'No Consensus'
       }`
     );
   }, [query?.queryText, query?.isConsensusReached, query?.consensusValue, query?.id]);
 
   const shareUrl = query?.id
-    ? `https://your-site.com/ask/${query.id}`
-    : 'https://your-site.com';
+    ? `https://${CURRENT_DOMAIN}/ask/${query.id}`
+    : `https://${CURRENT_DOMAIN}/`;
 
   const twitterIntentUrl = useMemo(
     () => `https://x.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(shareUrl)}`,

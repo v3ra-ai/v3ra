@@ -1,3 +1,4 @@
+import { CURRENT_DOMAIN } from '@/lib/constants';
 import { VoteResult } from '@/lib/types';
 
 export function OgImage({ card }: { card: VoteResult }) {
@@ -31,7 +32,7 @@ export function OgImage({ card }: { card: VoteResult }) {
       </p>
       <div style={{ position: 'absolute', bottom: '40px', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <img
-          src="https://your-site.com/verafy_logo_black.svg"
+          src={`https://${CURRENT_DOMAIN}/verafy_logo_black.svg`}
           alt="Verafy Logo"
           width={100}
           height={40}

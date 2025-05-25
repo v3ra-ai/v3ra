@@ -1,7 +1,11 @@
-import DOMPurify from "dompurify";
-import { VoteResult } from "@/lib/types";
-import { SendTransactionError } from "@solana/web3.js";
-import crypto from "crypto";
+import DOMPurify from 'dompurify';
+import { VoteResult } from '@/lib/types';
+import { SendTransactionError } from '@solana/web3.js';
+import crypto from 'crypto';
+
+// Ensure DOMPurify is only used client-side
+const isClient = typeof window !== 'undefined';
+const sanitizer = isClient ? DOMPurify : { sanitize: (input: string) => input };
 
 /**
  * Generates a secure CSRF token for protecting API requests.
@@ -17,7 +21,13 @@ export function generateCsrfToken(): string {
  * @returns A sanitized string, or an empty string if input is null/undefined.
  */
 export function sanitizeQueryText(queryText: string | undefined): string {
-  return DOMPurify.sanitize(queryText ?? "");
+  if (!queryText) return '';
+  try {
+    return sanitizer.sanitize(queryText); // Single argument
+  } catch (error) {
+    console.warn('DOMPurify.sanitize failed:', error, 'Input:', queryText);
+    return queryText; // Fallback: return original text
+  }
 }
 
 /**
@@ -26,15 +36,20 @@ export function sanitizeQueryText(queryText: string | undefined): string {
  * @returns A sanitized validator response object.
  */
 export function sanitizeValidatorResponse(
-  response: VoteResult["validatorResponses"][number]
-): VoteResult["validatorResponses"][number] {
-  return {
-    ...response,
-    profileName: DOMPurify.sanitize(response.profileName),
-    provider: DOMPurify.sanitize(response.provider),
-    id: DOMPurify.sanitize(response.id),
-    rationale: DOMPurify.sanitize(response.rationale || ""),
-  };
+  response: VoteResult['validatorResponses'][number]
+): VoteResult['validatorResponses'][number] {
+  try {
+    return {
+      ...response,
+      profileName: sanitizer.sanitize(response.profileName), // Single argument
+      provider: sanitizer.sanitize(response.provider),
+      id: sanitizer.sanitize(response.id),
+      rationale: sanitizer.sanitize(response.rationale || ''),
+    };
+  } catch (error) {
+    console.warn('DOMPurify.sanitize failed for response:', error, 'Input:', response);
+    return response; // Fallback: return original response
+  }
 }
 
 /**
@@ -48,5 +63,5 @@ export function sanitizeError(error: unknown): string {
   } else if (error instanceof Error) {
     return `Error: ${error.message}`;
   }
-  return "Unknown error occurred";
+  return 'Unknown error occurred';
 }

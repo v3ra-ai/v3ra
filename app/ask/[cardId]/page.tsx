@@ -1,156 +1,320 @@
-import { createSupabaseServerClient } from '@/lib/supabase-client';
-import { VoteResult } from '@/lib/types';
-import { notFound } from 'next/navigation';
-import AskResultsStandardCard from '@/components/ask/ask-results-standard-card';
+import { prisma } from "@/lib/db/client";
+import { VoteResult } from "@/lib/types";
+import CardViewer from "@/components/ask/card-client-wrapper";
+import { CURRENT_DOMAIN } from "@/lib/constants";
+import Navbar from "@/components/ask/navbar";
+import AskFooter from "@/components/ask/ask-footer";
+import { formatDateTimeCards } from "@/utils/date-utils"; // Add import
 
-// Type matching VoteSession schema
+// Type matching Prisma VoteSession schema
 interface VoteSession {
   id: string;
-  query_text: string | null;
-  is_consensus_reached: boolean;
-  consensus_value: boolean | null;
-  validator_responses:
-    | { id: string; provider: string; profile_name: string; vote: string; rationale: string }[]
+  queryText: string | null;
+  isConsensusReached: boolean;
+  consensusValue: boolean | null;
+  validatorResponses:
+    | {
+        id: string;
+        provider: string;
+        profileName: string;
+        vote: string;
+        rationale: string;
+      }[]
     | null;
-  timestamp: string | number | undefined;
-  votes_yes: number | null;
-  votes_no: number | null;
-  not_voted: number | null;
+  timestamp: string;
+  votesYes: number | null;
+  votesNo: number | null;
+  notVoted: number | null;
 }
 
-export async function generateMetadata({ params }: { params: Promise<{ cardId: string }> }) {
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ cardId: string }>;
+}) {
   const resolvedParams = await params;
   const cardId = resolvedParams.cardId;
 
   if (!cardId) {
-    console.error('Invalid cardId in generateMetadata:', cardId);
-    return { title: 'Card Not Found' };
+    console.error("Invalid cardId in generateMetadata:", cardId);
+    return { title: "Card Not Found" };
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('vote_sessions')
-    .select('id, query_text, is_consensus_reached, consensus_value, validator_responses, votes_yes, votes_no, not_voted')
-    .eq('id', cardId)
-    .single();
-
-  if (error || !data) {
-    console.error('Error fetching vote session for metadata:', error?.message || 'No data');
-    return { title: 'Card Not Found' };
-  }
-
-  const typedData = data as VoteSession;
-
-  // Validate required fields
-  if (!typedData.id || !typedData.query_text) {
-    console.error('Invalid vote session data for metadata:', {
-      id: typedData.id,
-      query_text: typedData.query_text,
+  try {
+    const data = await prisma.voteSession.findUnique({
+      where: { id: cardId },
+      include: {
+        validatorResponses: {
+          include: { validator: true },
+        },
+      },
     });
-    return { title: 'Card Not Found' };
+
+    if (!data) {
+      console.error("Vote session not found for metadata:", { cardId });
+      return { title: "Card Not Found" };
+    }
+
+    const typedData: VoteSession = {
+      id: data.id,
+      queryText: data.queryText,
+      isConsensusReached: data.isConsensusReached,
+      consensusValue: data.consensusValue,
+      validatorResponses: data.validatorResponses.map((res) => ({
+        id: res.validator?.id || res.validatorId || "unknown",
+        provider: res.validator?.provider || "Unknown",
+        profileName: res.validator?.profileName || "Unknown",
+        vote: res.vote || "UNKNOWN",
+        rationale: res.rationale || "",
+      })),
+      timestamp: data.timestamp.toISOString(),
+      votesYes: data.votesYes,
+      votesNo: data.votesNo,
+      notVoted: data.notVoted,
+    };
+
+    // Validate required fields
+    if (!typedData.id || !typedData.queryText) {
+      console.error("Invalid vote session data for metadata:", {
+        cardId,
+        id: typedData.id,
+        queryText: typedData.queryText,
+      });
+      return { title: "Card Not Found" };
+    }
+
+    const card: VoteResult = {
+      id: typedData.id,
+      queryText: typedData.queryText,
+      isConsensusReached: typedData.isConsensusReached,
+      consensusValue: typedData.consensusValue,
+      validatorResponses: (typedData.validatorResponses || []).map((res) => ({
+        id: res.id,
+        provider: res.provider,
+        profileName: res.profileName,
+        vote: res.vote,
+        rationale: res.rationale,
+      })),
+      votingResult: {
+        yes: typedData.votesYes || 0,
+        no: typedData.votesNo || 0,
+        notVoted: typedData.notVoted || 0,
+      },
+      timestamp: formatDateTimeCards(data.timestamp), // Add formatted timestamp
+    };
+
+    const ogImageUrl = `https://${CURRENT_DOMAIN}/api/og?cardId=${cardId}`;
+    const description = `Truth Report Card: ${
+      card.isConsensusReached
+        ? card.consensusValue
+          ? "True"
+          : "False"
+        : "No Consensus"
+    }`;
+
+    return {
+      title: card.queryText,
+      openGraph: {
+        title: card.queryText,
+        description,
+        images: [{ url: ogImageUrl, width: 1200, height: 630 }],
+        url: `https://${CURRENT_DOMAIN}/ask/${cardId}`,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title: card.queryText,
+        description,
+        images: [ogImageUrl],
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching vote session for metadata:", {
+      cardId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return { title: "Card Not Found" };
   }
-
-  const card: VoteResult = {
-    id: typedData.id,
-    queryText: typedData.query_text,
-    isConsensusReached: typedData.is_consensus_reached,
-    consensusValue: typedData.consensus_value,
-    validatorResponses: (typedData.validator_responses || []).map((res) => ({
-      id: res.id || 'unknown',
-      provider: res.provider || 'Unknown',
-      profileName: res.profile_name || 'Unknown',
-      vote: res.vote || 'UNKNOWN',
-      rationale: res.rationale || '',
-    })),
-    votingResult: {
-      yes: typedData.votes_yes || 0,
-      no: typedData.votes_no || 0,
-      notVoted: typedData.not_voted || 0,
-    },
-  };
-
-  const ogImageUrl = `https://your-site.com/api/og?cardId=${cardId}`;
-  const description = `Truth Report Card: ${
-    card.isConsensusReached ? (card.consensusValue ? 'True' : 'False') : 'No Consensus'
-  }`;
-
-  return {
-    title: card.queryText,
-    openGraph: {
-      title: card.queryText,
-      description,
-      images: [{ url: ogImageUrl, width: 1200, height: 630 }],
-      url: `https://your-site.com/ask/${cardId}`,
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: card.queryText,
-      description,
-      images: [ogImageUrl],
-    },
-  };
 }
 
-export default async function CardPage({ params }: { params: Promise<{ cardId: string }> }) {
+export default async function CardPage({
+  params,
+}: {
+  params: Promise<{ cardId: string }>;
+}) {
   const resolvedParams = await params;
   const cardId = resolvedParams.cardId;
 
   if (!cardId) {
-    console.error('Invalid cardId in CardPage:', cardId);
-    notFound();
+    console.error("Invalid cardId in CardPage:", cardId);
+    return (
+      <main
+        className="min-h-screen bg-background flex flex-col"
+        style={{
+          backgroundImage: "url(/images/background.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+          backgroundRepeat: "no-repeat",
+          width: "100vw",
+          height: "100vh",
+        }}
+      >
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center p-4">
+          <p className="text-red-500">Error: Invalid card ID</p>
+        </div>
+        <AskFooter />
+      </main>
+    );
   }
 
-  const supabase = await createSupabaseServerClient();
-  const { data, error } = await supabase
-    .from('vote_sessions')
-    .select('id, query_text, is_consensus_reached, consensus_value, validator_responses, timestamp, votes_yes, votes_no, not_voted')
-    .eq('id', cardId)
-    .single();
-
-  if (error || !data) {
-    console.error('Error fetching vote session:', error?.message || 'No data');
-    notFound();
-  }
-
-  const typedData = data as VoteSession;
-
-  // Validate required fields
-  if (!typedData.id || !typedData.query_text) {
-    console.error('Invalid vote session data:', {
-      id: typedData.id,
-      query_text: typedData.query_text,
+  try {
+    const data = await prisma.voteSession.findUnique({
+      where: { id: cardId },
+      include: {
+        validatorResponses: {
+          include: { validator: true },
+        },
+      },
     });
-    notFound();
+
+    if (!data) {
+      console.error("Vote session not found:", { cardId });
+      return (
+        <main
+          className="min-h-screen bg-background flex flex-col"
+          style={{
+            backgroundImage: "url(/images/background.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundAttachment: "fixed",
+            backgroundRepeat: "no-repeat",
+            width: "100vw",
+            height: "100vh",
+          }}
+        >
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center p-4">
+          <p className="text-red-500">Error: Vote session not found for card ID {cardId}</p>
+        </div>
+        <AskFooter />
+      </main>
+      );
+    }
+
+    const typedData: VoteSession = {
+      id: data.id,
+      queryText: data.queryText,
+      isConsensusReached: data.isConsensusReached,
+      consensusValue: data.consensusValue,
+      validatorResponses: data.validatorResponses.map((res) => ({
+        id: res.validator?.id || res.validatorId || "unknown",
+        provider: res.validator?.provider || "Unknown",
+        profileName: res.validator?.profileName || "Unknown",
+        vote: res.vote || "UNKNOWN",
+        rationale: res.rationale || "",
+      })),
+      timestamp: data.timestamp.toISOString(),
+      votesYes: data.votesYes,
+      votesNo: data.votesNo,
+      notVoted: data.notVoted,
+    };
+
+    // Validate required fields
+    if (!typedData.id || !typedData.queryText) {
+      console.error("Invalid vote session data:", {
+        cardId,
+        id: typedData.id,
+        queryText: typedData.queryText,
+      });
+      return (
+        <main
+          className="min-h-screen bg-background flex flex-col"
+          style={{
+            backgroundImage: "url(/images/background.jpg)",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundAttachment: "fixed",
+            backgroundRepeat: "no-repeat",
+            width: "100vw",
+            height: "100vh",
+          }}
+        >
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center p-4">
+          <p className="text-red-500">Error: Invalid vote session data for card ID {cardId}</p>
+        </div>
+        <AskFooter />
+      </main>
+      );
+    }
+
+    const card: VoteResult = {
+      id: typedData.id,
+      queryText: typedData.queryText,
+      isConsensusReached: typedData.isConsensusReached,
+      consensusValue: typedData.consensusValue,
+      validatorResponses: (typedData.validatorResponses || []).map((res) => ({
+        id: res.id,
+        provider: res.provider,
+        profileName: res.profileName,
+        vote: res.vote,
+        rationale: res.rationale,
+      })),
+      votingResult: {
+        yes: typedData.votesYes || 0,
+        no: typedData.votesNo || 0,
+        notVoted: typedData.notVoted || 0,
+      },
+      timestamp: formatDateTimeCards(data.timestamp), // Add formatted timestamp
+    };
+
+    return (
+      <main
+        className="min-h-screen bg-background flex flex-col"
+        style={{
+          backgroundImage: "url(/images/background.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+          backgroundRepeat: "no-repeat",
+          width: "100vw",
+          height: "100vh",
+        }}
+      >
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center p-4">
+          <CardViewer query={card} layoutMode="row" />
+        </div>
+        <AskFooter />
+      </main>
+    );
+  } catch (error) {
+    console.error("Error fetching vote session:", {
+      cardId,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return (
+      <main
+        className="min-h-screen bg-background flex flex-col"
+        style={{
+          backgroundImage: "url(/images/background.jpg)",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundAttachment: "fixed",
+          backgroundRepeat: "no-repeat",
+          width: "100vw",
+          height: "100vh",
+        }}
+      >
+        <Navbar />
+        <div className="flex-grow flex items-center justify-center p-4">
+          <p className="text-red-500">
+            Error: Failed to load vote session for card ID {cardId}
+          </p>
+        </div>
+        <AskFooter />
+      </main>
+    );
   }
-
-  const card: VoteResult = {
-    id: typedData.id,
-    queryText: typedData.query_text,
-    isConsensusReached: typedData.is_consensus_reached,
-    consensusValue: typedData.consensus_value,
-    validatorResponses: (typedData.validator_responses || []).map((res) => ({
-      id: res.id || 'unknown',
-      provider: res.provider || 'Unknown',
-      profileName: res.profile_name || 'Unknown',
-      vote: res.vote || 'UNKNOWN',
-      rationale: res.rationale || '',
-    })),
-    votingResult: {
-      yes: typedData.votes_yes || 0,
-      no: typedData.votes_no || 0,
-      notVoted: typedData.not_voted || 0,
-    },
-    timestamp: typedData.timestamp,
-  };
-
-  return (
-    <div className="container mx-auto p-4">
-      <AskResultsStandardCard
-        query={card}
-        layoutMode="row"
-        isOpen={false}
-        toggleItem={() => {}}
-      />
-    </div>
-  );
 }
