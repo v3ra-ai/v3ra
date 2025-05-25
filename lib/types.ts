@@ -181,3 +181,23 @@ export interface User {
   id: string;
   email?: string;
 }
+
+export interface VoteSession {
+  id: string;
+  queryText: string | null;
+  isConsensusReached: boolean;
+  consensusValue: boolean | null;
+  validatorResponses:
+    | {
+        id: string;
+        provider: string;
+        profileName: string;
+        vote: string;
+        rationale: string;
+      }[]
+    | null;
+  timestamp: string;
+  votesYes: number | null;
+  votesNo: number | null;
+  notVoted: number | null;
+}

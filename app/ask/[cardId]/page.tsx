@@ -1,31 +1,10 @@
 import { prisma } from "@/lib/db/client";
-import { VoteResult } from "@/lib/types";
+import { VoteResult, VoteSession } from "@/lib/types"; // Update import
 import CardViewer from "@/components/ask/card-client-wrapper";
 import { CURRENT_DOMAIN } from "@/lib/constants";
 import Navbar from "@/components/ask/navbar";
 import AskFooter from "@/components/ask/ask-footer";
-import { formatDateTimeCards } from "@/utils/date-utils"; // Add import
-
-// Type matching Prisma VoteSession schema
-interface VoteSession {
-  id: string;
-  queryText: string | null;
-  isConsensusReached: boolean;
-  consensusValue: boolean | null;
-  validatorResponses:
-    | {
-        id: string;
-        provider: string;
-        profileName: string;
-        vote: string;
-        rationale: string;
-      }[]
-    | null;
-  timestamp: string;
-  votesYes: number | null;
-  votesNo: number | null;
-  notVoted: number | null;
-}
+import { formatDateTimeCards } from "@/utils/date-utils";
 
 export async function generateMetadata({
   params,
@@ -100,7 +79,7 @@ export async function generateMetadata({
         no: typedData.votesNo || 0,
         notVoted: typedData.notVoted || 0,
       },
-      timestamp: formatDateTimeCards(data.timestamp), // Add formatted timestamp
+      timestamp: formatDateTimeCards(data.timestamp),
     };
 
     const ogImageUrl = `https://${CURRENT_DOMAIN}/api/og?cardId=${cardId}`;
@@ -193,12 +172,12 @@ export default async function CardPage({
             height: "100vh",
           }}
         >
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center p-4">
-          <p className="text-red-500">Error: Vote session not found for card ID {cardId}</p>
-        </div>
-        <AskFooter />
-      </main>
+          <Navbar />
+          <div className="flex-grow flex items-center justify-center p-4">
+            <p className="text-red-500">Error: Vote session not found for card ID {cardId}</p>
+          </div>
+          <AskFooter />
+        </main>
       );
     }
 
@@ -240,12 +219,12 @@ export default async function CardPage({
             height: "100vh",
           }}
         >
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center p-4">
-          <p className="text-red-500">Error: Invalid vote session data for card ID {cardId}</p>
-        </div>
-        <AskFooter />
-      </main>
+          <Navbar />
+          <div className="flex-grow flex items-center justify-center p-4">
+            <p className="text-red-500">Error: Invalid vote session data for card ID {cardId}</p>
+          </div>
+          <AskFooter />
+        </main>
       );
     }
 
@@ -266,7 +245,7 @@ export default async function CardPage({
         no: typedData.votesNo || 0,
         notVoted: typedData.notVoted || 0,
       },
-      timestamp: formatDateTimeCards(data.timestamp), // Add formatted timestamp
+      timestamp: formatDateTimeCards(data.timestamp),
     };
 
     return (
