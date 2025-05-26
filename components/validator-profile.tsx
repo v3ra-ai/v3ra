@@ -1,6 +1,8 @@
 import React from "react";
 import { Validator } from "@/lib/types";
 import Image from "next/image";
+// (Removed unused Badge import)
+import { parseRationaleDetailed } from "@/lib/utils";
 
 interface ValidatorProfileProps {
   validator: Validator | null;
@@ -186,8 +188,8 @@ export function ValidatorProfile({
                 Recent Reasoning
               </h3>
               <div className="p-3 bg-gray-50 dark:bg-gray-700/50 rounded-lg">
-                <p className="text-sm italic text-gray-600 dark:text-gray-300">
-                  “{validator.lastRationale}”
+                <p className="mt-2 text-sm text-gray-600 dark:text-gray-400 italic">
+                  &quot;{parseRationaleDetailed(validator.lastRationale).rationale}&quot;
                 </p>
               </div>
             </div>

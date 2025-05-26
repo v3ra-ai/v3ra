@@ -4,6 +4,8 @@ import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
+import { parseLLMReply as parseVote } from "../responseParser";
+import { getAdapter } from "../modeAdapters";
 
 // Rate limiting
 const rateLimits = {
@@ -239,21 +241,25 @@ export class GeminiValidator implements AIValidator {
           throw new Error("Empty response from Gemini API");
         }
 
-        const text = response.text();
-        if (!text || text.trim() === "") {
+        const textResponse = response.text();
+        if (!textResponse || textResponse.trim() === "") {
           throw new Error("Empty text in Gemini API response");
         }
 
-        console.log(`[GEMINI] Received response: ${text.substring(0, 100)}...`);
+        console.log(`[GEMINI] Received response: ${textResponse.substring(0, 100)}...`);
 
         const endTime = Date.now();
 
-        // Parse the response
-        const { vote, confidence, rationale } = this.parseResponse(text);
-        console.log(
-          `[GEMINI] Parsed response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`
-        );
+        // Parse structured JSON reply
+        const parsed = parseVote(textResponse);
+        const { vote, confidence, rationale } = getAdapter(request.queryMode).interpret(parsed);
 
+        console.log(
+          `[GEMINI] Parsed result: Vote=${vote}, Confidence=${confidence}, Rationale=${rationale.substring(
+            0,
+            50
+          )}...`
+        );
         return {
           vote,
           confidence,
@@ -300,138 +306,6 @@ export class GeminiValidator implements AIValidator {
         latency: endTime - startTime,
       };
     }
-  }
-
-  /**
-   * Parse the AI's response to extract vote, confidence, and rationale.
-   */
-  private parseResponse(response: string): {
-    vote: boolean;
-    confidence: number;
-    rationale: string;
-  } {
-    console.log(`[GEMINI] Parsing response: ${response.substring(0, 100)}...`);
-
-    // Handle empty or undefined responses
-    if (!response || response.trim() === "") {
-      console.warn(`[GEMINI] Empty response received`);
-      return {
-        vote: false,
-        confidence: 0,
-        rationale: "Unable to process empty response from Gemini API",
-      };
-    }
-
-    const lowerResponse = response.toLowerCase().trim();
-
-    let vote = false;
-    let confidence = 0;
-    let rationale = response; // Default rationale to the full response
-
-    // Look for YES/NO indicators with flexible pattern matching
-    if (
-      /^yes\b|^i believe this is accurate|^this statement is accurate|^this is accurate|^the statement is correct|^correct\b|^true\b/i.test(
-        lowerResponse
-      )
-    ) {
-      vote = true;
-    } else if (
-      /^no\b|^i believe this is inaccurate|^this statement is inaccurate|^this is inaccurate|^the statement is incorrect|^incorrect\b|^false\b/i.test(
-        lowerResponse
-      )
-    ) {
-      vote = false;
-    } else {
-      // If no clear indicator at the start, look for YES/NO keywords anywhere
-      const yesMatches =
-        lowerResponse.match(/\byes\b|\baccurate\b|\bcorrect\b|\btrue\b/g) || [];
-      const noMatches =
-        lowerResponse.match(/\bno\b|\binaccurate\b|\bincorrect\b|\bfalse\b/g) ||
-        [];
-
-      // Determine vote based on which set of keywords appears more frequently
-      vote = yesMatches.length > noMatches.length;
-
-      // If still ambiguous, default to false
-      if (yesMatches.length === noMatches.length) {
-        console.warn("[GEMINI] Ambiguous response, defaulting to NO");
-        vote = false;
-      }
-    }
-
-    // Extract confidence with flexible pattern matching
-    const confidencePatterns = [
-      /confidence[:\s]*(\d{1,3})%?/i, // "Confidence: 85%"
-      /(\d{1,3})%\s*confidence/i, // "85% confidence"
-      /confidence\s*(?:level|score)[:\s]*(\d{1,3})%?/i, // "Confidence level: 85%"
-      /(\d{1,3})(?:\.\d+)?%/, // "85%" or "85.5%"
-      /(\d{1,3})(?:\.\d+)?\s*(?:percent|%)/, // "85 percent"
-    ];
-
-    for (const pattern of confidencePatterns) {
-      const match = lowerResponse.match(pattern);
-      if (match && match[1]) {
-        const potentialConfidence = parseFloat(match[1]);
-        if (
-          !isNaN(potentialConfidence) &&
-          potentialConfidence >= 0 &&
-          potentialConfidence <= 100
-        ) {
-          confidence = potentialConfidence / 100; // Convert to 0-1 scale
-          break;
-        }
-      }
-    }
-
-    // If no confidence was found but we have a clear YES, assign a default confidence
-    if (confidence === 0 && vote === true) {
-      confidence = 0.7; // Default moderate-high confidence for YES votes
-    } else if (confidence === 0 && vote === false) {
-      confidence = 0.6; // Default moderate confidence for NO votes
-    }
-
-    // Extract rationale with improved pattern matching
-    const rationalePatterns = [
-      /(?:yes|no)[,\s.]+(?:\d{1,3}%?)?[,\s.]+(.+)/i, // After "YES/NO" and possibly confidence
-      /(?:\d{1,3}%)[,\s.]+(.+)/i, // After percentage
-      /(?:confidence[:\s]*\d{1,3}%?)[,\s.]+(.+)/i, // After "Confidence: XX%"
-      /(?:explanation|rationale|reasoning)[:\s]+(.+)/i, // After explicit section headers
-    ];
-
-    let foundRationale = false;
-    for (const pattern of rationalePatterns) {
-      const match = response.match(pattern);
-      if (match && match[1] && match[1].trim()) {
-        rationale = match[1].trim();
-        foundRationale = true;
-        break;
-      }
-    }
-
-    // If no structured rationale found, use fallback approaches
-    if (!foundRationale) {
-      // Look for text after a colon
-      if (response.includes(":")) {
-        const colonParts = response.split(":");
-        if (colonParts.length > 1 && colonParts[1].trim()) {
-          rationale = colonParts.slice(1).join(":").trim();
-        }
-      } else if (response.includes("\n")) {
-        // Try to use text after the first line break
-        const lines = response.split("\n").filter((line) => line.trim());
-        if (lines.length > 1) {
-          rationale = lines.slice(1).join("\n").trim();
-        }
-      }
-    }
-
-    console.log(
-      `[GEMINI] Parsed result: Vote=${vote}, Confidence=${confidence}, Rationale=${rationale.substring(
-        0,
-        50
-      )}...`
-    );
-    return { vote, confidence, rationale };
   }
 
   /**

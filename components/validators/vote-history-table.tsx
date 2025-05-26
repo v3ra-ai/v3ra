@@ -8,6 +8,7 @@ import {
   MAX_VOTE_HISTORY_RESULTS,
   RECENT_HISTORY_RESULTS,
 } from "@/lib/constants";
+import { parseRationale } from "@/lib/utils";
 
 interface VoteHistoryTableProps {
   validatorId: string;
@@ -225,7 +226,7 @@ export default function VoteHistoryTable({
                     >
                       {response.vote}
                     </td>
-                    <td className="px-4 py-2">{response.rationale}</td>
+                    <td className="px-4 py-2">{parseRationale(response.rationale)}</td>
                     <td className="px-4 py-2">
                       {vote.timestamp
                         ? new Date(vote.timestamp).toLocaleString()

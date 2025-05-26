@@ -12,8 +12,9 @@ import { AskResultsStandardTitle } from "@/components/ask/ask-results-standard-t
 import { AskResultsStandardConsensus } from "@/components/ask/ask-results-standard-consensus";
 import { AskResultsStandardRationale } from "@/components/ask/ask-results-standard-rationale";
 import { AskResultsStandardAiConsensus } from "@/components/ask/ask-results-standard-ai-consensus";
-import { AskResultsStandardFooter } from "@/components/ask/ask-results-standard-footer";
-import { AskResultsStandardValidatorAvatars } from "@/components/ask/ask-results-standard-validator-avatars";
+import { AskResultsStandardFooter } from "./ask-results-standard-footer";
+import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
+import { parseRationaleDetailed } from "@/lib/utils";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -71,10 +72,18 @@ export default function AskResultsStandardCard({
       )
     : null;
 
-  const longestRationale = longestRationaleResponse?.rationale || null;
+  // Get the raw rationale string
+  const rawLongestRationale = longestRationaleResponse?.rationale || null;
 
-  // Call hook unconditionally with computed longestRationale
-  const { cleanText } = useCleanText(longestRationale);
+  // Parse the rationale object and extract the text
+  const displayRationale = parseRationaleDetailed(rawLongestRationale).rationale;
+
+  const validatorName =
+    longestRationaleResponse?.profileName || "Unknown Validator";
+  const validatorProvider =
+    longestRationaleResponse?.provider || "Unknown Provider";
+
+  const { cleanText } = useCleanText(displayRationale);
 
   // Handle undefined timestamp with a fallback
   const formattedDate = sanitizedQuery.timestamp
@@ -124,7 +133,7 @@ export default function AskResultsStandardCard({
       <CardContent className="space-y-2">
         <AskResultsStandardConsensus sanitizedQuery={sanitizedQuery} />
         <AskResultsStandardRationale
-          longestRationale={longestRationale}
+          longestRationale={displayRationale}
           validatorName={validatorName}
           validatorProvider={validatorProvider}
           cleanText={cleanText}

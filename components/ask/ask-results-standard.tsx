@@ -8,9 +8,10 @@ import { Grid3x3, Rows3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
-import DOMPurify from "dompurify";
+import { default as DOMPurify } from "dompurify"; // Ensure default import
 import { Skeleton } from "@/components/ui/skeleton";
 import { RESULT_QUERIES_CARDS } from "@/lib/constants";
+import { parseRationaleDetailed } from "@/lib/utils";
 
 // Custom CSS for skeleton loading animation (pulse + shimmer)
 <style jsx>{`
@@ -141,23 +142,15 @@ export default function AskResultsStandard() {
     .filter((vote) => vote && vote.id && vote.queryText) // Ensure valid data
     .map((vote) => ({
       ...vote,
-      queryText: DOMPurify.sanitize(vote.queryText),
-      validatorResponses: vote.validatorResponses?.map((response) => ({
-        ...response,
-        profileName: DOMPurify.sanitize(response.profileName),
-        provider: DOMPurify.sanitize(response.provider),
-        id: DOMPurify.sanitize(response.id),
-        rationale: DOMPurify.sanitize(response.rationale || ""),
-      })) || [],
-    }));
-
-  // Log invalid entries for debugging
-  if (process.env.NODE_ENV === "development") {
-    const invalidVotes = voteHistory.filter((vote) => !vote || !vote.id || !vote.queryText);
-    if (invalidVotes.length > 0) {
-      console.warn("Invalid voteHistory entries:", invalidVotes);
-    }
-  }
+    queryText: DOMPurify.sanitize(vote.queryText),
+    validatorResponses: vote.validatorResponses?.map((response) => ({
+      ...response,
+      profileName: DOMPurify.sanitize(response.profileName),
+      provider: DOMPurify.sanitize(response.provider),
+      id: DOMPurify.sanitize(response.id),
+      rationale: DOMPurify.sanitize(parseRationaleDetailed(response.rationale).rationale || ""), // Keep sanitize call
+    })),
+  }));
 
   // Refetch vote history when lastVoteResult changes
   useEffect(() => {

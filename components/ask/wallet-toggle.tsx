@@ -35,7 +35,7 @@ export default function WalletToggle({
 
   const handleCheckedChange = useCallback(
     (checked: boolean) => {
-      // console.log("[WalletToggle] handleCheckedChange:", { checked, queriesUnpaid, context });
+      // console.log("[WalletToggle] handleCheckedChange:", { checked });
       setPayWithWallet(checked);
     },
     [setPayWithWallet]

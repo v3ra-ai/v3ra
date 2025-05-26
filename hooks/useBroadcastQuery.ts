@@ -84,7 +84,15 @@ export function useBroadcastQuery(
           queriesRequested: options.queriesRequested,
         });
 
-        const voteResult = await response.json();
+        // Safely parse JSON or throw a descriptive error
+        let voteResult: any;
+        const rawBody = await response.text();
+        try {
+          voteResult = JSON.parse(rawBody);
+        } catch (parseErr) {
+          console.error("[useBroadcastQuery] Invalid JSON response:", rawBody);
+          throw new Error(`Invalid JSON response from server: ${rawBody}`);
+        }
 
         console.log("[useBroadcastQuery] Broadcast query response:", {
           status: response.status,

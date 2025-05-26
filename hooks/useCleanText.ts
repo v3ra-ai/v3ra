@@ -5,7 +5,8 @@ interface CleanRule {
   replacement: string;
 }
 
-export function useCleanText(text: string | null | undefined): { cleanText: string } {
+export function useCleanText(text: string | any | null | undefined): { cleanText: string } {
+  // Define cleaning rules
   const rules: CleanRule[] = [
     { pattern: /confidence\.?\s*/gi, replacement: "" },
     { pattern: /based on my analysis\s*/gi, replacement: "" },
@@ -16,8 +17,19 @@ export function useCleanText(text: string | null | undefined): { cleanText: stri
   ];
 
   const cleanText = useMemo(() => {
-    if (!text) return "";
-    let cleanedText = text;
+    // Safely derive a string for cleaning
+    let rawText: string;
+    if (typeof text === "string") {
+      rawText = text;
+    } else if (text && typeof text.rationale === "string") {
+      rawText = text.rationale;
+    } else if (text != null) {
+      rawText = String(text);
+    } else {
+      rawText = "";
+    }
+    // Apply cleaning rules on stringified text
+    let cleanedText: string = String(rawText);
     rules.forEach(({ pattern, replacement }) => {
       cleanedText = cleanedText.replace(pattern, replacement);
     });

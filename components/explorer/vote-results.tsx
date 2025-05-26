@@ -1,4 +1,5 @@
 import type { VoteResult } from "@/lib/types";
+import { parseRationale } from "@/lib/utils";
 
 interface VoteResultsProps {
   voteResult: VoteResult | null | undefined;
@@ -120,8 +121,8 @@ export function VoteResults({ voteResult }: VoteResultsProps) {
                     {response?.vote}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
-                  {response?.rationale ?? "No rationale provided"}
+                <p className="text-xs mt-1 text-gray-500 dark:text-gray-400">
+                  {parseRationale(response?.rationale)}
                 </p>
               </div>
             ))}

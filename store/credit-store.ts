@@ -97,8 +97,8 @@ const manageFreeCreditsCookie = async () => {
   return freeCredits;
 };
 
-// Initialize free credits from cookie
-const initialFreeCredits = await manageFreeCreditsCookie();
+// Initialize free credits to default; cookie management removed for SSR
+const initialFreeCredits = USER_FREE_CREDITS_DEFAULT;
 
 export const useCreditsStore = create<CreditsStore>((set, get) => ({
   userFreeCredits: initialFreeCredits,

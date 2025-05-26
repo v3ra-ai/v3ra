@@ -1,7 +1,7 @@
-
 import VoteHistoryTableRow from "@/components/ask/consensus/vote-history-table-row";
 import type { VoteResult } from "@/lib/types";
 import DOMPurify from "dompurify";
+import { parseRationale } from "@/lib/utils";
 
 interface VoteHistoryTableProps {
   voteHistory: VoteResult[];
@@ -37,7 +37,7 @@ export default function VoteHistoryTable({
       profileName: DOMPurify.sanitize(response.profileName),
       provider: DOMPurify.sanitize(response.provider),
       id: DOMPurify.sanitize(response.id),
-      rationale: DOMPurify.sanitize(response.rationale || ""),
+      rationale: DOMPurify.sanitize(parseRationale(response.rationale) || ""),
     })),
   }));
 

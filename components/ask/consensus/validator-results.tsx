@@ -4,6 +4,7 @@ import { useVoteResult } from "@/hooks/useVoteResult";
 import { VoteResult } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sanitizeValidatorResponse } from "@/utils/security-utils";
+import { parseRationaleDetailed } from "@/lib/utils";
 
 const ValidatorResponseCard = ({
   response,
@@ -40,9 +41,25 @@ const ValidatorResponseCard = ({
           {sanitizedResponse.vote || "N/A"}
         </span>
       </div>
-      <p className="text-sm text-gray-600 dark:text-gray-300">
-        {sanitizedResponse.rationale || "No rationale provided"}
-      </p>
+      {(() => {
+  const { rationale, answer } = parseRationaleDetailed(sanitizedResponse.rationale);
+  // Check for mismatch between displayed vote and answer in rationale
+  let warning = null;
+  if (answer && sanitizedResponse.vote && answer.toUpperCase() !== sanitizedResponse.vote.toUpperCase()) {
+    warning = (
+      <span className="text-xs text-yellow-600 dark:text-yellow-400 block mt-1">
+        Warning: The answer in rationale (&quot;{answer}&quot;) does not match the displayed vote (&quot;{sanitizedResponse.vote}&quot;).
+      </span>
+    );
+  }
+  return (
+    <>
+      <span>{rationale}</span>
+      {warning}
+    </>
+  );
+})()}
+
     </div>
   );
 };
