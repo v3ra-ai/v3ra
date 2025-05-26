@@ -14,7 +14,6 @@ import { AskResultsStandardRationale } from "@/components/ask/ask-results-standa
 import { AskResultsStandardAiConsensus } from "@/components/ask/ask-results-standard-ai-consensus";
 import { AskResultsStandardFooter } from "@/components/ask/ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "@/components/ask/ask-results-standard-validator-avatars";
-import { AskResultsStandardSocialIcons } from "@/components/ask/ask-results-standard-social-icons";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -118,7 +117,7 @@ export default function AskResultsStandardCard({
         ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
       `}
     >
-      <AskResultsStandardHeader formattedDate={formattedDate} />
+      <AskResultsStandardHeader formattedDate={formattedDate} sanitizedQuery={sanitizedQuery} />
       <hr className="h-1 mt-2" />
       <AskResultsStandardTitle sanitizedQuery={sanitizedQuery} />
       <hr className="h-1 mt-2" />
@@ -138,9 +137,7 @@ export default function AskResultsStandardCard({
         <div className="mt-3">
           <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery} />
         </div>
-        <div className="mt-3">
-          <AskResultsStandardSocialIcons query={sanitizedQuery} />
-        </div>
+
       </CardContent>
       <AskResultsStandardFooter
         sanitizedQuery={sanitizedQuery}
