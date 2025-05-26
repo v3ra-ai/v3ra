@@ -92,9 +92,6 @@ export default function AskResultsStandardCard({
 
   const { percentage, color } = calculateRating(sanitizedQuery);
 
-  const validatorName = longestRationaleResponse?.profileName || "Unknown Validator";
-  const validatorProvider = longestRationaleResponse?.provider || "Unknown Provider";
-
   // Render fallback UI if query is invalid
   if (!isValidQuery) {
     return (
