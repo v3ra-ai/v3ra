@@ -44,3 +44,27 @@ export const RECENT_HISTORY_RESULTS = 50;
 export const RESULT_QUERIES_CARDS = 12;
 
 export const EXPORT_MAX_VALIDATORS = 20;
+
+function getCurrentDomain(): string | null {
+  if (typeof window !== 'undefined' && window.location) {
+    // Compare hostname, not the entire location object
+    if (window.location.hostname === 'localhost') {
+      return 'localhost:3000'; // Return localhost with port for development
+    }
+    return window.location.hostname; // Return domain (e.g., example.com)
+  }
+  return null; // Non-browser environment (e.g., Node.js, SSR)
+}
+
+// Use a function to lazily evaluate the domain, avoiding SSR issues
+export function getCurrentDomainSafe(): string {
+  const domain = getCurrentDomain();
+  // Handle null case: return a default or throw an error based on your needs
+  if (domain === null) {
+    // Return a default domain
+    return 'localhost';
+  }
+  return domain;
+}
+
+export const CURRENT_DOMAIN: string = typeof window !== 'undefined' ? getCurrentDomainSafe() : 'localhost';

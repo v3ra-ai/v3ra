@@ -12,7 +12,6 @@ import { AskResultsStandardTitle } from "@/components/ask/ask-results-standard-t
 import { AskResultsStandardConsensus } from "@/components/ask/ask-results-standard-consensus";
 import { AskResultsStandardRationale } from "@/components/ask/ask-results-standard-rationale";
 import { AskResultsStandardAiConsensus } from "@/components/ask/ask-results-standard-ai-consensus";
-
 import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
 import { parseRationaleDetailed } from "@/lib/utils";
@@ -30,22 +29,35 @@ export default function AskResultsStandardCard({
   isOpen,
   toggleItem,
 }: AskResultsStandardCardProps) {
+  // Validate query data
+  const isValidQuery = query && query.queryText && query.id;
+  if (!isValidQuery) {
+    console.error('Invalid query data in AskResultsStandardCard:', {
+      query,
+      id: query?.id,
+      queryText: query?.queryText,
+    });
+  }
+
   // Sanitize query data to prevent XSS
-  const sanitizedQuery = {
-    ...query,
-    queryText: sanitizeQueryText(query.queryText),
-    validatorResponses: query.validatorResponses?.map(
-      sanitizeValidatorResponse
-    ),
-  };
+  const sanitizedQuery: VoteResult = isValidQuery
+    ? {
+        ...query,
+        queryText: sanitizeQueryText(query.queryText),
+        validatorResponses: query.validatorResponses?.map(sanitizeValidatorResponse) || [],
+        votingResult: query.votingResult || { yes: 0, no: 0, notVoted: 0 },
+      }
+    : {
+        id: query?.id || 'unknown',
+        queryText: 'Unknown Query',
+        isConsensusReached: false,
+        consensusValue: null,
+        validatorResponses: [],
+        votingResult: { yes: 0, no: 0, notVoted: 0 },
+        timestamp: query?.timestamp,
+      };
 
-  // Handle undefined timestamp with a fallback
-  const formattedDate = sanitizedQuery.timestamp
-    ? formatDateTimeCards(sanitizedQuery.timestamp)
-    : "N/A";
-
-  const { percentage, color } = calculateRating(sanitizedQuery);
-
+  // Compute matching responses and longest rationale
   const matchingResponses =
     sanitizedQuery.validatorResponses?.filter(
       (response) =>
@@ -54,12 +66,9 @@ export default function AskResultsStandardCard({
           (!sanitizedQuery.consensusValue && response.vote === "NO"))
     ) || [];
 
-  // Store the entire response object for the longest rationale
   const longestRationaleResponse = matchingResponses.length
     ? matchingResponses.reduce((longest, response) =>
-        response.rationale.length > longest.rationale.length
-          ? response
-          : longest
+        response.rationale.length > longest.rationale.length ? response : longest
       )
     : null;
 
@@ -76,6 +85,32 @@ export default function AskResultsStandardCard({
 
   const { cleanText } = useCleanText(displayRationale);
 
+  // Handle undefined timestamp with a fallback
+  const formattedDate = sanitizedQuery.timestamp
+    ? formatDateTimeCards(sanitizedQuery.timestamp)
+    : "N/A";
+
+  const { percentage, color } = calculateRating(sanitizedQuery);
+
+  // Render fallback UI if query is invalid
+  if (!isValidQuery) {
+    return (
+      <Card
+        className={`
+          bg-zinc-50 dark:bg-zinc-800
+          pt-4 gap-2
+          border border-zinc-200 dark:border-zinc-700
+          transition-colors
+          ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+        `}
+      >
+        <CardContent className="p-4">
+          <p className="text-zinc-500">Unable to display query data</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card
       className={`
@@ -88,7 +123,7 @@ export default function AskResultsStandardCard({
         ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
       `}
     >
-      <AskResultsStandardHeader formattedDate={formattedDate} />
+      <AskResultsStandardHeader formattedDate={formattedDate} sanitizedQuery={sanitizedQuery} />
       <hr className="h-1 mt-2" />
       <AskResultsStandardTitle sanitizedQuery={sanitizedQuery} />
       <hr className="h-1 mt-2" />
@@ -106,11 +141,10 @@ export default function AskResultsStandardCard({
           sanitizedQuery={sanitizedQuery}
         />
         <div className="mt-3">
-        <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery}/>
+          <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery} />
         </div>
-      </CardContent>
 
-      {/* <hr className="h-1 mt-2" /> */}
+      </CardContent>
       <AskResultsStandardFooter
         sanitizedQuery={sanitizedQuery}
         isOpen={isOpen}

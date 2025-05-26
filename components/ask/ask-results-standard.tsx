@@ -61,9 +61,8 @@ const getRecentQueries = (voteHistory: VoteResult[]) =>
     })
     .slice(0, RESULT_QUERIES_CARDS);
 
-// Skeleton card component styled like AskResultsStandardCard with loading animation
+// Skeleton card component styled like AskResultsStandardCard
 const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
-  // Debug log to confirm rendering
   if (process.env.NODE_ENV === "development") {
     console.log("Rendering SkeletonCard with layoutMode:", layoutMode);
   }
@@ -93,7 +92,6 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
       <hr className="h-1" />
       <div className="p-4">
         <div className="flex w-full justify-center items-center space-x-2">
-
           <Skeleton className="h-7 w-7 rounded-full" />
           <Skeleton className="h-6 w-3/4" />
         </div>
@@ -134,14 +132,16 @@ export default function AskResultsStandard() {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
 
-  // Debug log to confirm loading state
+  // Debug log to confirm loading state and voteHistory
   if (process.env.NODE_ENV === "development") {
-    console.log("AskResultsStandard isLoading:", isLoading);
+    console.log("AskResultsStandard isLoading:", isLoading, "voteHistory:", voteHistory);
   }
 
-  // Sanitize voteHistory to prevent XSS
-  const sanitizedVoteHistory = voteHistory.map((vote) => ({
-    ...vote,
+  // Sanitize and filter voteHistory to prevent XSS and invalid data
+  const sanitizedVoteHistory = voteHistory
+    .filter((vote) => vote && vote.id && vote.queryText) // Ensure valid data
+    .map((vote) => ({
+      ...vote,
     queryText: DOMPurify.sanitize(vote.queryText),
     validatorResponses: vote.validatorResponses?.map((response) => ({
       ...response,
@@ -187,13 +187,13 @@ export default function AskResultsStandard() {
         mx-auto px-4 py-4
         max-w-6xl
         bg-transparent
-        border-0 border-red-500
+        border-0
         justify-center
       `}
       aria-live="polite"
     >
       <div
-        className={`flex items-center mb-2 justify-center mb-3 ${layoutMode === "row" ? "w-full border-0 border-red-500" : ""}`}
+        className={`flex items-center mb-2 justify-center mb-3 ${layoutMode === "row" ? "w-full" : ""}`}
       >
         {isLoading ? (
           <LoadingSpinner type="beat" message="Loading Recent Queries..." />
@@ -239,7 +239,6 @@ export default function AskResultsStandard() {
           ))}
         </div>
       )}
-
     </div>
   );
 }
