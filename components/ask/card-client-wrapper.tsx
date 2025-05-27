@@ -10,7 +10,7 @@ interface CardViewerProps {
 }
 
 export default function CardViewer({ query, layoutMode }: CardViewerProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   const toggleItem = () => {
     setIsOpen((prev) => !prev);

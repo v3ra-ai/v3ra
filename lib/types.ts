@@ -201,3 +201,11 @@ export interface VoteSession {
   votesNo: number | null;
   notVoted: number | null;
 }
+
+export interface VoteStats {
+  totalVotes: number;
+  yesVotes: number;
+  noVotes: number;
+  consensusMatchPercentage: number;
+  nonConsensusPercentage: number;
+}
