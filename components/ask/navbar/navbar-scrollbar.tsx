@@ -1,7 +1,7 @@
 "use client";
 
 import { ViewMode } from "@/lib/types";
-import { NavbarScrollbarUI } from "@/components/ask/navbar-scrollbar-ui";
+import { NavbarScrollbarUI } from "@/components/ask/navbar/navbar-scrollbar-ui";
 import { useNavbarScrollbar } from "@/hooks/useNavbarScrollbar";
 
 interface NavbarScrollbarProps {

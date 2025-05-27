@@ -49,7 +49,7 @@ Below is the workflow outlining how a user navigates to the "ask" page, enters a
     - The server returns the final result to the browser (`app/api/broadcast-query/route.ts`).
 
 15. **The UI displays the response to the user**
-    - The result is shown, and network state/history may refresh (`hooks/useBroadcastQuery.ts`, `components/ask/ask-results-expert.tsx`).
+    - The result is shown, and network state/history may refresh (`hooks/useBroadcastQuery.ts`, `components/ask/results/ask-results-expert.tsx`).
 
 ---
 

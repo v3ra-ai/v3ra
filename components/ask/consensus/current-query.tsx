@@ -1,7 +1,7 @@
 "use client";
 
 import { useNetworkState } from "@/hooks/useNetworkState";
-import { VoteResultContext } from "@/components/ask/ask-results-expert";
+import { VoteResultContext } from "@/components/ask/results/ask-results-expert";
 import { useContext } from "react";
 import { motion } from "framer-motion";
 import { sanitizeQueryText } from "@/utils/security-utils";

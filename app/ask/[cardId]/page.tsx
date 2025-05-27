@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/client";
 import { VoteResult, VoteSession } from "@/lib/types"; // Update import
 import CardViewer from "@/components/ask/card-client-wrapper";
 import { CURRENT_DOMAIN } from "@/lib/constants";
-import Navbar from "@/components/ask/navbar";
+import Navbar from "@/components/ask/navbar/navbar";
 import AskFooter from "@/components/ask/ask-footer";
 import { formatDateTimeCards } from "@/utils/date-utils";
 

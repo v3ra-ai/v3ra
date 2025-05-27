@@ -14,7 +14,7 @@ import {
   sanitizeQueryText,
   sanitizeValidatorResponse,
 } from "@/utils/security-utils";
-import StakingAreaStacked from "./charts/staking-area-stacked";
+import StakingAreaStacked from "@/components/ask/charts/staking-area-stacked";
 
 export const VoteResultContext = createContext<VoteResult | null>(null);
 

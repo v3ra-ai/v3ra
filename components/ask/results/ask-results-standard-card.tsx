@@ -7,11 +7,11 @@ import {
 } from "@/utils/security-utils";
 import { calculateRating } from "@/utils/vote-utils";
 import { formatDateTimeCards } from "@/utils/date-utils";
-import { AskResultsStandardHeader } from "@/components/ask/ask-results-standard-header";
-import { AskResultsStandardTitle } from "@/components/ask/ask-results-standard-title";
-import { AskResultsStandardConsensus } from "@/components/ask/ask-results-standard-consensus";
-import { AskResultsStandardRationale } from "@/components/ask/ask-results-standard-rationale";
-import { AskResultsStandardAiConsensus } from "@/components/ask/ask-results-standard-ai-consensus";
+import { AskResultsStandardHeader } from "@/components/ask/results/ask-results-standard-header";
+import { AskResultsStandardTitle } from "@/components/ask/results/ask-results-standard-title";
+import { AskResultsStandardConsensus } from "@/components/ask/results/ask-results-standard-consensus";
+import { AskResultsStandardRationale } from "@/components/ask/results/ask-results-standard-rationale";
+import { AskResultsStandardAiConsensus } from "@/components/ask/results/ask-results-standard-ai-consensus";
 import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
 import { parseRationaleDetailed } from "@/lib/utils";

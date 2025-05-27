@@ -1,4 +1,4 @@
-import Navbar from "@/components/ask/navbar";
+import Navbar from "@/components/ask/navbar/navbar";
 
 export default function UsersLayout({ children }: { children: React.ReactNode }) {
   return (

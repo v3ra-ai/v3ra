@@ -6,7 +6,7 @@ import CurrentQuery from "@/components/ask/consensus/current-query";
 import NetworkStatus from "@/components/ask/consensus/network-status";
 import ValidatorResults from "@/components/ask/consensus/validator-results";
 import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
-import { VoteResultContext } from "@/components/ask/ask-results-expert";
+import { VoteResultContext } from "@/components/ask/results/ask-results-expert";
 import AreaStackedValidators from "./charts/staking-area-stacked";
 
 export default function ConsensusStatus() {

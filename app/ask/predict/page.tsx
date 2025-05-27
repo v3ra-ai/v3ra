@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import Navbar from "@/components/ask/navbar";
-import QueryInterface from "@/components/ask/query-interface";
+import Navbar from "@/components/ask/navbar/navbar";
+import QueryInterface from "@/components/ask/query/query-interface";
 import { SolanaProvider } from "@/components/solana-provider";
 import AskFooter from "@/components/ask/ask-footer";
 import { useQueryStore } from "@/store/query-store";

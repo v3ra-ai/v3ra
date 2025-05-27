@@ -1,4 +1,4 @@
-import { AskResultsStandardSocialIcons } from "@/components/ask/ask-results-standard-social-icons";
+import { AskResultsStandardSocialIcons } from "@/components/ask/results/ask-results-standard-social-icons";
 import { VoteResult } from "@/lib/types";
 
 interface AskResultsStandardHeaderProps {
