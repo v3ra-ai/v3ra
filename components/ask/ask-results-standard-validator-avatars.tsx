@@ -114,7 +114,7 @@ export function AskResultsStandardValidatorAvatars({
                     href={`/ask/${sanitizedQuery.id}`}
                     className="text-blue-500 hover:underline"
                   >
-                    View Full Card
+                    View Report
                   </Link>
                 </div>
                 <DialogClose asChild>
