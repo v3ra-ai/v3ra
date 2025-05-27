@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
+import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
 import { VoteResult } from "@/lib/types";
 
 interface CardViewerProps {

@@ -3,8 +3,8 @@
 import { useState, useEffect } from "react";
 import { useQueryStore } from "@/store/query-store";
 import { ViewMode } from "@/lib/types";
-import AskResultsStandard from "@/components/ask/ask-results-standard";
-import AskResultsExpert from "@/components/ask/ask-results-expert";
+import AskResultsStandard from "@/components/ask/results/ask-results-standard";
+import AskResultsExpert from "@/components/ask/results/ask-results-expert";
 
 type Props = {
   viewMode: ViewMode;

@@ -7,7 +7,7 @@ import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { Grid3x3, Rows3 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
-import AskResultsStandardCard from "@/components/ask/ask-results-standard-card";
+import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
 import { default as DOMPurify } from "dompurify"; // Ensure default import
 import { Skeleton } from "@/components/ui/skeleton";
 import { RESULT_QUERIES_CARDS } from "@/lib/constants";
