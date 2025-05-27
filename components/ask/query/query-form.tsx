@@ -1,4 +1,4 @@
-import { QueryFormInput } from "@/components/ask/query-form-input";
+import { QueryFormInput } from "@/components/ask/query/query-form-input";
 import { Dispatch, SetStateAction } from "react";
 import { QueryMode } from "@/lib/types";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";

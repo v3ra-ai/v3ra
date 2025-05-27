@@ -1,6 +1,6 @@
 "use client";
 import AskFooter from "@/components/ask/ask-footer";
-import Navbar from "@/components/ask/navbar";
+import Navbar from "@/components/ask/navbar/navbar";
 import { useBackgroundImage } from "@/hooks/useBackgroundImage";
 
 export default function ValidatorsLayout({

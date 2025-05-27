@@ -1,6 +1,6 @@
 "use client";
 import { CreditsLayout } from "@/components/credits/credits-layout";
-import Navbar from "@/components/ask/navbar";
+import Navbar from "@/components/ask/navbar/navbar";
 import { SolanaProvider } from "@/components/solana-provider";
 import { useBackgroundImage } from "@/hooks/useBackgroundImage";
 

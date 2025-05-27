@@ -1,12 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { QueryForm } from "@/components/ask/query-form";
+import { QueryForm } from "@/components/ask/query/query-form";
 import ModeToggle from "@/components/ask/mode-toggle";
 import dynamic from 'next/dynamic';
 const WalletToggle = dynamic(() => import('@/components/ask/wallet-toggle'), { ssr: false });
-import QueryStats from "@/components/ask/query-stats";
-import QueryResults from "@/components/ask/query-results";
+import QueryStats from "@/components/ask/query/query-stats";
+import QueryResults from "@/components/ask/query/query-results";
 import { useQueryLogic } from "@/hooks/useQueryLogic";
 import { QueryMode } from "@/lib/types";
 import * as Popover from "@radix-ui/react-popover";

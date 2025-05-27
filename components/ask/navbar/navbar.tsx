@@ -7,9 +7,9 @@ import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase-client";
 import { useQueryStore } from "@/store/query-store";
-import { NavbarSitelinks } from "@/components/ask/navbar-sitelinks";
-import { NavbarScrollbar } from "@/components/ask/navbar-scrollbar";
-import { NavbarSettings } from "@/components/ask/navbar-settings";
+import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
+import { NavbarScrollbar } from "@/components/ask/navbar/navbar-scrollbar";
+import { NavbarSettings } from "@/components/ask/navbar/navbar-settings";
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();

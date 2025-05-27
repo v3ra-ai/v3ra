@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from "react";
 import { ViewMode, QueryMode } from "@/lib/types";
-import { QueryFormModeSelector } from "@/components/ask/query-form-mode-selector";
-import { QueryFormAISlider } from "@/components/ask/query-form-ai-slider";
+import { QueryFormModeSelector } from "@/components/ask/query/query-form-mode-selector";
+import { QueryFormAISlider } from "@/components/ask/query/query-form-ai-slider";
 import WalletToggle from "@/components/ask/wallet-toggle";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
