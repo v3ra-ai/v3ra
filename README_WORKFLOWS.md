@@ -72,7 +72,7 @@ This workflow describes what happens when a user tries to submit a query but lac
 
 3. **Insufficient queries detected**
    - If the query count is too low, a payment prompt is displayed.
-   - File: `components/ask/payment-controls.tsx`
+   - File: `components/ask/payments/payment-controls.tsx`
 
 4. **User starts payment process**
    - The user clicks to pay using their Solana wallet.
@@ -200,7 +200,7 @@ This workflow explains how a user purchases credits, how they’re added to the 
 2. **System checks available queries**
    - File: `hooks/useQueryLogic.tsx`
 3. **Insufficient queries detected**
-   - File: `components/ask/payment-controls.tsx`
+   - File: `components/ask/payments/payment-controls.tsx`
 4. **User starts payment process**
    - File: `hooks/useSolanaTransaction.tsx`
 5. **Payment amount is calculated**

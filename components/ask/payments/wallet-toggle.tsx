@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { Switch } from "@/components/ui/switch";
-import { PaymentControls } from "@/components/ask/payment-controls";
+import { PaymentControls } from "@/components/ask/payments/payment-controls";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useCreditsStore } from "@/store/credit-store";
 
