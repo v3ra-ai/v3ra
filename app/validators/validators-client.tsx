@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import { Validator } from "@/lib/types";
 
 // Utility function to truncate UUID to first two segments (e.g., "228db12f-5d5b-4e34-af58-1c0972b9164e" → "228db12f-5d5b...")
@@ -34,6 +35,9 @@ export default function ValidatorsClient({ validators }: ValidatorsClientProps) 
           <CardTitle className="text-2xl font-semibold text-zinc-800 dark:text-zinc-200">
             Validators
           </CardTitle>
+          <Button asChild>
+            <Link href="/validators/manage">Manage Validators</Link>
+          </Button>
         </CardHeader>
         <CardContent>
           {validators.length > 0 ? (
