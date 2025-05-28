@@ -45,8 +45,13 @@ export function AskResultsStandardRationale({
               className={`text-sm text-zinc-600 dark:text-zinc-300 leading-6 ${
                 isRationaleExpanded ? "" : "line-clamp-5"
               }`}
+              style={{
+                maxHeight: isRationaleExpanded ? "none" : "12rem",
+              }}
             >
-              {cleanText}
+              {cleanText.length > 600 && !isRationaleExpanded
+                ? `${cleanText.slice(0, 600)}...`
+                : cleanText}
             </p>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">

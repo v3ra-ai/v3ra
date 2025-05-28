@@ -39,6 +39,14 @@ export function parseRationaleDetailed(rawRationale: string | null | undefined):
     // Clean up the rationale text first
     let cleaned = rawRationale.trim();
     
+    // Remove noisy patterns like "**# 1.1.1.1..." that some models (e.g. DeepSeek) prepend
+    cleaned = cleaned.replace(/^(?:\*+#+\s*)?(?:\d+\.){5,}\d*\s*/, "");
+
+    // If the cleaned string is extremely long ( > 1500 chars ), truncate for display
+    if (cleaned.length > 1500) {
+      cleaned = cleaned.slice(0, 1500) + "...";
+    }
+    
     // Handle markdown code blocks with json syntax highlighting
     if (cleaned.includes("```json") || cleaned.startsWith("```")) {
       cleaned = cleaned.replace(/^```json\s*|^```\s*|\s*```$/g, "");

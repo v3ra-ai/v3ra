@@ -54,7 +54,10 @@ const ValidatorResponseCard = ({
   }
   return (
     <>
-      <span>{rationale}</span>
+      {/* Truncate overly long rationale to avoid huge cards */}
+      <span className="text-sm block whitespace-pre-wrap line-clamp-6">
+        {rationale.length > 600 ? `${rationale.slice(0, 600)}...` : rationale}
+      </span>
       {warning}
     </>
   );
