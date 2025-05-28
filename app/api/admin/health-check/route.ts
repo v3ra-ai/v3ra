@@ -1,14 +1,13 @@
 // app/api/admin/health-check/route.ts
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
-import { createErrorResponse } from "@/lib/utils";
 
 export async function GET() {
   try {
     console.log("Attempting database connection...");
     
     // Test database connection with a simple query
-    const validators = await prisma.validator.findMany({ 
+    await prisma.validator.findMany({ 
       take: 1,
       select: { id: true } // Only select what we need
     });

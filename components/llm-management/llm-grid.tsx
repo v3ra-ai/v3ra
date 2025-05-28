@@ -1,9 +1,17 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useCallback } from "react";
-import { FixedSizeGrid as Grid, GridOnItemsRenderedProps } from "react-window";
+import { useMemo, useCallback } from "react";
+import { FixedSizeGrid as Grid } from "react-window";
+
+// Define proper interface for Grid render props
+interface GridOnItemsRenderedProps {
+  visibleRowStartIndex: number;
+  visibleRowStopIndex: number;
+  visibleColumnStartIndex: number;
+  visibleColumnStopIndex: number;
+}
 import AutoSizer from "react-virtualized-auto-sizer";
-import { useLLMStore } from "@/store/llm-store";
+import { LLM, useLLMStore } from "@/store/llm-store";
 import LLMTile from "./llm-tile";
 
 const TILE_WIDTH = 140;
@@ -23,8 +31,8 @@ export default function LLMGrid() {
   }, [llms, activeProvider, search, sort]);
 
   // Infinite scroll: assume fetchBatch stub for now
-  const fetchMore = useLLMStore((s) => (s as any).fetchBatch);
-  const hasMore = useLLMStore((s) => (s as any).hasMore);
+  const fetchMore = useLLMStore((s) => s.fetchBatch as (() => void));
+  const hasMore = useLLMStore((s) => s.hasMore as boolean);
 
   const onItemsRendered = useCallback(
     ({ visibleRowStopIndex }: GridOnItemsRenderedProps) => {
@@ -67,13 +75,27 @@ export default function LLMGrid() {
   );
 }
 
-const Cell = ({ columnIndex, rowIndex, style, data }: any) => {
+interface CellProps {
+  columnIndex: number;
+  rowIndex: number;
+  style: React.CSSProperties;
+  data: {
+    filtered: LLM[];
+    columnCount: number;
+  };
+}
+
+const Cell = ({ columnIndex, rowIndex, style, data }: CellProps) => {
   const index = rowIndex * data.columnCount + columnIndex;
   const llm = data.filtered[index];
   if (!llm) return null;
 
+  // Safely handle style properties which might be strings or numbers
+  const safeLeft = typeof style.left === 'number' ? style.left + GAP : style.left;
+  const safeTop = typeof style.top === 'number' ? style.top + GAP : style.top;
+  
   return (
-    <div style={{ ...style, left: style.left + GAP, top: style.top + GAP }}>
+    <div style={{ ...style, left: safeLeft, top: safeTop }}>
       <LLMTile llm={llm} />
     </div>
   );

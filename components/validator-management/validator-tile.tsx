@@ -8,12 +8,14 @@ import { useValidatorManagementStore } from "@/store/validator-management-store"
 
 interface ValidatorTileProps {
   validator: Validator;
+  active?: boolean; // Optional prop to override the internal active state
 }
 
-export default function ValidatorTile({ validator }: ValidatorTileProps) {
+export default function ValidatorTile({ validator, active: activeFromProps }: ValidatorTileProps) {
   const { selectedIds, toggleValidator } = useValidatorManagementStore();
 
-  const active = selectedIds.includes(validator.id);
+  // Use activeFromProps if provided, otherwise determine from selectedIds
+  const active = activeFromProps !== undefined ? activeFromProps : selectedIds.includes(validator.id);
 
   const handleClick = () => {
     toggleValidator(validator.id);

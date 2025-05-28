@@ -6,7 +6,7 @@ import ProviderTabs from "./provider-tabs";
 import LLMGrid from "./llm-grid";
 
 interface Props {
-  initial: any[]; // raw validators from server (DB)
+  initial: Array<Record<string, unknown>>; // raw validators from server (DB)
 }
 
 export default function ManageLLMsClient({ initial }: Props) {
@@ -18,17 +18,27 @@ export default function ManageLLMsClient({ initial }: Props) {
   useEffect(() => {
     // Map server validators to LLMs, handle gpt-40 special case
     const mapped: LLM[] = initial.map((v) => {
-      let modelName = v.modelName;
+      // Safely type server values with fallbacks
+      const modelName = typeof v.modelName === 'string' ? v.modelName : '';
+      const cleanedModelName = modelName === 'gpt-40' ? 'gpt-4o' : modelName;
+      
       if (modelName === 'gpt-40') {
         console.warn(`[ManageLLMs] Found outdated model name 'gpt-40', replacing with 'gpt-4o'. Please update database.`);
-        modelName = 'gpt-4o';
       }
+      
+      // Safely extract and convert fields
+      const id = String(v.id || ''); // Ensure id is a string
+      const profileName = typeof v.profileName === 'string' ? v.profileName : '';
+      const providerName = typeof v.provider === 'string' ? v.provider : 'Custom';
+      const active = typeof v.active === 'boolean' ? v.active : true;
+      const avatarUrl = typeof v.avatarUrl === 'string' ? v.avatarUrl : null;
+      
       return {
-        id: v.id,
-        name: v.profileName || modelName || "Unnamed",
-        provider: (v.provider || "Custom") as Provider,
-        enabled: v.active ?? true,
-        avatar: v.avatarUrl ?? null,
+        id: id,
+        name: profileName || cleanedModelName || "Unnamed",
+        provider: providerName as Provider,
+        enabled: active,
+        avatar: avatarUrl,
       };
     });
     console.log("[ManageLLMs] initial mapped", mapped.length);

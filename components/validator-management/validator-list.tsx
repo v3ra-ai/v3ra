@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { CheckIcon } from "lucide-react";
 
 interface ValidatorListProps {
-  initial: any[];
+  initial: Array<Record<string, unknown>>;
   onDone?: () => void; // optional callback when user presses Done
 }
 
@@ -24,6 +24,7 @@ export default function ValidatorList({ initial, onDone }: ValidatorListProps) {
 
   // Initialize store on mount
   useEffect(() => {
+    // Cast is handled in the store implementation
     initValidators(initial);
   }, [initial, initValidators]);
 
@@ -31,14 +32,16 @@ export default function ValidatorList({ initial, onDone }: ValidatorListProps) {
   const [sort, setSort] = useState("selected"); // selected | name
 
   const displayed = useMemo(() => {
-    let list = validators.filter((v) =>
+    const list = validators.filter((v) =>
       v.profileName.toLowerCase().includes(search.toLowerCase())
     );
 
+    // Create a sorted copy based on the sort criteria
+    const sortedList = [...list];
     if (sort === "name") {
-      list.sort((a, b) => a.profileName.localeCompare(b.profileName));
+      sortedList.sort((a, b) => a.profileName.localeCompare(b.profileName));
     } else {
-      list.sort((a, b) => {
+      sortedList.sort((a, b) => {
         const aSel = selectedIds.includes(a.id) ? -1 : 1;
         const bSel = selectedIds.includes(b.id) ? -1 : 1;
         if (aSel !== bSel) return aSel - bSel;

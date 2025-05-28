@@ -5,7 +5,7 @@ import ValidatorTile from "./validator-tile";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ActiveValidatorArea() {
-  const { active, deactivateValidator, activateValidator } = useValidatorManagementStore();
+  const { active, activateValidator } = useValidatorManagementStore();
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();

@@ -24,6 +24,8 @@ interface LLMState {
   activeProvider: Provider | "All";
   search: string;
   sort: "name" | "provider";
+  hasMore: boolean;
+  fetchBatch: () => void;
   init: (initial: LLM[]) => void;
   fetchAll: () => Promise<void>;
   toggleLLM: (id: string) => void;
@@ -41,6 +43,14 @@ export const useLLMStore = create<LLMState>()(
       activeProvider: "All",
       search: "",
       sort: "name",
+      hasMore: false,
+      
+      fetchBatch: () => {
+        // Placeholder implementation for pagination - to be implemented
+        console.log("Fetching next batch of LLMs");
+        // For now, just mark that there are no more results
+        set({ hasMore: false });
+      },
 
       init: (initial) => set({ llms: initial }),
 

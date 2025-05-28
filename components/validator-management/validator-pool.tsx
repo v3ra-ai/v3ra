@@ -6,11 +6,11 @@ import ValidatorTile from "./validator-tile";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface ValidatorPoolProps {
-  initialValidators: any[]; // Provided from server
+  initialValidators: Array<Record<string, unknown>>; // Provided from server
 }
 
 export default function ValidatorPool({ initialValidators }: ValidatorPoolProps) {
-  const { available, initValidators, activateValidator } = useValidatorManagementStore();
+  const { available, initValidators } = useValidatorManagementStore();
 
   useEffect(() => {
     initValidators(initialValidators);
@@ -18,7 +18,6 @@ export default function ValidatorPool({ initialValidators }: ValidatorPoolProps)
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
-    const id = e.dataTransfer.getData("text/plain");
     // No-op since dropping into pool shouldn't cause activation
   };
 

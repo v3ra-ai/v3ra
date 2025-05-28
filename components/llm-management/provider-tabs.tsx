@@ -1,9 +1,12 @@
 "use client";
 
-import { useLLMStore } from "@/store/llm-store";
+import { Provider, useLLMStore } from "@/store/llm-store";
 import clsx from "clsx";
 
-const providers: ("All" | "OpenAI" | "Anthropic" | "OpenRouter" | "HuggingFace" | "Custom")[] = [
+// Define a proper type for the provider list including 'All'
+type ProviderTab = Provider | "All";
+
+const providers: ProviderTab[] = [
   "All",
   "OpenAI",
   "Anthropic",
@@ -20,7 +23,7 @@ export default function ProviderTabs() {
       {providers.map((p) => (
         <button
           key={p}
-          onClick={() => setProvider(p as any)}
+          onClick={() => setProvider(p)}
           className={clsx(
             "whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
             activeProvider === p

@@ -62,11 +62,13 @@ export class OpenRouterValidator implements AIValidator {
       const startTime = Date.now();
 
       // Generate prompt using utility function
-      let { systemMessage, userMessage } = generatePrompt(
+      const promptResult = generatePrompt(
         req.queryMode,
         req.statement,
         req.context
       );
+      let { systemMessage } = promptResult;
+      const { userMessage } = promptResult;
       
       // Add clear instructions for clean JSON responses
       systemMessage = systemMessage + "\n\nIMPORTANT: Respond with ONLY a valid JSON object in the format {\"answer\": \"Yes\" or \"No\", \"confidence\": number from 0-100, \"rationale\": \"your reasoning\"}. Do not include markdown code blocks, prefixes, or any additional text outside the JSON object.";

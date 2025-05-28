@@ -7,12 +7,13 @@ interface ValidatorSelectionStore {
   available: Validator[]; // derived – unselected
   active: Validator[]; // derived – selected
   onboardingSeen?: boolean; // legacy
-  initValidators: (validators: Validator[]) => void;
+  initValidators: (validators: Array<Record<string, unknown> | Validator>) => void;
   toggleValidator: (id: string) => void;
   activateValidator: (id: string) => void; // legacy for compatibility
   deactivateValidator: (id: string) => void; // legacy
   selectAll: () => void;
   clearSelection: () => void;
+  setOnboardingSeen: () => void; // Mark the onboarding as seen
 }
 
 export const useValidatorManagementStore = create<ValidatorSelectionStore>((set) => ({
@@ -23,14 +24,16 @@ export const useValidatorManagementStore = create<ValidatorSelectionStore>((set)
   onboardingSeen: true,
 
   // Initialize from backend list
-  initValidators: (validators) =>
+  initValidators: (validators: Array<Record<string, unknown> | Validator>) =>
     set(() => {
-      const selected = validators.filter((v) => v.active).map((v) => v.id);
+      // Cast the validators to the expected Validator type
+      const typedValidators = validators as Validator[];
+      const selected = typedValidators.filter((v) => v.active).map((v) => v.id);
       return {
-        validators,
+        validators: typedValidators,
         selectedIds: selected,
-        active: validators.filter((v) => selected.includes(v.id)),
-        available: validators.filter((v) => !selected.includes(v.id)),
+        active: typedValidators.filter((v) => selected.includes(v.id)),
+        available: typedValidators.filter((v) => !selected.includes(v.id)),
       };
     }),
 
@@ -86,4 +89,10 @@ export const useValidatorManagementStore = create<ValidatorSelectionStore>((set)
       active: [],
       available: state.validators,
     })),
+
+  // Mark the onboarding as seen
+  setOnboardingSeen: () =>
+    set({
+      onboardingSeen: true,
+    }),
 }));

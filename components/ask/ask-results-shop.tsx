@@ -1,5 +1,19 @@
 import React from "react";
-import type { ShopResult, Deal } from "@/lib/types";
+
+// Define the types locally instead of importing them
+interface Deal {
+  title: string;
+  price?: string;
+  url: string;
+  rating?: string;
+  description?: string;
+  source?: string;
+}
+
+interface ShopResult {
+  provider: string;
+  deals: Deal[];
+}
 
 interface AskResultsShopProps {
   results: ShopResult[] | null;

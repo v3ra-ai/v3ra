@@ -8,13 +8,7 @@ interface Props {
   llm: LLM;
 }
 
-const providerColors: Record<string, string> = {
-  OpenAI: "bg-emerald-600",
-  Anthropic: "bg-orange-500",
-  OpenRouter: "bg-blue-500",
-  HuggingFace: "bg-yellow-500",
-  Custom: "bg-zinc-500",
-};
+// Provider colors removed as they're not currently used
 
 // Map LLM providers to local logo files
 const providerLogos: Record<string, string> = {
@@ -30,7 +24,7 @@ const providerLogos: Record<string, string> = {
 export default function LLMTile({ llm }: Props) {
   const { toggleLLM, pinLLM, unpinLLM } = useLLMStore();
 
-  const color = providerColors[llm.provider] || "bg-zinc-400";
+  // Use provider color for avatar/visual indicator if needed later
 
   return (
     <div
@@ -47,7 +41,11 @@ export default function LLMTile({ llm }: Props) {
       <button
         onClick={(e) => {
           e.stopPropagation();
-          llm.pinned ? unpinLLM(llm.id) : pinLLM(llm.id);
+          if (llm.pinned) {
+            unpinLLM(llm.id);
+          } else {
+            pinLLM(llm.id);
+          }
         }}
         className="absolute top-2 right-2 text-amber-400 hover:scale-110 transition-transform"
       >
