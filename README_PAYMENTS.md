@@ -11,9 +11,9 @@ components/credits/credit-slider-ui.tsx
 components/credits/credit-slider.tsx
 components/credits/credits-layout.tsx
 components/credits/stake-slider.tsx
-components/ask/wallet-toggle.tsx
+components/ask/payments/wallet-toggle.tsx
 components/ask/navbar-credits.tsx
-components/ask/payment-controls.tsx
+components/ask/payments/payment-controls.tsx
 hooks/useCreditAssignment.tsx
 hooks/useCreditBalance.tsx
 hooks/useSolanaTransaction.tsx
@@ -104,7 +104,7 @@ The system integrates frontend components (e.g., sliders, toggles), custom hooks
      - `decrementPaidCredits`: Reduces paid credits, ensuring non-negative values.
      - `incrementPaidCredits`: Increases paid credits (e.g., after purchase).
      - `resetCreditsAfterPayment`: Resets all credits to 0 after a SOL payment for queries.
-   - Used by `components/ask/payment-controls.tsx` to reset credits and by other components to display or update credit balances.
+   - Used by `components/ask/payments/payment-controls.tsx` to reset credits and by other components to display or update credit balances.
 
 2. **`lib/constants.ts`**
    - Defines configuration constants for the application.
@@ -123,8 +123,8 @@ The system integrates frontend components (e.g., sliders, toggles), custom hooks
   - `components/credits/credit-slider.tsx`: Manages credit purchases using hooks.
   - `components/credits/credit-slider-ui.tsx`: UI for credit selection and payment.
   - `components/credits/stake-slider.tsx`: Disabled staking UI.
-  - `components/ask/wallet-toggle.tsx`: Toggles between SOL and credit payments.
-  - `components/ask/payment-controls.tsx`: Processes SOL payments for queries, resetting credits via `useCreditsStore`.
+  - `components/ask/payments/wallet-toggle.tsx`: Toggles between SOL and credit payments.
+  - `components/ask/payments/payment-controls.tsx`: Processes SOL payments for queries, resetting credits via `useCreditsStore`.
   - `components/ask/navbar-credits.tsx`: Displays credit balance in the navbar.
 
 - **Custom Hooks**:
@@ -429,7 +429,7 @@ The system integrates frontend components (e.g., sliders, toggles), custom hooks
      - `decrementPaidCredits`: Reduces paid credits, ensuring non-negative values.
      - `incrementPaidCredits`: Increases paid credits (e.g., after purchase).
      - `resetCreditsAfterPayment`: Resets all credits to 0 after a SOL payment for queries.
-   - Used by `components/ask/payment-controls.tsx` to reset credits and by other components to display or update credit balances.
+   - Used by `components/ask/payments/payment-controls.tsx` to reset credits and by other components to display or update credit balances.
 
 2. **`lib/constants.ts`**
    - Defines configuration constants for the application.
@@ -448,8 +448,8 @@ The system integrates frontend components (e.g., sliders, toggles), custom hooks
   - `components/credits/credit-slider.tsx`: Manages credit purchases using hooks.
   - `components/credits/credit-slider-ui.tsx`: UI for credit selection and payment.
   - `components/credits/stake-slider.tsx`: Disabled staking UI.
-  - `components/ask/wallet-toggle.tsx`: Toggles between SOL and credit payments.
-  - `components/ask/payment-controls.tsx`: Processes SOL payments for queries, resetting credits via `useCreditsStore`.
+  - `components/ask/payments/wallet-toggle.tsx`: Toggles between SOL and credit payments.
+  - `components/ask/payments/payment-controls.tsx`: Processes SOL payments for queries, resetting credits via `useCreditsStore`.
   - `components/ask/navbar-credits.tsx`: Displays credit balance in the navbar.
 
 - **Custom Hooks**:
