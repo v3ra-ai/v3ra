@@ -39,8 +39,27 @@ export function parseRationaleDetailed(rawRationale: string | null | undefined):
     // Clean up the rationale text first
     let cleaned = rawRationale.trim();
     
+    // Check for DeepSeek specific patterns
+    
+    // Pattern 1: Nested JSON with "**Answer:**" prefix
+    const deepSeekPattern1 = /"rationale"\s*:\s*"\*\*Answer:\*\*\s*\{.*?\"rationale\"\s*:\s*\"([^\"]+)/i;
+    const deepSeekMatch1 = rawRationale.match(deepSeekPattern1);
+    if (deepSeekMatch1 && deepSeekMatch1[1]) {
+      return { rationale: deepSeekMatch1[1].trim() };
+    }
+    
+    // Pattern 2: Any directly escaped JSON in rationale field
+    const deepSeekPattern2 = /"rationale"\s*:\s*"\{\\".*?\\"rationale\\"\s*:\s*\\"([^\\"]+)/i;
+    const deepSeekMatch2 = rawRationale.match(deepSeekPattern2);
+    if (deepSeekMatch2 && deepSeekMatch2[1]) {
+      return { rationale: deepSeekMatch2[1].trim() };
+    }
+    
     // Remove noisy patterns like "**# 1.1.1.1..." that some models (e.g. DeepSeek) prepend
     cleaned = cleaned.replace(/^(?:\*+#+\s*)?(?:\d+\.){5,}\d*\s*/, "");
+    
+    // Remove "**Answer:**" prefix which DeepSeek often uses
+    cleaned = cleaned.replace(/^\*\*Answer:\*\*\s*/i, "");
 
     // If the cleaned string is extremely long ( > 1500 chars ), truncate for display
     if (cleaned.length > 1500) {
