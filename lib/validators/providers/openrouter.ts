@@ -135,8 +135,17 @@ export class OpenRouterValidator implements AIValidator {
           rawContent = rawContent + '}';
         }
         
+        // Special case: Check for numeric prefix followed by JSON (common in some models)
+        const numberJsonMatch = rawContent.match(/(\d+(\.\d+)?)\s*(\{[\s\S]*\})/);
+        if (numberJsonMatch) {
+          console.log(`[OpenRouter - ${this.modelName}] Detected numeric prefix before JSON:`, numberJsonMatch[1]);
+          // Extract just the JSON part
+          rawContent = numberJsonMatch[3];
+        }
+        
         // If it looks like JSON, try to parse it and extract just the rationale
-        if (rawContent.startsWith('{') && (rawContent.includes('"rationale"') || rawContent.includes('"explanation"'))) {
+        if ((rawContent.startsWith('{') || rawContent.trim().startsWith('{')) && 
+            (rawContent.includes('"rationale"') || rawContent.includes('"explanation"'))) {
           try {
             const jsonData = JSON.parse(rawContent);
             // Keep the full JSON for the parser, but clean up the rationale for display
@@ -168,7 +177,7 @@ export class OpenRouterValidator implements AIValidator {
         }
         
         // If the content doesn't look like JSON at all, wrap it in our expected format
-        if (!rawContent.startsWith('{')) {
+        if (!rawContent.startsWith('{') && !rawContent.trim().startsWith('{')) {
           rawContent = `{"answer":"No","confidence":0,"rationale":"${rawContent.replace(/"/g, '\\"')}"}`;  
         }
         

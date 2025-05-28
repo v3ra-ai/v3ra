@@ -50,18 +50,38 @@ export function parseLLMReply(text: string): ParsedModelResponse {
       : (data?.explanation || text.trim()); // Use explanation or raw text if rationale missing
       
     // Further clean up the rationale - check if it contains JSON
-    if (typeof rationale === 'string' && rationale.includes('{') && rationale.includes('"rationale"')) {
+    if (typeof rationale === 'string') {
       try {
-        // Try to extract embedded JSON from rationale
-        const match = rationale.match(/\{[\s\S]*\}/);
-        if (match) {
-          const embeddedJson = JSON.parse(match[0]);
-          if (embeddedJson.rationale) {
-            rationale = embeddedJson.rationale.toString();
+        // Special case: Look for number followed by JSON object (e.g., "41.0 { ... }")
+        const numberJsonPattern = /\d+(\.\d+)?\s*\{[\s\S]*\}/;
+        if (numberJsonPattern.test(rationale)) {
+          // Extract just the JSON part
+          const jsonMatch = rationale.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            const jsonPart = jsonMatch[0];
+            try {
+              const parsedJson = JSON.parse(jsonPart);
+              if (parsedJson.rationale) {
+                rationale = parsedJson.rationale.toString();
+              }
+            } catch (jsonError) {
+              console.log("Failed to parse embedded JSON:", jsonError);
+            }
+          }
+        } 
+        // General case: Look for any JSON object with rationale field
+        else if (rationale.includes('{') && rationale.includes('"rationale"')) {
+          const match = rationale.match(/\{[\s\S]*\}/);
+          if (match) {
+            const embeddedJson = JSON.parse(match[0]);
+            if (embeddedJson.rationale) {
+              rationale = embeddedJson.rationale.toString();
+            }
           }
         }
-      } catch {
+      } catch (err) {
         // If JSON parsing fails, keep the original rationale
+        console.log("Failed to clean rationale:", err);
       }
     }
     
