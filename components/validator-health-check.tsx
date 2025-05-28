@@ -51,23 +51,40 @@ export function ValidatorHealthCheck({
     try {
       console.log("[ValidatorHealthCheck] Fetching /api/admin/health-check");
       const response = await fetch("/api/admin/health-check");
+      const data = await response.json();
+      
       if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status}`);
+        console.error("[ValidatorHealthCheck] Health check failed:", data);
+        throw new Error(data.message || `HTTP error: ${response.status}`);
       }
 
-      const data = await response.json();
+      console.log("[ValidatorHealthCheck] Health check successful:", data);
       setHealth(data);
 
       // If there's an issue, call the onHealthIssue callback
       if (data.status === "error" && onHealthIssue) {
         onHealthIssue(data.message);
       }
-    } catch (error) {
-      console.error("[ValidatorHealthCheck] Failed to check validator health:", error);
+    } catch (err) {
+      console.error("[ValidatorHealthCheck] Failed to check validator health:", err);
+      
+      // Type guard to check if error is an instance of Error
+      const error = err as Error & {
+        response?: {
+          data?: {
+            error?: Record<string, unknown>;
+          };
+        };
+      };
+      
+      const errorMessage = error.message || 'Unknown error';
+      const errorDetails = error?.response?.data?.error || {};
+      
       setHealth({
         status: "error",
-        message: "Failed to check validator health",
+        message: errorMessage,
         details: {
+          ...errorDetails,
           apiKeysCount: 0,
           activeValidatorsCount: 0,
           validatorsWithKeysCount: 0,
@@ -76,7 +93,7 @@ export function ValidatorHealthCheck({
       });
 
       if (onHealthIssue) {
-        onHealthIssue("Failed to check validator health");
+        onHealthIssue(`Health check failed: ${errorMessage}`);
       }
     } finally {
       setLoading(false);
@@ -126,12 +143,23 @@ export function ValidatorHealthCheck({
     );
   }
 
-  // Determine indicator color based on status
-  const statusColors = {
-    healthy: "bg-green-500",
-    warning: "bg-yellow-500",
-    error: "bg-red-500",
+  const getStatusColor = () => {
+    switch (health.status) {
+      case "healthy":
+        return "bg-green-500";
+      case "warning":
+        return "bg-yellow-500";
+      case "error":
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
   };
+
+  // Don't show the health check UI if everything is healthy and not expanded
+  if (health.status === "healthy" && !expanded) {
+    return null;
+  }
 
   return (
     <div
@@ -149,13 +177,11 @@ export function ValidatorHealthCheck({
         onClick={toggleExpanded}
       >
         <div className="flex items-center space-x-2">
-          <div
-            className={`h-3 w-3 rounded-full ${statusColors[health.status]}`}
-          ></div>
-          <span
-            className={`text-sm ${health.status === "healthy" ? "text-gray-300" : "text-white"}`}
-          >
-            {health.message || <div className="w-full dark:text-gray-200 items-center justify-center">Validators Healthy</div>}
+          <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} />
+          <span className="text-sm font-medium">
+            {health.status === "healthy"
+              ? "All systems operational"
+              : health.message || "System issue detected"}
           </span>
         </div>
 
@@ -200,7 +226,31 @@ export function ValidatorHealthCheck({
       </div>
 
       {expanded && health.details && (
-        <div className="p-3 bg-gray-800 rounded-md shadow-inner text-sm text-gray-300 space-y-2 border border-gray-700">
+        <div className="p-4 bg-white dark:bg-zinc-800 rounded-lg shadow-lg max-w-md">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${getStatusColor()}`} />
+              <span className="text-sm font-medium">
+                {health.status === "healthy"
+                  ? "All systems operational"
+                  : health.message || "System issue detected"}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span>Active Validators:</span>
+              <span
+                className={
+                  health.details.activeValidatorsCount === 0
+                    ? "text-red-400"
+                    : "text-green-400"
+                }
+              >
+                {health.details.activeValidatorsCount}
+              </span>
+            </div>
+          </div>
+
           <div className="flex justify-between">
             <span>API Keys:</span>
             <span
@@ -215,7 +265,7 @@ export function ValidatorHealthCheck({
           </div>
 
           <div className="flex justify-between">
-            <span>Active Validators:</span>
+            <span>Active Validators (Duplicate):</span>
             <span
               className={
                 health.details.activeValidatorsCount === 0

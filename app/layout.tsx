@@ -19,7 +19,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preload" as="style" href="/globals.css" />
         <link rel="preload" as="image" href="/bg_home_black.jpg" />
         {/* Inline script to apply theme before render */}
         <script

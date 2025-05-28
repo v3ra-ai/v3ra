@@ -17,9 +17,17 @@ export interface ParsedModelResponse {
  * still surface an explanation.
  */
 export function parseLLMReply(text: string): ParsedModelResponse {
+  // Clean the input text first
+  const cleanText = text.trim();
+  
+  // Handle the case where the response starts with "Rationale: {" (OpenRouter specific)
+  // Using [\s\S] instead of . with s flag for better compatibility
+  const jsonMatch = cleanText.match(/^Rationale:\s*(\{[\s\S]*\})/);
+  const jsonText = jsonMatch ? jsonMatch[1] : cleanText;
+  
   try {
-    // Try to parse JSON from potentially incomplete response
-    const data = JSON.parse(text.trim());
+    // Try to parse the cleaned JSON text
+    const data = JSON.parse(jsonText);
 
     // Extract vote first - this is the most critical field
     const voteRaw = (data?.answer ?? "").toString();
@@ -37,9 +45,28 @@ export function parseLLMReply(text: string): ParsedModelResponse {
       : 50; // Use a moderate default confidence value
 
     // Extract rationale, using raw text as fallback
-    const rationale = data?.rationale !== undefined 
+    let rationale = data?.rationale !== undefined 
       ? data.rationale.toString() 
-      : text.trim(); // Use raw text if rationale missing
+      : (data?.explanation || text.trim()); // Use explanation or raw text if rationale missing
+      
+    // Further clean up the rationale - check if it contains JSON
+    if (typeof rationale === 'string' && rationale.includes('{') && rationale.includes('"rationale"')) {
+      try {
+        // Try to extract embedded JSON from rationale
+        const match = rationale.match(/\{[\s\S]*\}/);
+        if (match) {
+          const embeddedJson = JSON.parse(match[0]);
+          if (embeddedJson.rationale) {
+            rationale = embeddedJson.rationale.toString();
+          }
+        }
+      } catch {
+        // If JSON parsing fails, keep the original rationale
+      }
+    }
+    
+    // Remove any remaining markdown or JSON formatting
+    rationale = rationale.replace(/```json|```/g, '').trim();
 
     return { vote, confidence, rationale: rationale.trim() };
   } catch (error) {
@@ -58,13 +85,20 @@ export function parseLLMReply(text: string): ParsedModelResponse {
       };
     }
     
-    // Fallback when parsing fails – preserve the raw text
-    // If the response is empty or only whitespace, provide a more descriptive rationale
-    const trimmed = text.trim();
+    // Fallback when parsing fails – try to extract just the rationale text if possible
+    const trimmed = cleanText.trim();
+    
+    // If the response starts with "Rationale: " but isn't valid JSON, try to extract just the text after it
+    // Using [\s\S] instead of . with s flag for better compatibility
+    const rationaleMatch = trimmed.match(/^Rationale:[\s\n]*([\s\S]*)$/);
+    const fallbackRationale = rationaleMatch ? 
+      rationaleMatch[1].trim() : 
+      (trimmed.length === 0 ? "No response received from model." : trimmed);
+      
     return {
       vote: false,
       confidence: 0,
-      rationale: trimmed.length === 0 ? "No response received from model." : trimmed,
+      rationale: fallbackRationale,
     };
 
   }

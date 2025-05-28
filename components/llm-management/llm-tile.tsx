@@ -1,7 +1,6 @@
 "use client";
 
 import { LLM, useLLMStore } from "@/store/llm-store";
-import { Switch } from "@/components/ui/switch";
 import { StarIcon } from "lucide-react";
 import clsx from "clsx";
 
@@ -17,6 +16,17 @@ const providerColors: Record<string, string> = {
   Custom: "bg-zinc-500",
 };
 
+// Map LLM providers to local logo files
+const providerLogos: Record<string, string> = {
+  OpenAI: 'chatgpt.png',
+  Anthropic: 'claude.png',
+  Google: 'gemini.png',
+  Grok: 'grok.png',
+  OpenRouter: 'qwen.png',
+  HuggingFace: 'zephyr.png',
+  Custom: 'verafy-logo.png',
+};
+
 export default function LLMTile({ llm }: Props) {
   const { toggleLLM, pinLLM, unpinLLM } = useLLMStore();
 
@@ -25,8 +35,10 @@ export default function LLMTile({ llm }: Props) {
   return (
     <div
       className={clsx(
-        "relative flex flex-col items-center justify-between p-3 rounded-xl shadow-sm border border-transparent transition-colors cursor-pointer",
-        llm.enabled ? "bg-zinc-100 dark:bg-zinc-800" : "bg-zinc-50 dark:bg-zinc-900 opacity-60",
+        "relative flex flex-col items-center p-3 rounded-xl transition-all cursor-pointer select-none border-2",
+        llm.enabled
+          ? "border-emerald-500/80 bg-emerald-950/90 hover:bg-emerald-950 shadow-lg shadow-emerald-600/20"
+          : "border-zinc-700/60 bg-zinc-900 opacity-60 hover:opacity-80",
         llm.pinned && "ring-2 ring-amber-400",
       )}
       onClick={() => toggleLLM(llm.id)}
@@ -44,22 +56,30 @@ export default function LLMTile({ llm }: Props) {
         />
       </button>
 
-      {/* Provider indicator */}
-      <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center text-white text-xs", color)}>
-        {llm.provider.slice(0, 2)}
-      </div>
-
-      {/* Name */}
-      <p className="mt-2 text-center text-sm font-medium break-words leading-tight">
+      {/* Model name */}
+      <p className="text-center text-sm font-medium mb-1 text-zinc-200">
         {llm.name}
       </p>
+      
+      {/* Model path/ID */}
+      <p className="text-[10px] text-center text-zinc-400 mb-2 truncate w-full">
+        {llm.id.includes('/') ? llm.id : llm.id.substring(0, 8)}
+      </p>
 
-      {/* Switch */}
-      <Switch
-        checked={llm.enabled}
-        onCheckedChange={() => toggleLLM(llm.id)}
-        className="mt-2"
-      />
+      {/* Avatar or provider initial */}
+      <div className="flex-1 flex items-center justify-center py-2">
+        {/* Provider logo */}
+        <img
+          src={`/icons/${providerLogos[llm.provider] || providerLogos.Custom}`}
+          alt={llm.provider}
+          className="w-10 h-10 object-contain"
+        />
+      </div>
+
+      {/* percentage */}
+      <p className="text-xs text-zinc-400 mt-1">
+        0%
+      </p>
     </div>
   );
 }

@@ -29,6 +29,12 @@ export function parseRationaleDetailed(rawRationale: string | null | undefined):
     return { rationale: "No rationale provided" };
   }
   
+  // Handle OpenRouter prefix "Rationale: { ... }" directly first for robustness
+  const orMatch = rawRationale.match(/^\s*Rationale:\s*\{[\s\S]*?"rationale"\s*:\s*"([^"]+)/i);
+  if (orMatch && orMatch[1]) {
+    return { rationale: orMatch[1].trim() };
+  }
+  
   try {
     // Clean up the rationale text first
     let cleaned = rawRationale.trim();

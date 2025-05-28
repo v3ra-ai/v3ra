@@ -8,6 +8,8 @@ interface CleanRule {
 export function useCleanText(text: string | any | null | undefined): { cleanText: string } {
   // Define cleaning rules
   const rules: CleanRule[] = [
+    { pattern: /^.*"rationale"\s*:\s*"/i, replacement: "" },  // Remove OpenRouter JSON prefix
+    { pattern: /"\s*\}?\s*$/i, replacement: "" },              // Remove trailing quote and closing brace
     { pattern: /confidence\.?\s*/gi, replacement: "" },
     { pattern: /based on my analysis\s*/gi, replacement: "" },
     { pattern: /i believe\s*/gi, replacement: "" },

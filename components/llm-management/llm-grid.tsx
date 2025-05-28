@@ -11,12 +11,16 @@ const TILE_HEIGHT = 160;
 const GAP = 16;
 
 export default function LLMGrid() {
-  const { llms, activeProvider } = useLLMStore();
+  const { llms, activeProvider, search, sort } = useLLMStore();
 
   const filtered = useMemo(() => {
-    if (activeProvider === "All") return llms;
-    return llms.filter((l) => l.provider === activeProvider);
-  }, [llms, activeProvider]);
+    let list = [...llms];
+    if (activeProvider !== "All") list = list.filter((l) => l.provider === activeProvider);
+    if (search) list = list.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
+    if (sort === "name") list = list.sort((a,b)=>a.name.localeCompare(b.name));
+    if (sort === "provider") list = list.sort((a,b)=>a.provider.localeCompare(b.provider));
+    return list;
+  }, [llms, activeProvider, search, sort]);
 
   // Infinite scroll: assume fetchBatch stub for now
   const fetchMore = useLLMStore((s) => (s as any).fetchBatch);
@@ -39,6 +43,7 @@ export default function LLMGrid() {
     <div className="flex-1 w-full h-full">
       <AutoSizer>
         {({ width, height }) => {
+          console.log("[LLMGrid] size", width, height);
           const columnCount = Math.max(1, Math.floor((width + GAP) / (TILE_WIDTH + GAP)));
           const rowCount = Math.ceil(filtered.length / columnCount);
 
