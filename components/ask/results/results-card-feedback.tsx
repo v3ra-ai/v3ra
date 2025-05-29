@@ -99,8 +99,13 @@ export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackPr
     }
   };
 
+  // Hide component if not authenticated
+  if (!isAuthenticated) {
+    return null;
+  }
+
   return (
-    <div className="flex items-center gap-2 text-sm text-zinc-500 dark:text-zinc-400">
+    <div className="flex items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
       <span className="font-semibold">Feedback:</span>
       <Button
         variant="ghost"
@@ -118,7 +123,7 @@ export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackPr
         onClick={handleThumbsDown}
         disabled={!isAuthenticated}
         aria-label="Thumbs down feedback"
-        className={`h-6 w-6 cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 ${feedbackState === 'thumbs_down' ? 'bg-zinc-200 dark:bg-zinc-700' : ''}`}
+        className={`h-6 w-4 cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 ${feedbackState === 'thumbs_down' ? 'bg-zinc-200 dark:bg-zinc-700' : ''}`}
       >
         <ThumbsDown className={`h-4 w-4 ${feedbackState === 'thumbs_down' ? 'fill-current' : ''}`} />
       </Button>

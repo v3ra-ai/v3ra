@@ -1,7 +1,11 @@
+'use client';
+
 import { useCallback, useMemo } from 'react';
 import { usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase-client';
 import { useFeedbackStore } from '@/store/feedback-store';
+// Placeholder for user store (uncomment if exists)
+// import { useUserStore } from '@/store/user-store';
 import { submitFeedback } from '@/app/api/feedback/actions';
 
 export interface FeedbackOptions {
@@ -12,6 +16,8 @@ export interface FeedbackOptions {
 export const useFeedback = ({ component, action }: FeedbackOptions) => {
   const pathname = usePathname();
   const { setModalOpen, setContext, reset } = useFeedbackStore();
+  // Placeholder for user store
+  // const { username } = useUserStore();
 
   const submitThumbsUp = useCallback(async () => {
     try {
@@ -24,7 +30,10 @@ export const useFeedback = ({ component, action }: FeedbackOptions) => {
       const result = await submitFeedback({
         rating: 'thumbs_up',
         userId: user.id,
-        username: user.user_metadata?.name || 'Anonymous',
+        // Use user_metadata.username or name, fallback to 'Anonymous'
+        username: user.user_metadata?.username || user.user_metadata?.name || user.user_metadata?.full_name || 'Anonymous',
+        // If using user store, uncomment:
+        // username: username || user.user_metadata?.username || user.user_metadata?.name || user.user_metadata?.full_name || 'Anonymous',
         email: user.email || '',
         url: pathname,
         component,
@@ -37,9 +46,10 @@ export const useFeedback = ({ component, action }: FeedbackOptions) => {
         throw new Error(result.error);
       }
       return { success: true };
-    } catch (error) {
-      console.error('[useFeedback] Error submitting thumbs up:', error);
-      return { error: (error as Error).message };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[useFeedback] Error submitting thumbs up:', errorMessage);
+      return { error: errorMessage };
     }
   }, [pathname, component, action]);
 
@@ -53,9 +63,10 @@ export const useFeedback = ({ component, action }: FeedbackOptions) => {
       setContext(component, action);
       setModalOpen(true);
       return { success: true };
-    } catch (error) {
-      console.error('[useFeedback] Error initiating thumbs down:', error);
-      return { error: (error as Error).message };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[useFeedback] Error initiating thumbs down:', errorMessage);
+      return { error: errorMessage };
     }
   }, [component, action, setContext, setModalOpen]);
 
@@ -66,11 +77,14 @@ export const useFeedback = ({ component, action }: FeedbackOptions) => {
         throw new Error('User not authenticated');
       }
 
-      const browserInfo = includeBrowserInfo ? { userAgent: navigator.userAgent } : undefined; // Use undefined instead of null
+      const browserInfo = includeBrowserInfo ? { userAgent: navigator.userAgent } : undefined;
       const result = await submitFeedback({
         rating: 'thumbs_down',
         userId: user.id,
-        username: user.user_metadata?.name || 'Anonymous',
+        // Use user_metadata.username or name, fallback to 'Anonymous'
+        username: user.user_metadata?.username || user.user_metadata?.name || user.user_metadata?.full_name || 'Anonymous',
+        // If using user store, uncomment:
+        // username: username || user.user_metadata?.username || user.user_metadata?.name || user.user_metadata?.full_name || 'Anonymous',
         email: user.email || '',
         url: pathname,
         component,
@@ -86,9 +100,10 @@ export const useFeedback = ({ component, action }: FeedbackOptions) => {
       }
       reset();
       return { success: true };
-    } catch (error) {
-      console.error('[useFeedback] Error submitting thumbs down details:', error);
-      return { error: (error as Error).message };
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[useFeedback] Error submitting thumbs down details:', errorMessage);
+      return { error: errorMessage };
     }
   }, [pathname, component, action, reset]);
 
