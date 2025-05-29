@@ -12,9 +12,13 @@ import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 
 const feedbackOptions = [
-  { id: 'slow_response', label: 'Slow response' },
-  { id: 'error_response', label: 'Error response' },
-  { id: 'bad_ui', label: 'Bad UI' },
+  { id: 'error_response', label: 'Error response (include above)' },
+  { id: 'broken_linkimage', label: 'Broken link/image' },
+  { id: 'credit_issue', label: 'Credit/payment issue' },
+  { id: 'slow_response', label: 'Slow/no response' },
+  { id: 'ui_issue', label: 'UI/layout issue' },
+  { id: 'help_docs', label: 'Help docs needed' },
+  { id: 'feature_request', label: 'Feature request' },
 ];
 
 export function FeedbackModal() {
