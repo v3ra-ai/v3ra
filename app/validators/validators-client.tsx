@@ -36,7 +36,7 @@ export default function ValidatorsClient({ validators }: ValidatorsClientProps) 
             Validators
           </CardTitle>
           <Button asChild>
-            <Link href="/validators/manage">Manage Validators</Link>
+            <Link href="/llms/manage">Manage LLMs</Link>
           </Button>
         </CardHeader>
         <CardContent>

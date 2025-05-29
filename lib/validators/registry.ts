@@ -4,6 +4,7 @@ import { OpenAIValidator } from "./providers/openai";
 import { AnthropicValidator } from "./providers/anthropic";
 import { GeminiValidator } from "./providers/gemini";
 import { OpenRouterValidator } from "./providers/openrouter";
+import { HuggingFaceValidator } from "./providers/huggingface";
 import { validatorService } from "../services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
 
@@ -137,6 +138,20 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
         return {
           ...aiValidator,
           validate: geminiValidator.validate.bind(geminiValidator),
+        };
+      }
+
+      case "HuggingFace": {
+        const hfValidator = new HuggingFaceValidator({
+          id: validator.id,
+          name: validator.profileName,
+          modelName: validator.modelName,
+          keyId: validator.apiKeys?.[0]?.apiKeyId,
+          active: validator.active,
+        });
+        return {
+          ...aiValidator,
+          validate: hfValidator.validate.bind(hfValidator),
         };
       }
 

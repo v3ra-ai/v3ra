@@ -28,10 +28,15 @@ export default function ManageLLMsClient({ initial }: Props) {
       
       // Safely extract and convert fields
       const id = String(v.id || ''); // Ensure id is a string
-      const profileName = typeof v.profileName === 'string' ? v.profileName : '';
+      let profileName = typeof v.profileName === 'string' ? v.profileName : '';
       const providerName = typeof v.provider === 'string' ? v.provider : 'Custom';
       const active = typeof v.active === 'boolean' ? v.active : true;
       const avatarUrl = typeof v.avatarUrl === 'string' ? v.avatarUrl : null;
+      
+      // Clean up the name by removing redundant "Validator" text
+      if (profileName.includes(' Validator')) {
+        profileName = profileName.replace(' Validator', '');
+      }
       
       return {
         id: id,
