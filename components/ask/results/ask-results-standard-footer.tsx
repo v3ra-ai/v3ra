@@ -21,8 +21,13 @@ export function AskResultsStandardFooter({
 }: AskResultsStandardFooterProps) {
   return (
     <>
-      <hr className="h-1 mt-2" />
-      <div className="ml-1"><ResultsCardFeedback component="ResultsCard" action={sanitizedQuery.id} /></div>
+
+      <div className="mt-2 ml-6">
+        <ResultsCardFeedback
+          component="ResultsCard"
+          action={sanitizedQuery.id}
+        />
+      </div>
       <hr className="h-1 mt-0" />
       <div className="flex justify-start px-1">
         <div className="w-full">
@@ -31,7 +36,7 @@ export function AskResultsStandardFooter({
             onOpenChange={() => toggleItem(sanitizedQuery.id)}
           >
             <CollapsibleTrigger className="flex px-0 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-              <span className="">
+              <span className="ml-5">
                 Validator Responses (
                 {sanitizedQuery.validatorResponses?.length ?? 0})
               </span>

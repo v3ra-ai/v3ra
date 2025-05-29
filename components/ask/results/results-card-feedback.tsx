@@ -15,10 +15,30 @@ interface ResultsCardFeedbackProps {
 export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackProps) {
   const { submitThumbsUp, submitThumbsDown, isAuthenticated } = useFeedback({ component, action });
   const [feedbackState, setFeedbackState] = useState<'none' | 'thumbs_up' | 'thumbs_down'>('none');
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check Supabase session to determine login status
+  useEffect(() => {
+    async function checkSession() {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsLoggedIn(!!session);
+    }
+
+    checkSession();
+
+    // Listen for auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsLoggedIn(!!session);
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   // Fetch existing feedback for this user and result card
   useEffect(() => {
-    if (!isAuthenticated) return;
+    if (!isAuthenticated || !isLoggedIn) return;
 
     async function fetchFeedback() {
       try {
@@ -43,7 +63,7 @@ export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackPr
     }
 
     fetchFeedback();
-  }, [isAuthenticated, component, action]);
+  }, [isAuthenticated, isLoggedIn, component, action]);
 
   const handleThumbsUp = async () => {
     try {
@@ -99,21 +119,21 @@ export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackPr
     }
   };
 
-  // Hide component if not authenticated
-  if (!isAuthenticated) {
+  // Hide component if not logged in
+  if (!isLoggedIn) {
     return null;
   }
 
   return (
-    <div className="flex items-center gap-1 text-sm text-zinc-500 dark:text-zinc-400">
-      <span className="font-semibold">Feedback:</span>
+    <div className="flex items-center text-sm text-zinc-500 dark:text-zinc-400">
+      <span className="font-semibold">Submit feedback:</span>
       <Button
         variant="ghost"
         size="icon"
         onClick={handleThumbsUp}
         disabled={!isAuthenticated}
         aria-label="Thumbs up feedback"
-        className={`h-6 w-6 cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 ${feedbackState === 'thumbs_up' ? 'bg-zinc-200 dark:bg-zinc-700' : ''}`}
+        className={`h-6 w-6 ml-2 cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 ${feedbackState === 'thumbs_up' ? 'bg-zinc-200 dark:bg-zinc-700' : ''}`}
       >
         <ThumbsUp className={`h-4 w-4 ${feedbackState === 'thumbs_up' ? 'fill-current' : ''}`} />
       </Button>
@@ -123,7 +143,7 @@ export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackPr
         onClick={handleThumbsDown}
         disabled={!isAuthenticated}
         aria-label="Thumbs down feedback"
-        className={`h-6 w-4 cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 ${feedbackState === 'thumbs_down' ? 'bg-zinc-200 dark:bg-zinc-700' : ''}`}
+        className={`h-6 w-6 cursor-pointer text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 ${feedbackState === 'thumbs_down' ? 'bg-zinc-200 dark:bg-zinc-700' : ''}`}
       >
         <ThumbsDown className={`h-4 w-4 ${feedbackState === 'thumbs_down' ? 'fill-current' : ''}`} />
       </Button>
