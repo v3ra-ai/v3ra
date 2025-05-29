@@ -3,7 +3,7 @@ import { createOrGetUser } from "@/lib/server-actions";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { Button } from "@/components/ui/button";
-import Link from "next/link";
+// import Link from "next/link";
 
 export default async function UserProfilePage({ params }: { params: Promise<{ user: string }> }) {
   // Get Supabase session server-side
@@ -64,9 +64,9 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
             asChild
             className="bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 cursor-pointer"
           >
-            <Link href={`/users/settings/${user.id}`}>
+            {/* <Link href={`/users/settings/${user.id}`}>
               Edit Profile
-            </Link>
+            </Link> */}
           </Button>
         </div>
       </div>
