@@ -63,7 +63,7 @@ export async function createSupabaseServerClient() {
     cookies: {
       getAll() {
         const cookiesList = cookieStore.getAll().map(({ name, value }) => ({ name, value }));
-        console.log("Cookies passed to Supabase getAll:", cookiesList);
+        // console.log("Cookies passed to Supabase getAll:", cookiesList);
         return cookiesList;
       },
       setAll(cookiesToSet) {
