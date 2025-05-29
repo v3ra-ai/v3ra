@@ -1,0 +1,1559 @@
+
+
+--- Project Directory Structure ---
+Current directory: ./
+.
+├── README.md
+├── README_GIT.md
+├── README_PAYMENTS.md
+├── README_TESTING.md
+├── README_TODOS.md
+├── README_WORKFLOWS.md
+├── app
+│   ├── actions.ts
+│   ├── admin
+│   │   ├── layout.tsx
+│   │   └── validators
+│   │       ├── components
+│   │       │   ├── delete-dialog.tsx
+│   │       │   ├── validator-form.tsx
+│   │       │   └── validator-list-client.tsx
+│   │       └── page.tsx
+│   ├── api
+│   │   ├── admin
+│   │   │   ├── diagnose-keys
+│   │   │   │   └── route.ts
+│   │   │   ├── health-check
+│   │   │   │   └── route.ts
+│   │   │   ├── keys
+│   │   │   │   └── route.ts
+│   │   │   ├── repair-keys
+│   │   │   │   └── route.ts
+│   │   │   └── validators
+│   │   │       ├── [id]
+│   │   │       │   ├── route.ts
+│   │   │       │   └── toggle
+│   │   │       │       └── route.ts
+│   │   │       └── route.ts
+│   │   ├── broadcast
+│   │   │   └── route.ts
+│   │   ├── broadcast-query
+│   │   │   └── route.ts
+│   │   ├── credits
+│   │   │   ├── assign
+│   │   │   │   └── route.ts
+│   │   │   ├── balance
+│   │   │   │   └── route.ts
+│   │   │   ├── decrement
+│   │   │   │   └── route.tsx
+│   │   │   └── validate-free-credits
+│   │   │       └── route.tsx
+│   │   ├── cron
+│   │   │   └── route.ts
+│   │   ├── csrf-token
+│   │   │   └── route.ts
+│   │   ├── network
+│   │   │   ├── broadcast
+│   │   │   │   └── route.ts
+│   │   │   └── route.ts
+│   │   ├── og
+│   │   │   └── [cardId]
+│   │   │       └── route.tsx
+│   │   ├── payment
+│   │   │   └── route.ts
+│   │   ├── replies
+│   │   │   └── [replyId]
+│   │   │       └── upvote
+│   │   │           └── route.ts
+│   │   ├── test-validators
+│   │   │   └── route.ts
+│   │   ├── threads
+│   │   │   └── [threadId]
+│   │   │       ├── downvote
+│   │   │       │   └── route.ts
+│   │   │       ├── replies
+│   │   │       │   └── route.ts
+│   │   │       ├── route.ts
+│   │   │       └── upvote
+│   │   │           └── route.ts
+│   │   ├── validate
+│   │   │   └── route.ts
+│   │   ├── validators
+│   │   │   ├── [id]
+│   │   │   │   └── toggle
+│   │   │   │       └── route.ts
+│   │   │   ├── active
+│   │   │   │   └── route.ts
+│   │   │   ├── route.ts
+│   │   │   ├── vote-stats
+│   │   │   │   └── route.ts
+│   │   │   └── votes
+│   │   │       └── route.ts
+│   │   ├── vote-history
+│   │   │   └── route.ts
+│   │   └── vote-sessions
+│   │       └── [voteSessionId]
+│   │           ├── route.ts
+│   │           └── threads
+│   │               └── route.ts
+│   ├── apple-icon.png
+│   ├── ask
+│   │   ├── [cardId]
+│   │   │   └── page.tsx
+│   │   ├── create
+│   │   │   └── page.tsx
+│   │   ├── fact-check
+│   │   │   └── page.tsx
+│   │   ├── page.tsx
+│   │   ├── predict
+│   │   │   └── page.tsx
+│   │   └── shop
+│   │       └── page.tsx
+│   ├── auth
+│   │   ├── callback
+│   │   │   └── page.tsx
+│   │   └── verify
+│   │       └── page.tsx
+│   ├── credits
+│   │   └── page.tsx
+│   ├── error.tsx
+│   ├── explorer
+│   │   └── page.tsx
+│   ├── favicon-32x32.png
+│   ├── favicon.ico
+│   ├── favicon.png
+│   ├── globals.css
+│   ├── layout.tsx
+│   ├── login
+│   │   └── page.tsx
+│   ├── page.tsx
+│   ├── signup
+│   │   └── page.tsx
+│   ├── users
+│   │   ├── layout.tsx
+│   │   └── profile
+│   │       └── [user]
+│   │           └── page.tsx
+│   └── validators
+│       ├── [validator]
+│       │   ├── pages.tsx
+│       │   └── profile
+│       │       └── page.tsx
+│       ├── layout.tsx
+│       ├── page.tsx
+│       └── validators-client.tsx
+├── backup_db
+│   ├── 20250501-remote_supabase_backup-2.dump
+│   ├── 20250501-remote_supabase_backup.dump
+│   ├── 20250502-remote_supabase_backup-cs.dump
+│   └── 20250509-remote_supabase_backup.dump
+├── components
+│   ├── ask
+│   │   ├── ask-footer.tsx
+│   │   ├── card-client-wrapper.tsx
+│   │   ├── charts
+│   │   │   ├── network-visualization.tsx
+│   │   │   ├── queries-chart.tsx
+│   │   │   └── staking-area-stacked.tsx
+│   │   ├── consensus
+│   │   │   ├── current-query.tsx
+│   │   │   ├── network-status.tsx
+│   │   │   ├── validator-results.tsx
+│   │   │   ├── vote-history-empty.tsx
+│   │   │   ├── vote-history-error.tsx
+│   │   │   ├── vote-history-header.tsx
+│   │   │   ├── vote-history-loading.tsx
+│   │   │   ├── vote-history-table-row.tsx
+│   │   │   ├── vote-history-table.tsx
+│   │   │   └── vote-history.tsx
+│   │   ├── consensus-status.tsx
+│   │   ├── debug
+│   │   │   └── query-store-debug.tsx
+│   │   ├── mode-toggle.tsx
+│   │   ├── navbar
+│   │   │   ├── navbar-credits.tsx
+│   │   │   ├── navbar-scrollbar-ui.tsx
+│   │   │   ├── navbar-scrollbar.tsx
+│   │   │   ├── navbar-settings.tsx
+│   │   │   ├── navbar-sitelinks.tsx
+│   │   │   └── navbar.tsx
+│   │   ├── network-stats.tsx
+│   │   ├── payments
+│   │   │   ├── payment-controls.tsx
+│   │   │   └── wallet-toggle.tsx
+│   │   ├── query
+│   │   │   ├── query-form-ai-slider.tsx
+│   │   │   ├── query-form-input.tsx
+│   │   │   ├── query-form-mode-selector.tsx
+│   │   │   ├── query-form.tsx
+│   │   │   ├── query-interface.tsx
+│   │   │   ├── query-results.tsx
+│   │   │   └── query-stats.tsx
+│   │   └── results
+│   │       ├── ask-results-expert.tsx
+│   │       ├── ask-results-standard-ai-consensus.tsx
+│   │       ├── ask-results-standard-card.tsx
+│   │       ├── ask-results-standard-consensus.tsx
+│   │       ├── ask-results-standard-footer.tsx
+│   │       ├── ask-results-standard-header.tsx
+│   │       ├── ask-results-standard-rationale.tsx
+│   │       ├── ask-results-standard-social-icons.tsx
+│   │       ├── ask-results-standard-title.tsx
+│   │       ├── ask-results-standard-validator-avatars.tsx
+│   │       └── ask-results-standard.tsx
+│   ├── credits
+│   │   ├── credit-slider-ui.tsx
+│   │   ├── credit-slider.tsx
+│   │   ├── credits-layout.tsx
+│   │   └── stake-slider.tsx
+│   ├── error-display.tsx
+│   ├── explorer
+│   │   ├── consensus-visualization.tsx
+│   │   ├── custom-query-form.tsx
+│   │   ├── explorer-header.tsx
+│   │   ├── network-visualization.tsx
+│   │   ├── payment-controls.tsx
+│   │   ├── query-input.tsx
+│   │   ├── submit-button.tsx
+│   │   ├── toggle-header.tsx
+│   │   ├── validator-admin.tsx
+│   │   ├── validator-detail.tsx
+│   │   ├── validator-list.tsx
+│   │   ├── vote-history.tsx
+│   │   └── vote-results.tsx
+│   ├── key-manager.tsx
+│   ├── loading-spinner-new.tsx
+│   ├── loading-spinner.tsx
+│   ├── network-stats.tsx
+│   ├── og-image.tsx
+│   ├── shimmer-message.tsx
+│   ├── signup-error.tsx
+│   ├── solana-provider.tsx
+│   ├── theme-provider.tsx
+│   ├── ui
+│   │   ├── accordion.tsx
+│   │   ├── alert-dialog.tsx
+│   │   ├── aspect-ratio.tsx
+│   │   ├── avatar.tsx
+│   │   ├── badge.tsx
+│   │   ├── button.tsx
+│   │   ├── card.tsx
+│   │   ├── chart.tsx
+│   │   ├── checkbox.tsx
+│   │   ├── collapsible.tsx
+│   │   ├── context-menu.tsx
+│   │   ├── dialog.tsx
+│   │   ├── dropdown-menu.tsx
+│   │   ├── hover-card.tsx
+│   │   ├── input.tsx
+│   │   ├── label.tsx
+│   │   ├── menubar.tsx
+│   │   ├── navigation-menu.tsx
+│   │   ├── popover.tsx
+│   │   ├── progress.tsx
+│   │   ├── radio-group.tsx
+│   │   ├── scroll-area.tsx
+│   │   ├── select.tsx
+│   │   ├── separator.tsx
+│   │   ├── skeleton.tsx
+│   │   ├── slider.tsx
+│   │   ├── sonner.tsx
+│   │   ├── switch.tsx
+│   │   ├── table.tsx
+│   │   └── tabs.tsx
+│   ├── validator-health-check.tsx
+│   ├── validator-initializer.tsx
+│   ├── validator-profile.tsx
+│   └── validators
+│       ├── filter-controls.tsx
+│       ├── history-table.tsx
+│       ├── vote-history-table.tsx
+│       └── vote-statistics.tsx
+├── components.json
+├── docs
+│   ├── 20250527-.vercel-code_snapshot.txt
+│   ├── 20250527-.vscode-code_snapshot.txt
+│   ├── 20250527-allfiles-code_snapshot.txt
+│   ├── 20250527-app-code_snapshot.txt
+│   ├── 20250527-backup_db-code_snapshot.txt
+│   ├── 20250527-code_snapshot.txt
+│   ├── 20250527-components-code_snapshot.txt
+│   ├── 20250527-docs-code_snapshot.txt
+│   ├── 20250527-hooks-code_snapshot.txt
+│   ├── 20250527-lib-code_snapshot.txt
+│   ├── 20250527-prisma-code_snapshot.txt
+│   ├── 20250527-prisma_migrations_backup-code_snapshot.txt
+│   ├── 20250527-public-code_snapshot.txt
+│   ├── 20250527-store-code_snapshot.txt
+│   ├── 20250527-supabase-code_snapshot.txt
+│   ├── 20250527-test-code_snapshot.txt
+│   ├── 20250527-utils-code_snapshot.txt
+│   ├── FILETREE.md
+│   ├── auth
+│   │   └── auth.md
+│   ├── auth-special-code-snapshot-20250513.txt
+│   ├── payment
+│   │   ├── debug1.md
+│   │   └── payment-snapshot.md
+│   └── special-code-snapshot-20250511.txt
+├── eslint.config.mjs
+├── get_code-snapshot.js
+├── hooks
+│   ├── useAutoRefresh.tsx
+│   ├── useBackgroundImage.tsx
+│   ├── useBroadcastQuery.ts
+│   ├── useCleanText.ts
+│   ├── useCopyToClipboard.tsx
+│   ├── useCreditAssignment.tsx
+│   ├── useCreditBalance.tsx
+│   ├── useNavbarScrollbar.ts
+│   ├── useNetworkState.ts
+│   ├── useQueryLogic.tsx
+│   ├── useSolanaTransaction.tsx
+│   ├── useSolanaWallet.tsx
+│   ├── useSubmitQuery.ts
+│   ├── useVoteHistory.ts
+│   └── useVoteResult.ts
+├── lib
+│   ├── admin
+│   │   └── validator-client-services.ts
+│   ├── constants.ts
+│   ├── crypto.ts
+│   ├── database.ts
+│   ├── db
+│   │   ├── apiKeys.ts
+│   │   ├── client.ts
+│   │   ├── schema-adapter.ts
+│   │   ├── setup.ts
+│   │   ├── validators.ts
+│   │   └── voteSessions.ts
+│   ├── keyManager.ts
+│   ├── llmIntegration.ts
+│   ├── mock-store.ts
+│   ├── mocks.ts
+│   ├── prisma-debug.ts
+│   ├── query-utils.tsx
+│   ├── redis.ts
+│   ├── server-actions.ts
+│   ├── services
+│   │   ├── keyService.ts
+│   │   ├── openrouterService.ts
+│   │   ├── query-service.tsx
+│   │   └── validatorService.ts
+│   ├── solana-constants.ts
+│   ├── store.ts
+│   ├── supabase-client.ts
+│   ├── types.ts
+│   ├── utils.ts
+│   ├── validators
+│   │   ├── client-data.ts
+│   │   ├── init.ts
+│   │   ├── modeAdapters.ts
+│   │   ├── prompts
+│   │   │   ├── create.ts
+│   │   │   ├── fact-check.ts
+│   │   │   ├── predict.ts
+│   │   │   └── shop.ts
+│   │   ├── providers
+│   │   │   ├── anthropic.ts
+│   │   │   ├── gemini.ts
+│   │   │   ├── grok.ts
+│   │   │   ├── index.ts
+│   │   │   ├── openai.ts
+│   │   │   └── openrouter.ts
+│   │   ├── query-modes.ts
+│   │   ├── registry.ts
+│   │   ├── responseParser.ts
+│   │   ├── types.ts
+│   │   └── utils.ts
+│   └── validators.ts
+├── next-env.d.ts
+├── next.config.ts
+├── package-lock.json
+├── package.json
+├── postcss.config.mjs
+├── prisma
+│   ├── archived
+│   │   ├── migrate
+│   │   └── schema-sqlite.prisma
+│   ├── dev.db
+│   ├── migration.sql
+│   ├── migrations
+│   │   ├── 20250324161635_initial_setup
+│   │   │   └── migration.sql
+│   │   ├── 20250328131012_add_thread_reply_models
+│   │   │   └── migration.sql
+│   │   ├── 20250328174829_add_downvotes_to_thread
+│   │   │   └── migration.sql
+│   │   ├── 20250501_add_user_auth
+│   │   │   └── migration.sql
+│   │   ├── 20250501_baseline
+│   │   └── 20250502_remove_password_field
+│   │       └── migration.sql
+│   ├── schema.prisma
+│   └── test-prisma.ts
+├── prisma_migrations_backup
+│   ├── 20250324161635_initial_setup
+│   │   └── migration.sql
+│   ├── 20250328131012_add_thread_reply_models
+│   │   └── migration.sql
+│   ├── 20250328174829_add_downvotes_to_thread
+│   │   └── migration.sql
+│   ├── 20250401221213_add_default_model_name
+│   │   └── migration.sql
+│   └── migration_lock.toml
+├── public
+│   ├── Verafy-Logo@0.1x.png
+│   ├── Verafy-Logo@0.25x.png
+│   ├── Verafy-Logo@0.2x.png
+│   ├── Verafy-Logo@0.5x.png
+│   ├── Verafy-Logo@0.75x.png
+│   ├── bg_home_black.jpg
+│   ├── bg_home_white.jpg
+│   ├── content
+│   │   ├── 202504
+│   │   └── 20250510-scaling-verafys-ai-network-for-global-impact.jpg
+│   ├── file.svg
+│   ├── globe.svg
+│   ├── icons
+│   │   ├── chatgpt.png
+│   │   ├── claude.jpg
+│   │   ├── claude.png
+│   │   ├── deepseek.png
+│   │   ├── gemini.png
+│   │   ├── grok.png
+│   │   ├── metallama.png
+│   │   ├── qwen.png
+│   │   ├── raw copy.png
+│   │   └── zephyr.png
+│   ├── logos
+│   │   ├── android-chrome-192x192.png
+│   │   ├── android-chrome-512x512.png
+│   │   ├── apple-touch-icon.png
+│   │   ├── favicon-16x16.png
+│   │   ├── favicon-32x32.png
+│   │   ├── logo_verafy_imagemark_black.svg
+│   │   ├── logo_verafy_imagemark_blue.svg
+│   │   ├── logo_verafy_imagemark_white.svg
+│   │   └── truthnode.png
+│   ├── next.svg
+│   ├── site.webmanifest
+│   ├── verafy-logo.png
+│   ├── verafy_logo_black.svg
+│   ├── verafy_logo_white.svg
+│   ├── vercel.svg
+│   └── window.svg
+├── remote_supabase_backup.dump
+├── store
+│   ├── credit-store.ts
+│   ├── nav-store.ts
+│   ├── network-store.ts
+│   ├── query-store.ts
+│   ├── theme-store.ts
+│   └── vote-store.ts
+├── test
+│   ├── __tests__
+│   ├── e2e
+│   ├── inspect-transaction.js
+│   ├── send-transaction-devnet.js
+│   ├── test-qa.ts
+│   ├── test-transaction.mjs
+│   └── test-wallet-bas64-output.js
+├── tsconfig.json
+├── tsconfig.scripts.json
+├── tsconfig.services.json
+├── tsconfig.tsbuildinfo
+└── utils
+    ├── button-text-timer.ts
+    ├── csrf-utils.ts
+    ├── css-utils.ts
+    ├── date-utils.ts
+    ├── error-utils.ts
+    ├── fetchOpenRouterUsage.js
+    ├── image-utils.ts
+    ├── log-utils.ts
+    ├── network-utils.ts
+    ├── rate-limit-utils.ts
+    ├── security-utils.ts
+    ├── text-utils.ts
+    ├── validatorImageMapping.json
+    └── vote-utils.ts
+
+115 directories, 360 files
+
+
+--- prisma/schema.prisma ---
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum QueryMode {
+  factCheck
+  create
+  predict
+  shop
+}
+
+enum QueryStatus {
+  Pending
+  Voting
+  Completed
+  Failed
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  name         String
+  userCredit   UserCredit? @relation(name: "UserToUserCredit")
+  userCreditId String?     @unique
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model UserCredit {
+  id              String        @id @default(uuid())
+  walletPublicKey String        @unique
+  credits         Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  userId          String?       @unique
+  user            User?         @relation(name: "UserToUserCredit", fields: [userId], references: [id], onDelete: SetNull)
+  voteSessions    VoteSession[]
+}
+
+model PaymentLog {
+  id              String    @id
+  walletPublicKey String
+  credits         Int
+  solAmount       Float
+  status          String
+  error           String?
+  createdAt       DateTime  @default(now())
+}
+
+model ApiKey {
+  id            String         @id @default(dbgenerated("uuid_generate_v4()"))
+  name          String
+  provider      String
+  key           String
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  lastUsed      DateTime?
+  validatorKeys ValidatorKey[]
+
+  @@index([provider, isActive])
+}
+
+model ValidatorKey {
+  id          String    @id @default(uuid())
+  validatorId String
+  apiKeyId    String
+  createdAt   DateTime  @default(now())
+  apiKey      ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  validator   Validator @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+
+  @@unique([validatorId, apiKeyId])
+}
+
+model Validator {
+  id            String              @id @default(uuid())
+  profileName   String
+  provider      String
+  modelName     String
+  publicKey     String
+  isLeader      Boolean             @default(false)
+  active        Boolean             @default(true)
+  description   String?
+  avatarUrl     String?
+  validatorType String?
+  reliability   Float?              @default(0.0)
+  totalVotes    Int                 @default(0)
+  correctVotes  Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  graphEdges    GraphEdge[]         @relation("ValidatorEdges")
+  apiKeys       ValidatorKey[]
+  responses     ValidatorResponse[]
+
+  @@index([provider])
+  @@index([active])
+}
+
+model VoteSession {
+  id                 String              @id @default(uuid())
+  queryText          String
+  context            String?
+  timestamp          DateTime            @default(now())
+  isConsensusReached Boolean
+  consensusValue     Boolean?
+  votesYes           Int                 @default(0)
+  votesNo            Int                 @default(0)
+  notVoted           Int                 @default(0)
+  leaderId           String?
+  txHash             String?
+  blockchainNetwork  String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  graphEdges         GraphEdge[]         @relation("VoteSessionEdges")
+  threads            Thread[]
+  validatorResponses ValidatorResponse[]
+  mode               QueryMode?          // Nullable for legacy compatibility
+  queryAiCountReq    Int?                // Nullable, number of AIs requested
+  walletPublicKey    String?             // Nullable, wallet key for user
+  userId             String?             // Nullable, foreign key to UserCredit
+  statusProcessing   QueryStatus?        // Nullable, query status
+  queryCost          Float?              // Nullable, cost in credits
+  responseLatency    Int?                // Nullable, latency in milliseconds
+  user               UserCredit?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([timestamp])
+  @@index([consensusValue])
+  @@index([isConsensusReached])
+}
+
+model ValidatorResponse {
+  id                 String      @id @default(uuid())
+  vote               String
+  rationale          String
+  confidence         Float?      @default(0.5)
+  rationaleEmbedding String?
+  latency            Int?
+  matchedConsensus   Boolean?
+  voteSessionId      String
+  validatorId        String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  error              String?
+  validator          Validator   @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+  voteSession        VoteSession @relation(fields: [voteSessionId], references: [id])
+
+  @@index([vote])
+  @@index([voteSessionId])
+  @@index([validatorId])
+  @@index([matchedConsensus])
+}
+
+model GraphEdge {
+  id            String       @id @default(uuid())
+  sourceType    String
+  targetType    String
+  sourceId      String
+  targetId      String
+  relationship  String
+  weight        Float?
+  properties    String       @default("")
+  createdAt     DateTime     @default(now())
+  validatorId   String?
+  voteSessionId String?
+  voteSession   VoteSession? @relation("VoteSessionEdges", fields: [voteSessionId], references: [id])
+  validator     Validator?   @relation("ValidatorEdges", fields: [validatorId], references: [id], onDelete: Cascade)
+
+  @@index([sourceType, sourceId])
+  @@index([targetType, targetId])
+  @@index([relationship])
+}
+
+model Thread {
+  id            String      @id @default(uuid())
+  title         String
+  body          String
+  upvotes       Int         @default(0)
+  downvotes     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  voteSessionId String
+  replies       Reply[]
+  voteSession   VoteSession @relation(fields: [voteSessionId], references: [id], onDelete: Cascade)
+}
+
+model Reply {
+  id        String   @id @default(uuid())
+  body      String
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  threadId  String
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+}
+--- lib/supabase-client.ts ---
+import { createClient } from '@supabase/supabase-js';
+
+// Client-side Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://quuuhdbozcmhkwzhamuh.supabase.co';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+if (!supabaseAnonKey) {
+  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
+}
+
+// Custom storage to handle client-side cookies safely
+const cookieStorage = {
+  getItem(key: string) {
+    if (typeof window === 'undefined') {
+      // console.log(`Storage getItem skipped on server: ${key}`);
+      return null;
+    }
+    const value = document.cookie
+      .split('; ')
+      .find((row) => row.startsWith(`${key}=`))
+      ?.split('=')[1];
+    // console.log(`Storage getItem: ${key}=${value || 'null'}`);
+    return value || null;
+  },
+  setItem(key: string, value: string) {
+    if (typeof window === 'undefined') {
+      // console.log(`Storage setItem skipped on server: ${key}`);
+      return;
+    }
+    console.log(`Storage setItem: ${key}=${value}`);
+    document.cookie = `${key}=${value}; path=/; max-age=31536000; SameSite=Lax`;
+  },
+  removeItem(key: string) {
+    if (typeof window === 'undefined') {
+      console.log(`Storage removeItem skipped on server: ${key}`);
+      return;
+    }
+    console.log(`Storage removeItem: ${key}`);
+    document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+  },
+};
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    storage: cookieStorage,
+    storageKey: 'sb-quuuhdbozcmhkwzhamuh-auth-token',
+  },
+});
+
+// Server-side Supabase client for App Router server components
+export async function createSupabaseServerClient() {
+  // Dynamically import App Router-specific dependencies
+  const { createServerClient } = await import('@supabase/ssr');
+  const { cookies } = await import('next/headers');
+
+  const cookieStore = await cookies();
+
+  // Debug all cookies retrieved server-side
+  const allCookies = cookieStore.getAll();
+  console.log("Server-side cookies in createSupabaseServerClient:", allCookies);
+
+  return createServerClient(supabaseUrl, supabaseAnonKey, {
+    cookies: {
+      getAll() {
+        const cookiesList = cookieStore.getAll().map(({ name, value }) => ({ name, value }));
+        console.log("Cookies passed to Supabase getAll:", cookiesList);
+        return cookiesList;
+      },
+      setAll(cookiesToSet) {
+        console.log("Cookies to set in Supabase setAll:", cookiesToSet);
+        try {
+          cookiesToSet.forEach(({ name, value, ...options }) => {
+            console.log(`Setting cookie: ${name}=${value}`, options); // Debug log
+            cookieStore.set({ name, value, ...options });
+          });
+        } catch (error) {
+          console.error('Error setting cookies:', error);
+        }
+      },
+    },
+  });
+}
+--- app/actions.ts ---
+"use server";
+
+import type {
+  VoteResult,
+  VoteValidatorResponse,
+  QueryMode,
+} from "../lib/types";
+import { prisma } from "../lib/db/client";
+import { v4 as uuidv4 } from "uuid";
+import { OpenAIValidator } from "@/lib/validators/providers/openai";
+import { AnthropicValidator } from "@/lib/validators/providers/anthropic";
+import { GrokValidator } from "@/lib/validators/providers/grok";
+import { GeminiValidator } from "@/lib/validators/providers/gemini";
+import { OpenRouterValidator } from "@/lib/validators/providers/openrouter";
+import { validatorService } from "@/lib/services/validatorService";
+import { Validator, ValidatorKey } from "@prisma/client";
+
+// Log to confirm file is loaded
+console.log("[actions] File loaded");
+
+type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
+
+export async function broadcastCustomQuery(
+  query: string,
+  queryMode: QueryMode = "fact-check",
+  queriesRequested?: number // Number of validators to query
+): Promise<VoteResult | { error: string }> {
+  try {
+    console.log("[actions] Processing custom query:", {
+      query,
+      queryMode,
+      queriesRequested,
+    });
+
+    const dbValidators: DbValidatorWithKeys[] =
+      await validatorService.getActiveDbValidators();
+
+    if (!dbValidators || dbValidators.length === 0) {
+      console.warn("[actions] No active validators found in the database");
+      return { error: "No active validators found" };
+    }
+
+    // console.log(
+    //   `[actions] Found ${dbValidators.length} active validators:`,
+    //   dbValidators.map((v) => `${v.provider} (${v.profileName})`)
+    // );
+
+    // Limit validators to queriesRequested (if provided and less than available)
+    const selectedValidators = queriesRequested
+      ? dbValidators.slice(0, Math.min(queriesRequested, dbValidators.length))
+      : dbValidators;
+    // console.log(
+    //   `[actions] Selected ${selectedValidators.length} validators for query:`,
+    //   selectedValidators.map((v) => `${v.provider} (${v.profileName})`)
+    // );
+
+    const sessionId = uuidv4();
+
+    const voteSession = await prisma.voteSession.create({
+      data: {
+        id: sessionId,
+        queryText: query,
+        isConsensusReached: false,
+        timestamp: new Date(),
+        votesYes: 0,
+        votesNo: 0,
+        notVoted: 0,
+      },
+    });
+
+    const validatorResponsePromises: Promise<VoteValidatorResponse>[] = [];
+
+    for (const dbValidator of selectedValidators) {
+      let validator;
+
+      // console.log(
+      //   `[actions] Initializing validator: ${dbValidator.provider} (${dbValidator.profileName})`
+      // );
+
+      if (dbValidator.provider === "OpenAI") {
+        const modelName =
+          dbValidator.modelName === "gpt-40" ? "gpt-4o" : dbValidator.modelName;
+        validator = new OpenAIValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          active: dbValidator.active,
+        });
+      } else if (dbValidator.provider === "Anthropic") {
+        validator = new AnthropicValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName: dbValidator.modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          active: dbValidator.active,
+        });
+      } else if (dbValidator.provider === "Grok") {
+        validator = new GrokValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName: dbValidator.modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          active: dbValidator.active,
+        });
+      } else if (dbValidator.provider === "Google") {
+        validator = new GeminiValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName: dbValidator.modelName,
+          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          active: dbValidator.active,
+        });
+      } else if (dbValidator.provider === "OpenRouter") {
+        validator = new OpenRouterValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName: dbValidator.modelName,
+          active: dbValidator.active,
+          queryMode,
+        });
+      } else {
+        console.warn(
+          `[actions] Validator provider ${dbValidator.provider} not supported, skipping`
+        );
+        continue;
+      }
+
+      // Validate API key availability (except for OpenRouter, which uses env variable)
+      if (
+        dbValidator.provider !== "OpenRouter" &&
+        !dbValidator.apiKeys[0]?.apiKeyId
+      ) {
+        console.warn(
+          `[actions] No API key for validator ${dbValidator.provider} (${dbValidator.profileName}), skipping`
+        );
+        continue;
+      }
+
+      // console.log(
+      //   "[actions] Validating with validator:",
+      //   dbValidator.provider,
+      //   "queryMode:",
+      //   queryMode,
+      //   "validatorId:",
+      //   dbValidator.id
+      // );
+
+      const validationPromise = validator
+        .validate({
+          statement: query,
+          queryMode,
+        })
+        .then(async (response) => {
+          // console.log(
+          //   `[actions] Validation response for ${dbValidator.provider} (${dbValidator.profileName}):`,
+          //   { vote: response.vote, confidence: response.confidence }
+          // );
+          await validatorService.recordValidatorResponse({
+            validatorId: dbValidator.id,
+            voteSessionId: sessionId,
+            vote: response.vote,
+            rationale: response.rationale,
+            confidence: response.confidence,
+            latency: response.latency,
+            error: response.error,
+          });
+
+          return {
+            id: dbValidator.id,
+            provider: dbValidator.provider,
+            profileName: dbValidator.profileName,
+            vote: response.vote ? "YES" : "NO",
+            rationale: response.rationale,
+          } as VoteValidatorResponse;
+        })
+        .catch((error) => {
+          console.error(
+            `[actions] Error processing validator ${dbValidator.provider} (${dbValidator.profileName}):`,
+            error
+          );
+          return {
+            id: dbValidator.id,
+            provider: dbValidator.provider,
+            profileName: dbValidator.profileName,
+            vote: "ERROR" as const,
+            rationale: `Error: ${error.message}`,
+          } as VoteValidatorResponse;
+        });
+
+      validatorResponsePromises.push(validationPromise);
+    }
+
+    const validatorResponses: VoteValidatorResponse[] = await Promise.all(
+      validatorResponsePromises
+    );
+    // console.log(
+    //   `[actions] Collected ${validatorResponses.length} validator responses:`,
+    //   validatorResponses.map(
+    //     (r) => `${r.provider} (${r.profileName}): ${r.vote}`
+    //   )
+    // );
+
+    // Log if fewer responses than requested
+    if (queriesRequested && validatorResponses.length < queriesRequested) {
+      console.warn(
+        `[actions] Expected ${queriesRequested} responses, received ${validatorResponses.length}`
+      );
+    }
+
+    const yesVotes = validatorResponses.filter((r) => r.vote === "YES").length;
+    const noVotes = validatorResponses.filter((r) => r.vote === "NO").length;
+    const notVoted = validatorResponses.filter(
+      (r) => r.vote === "ERROR"
+    ).length;
+
+    const totalValidVotes = yesVotes + noVotes;
+    const isConsensusReached = totalValidVotes > 0;
+    const consensusValue = totalValidVotes > 0 ? yesVotes > noVotes : null;
+
+    await prisma.voteSession.update({
+      where: { id: sessionId },
+      data: {
+        isConsensusReached,
+        consensusValue,
+        votesYes: yesVotes,
+        votesNo: noVotes,
+        notVoted,
+        updatedAt: new Date(),
+      },
+    });
+
+    const result: VoteResult = {
+      id: sessionId,
+      isConsensusReached,
+      consensusValue,
+      queryText: voteSession.queryText,
+      validatorResponses,
+      votingResult: {
+        yes: yesVotes,
+        no: noVotes,
+        notVoted,
+      },
+      timestamp: new Date().toISOString(),
+    };
+
+    // console.log(
+    //   `[actions] Query result: ${result.validatorResponses.length} responses`,
+    //   { yesVotes, noVotes, notVoted, isConsensusReached, consensusValue }
+    // );
+    return result;
+  } catch (error) {
+    // console.error("[actions] Error broadcasting custom query:", error);
+    return { error: (error as Error).message };
+  }
+}
+
+export async function fetchVoteHistory(): Promise<
+  VoteResult[] | { error: string }
+> {
+  try {
+    // console.log("[actions] Starting fetchVoteHistory...");
+    const voteSessions = await prisma.voteSession.findMany({
+      orderBy: { timestamp: "desc" },
+      take: 10,
+      include: {
+        validatorResponses: {
+          select: {
+            id: true,
+            validatorId: true,
+            vote: true,
+            rationale: true,
+            validator: {
+              select: {
+                provider: true,
+                profileName: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    console.log("[actions] Fetched vote sessions:", voteSessions);
+
+    if (!voteSessions || voteSessions.length === 0) {
+      console.log("[actions] No vote sessions found in database");
+      return [];
+    }
+
+    const voteHistory: VoteResult[] = voteSessions.map((session) => {
+      console.log(`[actions] Mapping session ID: ${session.id}`);
+      return {
+        id: session.id,
+        isConsensusReached: session.isConsensusReached,
+        consensusValue: session.consensusValue,
+        queryText: session.queryText,
+        validatorResponses: session.validatorResponses.map((response) => ({
+          id: response.validatorId,
+          provider: response.validator.provider,
+          profileName: response.validator.profileName,
+          vote: response.vote as "YES" | "NO" | "ERROR",
+          rationale: response.rationale || "No rationale provided",
+        })),
+        votingResult: {
+          yes: session.votesYes,
+          no: session.votesNo,
+          notVoted: session.notVoted,
+        },
+        timestamp: session.timestamp.toISOString(),
+      };
+    });
+
+    console.log("[actions] Returning vote history:", voteHistory);
+    return voteHistory;
+  } catch (error) {
+    console.error("[actions] Error fetching vote history:", error);
+    return { error: (error as Error).message };
+  }
+}
+
+--- lib/types.ts ---
+import { ApiKey } from "@prisma/client";
+import {
+  USER_FREE_CREDITS_DEFAULT,
+  USER_PAID_CREDITS_DEFAULT,
+  QUERIES_REQUESTED_DEFAULT,
+  USER_CREDIT_CONVERSION_DEFAULT,
+  QUERIES_COST_EACH_DEFAULT,
+} from "@/lib/constants";
+import { AIValidationResponse } from "./validators/types";
+
+// Network state and validator interfaces
+export interface Validator {
+  id: string;
+  publicKey: string;
+  isLeader: boolean;
+  provider: string;
+  profileName: string;
+  modelName: string;
+  description: string | null;
+  avatarUrl: string | null;
+  validatorType: string | null;
+  reliability: number | null;
+  totalVotes: number;
+  correctVotes: number;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  lastVote?: boolean | null;
+  lastRationale?: string | null;
+  lastResponse?: string | null;
+}
+
+export interface ValidatorResponse {
+  id: string;
+  provider: string;
+  profileName: string;
+  vote?: "YES" | "NO" | "ERROR";
+  rationale?: string;
+  modelName?: string;
+  validatorType?: string;
+  active?: boolean;
+  hasKey?: boolean;
+  keyIds?: string[];
+}
+
+export type ValidatorKey = {
+  id: string;
+  validatorId: string;
+  apiKeyId: string;
+  createdAt: Date;
+  apiKey: ApiKey;
+  validator: Validator;
+};
+
+export interface LlmResponse {
+  decision: boolean;
+  rationale: string;
+}
+
+export interface NetworkState {
+  validators: Validator[];
+  currentLeaderIndex: number;
+  isVoting: boolean;
+  lastQuery: string | null;
+  lastNetworkResponse: string | null;
+  lastConsensusValue: boolean | null;
+  lastConsensusThreshold: number;
+  lastConsensusAchieved: boolean | null;
+  lastVoteTimestamp: string | null;
+}
+
+export interface VoteResult {
+  id: string;
+  isConsensusReached: boolean;
+  consensusValue: boolean | null;
+  queryText: string;
+  validatorResponses: {
+    id: string;
+    provider: string;
+    profileName: string;
+    vote: string;
+    rationale: string;
+  }[];
+  votingResult: {
+    yes: number;
+    no: number;
+    notVoted: number;
+  };
+  timestamp?: string | number;
+}
+
+export interface VoteValidatorResponse extends ValidatorResponse {
+  vote: "YES" | "NO" | "ERROR";
+  rationale: string;
+}
+
+export interface ExtendedApiKey extends ApiKey {
+  decryptable: boolean;
+  keyPattern: string | null;
+  linkedValidators: number;
+}
+
+// Query-related types
+export type QueryMode = "fact-check" | "predict" | "create" | "shop";
+export type ViewMode = "viewStandard" | "viewExpert";
+
+// Cookie-related types
+export interface FreeCreditsCookie {
+  freeCredits: number;
+  lastResetDate: string;
+}
+
+// Constants
+export const DEFAULTS = {
+  USER_FREE_CREDITS: USER_FREE_CREDITS_DEFAULT,
+  USER_PAID_CREDITS: USER_PAID_CREDITS_DEFAULT,
+  QUERIES_REQUESTED: QUERIES_REQUESTED_DEFAULT,
+  USER_CREDIT_CONVERSION: USER_CREDIT_CONVERSION_DEFAULT,
+  QUERIES_COST_EACH: QUERIES_COST_EACH_DEFAULT,
+  FREE_CREDITS_COOKIE_NAME: "verafy_free_credits", // Define directly, no import
+};
+
+// Request to validate content
+export interface ValidationRequest {
+  statement: string;
+  context?: string;
+  queryMode?: QueryMode; // Added to support mode-specific validation
+}
+
+// Result of validation across multiple models
+export interface ValidationResult {
+  validatorId: string;
+  validatorName: string;
+  vote: boolean;
+  confidence: number;
+  rationale: string;
+  timestamp: number;
+  latency?: number;
+}
+
+// Shared interface for all AI validators
+export interface AIValidator {
+  id?: string;
+  name: string;
+  provider: string;
+  modelName: string;
+  description?: string;
+  validatorType?: string;
+  active: boolean;
+  keyId?: string;
+  validate: (request: ValidationRequest) => Promise<AIValidationResponse>;
+}
+
+// Registry of all available validators
+export interface ValidatorRegistry {
+  addValidator(validator: AIValidator): Promise<AIValidator>;
+  removeValidator(id: string): Promise<boolean>;
+  getValidator(id: string): Promise<AIValidator | undefined>;
+  getAllValidators(): Promise<AIValidator[]>;
+  getActiveValidators(): Promise<AIValidator[]>;
+  toggleValidator(id: string, active: boolean): Promise<boolean>;
+}
+
+// Convert AIValidator to our UI Validator type
+export function aiValidatorToUiValidator(aiValidator: AIValidator): AIValidator {
+  return {
+    id: aiValidator.id,
+    name: aiValidator.name,
+    provider: aiValidator.provider,
+    modelName: aiValidator.modelName,
+    description: aiValidator.description,
+    validatorType: aiValidator.validatorType,
+    active: aiValidator.active,
+    keyId: aiValidator.keyId,
+    validate: aiValidator.validate,
+  };
+}
+
+
+export interface User {
+  id: string;
+  email?: string;
+}
+
+export interface VoteSession {
+  id: string;
+  queryText: string | null;
+  isConsensusReached: boolean;
+  consensusValue: boolean | null;
+  validatorResponses:
+    | {
+        id: string;
+        provider: string;
+        profileName: string;
+        vote: string;
+        rationale: string;
+      }[]
+    | null;
+  timestamp: string;
+  votesYes: number | null;
+  votesNo: number | null;
+  notVoted: number | null;
+}
+
+export interface VoteStats {
+  totalVotes: number;
+  yesVotes: number;
+  noVotes: number;
+  consensusMatchPercentage: number;
+  nonConsensusPercentage: number;
+}
+--- components/ui/dialog.tsx ---
+"use client";
+
+import * as React from "react";
+import * as DialogPrimitive from "@radix-ui/react-dialog";
+import { XIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+function Dialog({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Root>) {
+  return <DialogPrimitive.Root data-slot="dialog" {...props} />;
+}
+
+function DialogTrigger({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Trigger>) {
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />;
+}
+
+function DialogPortal({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Portal>) {
+  return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />;
+}
+
+function DialogClose({
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Close>) {
+  return <DialogPrimitive.Close data-slot="dialog-close" {...props} />;
+}
+
+function DialogOverlay({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Overlay>) {
+  return (
+    <DialogPrimitive.Overlay
+      data-slot="dialog-overlay"
+      className={cn(
+        "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/50",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function DialogContent({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Content>) {
+  return (
+    <DialogPortal data-slot="dialog-portal">
+      <DialogOverlay />
+      <DialogPrimitive.Content
+        data-slot="dialog-content"
+        className={cn(
+          "bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+        <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
+          <XIcon />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+      </DialogPrimitive.Content>
+    </DialogPortal>
+  );
+}
+
+function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-header"
+      className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
+      {...props}
+    />
+  );
+}
+
+function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="dialog-footer"
+      className={cn(
+        "flex flex-col-reverse gap-2 sm:flex-row sm:justify-end",
+        className,
+      )}
+      {...props}
+    />
+  );
+}
+
+function DialogTitle({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+  return (
+    <DialogPrimitive.Title
+      data-slot="dialog-title"
+      className={cn("text-lg leading-none font-semibold", className)}
+      {...props}
+    />
+  );
+}
+
+function DialogDescription({
+  className,
+  ...props
+}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+  return (
+    <DialogPrimitive.Description
+      data-slot="dialog-description"
+      className={cn("text-muted-foreground text-sm", className)}
+      {...props}
+    />
+  );
+}
+
+export {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogOverlay,
+  DialogPortal,
+  DialogTitle,
+  DialogTrigger,
+};
+
+--- components/ui/checkbox.tsx ---
+"use client";
+
+import * as React from "react";
+import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
+import { CheckIcon } from "lucide-react";
+
+import { cn } from "@/lib/utils";
+
+function Checkbox({
+  className,
+  ...props
+}: React.ComponentProps<typeof CheckboxPrimitive.Root>) {
+  return (
+    <CheckboxPrimitive.Root
+      data-slot="checkbox"
+      className={cn(
+        "peer border-input dark:bg-input/30 data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-primary focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 rounded-[4px] border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50",
+        className,
+      )}
+      {...props}
+    >
+      <CheckboxPrimitive.Indicator
+        data-slot="checkbox-indicator"
+        className="flex items-center justify-center text-current transition-none"
+      >
+        <CheckIcon className="size-3.5" />
+      </CheckboxPrimitive.Indicator>
+    </CheckboxPrimitive.Root>
+  );
+}
+
+export { Checkbox };
+
+--- components/ui/button.tsx ---
+import * as React from "react";
+import { Slot } from "@radix-ui/react-slot";
+import { cva, type VariantProps } from "class-variance-authority";
+
+import { cn } from "@/lib/utils";
+
+const buttonVariants = cva(
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium transition-all disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  {
+    variants: {
+      variant: {
+        default:
+          "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90",
+        destructive:
+          "bg-destructive text-white shadow-xs hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        outline:
+          "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
+        secondary:
+          "bg-secondary text-secondary-foreground shadow-xs hover:bg-secondary/80",
+        ghost:
+          "hover:bg-accent hover:text-accent-foreground dark:hover:bg-accent/50",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default: "h-9 px-4 py-2 has-[>svg]:px-3",
+        sm: "h-8 rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
+        lg: "h-10 rounded-md px-6 has-[>svg]:px-4",
+        icon: "size-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  },
+);
+
+function Button({
+  className,
+  variant,
+  size,
+  asChild = false,
+  ...props
+}: React.ComponentProps<"button"> &
+  VariantProps<typeof buttonVariants> & {
+    asChild?: boolean;
+  }) {
+  const Comp = asChild ? Slot : "button";
+
+  return (
+    <Comp
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  );
+}
+
+export { Button, buttonVariants };
+
+--- components/ui/sonner.tsx ---
+"use client";
+
+import { useTheme } from "next-themes";
+import { Toaster as Sonner, ToasterProps } from "sonner";
+
+const Toaster = ({ ...props }: ToasterProps) => {
+  const { theme = "system" } = useTheme();
+
+  return (
+    <Sonner
+      theme={theme as ToasterProps["theme"]}
+      className="toaster group"
+      style={
+        {
+          "--normal-bg": "var(--popover)",
+          "--normal-text": "var(--popover-foreground)",
+          "--normal-border": "var(--border)",
+        } as React.CSSProperties
+      }
+      {...props}
+    />
+  );
+};
+
+export { Toaster };

@@ -7,6 +7,8 @@ import { SolanaProvider } from "@/components/solana-provider";
 import AskFooter from "@/components/ask/ask-footer";
 import { useQueryStore } from "@/store/query-store";
 import { useBackgroundImage } from "@/hooks/useBackgroundImage";
+import { FeedbackWidget } from "@/components/feedback-widget";
+import { FeedbackModal } from "@/components/feedback-modal";
 
 export default function AskPage() {
   const backgroundImage = useBackgroundImage();
@@ -34,6 +36,12 @@ export default function AskPage() {
         <Navbar />
         <QueryInterface />
         <AskFooter />
+        <FeedbackWidget
+          component="AskPage"
+          action="view"
+          className="fixed bottom-20 right-4"
+        />
+        <FeedbackModal />
       </main>
     </SolanaProvider>
   );
