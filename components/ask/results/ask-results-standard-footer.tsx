@@ -21,13 +21,24 @@ export function AskResultsStandardFooter({
 }: AskResultsStandardFooterProps) {
   return (
     <>
+      <div className="ml-5">
+        <ResultsCardFeedback
+          component="ResultsCard"
+          action={sanitizedQuery.id}
+        />
+      </div>
       <hr className="h-1 mt-2" />
       <div className="flex justify-start px-1">
         <div className="w-full">
-          <ResultsCardFeedback component="ResultsCard" action={sanitizedQuery.id} />
-          <Collapsible open={isOpen} onOpenChange={() => toggleItem(sanitizedQuery.id)}>
+          <Collapsible
+            open={isOpen}
+            onOpenChange={() => toggleItem(sanitizedQuery.id)}
+          >
             <CollapsibleTrigger className="flex px-4 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-              <span className="">Validator Responses ({sanitizedQuery.validatorResponses?.length ?? 0})</span>
+              <span className="">
+                Validator Responses (
+                {sanitizedQuery.validatorResponses?.length ?? 0})
+              </span>
               {isOpen ? (
                 <ChevronUp className="ml-2 h-4 w-4" />
               ) : (
