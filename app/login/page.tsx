@@ -50,27 +50,27 @@ export default function LoginPage() {
   };
 
   // Handle OAuth login (Google/GitHub)
-  const handleOAuthLogin = async (provider: "google" | "github") => {
-    setLoading(true);
-    setError(null);
+  // const handleOAuthLogin = async (provider: "google" | "github") => {
+  //   setLoading(true);
+  //   setError(null);
 
-    try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: "http://localhost:3000/auth/callback",
-        },
-      });
+  //   try {
+  //     const { error } = await supabase.auth.signInWithOAuth({
+  //       provider,
+  //       options: {
+  //         redirectTo: "http://localhost:3000/auth/callback",
+  //       },
+  //     });
 
-      if (error) {
-        throw new Error(error.message || `Failed to log in with ${provider}. Please try again.`);
-      }
-    } catch (err: unknown) {
-      const error = err as Error;
-      setError(error.message || `Failed to log in with ${provider}. Please try again.`);
-      setLoading(false);
-    }
-  };
+  //     if (error) {
+  //       throw new Error(error.message || `Failed to log in with ${provider}. Please try again.`);
+  //     }
+  //   } catch (err: unknown) {
+  //     const error = err as Error;
+  //     setError(error.message || `Failed to log in with ${provider}. Please try again.`);
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -104,7 +104,7 @@ export default function LoginPage() {
               {loading ? "Sending..." : "Log In with Email"}
             </Button>
           </form>
-          <div className="mt-6 space-y-4">
+          {/* <div className="mt-6 space-y-4">
             <Button
               variant="outline"
               onClick={() => handleOAuthLogin("google")}
@@ -121,7 +121,7 @@ export default function LoginPage() {
             >
               Log In with GitHub
             </Button>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
