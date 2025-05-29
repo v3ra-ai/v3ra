@@ -6,7 +6,7 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { VoteResult } from "@/lib/types";
 import { parseRationale } from "@/lib/utils";
-import { ResultsCardFeedback } from "./results-card-feedback"; // Add import
+import { ResultsCardFeedback } from "./results-card-feedback"; // Confirm import
 
 interface AskResultsStandardFooterProps {
   sanitizedQuery: VoteResult;
@@ -21,25 +21,13 @@ export function AskResultsStandardFooter({
 }: AskResultsStandardFooterProps) {
   return (
     <>
-
-      <div className="mt-2 ml-6">
-        <ResultsCardFeedback
-          component="ResultsCard"
-          action={sanitizedQuery.id}
-        />
-      </div>
-      <hr className="h-1 mt-0" />
+      <hr className="h-1 mt-2" />
       <div className="flex justify-start px-1">
         <div className="w-full">
-          <Collapsible
-            open={isOpen}
-            onOpenChange={() => toggleItem(sanitizedQuery.id)}
-          >
-            <CollapsibleTrigger className="flex px-0 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
-              <span className="ml-5">
-                Validator Responses (
-                {sanitizedQuery.validatorResponses?.length ?? 0})
-              </span>
+          <ResultsCardFeedback component="ResultsCard" action={sanitizedQuery.id} />
+          <Collapsible open={isOpen} onOpenChange={() => toggleItem(sanitizedQuery.id)}>
+            <CollapsibleTrigger className="flex px-4 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
+              <span className="">Validator Responses ({sanitizedQuery.validatorResponses?.length ?? 0})</span>
               {isOpen ? (
                 <ChevronUp className="ml-2 h-4 w-4" />
               ) : (

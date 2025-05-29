@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
@@ -22,22 +22,42 @@ export function FeedbackModal() {
   const { submitThumbsDownDetails } = useFeedback({ component, action });
   const [includeBrowserInfo, setIncludeBrowserInfo] = useState(true);
 
+  // Debug modal state
+  useEffect(() => {
+    console.log('[FeedbackModal] isModalOpen:', isModalOpen, 'component:', component, 'action:', action);
+  }, [isModalOpen, component, action]);
+
   const handleSubmit = async () => {
-    const result = await submitThumbsDownDetails(selectedOptions, explanation, includeBrowserInfo);
-    if (result.success) {
-      toast.success('Thank you for your feedback!');
-      setModalOpen(false);
-      reset();
-    } else {
-      toast.error(result.error || 'Failed to submit feedback');
+    try {
+      console.log('[FeedbackModal] Submitting feedback:', { selectedOptions, explanation, includeBrowserInfo });
+      const result = await submitThumbsDownDetails(selectedOptions, explanation, includeBrowserInfo);
+      if (result.success) {
+        console.log('[FeedbackModal] Feedback submitted successfully');
+        toast.success('Thank you for your feedback!');
+        setModalOpen(false);
+        reset();
+      } else {
+        throw new Error(result.error || 'Failed to submit feedback');
+      }
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to submit feedback';
+      console.error('[FeedbackModal] Submission error:', errorMessage);
+      toast.error(errorMessage);
     }
   };
 
   return (
-    <Dialog open={isModalOpen} onOpenChange={(open) => {
-      setModalOpen(open);
-      if (!open) reset();
-    }}>
+    <Dialog
+      open={isModalOpen}
+      onOpenChange={(open) => {
+        console.log('[FeedbackModal] Dialog onOpenChange:', open);
+        setModalOpen(open);
+        if (!open) {
+          console.log('[FeedbackModal] Resetting modal state');
+          reset();
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

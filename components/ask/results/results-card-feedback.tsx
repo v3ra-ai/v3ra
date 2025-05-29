@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useFeedback } from '@/hooks/useFeedback';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase-client';
+import { useFeedbackStore } from '@/store/feedback-store';
 
 interface ResultsCardFeedbackProps {
   component: string;
@@ -13,7 +14,8 @@ interface ResultsCardFeedbackProps {
 }
 
 export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackProps) {
-  const { submitThumbsUp, submitThumbsDown, isAuthenticated } = useFeedback({ component, action });
+  const { submitThumbsUp, isAuthenticated } = useFeedback({ component, action });
+  const { setModalOpen, setContext } = useFeedbackStore();
   const [feedbackState, setFeedbackState] = useState<'none' | 'thumbs_up' | 'thumbs_down'>('none');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -99,23 +101,20 @@ export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackPr
   };
 
   const handleThumbsDown = async () => {
+    console.log('[ResultsCardFeedback] feedbackState:', feedbackState);
     if (feedbackState !== 'none') {
       toast.error('You have already provided feedback for this result');
       return;
     }
     try {
-      const result = await submitThumbsDown();
-      if (result.success) {
-        setFeedbackState('thumbs_down');
-      } else {
-        throw new Error(result.error || 'Failed to initiate feedback');
-      }
+      console.log('[ResultsCardFeedback] Triggering thumbs down modal');
+      setContext(component, action); // Set context for modal
+      setModalOpen(true); // Directly open modal
+      console.log('[ResultsCardFeedback] Modal state set to open');
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        toast.error(error.message || 'Failed to initiate feedback');
-      } else {
-        toast.error('Failed to initiate feedback');
-      }
+      const errorMessage = error instanceof Error ? error.message : 'Failed to open feedback modal';
+      console.error('[ResultsCardFeedback] Thumbs down error:', errorMessage);
+      toast.error(errorMessage);
     }
   };
 
