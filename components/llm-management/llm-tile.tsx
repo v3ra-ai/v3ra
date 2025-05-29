@@ -3,6 +3,7 @@
 import { LLM, useLLMStore } from "@/store/llm-store";
 import { StarIcon } from "lucide-react";
 import clsx from "clsx";
+import Image from "next/image";
 
 interface Props {
   llm: LLM;
@@ -139,11 +140,16 @@ export default function LLMTile({ llm }: Props) {
       {/* Avatar or provider initial */}
       <div className="flex-1 flex items-center justify-center py-2">
         {/* Model-specific icon */}
-        <img
-          src={getModelIconPath(llm.name, llm.provider)}
-          alt={llm.name}
-          className="w-10 h-10 object-contain"
-        />
+        <div className="relative w-10 h-10">
+          <Image
+            src={getModelIconPath(llm.name, llm.provider)}
+            alt={llm.name}
+            fill
+            className="object-contain"
+            sizes="40px"
+            priority={false}
+          />
+        </div>
       </div>
 
       {/* percentage */}

@@ -1,5 +1,6 @@
 import { CURRENT_DOMAIN } from '@/lib/constants';
 import { VoteResult } from '@/lib/types';
+import Image from 'next/image';
 
 export function OgImage({ card }: { card: VoteResult }) {
   const consensusText = card.isConsensusReached
@@ -31,12 +32,16 @@ export function OgImage({ card }: { card: VoteResult }) {
         Validated by {voteCount} AI validator{voteCount !== 1 ? 's' : ''}
       </p>
       <div style={{ position: 'absolute', bottom: '40px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <img
-          src={`https://${CURRENT_DOMAIN}/verafy_logo_black.svg`}
-          alt="Verafy Logo"
-          width={100}
-          height={40}
-        />
+        <div style={{ position: 'relative', width: '100px', height: '40px' }}>
+          <Image
+            src={`https://${CURRENT_DOMAIN}/verafy_logo_black.svg`}
+            alt="Verafy Logo"
+            fill
+            style={{ objectFit: 'contain' }}
+            sizes="100px"
+            priority={false}
+          />
+        </div>
         <p style={{ fontSize: '14px', color: '#71717a' }}>Powered by Verafy</p>
       </div>
     </div>
