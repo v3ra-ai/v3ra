@@ -183,19 +183,52 @@ There are some weird things I've run into with Prisma, be aware of them so you d
 
 ## Prisma Migrations
 
-These can be a serious pain. One thing I learned is if you look up docs in AI or Google, you may find some things that are not correct.
+These can be a serious pain. One thing I learned is if you look up docs using AI or Google, you may find some things that are not correct.
 
-* **You absolutely MUST specify that you are using Supabase.** They have a different way of doing migrations than normal Prisma+Postgres.
+* **Using AI for code: You absolutely MUST specify that you are using Supabase/Prisma.** This stack has a different way of doing migrations than normal Prisma+Postgres. If you do not specify this, you will get incorrect instructions.
+
+Also, always do a backup first.
 
 **As a result if you follow the other non-Supabase docs you will get errors.**
 
 I am not sure if this will always be the case, but I have run into this several times.
 
-### Migration Steps
+### Migration Steps (Manual example)
 
-### 1. Backup the Database and make sure .env is correct PRISMA url
+**IMPORTANT:**
+* Always backup your database before running migrations. Its even a good idea to backup againn after a successful one, in case another engineer messes something up later and you need to restore what you just did successfully.
+* If you use AI to generate code for a schema, make sure it has not removed any fields you need, or added any that are not needed-- including indexes. I've noticed times where it removed needed lines and indexes.
 
+The method below is a manual migration process that works with Supabase+Prisma. It is not the only way, but it is the one I have found to work best. Migrations can be tricky, so always backup first and test thoroughly.
 
+### 0. Backup the Database (REQUIRED)
+
+You have to use postgres 15 or later, so make sure you have that installed.
+
+```bash
+pg_dump --version
+```
+
+MacOS:
+```bash
+brew install postgresql@15
+brew --prefix postgresql@15
+```
+
+`export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"`
+
+```bash
+PGPASSWORD="your_password" pg_dump \
+  -h aws-0-us-east-1.pooler.supabase.com \
+  -U postgres.quuuhdbozcmhkwzhamuh \
+  -p 5432 \
+  -d postgres \
+  -F c \
+  -f 20250530-remote_supabase_backup.dump
+
+```
+
+### 1. Temporarily replace the DATABASE_URL in .env (just for Prisma migration)
 
 Replace DATABASE_URL with the PRISMA_DATABASE_URL (see below)
 
@@ -716,7 +749,7 @@ The Verafy Testnet is a modular system where the UI (Next.js) serves as the entr
 
 This flow ensures a query moves efficiently from user input to validator consensus and back to the UI, leveraging Redis for real-time communication and PostgreSQL for persistence.
 
-## Backups
+# Supabase Postgres Backups
 
 You may need to backup either remote or local.
 
@@ -761,7 +794,7 @@ PGPASSWORD="your_password" pg_dump \
   -p 5432 \
   -d postgres \
   -F c \
-  -f 20250413-remote_supabase_backup.dump
+  -f 20250530-remote_supabase_backup.dump
 
 ```
 
