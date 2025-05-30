@@ -125,7 +125,7 @@ export function ResultsCardFeedback({ component, action }: ResultsCardFeedbackPr
 
   return (
     <div className="flex mt-1 items-center text-sm text-zinc-500 dark:text-zinc-400">
-      <span className="font-semibold">Submit feedback:</span>
+      <span className="font-semibold text-zinc-700 dark:text-zinc-300 ">Submit feedback:</span>
       <Button
         variant="ghost"
         size="icon"
