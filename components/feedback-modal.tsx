@@ -13,6 +13,7 @@ import { motion } from 'framer-motion';
 
 const feedbackOptions = [
   { id: 'error_response', label: 'Error response (include above)' },
+  { id: 'bad_result', label: 'Fact marked incorrectly' },
   { id: 'broken_linkimage', label: 'Broken link/image' },
   { id: 'credit_issue', label: 'Credit/payment issue' },
   { id: 'slow_response', label: 'Slow/no response' },
@@ -112,6 +113,7 @@ export function FeedbackModal() {
               />
               <Label htmlFor="includeBrowserInfo">Include browser information</Label>
             </div>
+            <div className="my-2">If submit error, contact: support@verafy.</div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>

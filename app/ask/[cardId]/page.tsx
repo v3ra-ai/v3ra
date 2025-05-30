@@ -1,10 +1,8 @@
 import { prisma } from "@/lib/db/client";
-import { VoteResult, VoteSession } from "@/lib/types"; // Update import
-import CardViewer from "@/components/ask/card-client-wrapper";
+import { VoteResult, VoteSession } from "@/lib/types";
 import { CURRENT_DOMAIN } from "@/lib/constants";
-import Navbar from "@/components/ask/navbar/navbar";
-import AskFooter from "@/components/ask/ask-footer";
 import { formatDateTimeCards } from "@/utils/date-utils";
+import CardPageClient from "./card-page-client"; // New client component
 
 export async function generateMetadata({
   params,
@@ -52,7 +50,6 @@ export async function generateMetadata({
       notVoted: data.notVoted,
     };
 
-    // Validate required fields
     if (!typedData.id || !typedData.queryText) {
       console.error("Invalid vote session data for metadata:", {
         cardId,
@@ -115,36 +112,10 @@ export async function generateMetadata({
   }
 }
 
-export default async function CardPage({
-  params,
-}: {
-  params: Promise<{ cardId: string }>;
-}) {
-  const resolvedParams = await params;
-  const cardId = resolvedParams.cardId;
-
+async function fetchVoteSession(cardId: string): Promise<VoteResult | { error: string }> {
   if (!cardId) {
-    console.error("Invalid cardId in CardPage:", cardId);
-    return (
-      <main
-        className="min-h-screen bg-background flex flex-col"
-        style={{
-          backgroundImage: "url(/images/background.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
-          backgroundRepeat: "no-repeat",
-          width: "100vw",
-          height: "100vh",
-        }}
-      >
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center p-4">
-          <p className="text-red-500">Error: Invalid card ID</p>
-        </div>
-        <AskFooter />
-      </main>
-    );
+    console.error("Invalid cardId in fetchVoteSession:", cardId);
+    return { error: "Invalid card ID" };
   }
 
   try {
@@ -159,26 +130,7 @@ export default async function CardPage({
 
     if (!data) {
       console.error("Vote session not found:", { cardId });
-      return (
-        <main
-          className="min-h-screen bg-background flex flex-col"
-          style={{
-            backgroundImage: "url(/images/background.jpg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundAttachment: "fixed",
-            backgroundRepeat: "no-repeat",
-            width: "100vw",
-            height: "100vh",
-          }}
-        >
-          <Navbar />
-          <div className="flex-grow flex items-center justify-center p-4">
-            <p className="text-red-500">Error: Vote session not found for card ID {cardId}</p>
-          </div>
-          <AskFooter />
-        </main>
-      );
+      return { error: `Vote session not found for card ID ${cardId}` };
     }
 
     const typedData: VoteSession = {
@@ -199,33 +151,13 @@ export default async function CardPage({
       notVoted: data.notVoted,
     };
 
-    // Validate required fields
     if (!typedData.id || !typedData.queryText) {
       console.error("Invalid vote session data:", {
         cardId,
         id: typedData.id,
         queryText: typedData.queryText,
       });
-      return (
-        <main
-          className="min-h-screen bg-background flex flex-col"
-          style={{
-            backgroundImage: "url(/images/background.jpg)",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-            backgroundAttachment: "fixed",
-            backgroundRepeat: "no-repeat",
-            width: "100vw",
-            height: "100vh",
-          }}
-        >
-          <Navbar />
-          <div className="flex-grow flex items-center justify-center p-4">
-            <p className="text-red-500">Error: Invalid vote session data for card ID {cardId}</p>
-          </div>
-          <AskFooter />
-        </main>
-      );
+      return { error: `Invalid vote session data for card ID ${cardId}` };
     }
 
     const card: VoteResult = {
@@ -248,52 +180,24 @@ export default async function CardPage({
       timestamp: formatDateTimeCards(data.timestamp),
     };
 
-    return (
-      <main
-        className="min-h-screen bg-background flex flex-col"
-        style={{
-          backgroundImage: "url(/images/background.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
-          backgroundRepeat: "no-repeat",
-          width: "100vw",
-          height: "100vh",
-        }}
-      >
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center p-4">
-          <CardViewer query={card} layoutMode="row" />
-        </div>
-        <AskFooter />
-      </main>
-    );
+    return card;
   } catch (error) {
     console.error("Error fetching vote session:", {
       cardId,
       error: error instanceof Error ? error.message : String(error),
     });
-    return (
-      <main
-        className="min-h-screen bg-background flex flex-col"
-        style={{
-          backgroundImage: "url(/images/background.jpg)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
-          backgroundRepeat: "no-repeat",
-          width: "100vw",
-          height: "100vh",
-        }}
-      >
-        <Navbar />
-        <div className="flex-grow flex items-center justify-center p-4">
-          <p className="text-red-500">
-            Error: Failed to load vote session for card ID {cardId}
-          </p>
-        </div>
-        <AskFooter />
-      </main>
-    );
+    return { error: `Failed to load vote session for card ID ${cardId}` };
   }
+}
+
+export default async function CardPage({
+  params,
+}: {
+  params: Promise<{ cardId: string }>;
+}) {
+  const resolvedParams = await params;
+  const cardId = resolvedParams.cardId;
+  const result = await fetchVoteSession(cardId);
+
+  return <CardPageClient cardId={cardId} result={result} />;
 }
