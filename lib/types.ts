@@ -210,7 +210,6 @@ export interface VoteStats {
   nonConsensusPercentage: number;
 }
 
-// Add Favorite type
 export interface Favorite {
   id: string;
   user_id: string;

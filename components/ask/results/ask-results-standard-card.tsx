@@ -1,4 +1,3 @@
-import { Card, CardContent } from "@/components/ui/card";
 import { VoteResult } from "@/lib/types";
 import { useCleanText } from "@/hooks/useCleanText";
 import {
@@ -15,6 +14,7 @@ import { AskResultsStandardAiConsensus } from "@/components/ask/results/ask-resu
 import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
 import { parseRationaleDetailed } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -32,7 +32,7 @@ export default function AskResultsStandardCard({
   // Validate query data
   const isValidQuery = query && query.queryText && query.id;
   if (!isValidQuery) {
-    console.error('Invalid query data in AskResultsStandardCard:', {
+    console.error("Invalid query data in AskResultsStandardCard:", {
       query,
       id: query?.id,
       queryText: query?.queryText,
@@ -44,12 +44,13 @@ export default function AskResultsStandardCard({
     ? {
         ...query,
         queryText: sanitizeQueryText(query.queryText),
-        validatorResponses: query.validatorResponses?.map(sanitizeValidatorResponse) || [],
+        validatorResponses:
+          query.validatorResponses?.map(sanitizeValidatorResponse) || [],
         votingResult: query.votingResult || { yes: 0, no: 0, notVoted: 0 },
       }
     : {
-        id: query?.id || 'unknown',
-        queryText: 'Unknown Query',
+        id: query?.id || "unknown",
+        queryText: "Unknown Query",
         isConsensusReached: false,
         consensusValue: null,
         validatorResponses: [],
@@ -72,24 +73,17 @@ export default function AskResultsStandardCard({
       )
     : null;
 
-  // Get the raw rationale string
   const rawLongestRationale = longestRationaleResponse?.rationale || null;
-
-  // Parse the rationale object and extract the text
   const displayRationale = parseRationaleDetailed(rawLongestRationale).rationale;
-
   const validatorName =
     longestRationaleResponse?.profileName || "Unknown Validator";
   const validatorProvider =
     longestRationaleResponse?.provider || "Unknown Provider";
 
   const { cleanText } = useCleanText(displayRationale);
-
-  // Handle undefined timestamp with a fallback
   const formattedDate = sanitizedQuery.timestamp
     ? formatDateTimeCards(sanitizedQuery.timestamp)
     : "N/A";
-
   const { percentage, color } = calculateRating(sanitizedQuery);
 
   // Render fallback UI if query is invalid
@@ -123,7 +117,12 @@ export default function AskResultsStandardCard({
         ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
       `}
     >
-      <AskResultsStandardHeader formattedDate={formattedDate} sanitizedQuery={sanitizedQuery} />
+      <div className="px-4">
+        <AskResultsStandardHeader
+          formattedDate={formattedDate}
+          sanitizedQuery={sanitizedQuery}
+        />
+      </div>
       <hr className="h-1 mt-2" />
       <AskResultsStandardTitle sanitizedQuery={sanitizedQuery} />
       <hr className="h-1 mt-2" />
@@ -143,7 +142,6 @@ export default function AskResultsStandardCard({
         <div className="mt-3">
           <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery} />
         </div>
-
       </CardContent>
       <AskResultsStandardFooter
         sanitizedQuery={sanitizedQuery}

@@ -1,12 +1,16 @@
 "use client";
 
-import { Twitter, Copy, StickyNote } from "lucide-react";
-import { VoteResult } from "@/lib/types";
-import { useMemo } from "react";
+import { Twitter, Copy, StickyNote, Star } from "lucide-react";
+import { VoteResult, Favorite } from "@/lib/types";
+import { useMemo, useCallback } from "react";
 import { CURRENT_DOMAIN } from "@/lib/constants";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useFavoritesStore } from "@/store/favorites-store";
+import { toggleFavorite } from "@/app/actions";
+import { toast } from "sonner";
+import { debounce } from "lodash";
 
 interface AskResultsStandardSocialIconsProps {
   query?: VoteResult;
@@ -17,6 +21,10 @@ export function AskResultsStandardSocialIcons({
 }: AskResultsStandardSocialIconsProps) {
   const { copyToClipboard } = useCopyToClipboard();
   const pathname = usePathname();
+  const favorites = useFavoritesStore((state) => state.favorites);
+  const isFavorited = query?.id
+    ? favorites.some((f: Favorite) => f.vote_session_id === query.id)
+    : false;
 
   const shareText = useMemo(() => {
     if (!query?.queryText || !query?.id) {
@@ -46,7 +54,8 @@ export function AskResultsStandardSocialIcons({
     : `${protocol}${CURRENT_DOMAIN}/`;
 
   const twitterIntentUrl = useMemo(
-    () => `https://x.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(shareUrl)}`,
+    () =>
+      `https://x.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(shareUrl)}`,
     [shareText, shareUrl]
   );
 
@@ -58,10 +67,34 @@ export function AskResultsStandardSocialIcons({
     });
   };
 
+  const handleToggleFavorite = useCallback(
+    debounce(async () => {
+      if (!query?.id) return;
+      try {
+        const result = await toggleFavorite(query.id);
+        if (result.success) {
+          if (result.favorite) {
+            useFavoritesStore.getState().addFavorite(result.favorite);
+          } else {
+            useFavoritesStore.getState().removeFavorite(query.id);
+          }
+          toast.success(result.message);
+        } else {
+          toast.error(result.message);
+        }
+      } catch (error) {
+        const typedError = error as Error;
+        console.error("[social-icons] Error toggling favorite:", typedError);
+        toast.error("Failed to toggle favorite");
+      }
+    }, 500),
+    [query?.id]
+  );
+
   const isOnCardPage = query?.id && pathname === `/ask/${query.id}`;
 
   return (
-    <div className="flex justify-end mr-2 text-sm text-zinc-500 space-x-2 border-0">
+    <div className="flex justify-end mr-2 items-center text-sm text-zinc-500 space-x-3 border-0">
       <a
         href={twitterIntentUrl}
         target="_blank"
@@ -69,14 +102,14 @@ export function AskResultsStandardSocialIcons({
         className="hover:text-blue-500 transition-colors cursor-pointer"
         aria-label="Share on Twitter"
       >
-        <Twitter className="h-4 w-4" />
+        <Twitter className="h-5 w-5" />
       </a>
       <button
         onClick={handleCopyLink}
         className="hover:text-blue-500 transition-colors cursor-pointer"
         aria-label="Copy share link"
       >
-        <Copy className="h-4 w-4" />
+        <Copy className="h-5 w-5" />
       </button>
       {query?.id && !isOnCardPage && (
         <Link
@@ -84,9 +117,23 @@ export function AskResultsStandardSocialIcons({
           className="hover:text-blue-500 transition-colors cursor-pointer"
           aria-label="View card details"
         >
-          <StickyNote className="h-4 w-4" />
+          <StickyNote className="h-5 w-5" />
         </Link>
       )}
+      <button
+        onClick={handleToggleFavorite}
+        className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+        aria-label={isFavorited ? "Unfavorite" : "Favorite"}
+        disabled={!query?.id}
+      >
+        <Star
+          className={`h-5 w-5 ${
+            isFavorited
+              ? "fill-yellow-400 text-yellow-400"
+              : "text-zinc-600 dark:text-zinc-300"
+          }`}
+        />
+      </button>
     </div>
   );
 }

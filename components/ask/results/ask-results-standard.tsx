@@ -4,14 +4,15 @@ import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useVoteStore } from "@/store/vote-store";
 import { ErrorDisplay } from "@/components/error-display";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
-import { Grid3x3, Rows3 } from "lucide-react";
+import { Grid3x3, Rows3, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
-import { default as DOMPurify } from "dompurify"; // Ensure default import
+import { default as DOMPurify } from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
 import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 import { parseRationaleDetailed } from "@/lib/utils";
+import { useFavorites } from "@/hooks/useFavorites";
 
 // Custom CSS for skeleton loading animation (pulse + shimmer)
 <style jsx>{`
@@ -24,36 +25,73 @@ import { parseRationaleDetailed } from "@/lib/utils";
     }
   }
   .skeleton-loading {
-    background: linear-gradient(to right, #e2e8f0 0%, #f1f5f9 20%, #e2e8f0 40%, #e2e8f0 100%);
+    background: linear-gradient(
+      to right,
+      #e2e8f0 0%,
+      #f1f5f9 20%,
+      #e2e8f0 40%,
+      #e2e8f0 100%
+    );
     background-size: 800px 104px;
     animation: shimmer 1.5s infinite linear;
   }
   .dark .skeleton-loading {
-    background: linear-gradient(to right, #27272a 0%, #3f3f46 20%, #27272a 40%, #27272a 100%);
+    background: linear-gradient(
+      to right,
+      #27272a 0%,
+      #3f3f46 20%,
+      #27272a 40%,
+      #27272a 100%
+    );
   }
-`}</style>
+`}</style>;
 
 const LayoutToggle = ({
   layoutMode,
   setLayoutMode,
+  showFavoritesOnly,
+  setShowFavoritesOnly,
 }: {
   layoutMode: "grid" | "row";
   setLayoutMode: (mode: "grid" | "row") => void;
+  showFavoritesOnly: boolean;
+  setShowFavoritesOnly: (show: boolean) => void;
 }) => (
   <div className="flex space-x-2 ml-4 invisible lg:visible">
     <Grid3x3
-      className={`h-5 w-5 cursor-pointer ${layoutMode === "grid" ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400"}`}
+      className={`h-5 w-5 cursor-pointer ${
+        layoutMode === "grid"
+          ? "text-zinc-900 dark:text-zinc-100"
+          : "text-zinc-500 dark:text-zinc-400"
+      }`}
       onClick={() => setLayoutMode("grid")}
     />
     <Rows3
-      className={`h-5 w-5 cursor-pointer ${layoutMode === "row" ? "text-zinc-900 dark:text-zinc-100" : "text-zinc-500 dark:text-zinc-400"}`}
+      className={`h-5 w-5 cursor-pointer ${
+        layoutMode === "row"
+          ? "text-zinc-900 dark:text-zinc-100"
+          : "text-zinc-500 dark:text-zinc-400"
+      }`}
       onClick={() => setLayoutMode("row")}
+    />
+    <Star
+      className={`h-5 w-5 cursor-pointer ${
+        showFavoritesOnly
+          ? "fill-yellow-400 text-yellow-400"
+          : "text-zinc-500 dark:text-zinc-400"
+      }`}
+      onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
     />
   </div>
 );
 
-const getRecentQueries = (voteHistory: VoteResult[]) =>
+const getRecentQueries = (
+  voteHistory: VoteResult[],
+  favorites: string[] = [],
+  showFavoritesOnly: boolean
+) =>
   [...voteHistory]
+    .filter((vote) => !showFavoritesOnly || favorites.includes(vote.id))
     .sort((a, b) => {
       const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
       const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
@@ -97,7 +135,9 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
         </div>
         <div className="flex mt-4">
           <Skeleton className="h-10 w-24" />
-          <div className="w-full justify-center ml-8 text-zinc-300 dark:text-zinc-600">Loading...</div>
+          <div className="w-full justify-center ml-8 text-zinc-300 dark:text-zinc-600">
+            Loading...
+          </div>
         </div>
         <div className="mt-4">
           <Skeleton className="h-4 w-full" />
@@ -129,28 +169,39 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
 export default function AskResultsStandard() {
   const { voteHistory, isLoading, error, refetch } = useVoteHistory();
   const { lastVoteResult } = useVoteStore();
+  const { favorites, isHydrated } = useFavorites();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
 
   // Debug log to confirm loading state and voteHistory
   if (process.env.NODE_ENV === "development") {
-    console.log("AskResultsStandard isLoading:", isLoading, "voteHistory:", voteHistory);
+    console.log(
+      "AskResultsStandard isLoading:",
+      isLoading,
+      "voteHistory:",
+      voteHistory,
+      "favorites:",
+      favorites
+    );
   }
 
   // Sanitize and filter voteHistory to prevent XSS and invalid data
   const sanitizedVoteHistory = voteHistory
-    .filter((vote) => vote && vote.id && vote.queryText) // Ensure valid data
+    .filter((vote) => vote && vote.id && vote.queryText)
     .map((vote) => ({
       ...vote,
-    queryText: DOMPurify.sanitize(vote.queryText),
-    validatorResponses: vote.validatorResponses?.map((response) => ({
-      ...response,
-      profileName: DOMPurify.sanitize(response.profileName),
-      provider: DOMPurify.sanitize(response.provider),
-      id: DOMPurify.sanitize(response.id),
-      rationale: DOMPurify.sanitize(parseRationaleDetailed(response.rationale).rationale || ""), // Keep sanitize call
-    })),
-  }));
+      queryText: DOMPurify.sanitize(vote.queryText),
+      validatorResponses: vote.validatorResponses?.map((response) => ({
+        ...response,
+        profileName: DOMPurify.sanitize(response.profileName),
+        provider: DOMPurify.sanitize(response.provider),
+        id: DOMPurify.sanitize(response.id),
+        rationale: DOMPurify.sanitize(
+          parseRationaleDetailed(response.rationale).rationale || ""
+        ),
+      })),
+    }));
 
   // Refetch vote history when lastVoteResult changes
   useEffect(() => {
@@ -170,7 +221,12 @@ export default function AskResultsStandard() {
     );
   }
 
-  const recentQueries = getRecentQueries(sanitizedVoteHistory);
+  const favoriteIds = favorites.map((f) => f.vote_session_id);
+  const recentQueries = getRecentQueries(
+    sanitizedVoteHistory,
+    favoriteIds,
+    showFavoritesOnly
+  );
 
   const toggleItem = (id: string) => {
     setOpenItems((prev) => ({
@@ -193,18 +249,25 @@ export default function AskResultsStandard() {
       aria-live="polite"
     >
       <div
-        className={`flex items-center mb-2 justify-center mb-3 ${layoutMode === "row" ? "w-full" : ""}`}
+        className={`flex items-center mb-2 justify-center mb-3 ${
+          layoutMode === "row" ? "w-full" : ""
+        }`}
       >
-        {isLoading ? (
+        {isLoading || !isHydrated ? (
           <LoadingSpinner type="beat" message="Loading Recent Queries..." />
         ) : (
           <h2 className="text-md text-zinc-800 dark:text-zinc-200 font-light">
-            Recent Queries
+            {showFavoritesOnly ? "Favorite Queries" : "Recent Queries"}
           </h2>
         )}
-        <LayoutToggle layoutMode={layoutMode} setLayoutMode={setLayoutMode} />
+        <LayoutToggle
+          layoutMode={layoutMode}
+          setLayoutMode={setLayoutMode}
+          showFavoritesOnly={showFavoritesOnly}
+          setShowFavoritesOnly={setShowFavoritesOnly}
+        />
       </div>
-      {isLoading ? (
+      {isLoading || !isHydrated ? (
         <div
           className={`max-w-6xl mx-auto ${
             layoutMode === "grid"
@@ -218,7 +281,9 @@ export default function AskResultsStandard() {
         </div>
       ) : recentQueries.length === 0 ? (
         <p className="text-zinc-500 dark:text-zinc-400">
-          No recent queries found.
+          {showFavoritesOnly
+            ? "No favorite queries found."
+            : "No recent queries found."}
         </p>
       ) : (
         <div

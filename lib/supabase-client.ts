@@ -56,8 +56,8 @@ export async function createSupabaseServerClient() {
   const cookieStore = await cookies();
 
   // Debug all cookies retrieved server-side
-  const allCookies = cookieStore.getAll();
-  console.log("Server-side cookies in createSupabaseServerClient:", allCookies);
+  // const allCookies = cookieStore.getAll();
+  // console.log("Server-side cookies in createSupabaseServerClient:", allCookies);
 
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
