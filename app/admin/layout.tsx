@@ -2,9 +2,9 @@ import { redirect } from "next/navigation";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { AuthError } from "@supabase/supabase-js";
 import type { User } from "@/lib/types";
+import { ADMIN_EMAILS } from "@/lib/constants";
 
 // Allowed emails for access to the protected section
-const ALLOWED_EMAILS = ["chris@verafy.ai", "jeremy@shoprefit.com"] as const;
 
 export default async function AdminLayout({
   children,
@@ -34,7 +34,7 @@ export default async function AdminLayout({
     const typedUser: User = user;
 
     // Check if the user's email is in the allowed list
-    if (!ALLOWED_EMAILS.includes(typedUser.email as typeof ALLOWED_EMAILS[number])) {
+    if (!ADMIN_EMAILS.includes(typedUser.email as typeof ADMIN_EMAILS[number])) {
       redirect(
         "/login?error=" +
           encodeURIComponent("You are not authorized to access this page.")
