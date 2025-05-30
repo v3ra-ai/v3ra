@@ -5,8 +5,8 @@ import Navbar from "@/components/ask/navbar/navbar";
 import AskFooter from "@/components/ask/ask-footer";
 import CardViewer from "@/components/ask/card-client-wrapper";
 import { VoteResult } from "@/lib/types";
-import { FeedbackWidget } from "@/components/feedback-widget";
-import { FeedbackModal } from "@/components/feedback-modal";
+// import { FeedbackWidget } from "@/components/feedback-widget";
+// import { FeedbackModal } from "@/components/feedback-modal";
 
 interface CardPageClientProps {
   cardId: string;
