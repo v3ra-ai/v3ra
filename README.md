@@ -258,11 +258,16 @@ psql "postgresql://postgres.quuuhdbozcmhkwzhamuh:<PASSWORD>@aws-0-us-east-1.pool
 
 #### 5. Mark the Migration as Applied
 
-psql "postgresql://postgres:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
+psql "postgresql://postgres.quuuhdbozcmhkwzhamuh:<PASSWORD>@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
+
 
 ```sql
 INSERT INTO public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
-VALUES (gen_random_uuid(), 'checksum-placeholder', NOW(), '20250501_add_user_auth', '', NULL, NOW(), 1);
+VALUES (gen_random_uuid(), 'checksum-placeholder', NOW(), '20250530_add_favorites', '', NULL, NOW(), 1);
+
+INSERT INTO public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
+VALUES (gen_random_uuid(), 'checksum-placeholder', NOW(), '20250530_add_favorites_alter_update', '', NULL, NOW(), 1);
+
 ```
 
 #### 6. Move SQL to Migration Folder

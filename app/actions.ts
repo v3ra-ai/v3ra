@@ -4,6 +4,7 @@ import type {
   VoteResult,
   VoteValidatorResponse,
   QueryMode,
+  Favorite,
 } from "../lib/types";
 import { prisma } from "../lib/db/client";
 import { v4 as uuidv4 } from "uuid";
@@ -14,6 +15,7 @@ import { GeminiValidator } from "@/lib/validators/providers/gemini";
 import { OpenRouterValidator } from "@/lib/validators/providers/openrouter";
 import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 
 // Log to confirm file is loaded
 console.log("[actions] File loaded");
@@ -316,5 +318,111 @@ export async function fetchVoteHistory(): Promise<
   } catch (error) {
     console.error("[actions] Error fetching vote history:", error);
     return { error: (error as Error).message };
+  }
+}
+
+
+export async function toggleFavorite(
+  voteSessionId: string
+): Promise<{ success: boolean; message: string; favorite?: Favorite }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[actions] User not authenticated:", authError?.message);
+      return { success: false, message: "User not authenticated" };
+    }
+
+    // Check if favorite already exists
+    const { data: existingFavorite, error: fetchError } = await supabase
+      .from("favorites")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("vote_session_id", voteSessionId)
+      .single();
+
+    if (fetchError && fetchError.code !== "PGRST116") {
+      console.error("[actions] Error checking favorite:", fetchError);
+      return { success: false, message: "Error checking favorite" };
+    }
+
+    if (existingFavorite) {
+      // Remove favorite
+      const { error: deleteError } = await supabase
+        .from("favorites")
+        .delete()
+        .eq("id", existingFavorite.id);
+
+      if (deleteError) {
+        console.error("[actions] Error removing favorite:", deleteError);
+        return { success: false, message: "Error removing favorite" };
+      }
+
+      return { success: true, message: "Removed from favorites" };
+    } else {
+      // Add favorite
+      const { data: newFavorite, error: insertError } = await supabase
+        .from("favorites")
+        .insert({
+          user_id: user.id,
+          vote_session_id: voteSessionId,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("[actions] Error adding favorite:", insertError);
+        return { success: false, message: "Error adding favorite" };
+      }
+
+      return {
+        success: true,
+        message: "Added to favorites",
+        favorite: newFavorite as Favorite,
+      };
+    }
+  } catch (error) {
+    const typedError = error as Error;
+    console.error("[actions] Error toggling favorite:", typedError);
+    return { success: false, message: typedError.message };
+  }
+}
+
+// Fetch user favorites
+export async function fetchUserFavorites(): Promise<
+  Favorite[] | { error: string }
+> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[actions] User not authenticated:", authError?.message);
+      return { error: "User not authenticated" };
+    }
+
+    const { data: favorites, error: fetchError } = await supabase
+      .from("favorites")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (fetchError) {
+      console.error("[actions] Error fetching favorites:", fetchError);
+      return { error: "Error fetching favorites" };
+    }
+
+    return favorites as Favorite[];
+  } catch (error) {
+    const typedError = error as Error;
+    console.error("[actions] Error fetching favorites:", typedError);
+    return { error: typedError.message };
   }
 }
