@@ -1,3 +1,5 @@
+// lib/constants.ts
+
 // Solana Network Configuration
 // Constants for configuring the Solana network (Devnet or Mainnet) based on environment variables
 export const CURRENT_SOLANA_NETWORK_NAME =
@@ -31,7 +33,7 @@ export const QUERIES_COST_EACH_DEFAULT = 1;
 export const ALLOWED_AMOUNT_QUERIES = 20;
 export const INITIAL_AVAILABLE_QUERIES = USER_FREE_CREDITS_DEFAULT; // Initial queries available, matches USER_FREE_CREDITS_DEFAULT
 export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT; // Default AI query amount, matches QUERIES_REQUESTED_DEFAULT
-export const FREE_CREDITS_COOKIE_NAME = "verafy_free_credits"; // New: Cookie name for free credits
+export const FREE_CREDITS_COOKIE_NAME = "verafy_free_credits"; // Cookie name for free credits
 
 // Voting Outcomes
 // Constants for representing possible voting results
@@ -44,6 +46,10 @@ export const RECENT_HISTORY_RESULTS = 50;
 export const RESULT_QUERIES_CARDS = 12;
 
 export const EXPORT_MAX_VALIDATORS = 20;
+
+// Authentication
+// Constants for managing user authentication and authorization
+export const ADMIN_EMAILS =  ['chris@verafy.ai', 'jeremy@shoprefit.com','csjcode@gmail.com']; // Allowed admin email addresses for restricted API routes
 
 function getCurrentDomain(): string | null {
   if (typeof window !== 'undefined' && window.location) {
