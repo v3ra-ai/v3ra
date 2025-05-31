@@ -4,7 +4,8 @@
 // Constants for configuring the Solana network (Devnet or Mainnet) based on environment variables
 export const CURRENT_SOLANA_NETWORK_NAME =
   process.env.NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME;
-export const DEV_SOLANA_NETWORK_RPC = process.env.NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC;
+export const DEV_SOLANA_NETWORK_RPC =
+  process.env.NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC;
 export const MAINNET_SOLANA_NETWORK_RPC =
   process.env.NEXT_PUBLIC_MAINNET_SOLANA_NETWORK_RPC;
 export const CURRENT_SOLANA_NETWORK_RPC =
@@ -50,14 +51,14 @@ export const EXPORT_MAX_VALIDATORS = 20;
 // Authentication
 // Constants for managing user authentication and authorization
 export const ADMIN_EMAILS = process.env.ADMIN_EMAILS
-  ? process.env.ADMIN_EMAILS.split(',').map((email) => email.trim())
+  ? process.env.ADMIN_EMAILS.split(",").map((email) => email.trim())
   : []; // Admin emails from environment variable, empty array if not set
 
 function getCurrentDomain(): string | null {
   if (typeof window !== 'undefined' && window.location) {
     // Compare hostname, not the entire location object
     if (window.location.hostname === 'localhost') {
-      return 'localhost:3000'; // Return localhost with port for development
+      return 'localhost:3000'; // Explicitly include port for localhost
     }
     return window.location.hostname; // Return domain (e.g., example.com)
   }
@@ -69,10 +70,18 @@ export function getCurrentDomainSafe(): string {
   const domain = getCurrentDomain();
   // Handle null case: return a default or throw an error based on your needs
   if (domain === null) {
-    // Return a default domain
-    return 'localhost';
+    // Return a default domain with port for SSR
+    return 'localhost:3000';
   }
   return domain;
 }
 
-export const CURRENT_DOMAIN: string = typeof window !== 'undefined' ? getCurrentDomainSafe() : 'localhost';
+// Get the base URL (protocol + domain) dynamically
+export function getBaseUrl(): string {
+  const domain = getCurrentDomainSafe();
+  // Use http for localhost, https for production
+  const protocol = domain.includes('localhost') ? 'http' : 'https';
+  return `${protocol}://${domain}`;
+}
+
+export const CURRENT_DOMAIN: string = typeof window !== 'undefined' ? getCurrentDomainSafe() : 'localhost:3000';

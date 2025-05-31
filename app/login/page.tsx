@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { supabase } from "@/lib/supabase-client";
+import { getBaseUrl } from "@/lib/constants"; // Import the new function
 import Navbar from "@/components/ask/navbar/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,7 +29,7 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: "http://localhost:3000/auth/callback",
+          emailRedirectTo: `${getBaseUrl()}/auth/callback`, // Dynamic URL
         },
       });
 
@@ -58,7 +59,7 @@ export default function LoginPage() {
   //     const { error } = await supabase.auth.signInWithOAuth({
   //       provider,
   //       options: {
-  //         redirectTo: "http://localhost:3000/auth/callback",
+  //         redirectTo: `${getBaseUrl()}/auth/callback`, // Dynamic URL
   //       },
   //     });
 
