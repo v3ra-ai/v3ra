@@ -128,6 +128,7 @@ model VoteSession {
   queryCost          Float? // Nullable, cost in credits
   responseLatency    Int? // Nullable, latency in milliseconds
   user               UserCredit?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  favorites          Favorite[]          @relation // Added opposite relation
 
   @@index([timestamp])
   @@index([consensusValue])
@@ -218,4 +219,14 @@ model Feedback {
 
   @@index([userId])
   @@index([createdAt])
+}
+
+model Favorite {
+  id              String   @id @default(uuid()) @db.Uuid
+  user_id         String   @db.Uuid // Foreign key to auth.users, no relation
+  vote_session_id String   // Changed to String (TEXT) to match vote_sessions.id
+  created_at      DateTime @default(now()) @db.Timestamptz(3)
+  vote_session    VoteSession @relation(fields: [vote_session_id], references: [id], onDelete: Cascade)
+  @@unique([user_id, vote_session_id])
+  @@index([user_id])
 }

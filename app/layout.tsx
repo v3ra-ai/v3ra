@@ -7,6 +7,7 @@ import { ValidatorHealthCheck } from "@/components/validator-health-check";
 import type { ReactNode } from "react";
 import { SolanaProvider } from "@/components/solana-provider";
 import { Toaster } from "sonner";
+import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -39,6 +40,14 @@ export default function RootLayout({ children }: { children: ReactNode }) {
               })();
             `,
           }}
+        />
+        {/* New Relic Browser JavaScript snippet */}
+        <Script
+          src="/newrelic.js"
+          strategy="afterInteractive"
+          type="text/javascript"
+          integrity="sha384-<your-hash-here>"
+          crossOrigin="anonymous"
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>

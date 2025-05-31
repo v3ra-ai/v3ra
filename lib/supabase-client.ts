@@ -55,22 +55,15 @@ export async function createSupabaseServerClient() {
 
   const cookieStore = await cookies();
 
-  // Debug all cookies retrieved server-side
-  const allCookies = cookieStore.getAll();
-  console.log("Server-side cookies in createSupabaseServerClient:", allCookies);
-
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       getAll() {
         const cookiesList = cookieStore.getAll().map(({ name, value }) => ({ name, value }));
-        // console.log("Cookies passed to Supabase getAll:", cookiesList);
         return cookiesList;
       },
       setAll(cookiesToSet) {
-        console.log("Cookies to set in Supabase setAll:", cookiesToSet);
         try {
           cookiesToSet.forEach(({ name, value, ...options }) => {
-            console.log(`Setting cookie: ${name}=${value}`, options); // Debug log
             cookieStore.set({ name, value, ...options });
           });
         } catch (error) {

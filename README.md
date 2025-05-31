@@ -183,19 +183,52 @@ There are some weird things I've run into with Prisma, be aware of them so you d
 
 ## Prisma Migrations
 
-These can be a serious pain. One thing I learned is if you look up docs in AI or Google, you may find some things that are not correct.
+These can be a serious pain. One thing I learned is if you look up docs using AI or Google, you may find some things that are not correct.
 
-* **You absolutely MUST specify that you are using Supabase.** They have a different way of doing migrations than normal Prisma+Postgres.
+* **Using AI for code: You absolutely MUST specify that you are using Supabase/Prisma.** This stack has a different way of doing migrations than normal Prisma+Postgres. If you do not specify this, you will get incorrect instructions.
+
+Also, always do a backup first.
 
 **As a result if you follow the other non-Supabase docs you will get errors.**
 
 I am not sure if this will always be the case, but I have run into this several times.
 
-### Migration Steps
+### Migration Steps (Manual example)
 
-### 1. Backup the Database and make sure .env is correct PRISMA url
+**IMPORTANT:**
+* Always backup your database before running migrations. Its even a good idea to backup againn after a successful one, in case another engineer messes something up later and you need to restore what you just did successfully.
+* If you use AI to generate code for a schema, make sure it has not removed any fields you need, or added any that are not needed-- including indexes. I've noticed times where it removed needed lines and indexes.
 
+The method below is a manual migration process that works with Supabase+Prisma. It is not the only way, but it is the one I have found to work best. Migrations can be tricky, so always backup first and test thoroughly.
 
+### 0. Backup the Database (REQUIRED)
+
+You have to use postgres 15 or later, so make sure you have that installed.
+
+```bash
+pg_dump --version
+```
+
+MacOS:
+```bash
+brew install postgresql@15
+brew --prefix postgresql@15
+```
+
+`export PATH="/opt/homebrew/opt/postgresql@15/bin:$PATH"`
+
+```bash
+PGPASSWORD="your_password" pg_dump \
+  -h aws-0-us-east-1.pooler.supabase.com \
+  -U postgres.quuuhdbozcmhkwzhamuh \
+  -p 5432 \
+  -d postgres \
+  -F c \
+  -f 20250530-remote_supabase_backup.dump
+
+```
+
+### 1. Temporarily replace the DATABASE_URL in .env (just for Prisma migration)
 
 Replace DATABASE_URL with the PRISMA_DATABASE_URL (see below)
 
@@ -225,11 +258,16 @@ psql "postgresql://postgres.quuuhdbozcmhkwzhamuh:<PASSWORD>@aws-0-us-east-1.pool
 
 #### 5. Mark the Migration as Applied
 
-psql "postgresql://postgres:[YOUR-PASSWORD]@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
+psql "postgresql://postgres.quuuhdbozcmhkwzhamuh:<PASSWORD>@aws-0-us-east-1.pooler.supabase.com:5432/postgres?sslmode=require"
+
 
 ```sql
 INSERT INTO public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
-VALUES (gen_random_uuid(), 'checksum-placeholder', NOW(), '20250501_add_user_auth', '', NULL, NOW(), 1);
+VALUES (gen_random_uuid(), 'checksum-placeholder', NOW(), '20250530_add_favorites', '', NULL, NOW(), 1);
+
+INSERT INTO public._prisma_migrations (id, checksum, finished_at, migration_name, logs, rolled_back_at, started_at, applied_steps_count)
+VALUES (gen_random_uuid(), 'checksum-placeholder', NOW(), '20250530_add_favorites_alter_update', '', NULL, NOW(), 1);
+
 ```
 
 #### 6. Move SQL to Migration Folder
@@ -716,7 +754,7 @@ The Verafy Testnet is a modular system where the UI (Next.js) serves as the entr
 
 This flow ensures a query moves efficiently from user input to validator consensus and back to the UI, leveraging Redis for real-time communication and PostgreSQL for persistence.
 
-## Backups
+# Supabase Postgres Backups
 
 You may need to backup either remote or local.
 
@@ -761,7 +799,7 @@ PGPASSWORD="your_password" pg_dump \
   -p 5432 \
   -d postgres \
   -F c \
-  -f 20250413-remote_supabase_backup.dump
+  -f 20250530-remote_supabase_backup.dump
 
 ```
 
@@ -977,3 +1015,130 @@ curl -X POST http://localhost:3000/api/credits/assign \
 | unused_index           | Unused Index           | INFO  | EXTERNAL | ["PERFORMANCE"] | Detects if an index has never been used and may be a candidate for removal.                         | Index \`Validator_provider_idx\` on table \`public.Validator\` has not been used                                                                        | https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index           | {"name":"Validator","type":"table","schema":"public"}                                                                | unused_index_public_Validator_Validator_provider_idx                         |
 | unused_index           | Unused Index           | INFO  | EXTERNAL | ["PERFORMANCE"] | Detects if an index has never been used and may be a candidate for removal.                         | Index \`VoteSession_consensusValue_idx\` on table \`public.VoteSession\` has not been used                                                              | https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index           | {"name":"VoteSession","type":"table","schema":"public"}                                                              | unused_index_public_VoteSession_VoteSession_consensusValue_idx               |
 | unused_index           | Unused Index           | INFO  | EXTERNAL | ["PERFORMANCE"] | Detects if an index has never been used and may be a candidate for removal.                         | Index \`VoteSession_isConsensusReached_idx\` on table \`public.VoteSession\` has not been used                                                          | https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index           | {"name":"VoteSession","type":"table","schema":"public"}                                                              | unused_index_public_VoteSession_VoteSession_isConsensusReached_idx           |
+
+
+----------------------
+
+# New Relic
+
+To integrate New Relic with Vercel and a Next.js application for enhanced logging and performance monitoring, follow these steps based on the latest available information:
+
+### Prerequisites
+- A New Relic account with a valid license key.
+- A Vercel account with a deployed Next.js application.
+- Node.js and npm installed locally for development.
+
+### Steps to Integrate New Relic
+
+1. **Install the New Relic Node.js Agent**
+   - In your Next.js project, install the New Relic Node.js agent by running:
+     ```bash
+     npm install newrelic
+     ```
+   - This package allows New Relic to monitor your application's performance.
+
+2. **Configure New Relic**
+   - Create a `newrelic.js` configuration file in the root of your Next.js project. You can generate this file by copying the default template provided by New Relic:
+     ```bash
+     cp node_modules/newrelic/newrelic.js .
+     ```
+   - Update the `newrelic.js` file with your New Relic license key and application name. For example:
+     ```javascript
+     'use strict'
+     exports.config = {
+       app_name: ['Your Next.js App Name'],
+       license_key: 'YOUR_NEW_RELIC_LICENSE_KEY',
+       logging: {
+         level: 'info'
+       },
+       application_logging: {
+         enabled: true
+       }
+     }
+     ```
+   - Replace `YOUR_NEW_RELIC_LICENSE_KEY` with your actual New Relic license key from your New Relic account.
+   - Optionally, configure additional settings like logging levels or distributed tracing based on your needs. Refer to New Relic’s documentation for advanced options.
+
+3. **Modify Your Next.js Application**
+   - Ensure the New Relic agent is loaded at the start of your application. For Next.js running on Vercel, you typically need to integrate it with the server runtime.
+   - If using a custom server or API routes, require the New Relic agent at the top of your server entry point (e.g., in `pages/api` or a custom server file). For example, in an API route (`pages/api/example.js`):
+     ```javascript
+     require('newrelic');
+     export default function handler(req, res) {
+       res.status(200).json({ message: 'Hello from API' });
+     }
+     ```
+   - For server-side rendering (SSR) or static site generation (SSG), the agent will automatically track performance metrics if loaded correctly.
+
+4. **Set Environment Variables in Vercel**
+   - In your Vercel dashboard, navigate to your project’s **Settings** > **Environment Variables**.
+   - Add the following environment variables:
+     - `NEW_RELIC_LICENSE_KEY`: Your New Relic license key.
+     - `NEW_RELIC_APP_NAME`: The name of your application (e.g., `Your Next.js App`).
+     - Optional: `NEW_RELIC_NO_CONFIG_FILE` set to `true` if you prefer to configure New Relic via environment variables instead of the `newrelic.js` file. If so, add additional variables like:
+       - `NEW_RELIC_LOG_LEVEL`: Set to `info` or desired level.
+       - `NEW_RELIC_APPLICATION_LOGGING_ENABLED`: Set to `true` to enable application logging.
+   - Example environment variables in Vercel:
+     ```
+     NEW_RELIC_LICENSE_KEY=your_license_key_here
+     NEW_RELIC_APP_NAME=Your Next.js App
+     NEW_RELIC_NO_CONFIG_FILE=true
+     NEW_RELIC_LOG_LEVEL=info
+     NEW_RELIC_APPLICATION_LOGGING_ENABLED=true
+     ```
+   - Redeploy your Vercel project after adding these variables to apply the changes.
+
+5. **Enable Vercel Log Integration (Optional)**
+   - Vercel provides a New Relic integration to send logs directly to New Relic for centralized log management.
+   - In your Vercel dashboard:
+     - Go to **Integrations** > **Browse Marketplace**.
+     - Search for **New Relic** and select the integration.
+     - Follow the prompts to connect your New Relic account, providing your New Relic API key or license key as required.
+     - Configure the integration to send logs from your Vercel project to New Relic.
+   - This integration allows you to view Vercel deployment logs, function logs, and runtime logs in New Relic’s Logs UI.
+
+6. **Deploy to Vercel**
+   - Push your updated Next.js project to your Git repository linked to Vercel (e.g., GitHub, GitLab).
+   - Vercel will automatically build and deploy your application with the New Relic agent included.
+   - Ensure the `newrelic.js` file is included in your repository (unless you’re using environment variables exclusively).
+
+7. **Verify in New Relic**
+   - After deployment, log in to your New Relic account.
+   - Navigate to **APM & Services** to confirm that your application (`Your Next.js App Name`) appears and is reporting data.
+   - Check **Logs** in New Relic to verify that Vercel logs (if integrated) and application logs are being received.
+   - Monitor metrics like response times, error rates, and throughput to ensure the agent is tracking performance correctly.
+
+### Additional Considerations
+- **Serverless Environment**: Vercel uses a serverless architecture, so the New Relic agent primarily tracks API routes, serverless functions, and SSR requests. Some metrics (e.g., CPU usage) may not be available in a serverless context.
+- **Performance Impact**: The New Relic agent adds minimal overhead, but test thoroughly in a staging environment to ensure it doesn’t affect your application’s performance.
+- **Browser Monitoring**: To monitor client-side performance (e.g., page load times), you can add New Relic’s Browser agent. This requires injecting a JavaScript snippet into your Next.js application:
+  - In New Relic, go to **Browser** > **Add a new application**, and follow the instructions to copy the JavaScript code.
+  - Add the snippet to your Next.js app, typically in a custom `_document.js` or via a `<Head>` component in `_app.js`. For example:
+    ```javascript
+    import Head from 'next/head';
+
+    export default function MyApp({ Component, pageProps }) {
+      return (
+        <>
+          <Head>
+            <script
+              type="text/javascript"
+              dangerouslySetInnerHTML={{ __html: `/* Your New Relic Browser JS Snippet Here */` }}
+            />
+          </Head>
+          <Component {...pageProps} />
+        </>
+      );
+    }
+    ```
+- **Troubleshooting**:
+  - If data isn’t appearing in New Relic, verify that the license key and environment variables are correct.
+  - Check Vercel’s deployment logs for errors related to the New Relic agent.
+  - Ensure the `newrelic` module is included in your `package.json` dependencies, not `devDependencies`.
+
+### Resources
+- [New Relic Node.js Agent Documentation](https://docs.newrelic.com/docs/apm/agents/nodejs-agent/)
+- [Vercel Integrations Marketplace](https://vercel.com/integrations)
+- [New Relic Vercel Integration Guide](https://docs.newrelic.com/docs/logs/integrations/vercel-integration/)
+- [Next.js Documentation](https://nextjs.org/docs)
+

@@ -125,7 +125,7 @@ export default function AskFooter() {
                       href="/leaders/feedback"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
-                      Submit Feedback
+                      Feedback Leaderboard
                     </Link>
                   </li>
                 </ul>

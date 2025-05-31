@@ -1,3 +1,5 @@
+// lib/constants.ts
+
 // Solana Network Configuration
 // Constants for configuring the Solana network (Devnet or Mainnet) based on environment variables
 export const CURRENT_SOLANA_NETWORK_NAME =
@@ -44,6 +46,12 @@ export const RECENT_HISTORY_RESULTS = 50;
 export const RESULT_QUERIES_CARDS = 12;
 
 export const EXPORT_MAX_VALIDATORS = 20;
+
+// Authentication
+// Constants for managing user authentication and authorization
+export const ADMIN_EMAILS = process.env.ADMIN_EMAILS
+  ? process.env.ADMIN_EMAILS.split(',').map((email) => email.trim())
+  : []; // Admin emails from environment variable, empty array if not set
 
 function getCurrentDomain(): string | null {
   if (typeof window !== 'undefined' && window.location) {

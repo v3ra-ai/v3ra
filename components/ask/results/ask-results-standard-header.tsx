@@ -11,11 +11,11 @@ export function AskResultsStandardHeader({
   sanitizedQuery,
 }: AskResultsStandardHeaderProps) {
   return (
-    <div className="flex px-2 font-light text-xs dark:text-zinc-500 text-zinc-500">
-      <div className="w-1/2">{formattedDate}</div>
+    <div className="flex items-center font-light text-xs dark:text-zinc-500 text-zinc-500">
+      <div className="w-1/2 items-center">{formattedDate}</div>
       <div className="w-1/2 justify-end">
         <div className="flex justify-between">
-          <div className="flex justify-start mr-2 text-sm text-zinc-500 space-x-2 border-0"></div>
+          <div className="flex justify-start text-sm text-zinc-500 space-x-2 border-0"></div>
           <AskResultsStandardSocialIcons query={sanitizedQuery} />
         </div>
       </div>

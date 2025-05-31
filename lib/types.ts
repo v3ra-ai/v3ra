@@ -8,6 +8,30 @@ import {
 } from "@/lib/constants";
 import { AIValidationResponse } from "./validators/types";
 
+// Define interface for custom event attributes
+export interface TestRouteEventAttributes {
+  time: string;
+  route: string;
+  method: string;
+  environment: string;
+  vercelDeploymentId?: string;
+  userId?: string;
+  userEmail?: string;
+  queryParams: string;
+  responseTimeMs: number;
+  supabaseQuerySuccess: boolean;
+  supabaseRowCount?: number;
+  supabaseErrorMessage?: string;
+  supabaseIsAuthenticated: boolean;
+  isAuthorized: boolean;
+  authorizationError?: string;
+  requestOrigin?: string;
+  userAgent?: string;
+  isMobile: boolean;
+  [key: string]: string | number | boolean | undefined; // Index signature for flexibility
+}
+
+
 // Network state and validator interfaces
 export interface Validator {
   id: string;
@@ -209,3 +233,12 @@ export interface VoteStats {
   consensusMatchPercentage: number;
   nonConsensusPercentage: number;
 }
+
+export interface Favorite {
+  id: string;
+  user_id: string;
+  vote_session_id: string;
+  created_at: string;
+}
+
+

@@ -4,8 +4,9 @@ import type {
   VoteResult,
   VoteValidatorResponse,
   QueryMode,
-} from "../lib/types";
-import { prisma } from "../lib/db/client";
+  Favorite,
+} from "@/lib/types";
+import { prisma } from "@/lib/db/client";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAIValidator } from "@/lib/validators/providers/openai";
 import { AnthropicValidator } from "@/lib/validators/providers/anthropic";
@@ -14,6 +15,7 @@ import { GeminiValidator } from "@/lib/validators/providers/gemini";
 import { OpenRouterValidator } from "@/lib/validators/providers/openrouter";
 import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 
 // Log to confirm file is loaded
 console.log("[actions] File loaded");
@@ -40,19 +42,9 @@ export async function broadcastCustomQuery(
       return { error: "No active validators found" };
     }
 
-    // console.log(
-    //   `[actions] Found ${dbValidators.length} active validators:`,
-    //   dbValidators.map((v) => `${v.provider} (${v.profileName})`)
-    // );
-
-    // Limit validators to queriesRequested (if provided and less than available)
     const selectedValidators = queriesRequested
       ? dbValidators.slice(0, Math.min(queriesRequested, dbValidators.length))
       : dbValidators;
-    // console.log(
-    //   `[actions] Selected ${selectedValidators.length} validators for query:`,
-    //   selectedValidators.map((v) => `${v.provider} (${v.profileName})`)
-    // );
 
     const sessionId = uuidv4();
 
@@ -72,10 +64,6 @@ export async function broadcastCustomQuery(
 
     for (const dbValidator of selectedValidators) {
       let validator;
-
-      // console.log(
-      //   `[actions] Initializing validator: ${dbValidator.provider} (${dbValidator.profileName})`
-      // );
 
       if (dbValidator.provider === "OpenAI") {
         const modelName =
@@ -126,7 +114,6 @@ export async function broadcastCustomQuery(
         continue;
       }
 
-      // Validate API key availability (except for OpenRouter, which uses env variable)
       if (
         dbValidator.provider !== "OpenRouter" &&
         !dbValidator.apiKeys[0]?.apiKeyId
@@ -137,25 +124,12 @@ export async function broadcastCustomQuery(
         continue;
       }
 
-      // console.log(
-      //   "[actions] Validating with validator:",
-      //   dbValidator.provider,
-      //   "queryMode:",
-      //   queryMode,
-      //   "validatorId:",
-      //   dbValidator.id
-      // );
-
       const validationPromise = validator
         .validate({
           statement: query,
           queryMode,
         })
         .then(async (response) => {
-          // console.log(
-          //   `[actions] Validation response for ${dbValidator.provider} (${dbValidator.profileName}):`,
-          //   { vote: response.vote, confidence: response.confidence }
-          // );
           await validatorService.recordValidatorResponse({
             validatorId: dbValidator.id,
             voteSessionId: sessionId,
@@ -194,14 +168,7 @@ export async function broadcastCustomQuery(
     const validatorResponses: VoteValidatorResponse[] = await Promise.all(
       validatorResponsePromises
     );
-    // console.log(
-    //   `[actions] Collected ${validatorResponses.length} validator responses:`,
-    //   validatorResponses.map(
-    //     (r) => `${r.provider} (${r.profileName}): ${r.vote}`
-    //   )
-    // );
 
-    // Log if fewer responses than requested
     if (queriesRequested && validatorResponses.length < queriesRequested) {
       console.warn(
         `[actions] Expected ${queriesRequested} responses, received ${validatorResponses.length}`
@@ -244,13 +211,9 @@ export async function broadcastCustomQuery(
       timestamp: new Date().toISOString(),
     };
 
-    // console.log(
-    //   `[actions] Query result: ${result.validatorResponses.length} responses`,
-    //   { yesVotes, noVotes, notVoted, isConsensusReached, consensusValue }
-    // );
     return result;
   } catch (error) {
-    // console.error("[actions] Error broadcasting custom query:", error);
+    console.error("[actions] Error broadcasting custom query:", error);
     return { error: (error as Error).message };
   }
 }
@@ -259,7 +222,7 @@ export async function fetchVoteHistory(): Promise<
   VoteResult[] | { error: string }
 > {
   try {
-    // console.log("[actions] Starting fetchVoteHistory...");
+    console.log("[actions] Starting fetchVoteHistory...");
     const voteSessions = await prisma.voteSession.findMany({
       orderBy: { timestamp: "desc" },
       take: 10,
@@ -316,5 +279,113 @@ export async function fetchVoteHistory(): Promise<
   } catch (error) {
     console.error("[actions] Error fetching vote history:", error);
     return { error: (error as Error).message };
+  }
+}
+
+// Toggle favorite action
+export async function toggleFavorite(
+  voteSessionId: string
+): Promise<{ success: boolean; message: string; favorite?: Favorite }> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[actions] User not authenticated:", authError?.message);
+      return { success: false, message: "User not authenticated" };
+    }
+
+    // Check if favorite already exists
+    const { data: existingFavorite, error: fetchError } = await supabase
+      .from("Favorite")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("vote_session_id", voteSessionId)
+      .single();
+
+    if (fetchError && fetchError.code !== "PGRST116") {
+      console.error("[actions] Error checking favorite:", fetchError);
+      return { success: false, message: "Error checking favorite" };
+    }
+
+    if (existingFavorite) {
+      // Remove favorite
+      const { error: deleteError } = await supabase
+        .from("Favorite")
+        .delete()
+        .eq("id", existingFavorite.id);
+
+      if (deleteError) {
+        console.error("[actions] Error removing favorite:", deleteError);
+        return { success: false, message: "Error removing favorite" };
+      }
+
+      return { success: true, message: "Removed from favorites" };
+    } else {
+      // Add favorite, explicitly setting id
+      const newId = uuidv4();
+      const { data: newFavorite, error: insertError } = await supabase
+        .from("Favorite")
+        .insert({
+          id: newId, // Explicit UUID
+          user_id: user.id,
+          vote_session_id: voteSessionId,
+        })
+        .select()
+        .single();
+
+      if (insertError) {
+        console.error("[actions] Error adding favorite:", insertError);
+        return { success: false, message: "Error adding favorite" };
+      }
+
+      return {
+        success: true,
+        message: "Added to favorites",
+        favorite: newFavorite as Favorite,
+      };
+    }
+  } catch (error) {
+    const typedError = error as Error;
+    console.error("[actions] Error toggling favorite:", typedError);
+    return { success: false, message: typedError.message };
+  }
+}
+
+// Fetch user favorites
+export async function fetchUserFavorites(): Promise<
+  Favorite[] | { error: string }
+> {
+  try {
+    const supabase = await createSupabaseServerClient();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
+
+    if (authError || !user) {
+      console.error("[actions] User not authenticated:", authError?.message);
+      return { error: "User not authenticated" };
+    }
+
+    const { data: favorites, error: fetchError } = await supabase
+      .from("Favorite")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    if (fetchError) {
+      console.error("[actions] Error fetching favorites:", fetchError);
+      return { error: "Error fetching favorites" };
+    }
+
+    return favorites as Favorite[];
+  } catch (error) {
+    const typedError = error as Error;
+    console.error("[actions] Error fetching favorites:", typedError);
+    return { error: typedError.message };
   }
 }

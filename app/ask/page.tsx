@@ -39,7 +39,7 @@ export default function AskPage() {
         <FeedbackWidget
           component="AskPage"
           action="view"
-          className="fixed bottom-20 right-4"
+          className="fixed bottom-5 right-4"
         />
         <FeedbackModal />
       </main>
