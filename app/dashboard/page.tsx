@@ -1,8 +1,12 @@
-"use client";
+/**
+ * Example client component demonstrating admin-only access.
+ */
 
-import AdminOnly from "@/components/admin-only";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAdminAuth } from "@/utils/auth-admin-utils";
+'use client';
+
+import AdminOnly from '@/components/admin-only';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAdminAuth } from '@/utils/auth-admin-client-utils';
 
 export default function AdminOnlyExample() {
   const { userEmail } = useAdminAuth();
@@ -15,9 +19,7 @@ export default function AdminOnlyExample() {
         </CardHeader>
         <CardContent>
           <p className="text-lg">Welcome, {userEmail}!</p>
-          <p>
-            This content is only visible to admin users with authorized emails.
-          </p>
+          <p>This content is only visible to admin users with authorized emails.</p>
           <p>Here you can add admin-specific features, such as:</p>
           <ul className="list-disc pl-5 mt-2">
             <li>Manage users</li>
