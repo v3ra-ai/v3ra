@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { getBaseUrl } from "@/lib/constants"; // Import the new function
 import Navbar from "@/components/ask/navbar/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,7 +20,7 @@ export default async function SignupPage() {
       const { error: otpError } = await supabaseServer.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: "http://localhost:3000/auth/callback",
+          emailRedirectTo: `${getBaseUrl()}/auth/callback`, // Dynamic URL
           data: { username },
         },
       });
@@ -53,34 +54,34 @@ export default async function SignupPage() {
     }
   }
 
-  async function handleOAuthSignup(provider: "google" | "github") {
-    "use server";
-    try {
-      const supabaseServer = await createSupabaseServerClient();
-      const { error } = await supabaseServer.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: "http://localhost:3000/auth/callback",
-        },
-      });
+  // async function handleOAuthSignup(provider: "google" | "github") {
+  //   "use server";
+  //   try {
+  //     const supabaseServer = await createSupabaseServerClient();
+  //     const { error } = await supabaseServer.auth.signInWithOAuth({
+  //       provider,
+  //       options: {
+  //         redirectTo: `${getBaseUrl()}/auth/callback`, // Dynamic URL
+  //       },
+  //     });
 
-      if (error) {
-        redirect(
-          `/signup?error=${encodeURIComponent(
-            error.message || `Failed to sign up with ${provider}. Please try again.`
-          )}`
-        );
-      }
-    } catch (err) {
-      const error = err as Error;
-      console.error("OAuth signup error:", error.message, error.stack); // Debug log
-      redirect(
-        `/signup?error=${encodeURIComponent(
-          error.message || `Signup with ${provider} failed. Please try again.`
-        )}`
-      );
-    }
-  }
+  //     if (error) {
+  //       redirect(
+  //         `/signup?error=${encodeURIComponent(
+  //           error.message || `Failed to sign up with ${provider}. Please try again.`
+  //         )}`
+  //       );
+  //     }
+  //   } catch (err) {
+  //     const error = err as Error;
+  //     console.error("OAuth signup error:", error.message, error.stack); // Debug log
+  //     redirect(
+  //       `/signup?error=${encodeURIComponent(
+  //         error.message || `Signup with ${provider} failed. Please try again.`
+  //       )}`
+  //     );
+  //   }
+  // }
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -126,7 +127,7 @@ export default async function SignupPage() {
             </Button>
           </form>
           <div className="mt-6 space-y-4">
-            <form action={handleOAuthSignup.bind(null, "google")}>
+            {/* <form action={handleOAuthSignup.bind(null, "google")}>
               <Button
                 type="submit"
                 variant="outline"
@@ -143,7 +144,7 @@ export default async function SignupPage() {
               >
                 Sign Up with GitHub
               </Button>
-            </form>
+            </form> */}
           </div>
         </div>
       </div>
