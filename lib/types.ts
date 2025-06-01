@@ -241,4 +241,17 @@ export interface Favorite {
   created_at: string;
 }
 
-
+export interface Feedback {
+  id: string;
+  userId: string;
+  rating: 'thumbs_up' | 'thumbs_down';
+  username: string;
+  email: string;
+  url: string;
+  component: string;
+  action: string;
+  explanation?: string;
+  options?: string[];
+  createdAt: string;
+  voteSessionId?: string; // Added for potential vote_session_id
+}
