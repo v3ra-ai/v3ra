@@ -224,7 +224,7 @@ PGPASSWORD="your_password" pg_dump \
   -p 5432 \
   -d postgres \
   -F c \
-  -f 20250531-remote_supabase_backup.dump
+  -f 20250601-remote_supabase_backup.dump
 
 ```
 
