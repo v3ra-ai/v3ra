@@ -55,65 +55,66 @@ export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSl
     }
   }, []);
 
-  // Fetch $truth and SOL balance when wallet is connected
-  useEffect(() => {
-    const fetchBalances = async () => {
-      if (!publicKey) {
-        console.log("[TruthSlider] No publicKey, setting balances to null");
-        setTruthBalance(null);
-        setSolBalance(null);
-        return;
-      }
+  // Fetch $truth and SOL balance
+  const fetchBalances = useCallback(async () => {
+    if (!publicKey) {
+      console.log("[TruthSlider] No publicKey, setting balances to null");
+      setTruthBalance(null);
+      setSolBalance(null);
+      return;
+    }
 
-      console.log("[TruthSlider] Fetching balances for wallet:", {
-        publicKey: publicKey.toBase58(),
-        tokenMint: TRUTH_TOKEN_MINT.toBase58(),
-        rpcEndpoint: connection.rpcEndpoint,
-      });
+    console.log("[TruthSlider] Fetching balances for wallet:", {
+      publicKey: publicKey.toBase58(),
+      tokenMint: TRUTH_TOKEN_MINT.toBase58(),
+      rpcEndpoint: connection.rpcEndpoint,
+    });
 
-      // Fetch $truth balance
+    // Fetch $truth balance
+    try {
+      const tokenAccount = await getAssociatedTokenAddress(TRUTH_TOKEN_MINT, publicKey);
+      console.log("[TruthSlider] Calculated $truth token account:", tokenAccount.toBase58());
+
       try {
-        const tokenAccount = await getAssociatedTokenAddress(TRUTH_TOKEN_MINT, publicKey);
-        console.log("[TruthSlider] Calculated $truth token account:", tokenAccount.toBase58());
+        const accountInfo = await getAccount(connection, tokenAccount);
+        console.log("[TruthSlider] Fetched $truth account info:", {
+          amount: accountInfo.amount.toString(),
+          decimals: TRUTH_TOKEN_DECIMALS,
+        });
 
-        try {
-          const accountInfo = await getAccount(connection, tokenAccount);
-          console.log("[TruthSlider] Fetched $truth account info:", {
-            amount: accountInfo.amount.toString(),
-            decimals: TRUTH_TOKEN_DECIMALS,
-          });
-
-          const balance = Number(accountInfo.amount) / 10 ** TRUTH_TOKEN_DECIMALS;
-          console.log("[TruthSlider] Calculated $truth balance:", balance);
-          setTruthBalance(balance);
-        } catch (error) {
-          console.error("[TruthSlider] No $truth token account found:", error);
-          toast.error("No $truth token account found for this wallet");
-          setTruthBalance(0);
-        }
+        const balance = Number(accountInfo.amount) / 10 ** TRUTH_TOKEN_DECIMALS;
+        console.log("[TruthSlider] Calculated $truth balance:", balance);
+        setTruthBalance(balance);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("[TruthSlider] Error fetching $truth balance:", errorMessage);
-        toast.error(`Failed to fetch $truth balance: ${errorMessage}`);
+        console.error("[TruthSlider] No $truth token account found:", error);
+        toast.error("No $truth token account found for this wallet");
         setTruthBalance(0);
       }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[TruthSlider] Error fetching $truth balance:", errorMessage);
+      toast.error(`Failed to fetch $truth balance: ${errorMessage}`);
+      setTruthBalance(0);
+    }
 
-      // Fetch SOL balance
-      try {
-        const balanceInLamports = await connection.getBalance(publicKey);
-        const balanceInSol = balanceInLamports / 1_000_000_000; // Convert lamports to SOL
-        console.log("[TruthSlider] Fetched SOL balance:", balanceInSol);
-        setSolBalance(balanceInSol);
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("[TruthSlider] Error fetching SOL balance:", errorMessage);
-        toast.error(`Failed to fetch SOL balance: ${errorMessage}`);
-        setSolBalance(0);
-      }
-    };
-
-    fetchBalances();
+    // Fetch SOL balance
+    try {
+      const balanceInLamports = await connection.getBalance(publicKey);
+      const balanceInSol = balanceInLamports / 1_000_000_000; // Convert lamports to SOL
+      console.log("[TruthSlider] Fetched SOL balance:", balanceInSol);
+      setSolBalance(balanceInSol);
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Unknown error";
+      console.error("[TruthSlider] Error fetching SOL balance:", errorMessage);
+      toast.error(`Failed to fetch SOL balance: ${errorMessage}`);
+      setSolBalance(0);
+    }
   }, [publicKey]);
+
+  // Fetch balances when wallet connects
+  useEffect(() => {
+    fetchBalances();
+  }, [fetchBalances, publicKey]);
 
   const requiredTruth = creditAmount * TRUTH_QUERY_COST;
   const hasEnoughTruth = truthBalance !== null && truthBalance >= requiredTruth;
@@ -221,6 +222,8 @@ export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSl
           );
           setCreditBalance(newBalance.credits ?? 0);
           toast.success(`Successfully purchased ${creditAmount} credits with $truth!`);
+          // Refresh balances after successful purchase
+          await fetchBalances();
           return true;
         }
         console.error("[TruthSlider] Transaction result invalid:", result);
@@ -259,6 +262,7 @@ export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSl
     assignCredits,
     setCreditBalance,
     setVisible,
+    fetchBalances, // Added to dependencies
   ]);
 
   const handleChangeWallet = async () => {

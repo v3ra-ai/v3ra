@@ -48,36 +48,23 @@ export const useTruthTransaction = (
 
       console.log("[TruthTransaction] Connection endpoint:", connection.rpcEndpoint);
 
-      // Validate accounts
+      // Validate sender account
       try {
         const senderAccount = await connection.getAccountInfo(publicKey);
-        const destAccount = await connection.getAccountInfo(destination);
-        console.log("[TruthTransaction] Account validation:", {
-          sender: {
-            address: publicKey.toBase58(),
-            initialized: !!senderAccount,
-            lamports: senderAccount?.lamports || 0,
-          },
-          destination: {
-            address: destination.toBase58(),
-            initialized: !!destAccount,
-            lamports: destAccount?.lamports || 0,
-          },
+        console.log("[TruthTransaction] Sender account validation:", {
+          address: publicKey.toBase58(),
+          initialized: !!senderAccount,
+          lamports: senderAccount?.lamports || 0,
         });
         if (!senderAccount) {
           setError("Sender account not initialized");
           setIsSending(false);
           throw new Error("Sender account not initialized");
         }
-        if (!destAccount) {
-          setError("Recipient account not initialized");
-          setIsSending(false);
-          throw new Error("Recipient account not initialized");
-        }
       } catch (accountError) {
-        console.error("[TruthTransaction] Account validation failed:", accountError);
+        console.error("[TruthTransaction] Sender account validation failed:", accountError);
         const errorMessage = accountError instanceof Error ? accountError.message : "Unknown account validation error";
-        setError(`Failed to validate accounts: ${errorMessage}`);
+        setError(`Failed to validate sender account: ${errorMessage}`);
         setIsSending(false);
         throw new Error(errorMessage);
       }
@@ -101,7 +88,7 @@ export const useTruthTransaction = (
               amount: recipientAccount.amount.toString(),
             });
           } catch {
-            console.log("[TruthTransaction] Creating recipient ATA");
+            console.log("[TruthTransaction] Creating recipient ATA for:", destination.toBase58());
             transaction.add(
               createAssociatedTokenAccountInstruction(
                 publicKey, // Payer
@@ -138,13 +125,30 @@ export const useTruthTransaction = (
             )
           );
 
-          // Validate transaction
+          // Log transaction details safely
+          let tokenAmount: number | null = null;
           const transferInstruction = transaction.instructions.find((instr) =>
             instr.programId.equals(new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
           );
-          if (!transferInstruction) {
-            throw new Error("No SPL Token transfer instruction found");
+          if (transferInstruction?.data && transferInstruction.data.length >= 9) {
+            try {
+              tokenAmount = Number(transferInstruction.data.readBigInt64LE(1)); // Offset 1 for Transfer instruction
+            } catch (logError) {
+              console.error("[TruthTransaction] Failed to read token amount for logging:", logError);
+            }
           }
+
+          console.log("[TruthTransaction] Transaction before signing (attempt", attempt, "):", {
+            instructions: transaction.instructions.map((instr, idx) => ({
+              index: idx,
+              programId: instr.programId.toBase58(),
+              keys: instr.keys.map((k) => k.pubkey.toBase58()),
+              data: instr.data?.toString("hex") || null,
+            })),
+            tokenAmount,
+            recentBlockhash: transaction.recentBlockhash,
+            feePayer: transaction.feePayer?.toBase58(),
+          });
 
           const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash("confirmed");
           console.log("[TruthTransaction] Fetched blockhash:", {
@@ -154,28 +158,6 @@ export const useTruthTransaction = (
 
           transaction.recentBlockhash = blockhash;
           transaction.feePayer = publicKey;
-
-          console.log("[TruthTransaction] Transaction before signing (attempt", attempt, "):", {
-            instructions: transaction.instructions.map((instr, idx) => ({
-              index: idx,
-              programId: instr.programId.toBase58(),
-              keys: instr.keys.map((k) => k.pubkey.toBase58()),
-              data: instr.data?.toString("hex") || null,
-            })),
-            tokenAmount: transaction.instructions.find((instr) =>
-              instr.programId.equals(new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
-            )?.data
-              ? Number(
-                  transaction.instructions
-                    .find((instr) =>
-                      instr.programId.equals(new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"))
-                    )
-                    ?.data.readBigInt64LE(4)
-                )
-              : null,
-            recentBlockhash: transaction.recentBlockhash,
-            feePayer: transaction.feePayer?.toBase58(),
-          });
 
           const signed = await signTransaction(transaction);
 
