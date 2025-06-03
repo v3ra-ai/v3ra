@@ -224,6 +224,8 @@ export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSl
           toast.success(`Successfully purchased ${creditAmount} credits with $truth!`);
           // Refresh balances after successful purchase
           await fetchBalances();
+          // Notify other components of credit update
+          window.dispatchEvent(new CustomEvent("credits-updated"));
           return true;
         }
         console.error("[TruthSlider] Transaction result invalid:", result);
@@ -262,7 +264,7 @@ export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSl
     assignCredits,
     setCreditBalance,
     setVisible,
-    fetchBalances, // Added to dependencies
+    fetchBalances,
   ]);
 
   const handleChangeWallet = async () => {
