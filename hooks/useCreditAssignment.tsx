@@ -20,9 +20,9 @@ export const useCreditAssignment = () => {
       console.log("Fetched CSRF token:", { csrfToken: data.csrfToken });
       setCsrfToken(data.csrfToken);
       return data.csrfToken;
-    } catch (err) {
-      console.error("Error fetching CSRF token:", err);
-      throw err;
+    } catch (error) {
+      console.error("Error fetching CSRF token:", error);
+      throw error;
     }
   }, []);
 
@@ -45,9 +45,9 @@ export const useCreditAssignment = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRF-Token": token, // Include CSRF token in header
+            "X-CSRF-Token": token,
           },
-          credentials: "include", // Ensure cookies are sent
+          credentials: "include",
           body: JSON.stringify({
             walletPublicKey: walletPublicKey.toBase58(),
             creditAmount,
@@ -65,13 +65,13 @@ export const useCreditAssignment = () => {
         });
 
         setIsAssigning(false);
-        return { credits: data.credits, unpaidQueries: data.unpaidQueries }; // Return credits and unpaidQueries
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error("Credit assignment failed:", { error: err, message: errorMessage });
+        return { credits: data.credits, unpaidQueries: data.unpaidQueries };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Credit assignment failed:", { error, message: errorMessage });
         setError(errorMessage);
         setIsAssigning(false);
-        throw err;
+        throw error;
       }
     },
     [csrfToken, fetchCsrfToken],

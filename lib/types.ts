@@ -7,6 +7,7 @@ import {
   QUERIES_COST_EACH_DEFAULT,
 } from "@/lib/constants";
 import { AIValidationResponse } from "./validators/types";
+import { Transaction } from "@solana/web3.js";
 
 // Define interface for custom event attributes
 export interface TestRouteEventAttributes {
@@ -28,9 +29,8 @@ export interface TestRouteEventAttributes {
   requestOrigin?: string;
   userAgent?: string;
   isMobile: boolean;
-  [key: string]: string | number | boolean | undefined; // Index signature for flexibility
+  [key: string]: string | number | boolean | undefined;
 }
-
 
 // Network state and validator interfaces
 export interface Validator {
@@ -141,14 +141,14 @@ export const DEFAULTS = {
   QUERIES_REQUESTED: QUERIES_REQUESTED_DEFAULT,
   USER_CREDIT_CONVERSION: USER_CREDIT_CONVERSION_DEFAULT,
   QUERIES_COST_EACH: QUERIES_COST_EACH_DEFAULT,
-  FREE_CREDITS_COOKIE_NAME: "verafy_free_credits", // Define directly, no import
+  FREE_CREDITS_COOKIE_NAME: "verafy_free_credits",
 };
 
 // Request to validate content
 export interface ValidationRequest {
   statement: string;
   context?: string;
-  queryMode?: QueryMode; // Added to support mode-specific validation
+  queryMode?: QueryMode;
 }
 
 // Result of validation across multiple models
@@ -199,7 +199,6 @@ export function aiValidatorToUiValidator(aiValidator: AIValidator): AIValidator 
     validate: aiValidator.validate,
   };
 }
-
 
 export interface User {
   id: string;
@@ -253,5 +252,11 @@ export interface Feedback {
   explanation?: string;
   options?: string[];
   createdAt: string;
-  voteSessionId?: string; // Added for potential vote_session_id
+  voteSessionId?: string;
+}
+
+export interface TruthTransactionResult {
+  signature: string;
+  signedTx: Transaction;
+  tokenAmount: number;
 }

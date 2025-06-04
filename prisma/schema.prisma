@@ -44,13 +44,15 @@ model UserCredit {
 }
 
 model PaymentLog {
-  id              String   @id
+  id              String    @id
   walletPublicKey String
   credits         Int
-  solAmount       Float
+  solAmount       Float?
+  otherAmount     Float?
+  otherPayType    String?
   status          String
   error           String?
-  createdAt       DateTime @default(now())
+  createdAt       DateTime  @default(now())
 }
 
 model ApiKey {
