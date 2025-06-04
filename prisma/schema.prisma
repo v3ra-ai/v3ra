@@ -36,6 +36,8 @@ model UserCredit {
   id              String        @id @default(uuid())
   walletPublicKey String        @unique
   credits         Int           @default(0)
+  freeCredits     Int           @default(10)
+  lastResetDate   DateTime      @default(now())
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   userId          String?       @unique
