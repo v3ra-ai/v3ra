@@ -27,17 +27,17 @@ model User {
   name         String
   userCredit   UserCredit? @relation(name: "UserToUserCredit")
   userCreditId String?     @unique
+  freeCredits  Int         @default(10) // Daily free credits
+  lastResetDate DateTime   @default(now()) // Tracks last reset
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
-  feedbacks    Feedback[]  @relation("UserToFeedback") // Added relation field
+  feedbacks    Feedback[]  @relation("UserToFeedback")
 }
 
 model UserCredit {
   id              String        @id @default(uuid())
   walletPublicKey String        @unique
   credits         Int           @default(0)
-  freeCredits     Int           @default(10)
-  lastResetDate   DateTime      @default(now())
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   userId          String?       @unique
