@@ -1,5 +1,6 @@
 import * as Slider from "@radix-ui/react-slider";
-import { Coins, Square } from "lucide-react";
+import { Square } from "lucide-react";
+import Image from "next/image";
 
 interface CreditSliderUIProps {
   creditAmount: number;
@@ -40,14 +41,21 @@ export default function CreditSliderUI({
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
+    <div className="max-w-md mx-auto p-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
       <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
-        <div className="flex justify-center items-center mb-2">
+        <div className="flex flex-col justify-center items-center mb-2">
           {" "}
-          <Coins size={22} />
-          <h2 className="w-full text-2xl font-semibold ml-2 text-zinc-900 dark:text-zinc-100">
-            Purchase Credits
+          {/* <Coins size={32} /> */}
+          <h2 className="w-full text-2xl font-semibold mb-2 ml-2 text-zinc-900 dark:text-zinc-100">
+            <div className="">Purchase Credits</div>
+            <div className=""> with SOL</div>
           </h2>
+          <Image
+            src={`/icons/solanaLogoMark.png`}
+            alt={`Solana SOL`}
+            width={60}
+            height={60}
+          />
         </div>
       </div>
       <div className="text-center mb-6">
@@ -57,7 +65,7 @@ export default function CreditSliderUI({
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Select Credits
+          Select Credits, Pay with SOL
         </label>
         <div className="relative">
           <Slider.Root
