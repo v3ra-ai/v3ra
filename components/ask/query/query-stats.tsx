@@ -169,12 +169,12 @@ export default function QueryStats({
                 </span>
               )}
             </div>
-            <Link href="/credits">
+            <Link href="/credits-all">
               <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
-                Stake to get more
+                Stake for rewards
               </Button>
             </Link>
-            <Link href="/credits">
+            <Link href="/credits-all">
               <Button className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
                 Buy Credits
               </Button>
@@ -206,12 +206,12 @@ export default function QueryStats({
           )}
         </div>
         <div className="flex justify-between gap-2">
-          <Link href="/credits">
+          <Link href="/credits-all">
             <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
-              <Layers /> Stake to get more
+              <Layers /> Stake for rewards
             </Button>
           </Link>
-          <Link href="/credits">
+          <Link href="/credits-all">
             <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
               <Coins /> Buy Credits
             </Button>
