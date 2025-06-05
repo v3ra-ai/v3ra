@@ -23,8 +23,8 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
         <Button className="text-zinc-900 dark:text-white bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer text-sm px-4 py-2">
           {queryMode === "predict"
             ? "Predict"
-            : queryMode === "create"
-            ? "Create"
+            // : queryMode === "create"
+            // ? "Create"
             : queryMode === "shop"
             ? "Shop"
             : "Fact Check"}
@@ -55,14 +55,14 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
             Shop
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
+        {/* <DropdownMenuItem asChild>
           <Link
             href="/ask/create"
             className="w-full text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer px-4 py-2 text-sm"
           >
             Create
           </Link>
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
       </DropdownMenuContent>
     </DropdownMenu>
   );
