@@ -1,19 +1,19 @@
-
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { Coins } from "lucide-react";
-import { useCreditsStore } from '@/store/credit-store';
-import { supabase } from '@/lib/supabase-client';
+import { useCreditsStore } from "@/store/credit-store";
+import { supabase } from "@/lib/supabase-client";
+import { memo } from "react";
 
-export default function NavbarCredits() {
+function NavbarCredits() {
   const { publicKey } = useWallet();
-  const { userFreeCredits, userPaidCredits, creditsLoading, fetchAllCredits } = useCreditsStore();
+  const { userFreeCredits, userPaidCredits, creditsLoading, fetchAllCredits, savedCreditsTimestamp } = useCreditsStore();
   const [email, setEmail] = useState<string | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(true); // Local loading state
+  const [isLoading, setIsLoading] = useState(true);
 
   // Calculate total credits
   const totalCredits = userFreeCredits + userPaidCredits;
@@ -24,36 +24,47 @@ export default function NavbarCredits() {
       try {
         const { data: { session } } = await supabase.auth.getSession();
         setEmail(session?.user?.email);
-        console.log('[NavbarCredits] Fetched email:', session?.user?.email);
+        console.log("[NavbarCredits] Fetched email:", session?.user?.email);
       } catch (err) {
-        console.error('[NavbarCredits] Error fetching email:', err);
+        console.error("[NavbarCredits] Error fetching email:", err);
       }
     };
     fetchEmail();
   }, []);
 
-  // Fetch credits when publicKey or email changes
-  useEffect(() => {
-    if (publicKey && email) {
-      fetchAllCredits(publicKey, email);
+  // Fetch credits when publicKey, email, or savedCreditsTimestamp changes
+  const fetchCreditsIfNeeded = useCallback(() => {
+    if (!publicKey || !email) {
+      console.log("[NavbarCredits] Skipping fetch: missing publicKey or email");
+      return;
     }
-  }, [publicKey, email, fetchAllCredits]);
 
-  // Update loading state based on credits
+    // Rely on store's caching logic
+    console.log("[NavbarCredits] Triggering fetchAllCredits, timestamp:", savedCreditsTimestamp);
+    fetchAllCredits(publicKey, email);
+  }, [publicKey, email, fetchAllCredits, savedCreditsTimestamp]);
+
+  // Trigger fetch when dependencies change
   useEffect(() => {
-    if (!creditsLoading && userFreeCredits !== 0 && userPaidCredits !== 0) {
+    fetchCreditsIfNeeded();
+  }, [fetchCreditsIfNeeded]);
+
+  // Update loading state
+  useEffect(() => {
+    if (!creditsLoading && (userFreeCredits !== 0 || userPaidCredits !== 0)) {
       setIsLoading(false);
-      console.log('[NavbarCredits] Credits loaded:', { userFreeCredits, userPaidCredits, totalCredits });
+      console.log("[NavbarCredits] Credits loaded:", { userFreeCredits, userPaidCredits, totalCredits });
     } else {
       setIsLoading(true);
     }
   }, [creditsLoading, userFreeCredits, userPaidCredits, totalCredits]);
 
   if (!publicKey) {
+    console.log("[NavbarCredits] No publicKey, returning null");
     return null;
   }
 
-  console.log('[NavbarCredits] Rendering:', { totalCredits, isLoading });
+  console.log("[NavbarCredits] Rendering:", { totalCredits, isLoading, savedCreditsTimestamp });
 
   return (
     <div className="flex items-center text-md text-zinc-600 dark:text-zinc-300">
@@ -81,3 +92,5 @@ export default function NavbarCredits() {
     </div>
   );
 }
+
+export default memo(NavbarCredits);
