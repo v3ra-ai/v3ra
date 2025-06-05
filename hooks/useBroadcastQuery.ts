@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import type { VoteResult } from '@/lib/types';
 import { Dispatch, SetStateAction } from 'react';
 import { sanitizeError } from '@/utils/security-utils';
@@ -9,6 +9,7 @@ import { RESULT_QUERIES_CARDS, QUERIES_COST_EACH_DEFAULT, QUERIES_REQUESTED_DEFA
 import { useCreditsStore } from '@/store/credit-store';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
+import { supabase } from '@/lib/supabase-client';
 
 interface BroadcastQueryOptions {
   csrfToken?: string;
@@ -20,38 +21,31 @@ interface BroadcastQueryResult {
   broadcastQuery: (query: string, options?: BroadcastQueryOptions) => Promise<void>;
 }
 
-const refetchWithRetry = async (
-  retries: number,
-  fetchVoteHistory?: () => Promise<void>,
-  refetchNetworkState?: () => Promise<void>,
-) => {
-  let lastError: Error | null = null;
-  for (let i = 0; i <= retries; i++) {
-    try {
-      await Promise.all([
-        fetchVoteHistory ? fetchVoteHistory() : Promise.resolve(),
-        refetchNetworkState ? refetchNetworkState() : Promise.resolve(),
-      ]);
-      console.log(`[useBroadcastQuery] Refetch successful after ${i} retries`);
-      return;
-    } catch (err: unknown) {
-      lastError = err instanceof Error ? err : new Error(String(err));
-      console.warn(`[useBroadcastQuery] Refetch attempt ${i + 1} failed:`, lastError);
-      if (i < retries) await new Promise((resolve) => setTimeout(resolve, 500));
-    }
-  }
-  if (lastError) console.error(sanitizeError(lastError));
-};
-
 export function useBroadcastQuery(
   setVoteHistory: Dispatch<SetStateAction<VoteResult[]>>,
   setLastVoteResult: Dispatch<SetStateAction<VoteResult | null>>,
   refetchNetworkState?: () => Promise<void>,
   fetchVoteHistory?: () => Promise<void>,
 ): BroadcastQueryResult {
-  const { userFreeCredits, userPaidCredits, decrementFreeCredits, decrementPaidCredits, fetchSavedCredits } = useCreditsStore();
+  const { userFreeCredits, userPaidCredits, decrementFreeCredits, decrementPaidCredits, fetchAllCredits } = useCreditsStore(); // Line 52: Replaced fetchSavedCredits
   const { publicKey } = useWallet();
   const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | undefined>(undefined);
+
+  // Fetch email on mount
+  useEffect(() => {
+    const fetchEmail = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setEmail(session?.user?.email);
+        console.log('[useBroadcastQuery] Fetched email:', session?.user?.email);
+      } catch (err) {
+        console.error('[useBroadcastQuery] Error fetching email:', err);
+      }
+    };
+    fetchEmail();
+  }, []);
 
   const fetchCsrfToken = useCallback(async () => {
     try {
@@ -169,7 +163,6 @@ export function useBroadcastQuery(
         });
 
         const rawBody = await response.text();
-        // Define type for response
         type QueryResponse = VoteResult | { error: string };
         let voteResult: QueryResponse;
         try {
@@ -190,12 +183,10 @@ export function useBroadcastQuery(
           throw new Error(`Server responded with ${response.status}`);
         }
 
-        // Explicit type narrowing
         if ('error' in voteResult && typeof voteResult.error === 'string') {
           throw new Error(voteResult.error);
         }
 
-        // Assert as VoteResult after narrowing
         const result = voteResult as VoteResult;
         setLastVoteResult(result);
         setVoteHistory((prevHistory: VoteResult[]) => {
@@ -206,7 +197,9 @@ export function useBroadcastQuery(
 
         await new Promise((resolve) => setTimeout(resolve, 500));
         await refetchWithRetry(1, fetchVoteHistory, refetchNetworkState);
-        await fetchSavedCredits(publicKey); // Refresh credits after query
+        if (publicKey && email) {
+          await fetchAllCredits(publicKey, email); // Updated to fetchAllCredits
+        }
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error('[useBroadcastQuery] Error:', sanitizeError(error), {
@@ -230,9 +223,29 @@ export function useBroadcastQuery(
       publicKey,
       csrfToken,
       fetchCsrfToken,
-      fetchSavedCredits,
+      email,
+      fetchAllCredits, // Updated dependency
     ],
   );
 
   return { broadcastQuery };
+}
+
+// Utility function to retry async operations
+async function refetchWithRetry(
+  retries: number,
+  fetchVoteHistory?: () => Promise<void>,
+  refetchNetworkState?: () => Promise<void>,
+): Promise<void> {
+  for (let i = 0; i < retries; i++) {
+    try {
+      if (fetchVoteHistory) await fetchVoteHistory();
+      if (refetchNetworkState) await refetchNetworkState();
+      return;
+    } catch (error) {
+      console.error('[useBroadcastQuery] Refetch attempt failed:', error);
+      if (i === retries - 1) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+  }
 }

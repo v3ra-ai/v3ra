@@ -1,60 +1,50 @@
 
-// hooks/useCreditBalance.tsx
 'use client';
 
 import { useState, useEffect } from 'react';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
 import { useCreditsStore } from '@/store/credit-store';
-import { supabase } from '@/lib/supabase-client'; // Adjust import based on your Supabase client setup
+import { supabase } from '@/lib/supabase-client';
 
 export const useCreditBalance = () => {
   const { publicKey } = useWallet();
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
-  const { fetchSavedCredits } = useCreditsStore();
+  const [email, setEmail] = useState<string | undefined>(undefined);
+  const { fetchAllCredits } = useCreditsStore(); // Line 14: Replaced fetchSavedCredits
+
+  // Fetch email on mount
+  useEffect(() => {
+    const fetchEmail = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setEmail(session?.user?.email);
+        console.log('[useCreditBalance] Fetched email:', session?.user?.email);
+      } catch (err) {
+        console.error('[useCreditBalance] Error fetching email:', err);
+      }
+    };
+    fetchEmail();
+  }, []);
 
   useEffect(() => {
     const fetchCreditBalance = async () => {
       try {
-        // Get current user’s email from Supabase
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !session?.user?.email) {
-          toast.error('Please log in to view your credits');
-          console.error('[useCreditBalance] Failed to get session:', {
-            error: sessionError?.message || 'No session',
-            session: session ? { userId: session.user?.id, email: session.user?.email } : null,
-          });
-          setCreditBalance(null); // Indicate unauthenticated state
+        if (!email) {
+          console.log('[useCreditBalance] No email, skipping credit fetch');
           return;
         }
 
-        const email = session.user.email;
+        // Fetch credits using fetchAllCredits
+        await fetchAllCredits(publicKey, email); // Updated to fetchAllCredits
 
-        // Fetch credits with email query parameter
-        const response = await fetch(`/api/user-credits?email=${encodeURIComponent(email)}`, {
-          method: 'GET',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include', // Keep in case cookies are needed elsewhere
-        });
+        // Get updated credits from store
+        const { userFreeCredits, userPaidCredits } = useCreditsStore.getState();
+        const totalCredits = (userFreeCredits ?? 0) + (userPaidCredits ?? 0);
+        console.log('[useCreditBalance] Fetched credit balance:', { userFreeCredits, userPaidCredits, totalCredits });
 
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMsg = errorData.error || response.statusText || 'Unknown error';
-          toast.error(`Failed to fetch credit balance: ${errorMsg}`);
-          console.error('[useCreditBalance] Failed to fetch credit balance:', errorMsg, {
-            status: response.status,
-            url: response.url,
-            email,
-          });
-          setCreditBalance(0);
-          return;
-        }
-
-        const data = await response.json();
-        console.log('[useCreditBalance] Fetched credit balance:', data);
-
-        setCreditBalance((data.freeCredits ?? 0) + (data.purchasedCredits ?? 0));
-        await fetchSavedCredits(publicKey, email); // Pass email to fetchSavedCredits
+        setCreditBalance(totalCredits);
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         toast.error(`Error fetching credit balance: ${errorMsg}`);
@@ -64,7 +54,7 @@ export const useCreditBalance = () => {
     };
 
     fetchCreditBalance();
-  }, [publicKey, fetchSavedCredits]);
+  }, [publicKey, email, fetchAllCredits]);
 
   return { creditBalance, setCreditBalance };
 };
