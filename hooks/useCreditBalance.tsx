@@ -1,54 +1,60 @@
-"use client";
 
-import { useState, useEffect } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { toast } from "sonner";
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { toast } from 'sonner';
+import { useCreditsStore } from '@/store/credit-store';
+import { supabase } from '@/lib/supabase-client';
 
 export const useCreditBalance = () => {
   const { publicKey } = useWallet();
   const [creditBalance, setCreditBalance] = useState<number | null>(null);
-  const BALANCE_API_ENDPOINT = "/api/credits/balance";
+  const [email, setEmail] = useState<string | undefined>(undefined);
+  const { fetchAllCredits } = useCreditsStore(); // Line 14: Replaced fetchSavedCredits
+
+  // Fetch email on mount
+  useEffect(() => {
+    const fetchEmail = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setEmail(session?.user?.email);
+        console.log('[useCreditBalance] Fetched email:', session?.user?.email);
+      } catch (err) {
+        console.error('[useCreditBalance] Error fetching email:', err);
+      }
+    };
+    fetchEmail();
+  }, []);
 
   useEffect(() => {
     const fetchCreditBalance = async () => {
-      // Exit if no wallet is connected
-      if (!publicKey) {
-        setCreditBalance(null);
-        return;
-      }
       try {
-        // Fetch balance from server
-        const response = await fetch(BALANCE_API_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            walletPublicKey: publicKey.toBase58(),
-          }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          const errorMsg =
-            errorData.error || response.statusText || "Unknown error";
-          toast.error(`Failed to fetch credit balance: ${errorMsg}`);
-          console.error("Failed to fetch credit balance:", errorMsg);
-          setCreditBalance(0);
+        if (!email) {
+          console.log('[useCreditBalance] No email, skipping credit fetch');
           return;
         }
-        const data = await response.json();
-        console.log("Fetched credit balance:", data.credits); // Debug log
-        setCreditBalance(data.credits || 0);
+
+        // Fetch credits using fetchAllCredits
+        await fetchAllCredits(publicKey, email); // Updated to fetchAllCredits
+
+        // Get updated credits from store
+        const { userFreeCredits, userPaidCredits } = useCreditsStore.getState();
+        const totalCredits = (userFreeCredits ?? 0) + (userPaidCredits ?? 0);
+        console.log('[useCreditBalance] Fetched credit balance:', { userFreeCredits, userPaidCredits, totalCredits });
+
+        setCreditBalance(totalCredits);
       } catch (error) {
-        // Handle unexpected errors
-        const errorMsg =
-          error instanceof Error ? error.message : "Unknown error";
+        const errorMsg = error instanceof Error ? error.message : 'Unknown error';
         toast.error(`Error fetching credit balance: ${errorMsg}`);
-        console.error("Error fetching credit balance:", error);
+        console.error('[useCreditBalance] Error fetching credit balance:', error);
         setCreditBalance(0);
       }
     };
 
     fetchCreditBalance();
-  }, [publicKey]);
+  }, [publicKey, email, fetchAllCredits]);
 
   return { creditBalance, setCreditBalance };
 };

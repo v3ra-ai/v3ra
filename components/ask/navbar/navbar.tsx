@@ -11,6 +11,18 @@ import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
 import { NavbarScrollbar } from "@/components/ask/navbar/navbar-scrollbar";
 import { NavbarSettings } from "@/components/ask/navbar/navbar-settings";
 
+// Debounce utility with proper typing
+const debounce = <T extends unknown[]>(
+  func: (...args: T) => void,
+  wait: number
+): ((...args: T) => void) => {
+  let timeout: NodeJS.Timeout;
+  return (...args: T) => {
+    clearTimeout(timeout);
+    timeout = setTimeout(() => func(...args), wait);
+  };
+};
+
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const { viewMode } = useQueryStore();
@@ -46,11 +58,12 @@ export default function Navbar() {
     };
   }, []);
 
-  // Handle scroll for search bar
+  // Handle scroll for search bar with debouncing
   useEffect(() => {
-    const handleScroll = () => {
+    const handleScroll = debounce(() => {
       setShowSearch(window.scrollY > 50);
-    };
+      console.log("[Navbar] Scroll handled, showSearch:", window.scrollY > 50);
+    }, 100); // 100ms debounce
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);

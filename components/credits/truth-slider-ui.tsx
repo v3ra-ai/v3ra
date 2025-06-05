@@ -44,21 +44,30 @@ export default function TruthSliderUI({
       <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
         <div className="flex flex-col justify-center items-center mb-2">
           <h2 className="w-full text-2xl font-semibold ml-2 mb-2 text-zinc-900 dark:text-zinc-100">
-            <div className="">Purchase Credits</div>{" "}
+            <div className="">Buy Credits</div>{" "}
             <div className=""> with $truth</div>
           </h2>
-          <Image
+
+        </div>
+      </div>
+<div className="flex text-center mt-1 mb-6 justify-center border-0">
+        <div className="flex justify-center items-center border-0">
+         <Image
             src={`/icons/truth.png`}
             alt={`Solana SOL`}
             width={128}
             height={128}
           />
         </div>
-      </div>
-      <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
-          {creditAmount}
-        </span>
+        <div className="text-5xl ml-3 font-bold text-zinc-900 dark:text-zinc-100">
+          <div className="flex justify-center items-center">
+            <div className="font-extralight text-3xl">+</div>
+            <div className="ml-1">{creditAmount}</div>
+            <div className="flex ml-2 items-center justify-center text-sm font-light">
+              credits
+            </div>
+          </div>
+        </div>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -94,7 +103,7 @@ export default function TruthSliderUI({
       </div>
       <div className="mb-4">
         <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Current Balance:{" "}
+          Total Credits:{" "}
           {isWalletConnected && creditBalance !== null
             ? `${creditBalance} credits`
             : "n/a - connect wallet"}
@@ -126,7 +135,7 @@ export default function TruthSliderUI({
           : creditAmount === 0
             ? "Select Credits"
             : isWalletConnected
-              ? "Pay Now"
+              ? <>Pay Now: {requiredTruth.toFixed(decimalPlaces)} $truth</>
               : "Connect Wallet"}
       </button>
       {isWalletConnected && (

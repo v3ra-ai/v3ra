@@ -66,7 +66,7 @@ export default function QueryInterface() {
                 sideOffset={5}
                 align="center"
               >
-                {(["fact-check", "predict", "create", "shop"] as QueryMode[]).map(
+                {(["fact-check", "predict", "shop"] as QueryMode[]).map(
                   (mode) => (
                     <Link
                       key={mode}

@@ -37,6 +37,8 @@ export function QueryFormInput({
   isSubmitting,
   queriesUnpaid,
   queriesCostTotal,
+  userFreeCredits,
+  userPaidCredits,
   isSubmitInteracted,
   setIsSubmitInteracted,
   queryMode,
@@ -44,7 +46,7 @@ export function QueryFormInput({
   handleQueryAmountChange,
   allowedAmountQueries,
 }: QueryFormInputProps) {
-  const { displayUnpaid, hasPaid: storeHasPaid, totalCredits, userFreeCredits } = useCreditsStore();
+  const { displayUnpaid, hasPaid: storeHasPaid, totalCredits } = useCreditsStore();
   const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
@@ -57,21 +59,31 @@ export function QueryFormInput({
       queriesUnpaid,
       queriesCostTotal,
       totalCredits,
+      userPaidCredits,
+      userFreeCredits,
       queriesRequested,
       queryMode,
+      creditsLeft: Math.max(0, totalCredits - queriesRequested),
     });
-    if (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested) {
-      console.log("[QueryFormInput] Blocked: Unpaid queries and insufficient total credits");
-      toast.error("Please make a payment first", {
+
+    // Check if user has enough credits to cover the query cost
+    const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+    if (creditsLeft < queriesCostTotal) {
+      console.log("[QueryFormInput] Blocked: Insufficient credits left to cover query cost", {
+        creditsLeft,
+        queriesCostTotal,
+      });
+      toast.error("Insufficient credits to cover the query cost. Please purchase more credits.", {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
       return;
     }
+
     try {
       startTimer();
       handleSubmit();
       console.log("[QueryFormInput] handleSubmit executed successfully");
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("[QueryFormInput] Query submission failed:", error);
       const errorMessage =
         error instanceof Error ? error.message : "Failed to submit query, please try again";
@@ -90,8 +102,10 @@ export function QueryFormInput({
     }
   }, [isSubmitting, queryMode, cancelTimer]);
 
-  const isSubmitDisabled = isSubmitting || (displayUnpaid > 0 && !storeHasPaid && totalCredits < queriesRequested);
-  const queriesLeft = Math.max(0, totalCredits - queriesRequested);
+  // Enable button if credits left can cover query cost
+  const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+  const isSubmitDisabled = isSubmitting || creditsLeft < queriesCostTotal;
+
   const displayedQueryCost = Math.max(0, queriesRequested - userFreeCredits);
 
   console.log("[QueryFormInput] render:", {
@@ -102,10 +116,16 @@ export function QueryFormInput({
     queriesCostTotal,
     displayedQueryCost,
     queriesRequested,
-    queriesLeft,
+    creditsLeft,
     isSubmitDisabled,
+    userPaidCredits,
+    userFreeCredits,
     queryMode,
     buttonText,
+    disableReason: isSubmitDisabled ? {
+      isSubmitting,
+      insufficientCreditsLeft: creditsLeft < queriesCostTotal,
+    } : "none",
   });
 
   return (

@@ -46,7 +46,11 @@ Current directory: ./
 │   │   │   │   └── route.ts
 │   │   │   ├── decrement
 │   │   │   │   └── route.tsx
+│   │   │   ├── free-balance
 │   │   │   └── validate-free-credits
+│   │   │       └── route.tsx
+│   │   ├── credits-truth
+│   │   │   └── assign
 │   │   │       └── route.tsx
 │   │   ├── cron
 │   │   │   └── route.ts
@@ -71,6 +75,8 @@ Current directory: ./
 │   │   │   └── [cardId]
 │   │   │       └── route.tsx
 │   │   ├── payment
+│   │   │   └── route.ts
+│   │   ├── payment-truth
 │   │   │   └── route.ts
 │   │   ├── replies
 │   │   │   └── [replyId]
@@ -130,6 +136,10 @@ Current directory: ./
 │   │       └── page.tsx
 │   ├── credits
 │   │   └── page.tsx
+│   ├── credits-all
+│   │   └── page.tsx
+│   ├── credits-truth
+│   │   └── page.tsx
 │   ├── dashboard
 │   │   └── page.tsx
 │   ├── error.tsx
@@ -173,7 +183,11 @@ Current directory: ./
 │   ├── 20250509-remote_supabase_backup.dump
 │   ├── 20250527-remote_supabase_backup.dump
 │   ├── 20250530-1-remote_supabase_backup.dump
-│   └── 20250531-remote_supabase_backup.dump
+│   ├── 20250531-remote_supabase_backup.dump
+│   ├── 20250601-remote_supabase_backup.dump
+│   ├── 20250604-2-remote_supabase_backup.dump
+│   ├── 20250604-remote_supabase_backup.dump
+│   └── remote_supabase_backup.dump
 ├── components
 │   ├── admin-only.tsx
 │   ├── ask
@@ -235,8 +249,12 @@ Current directory: ./
 │   ├── credits
 │   │   ├── credit-slider-ui.tsx
 │   │   ├── credit-slider.tsx
+│   │   ├── credits-all-layout.tsx
 │   │   ├── credits-layout.tsx
-│   │   └── stake-slider.tsx
+│   │   ├── credits-truth-layout.tsx
+│   │   ├── stake-slider.tsx
+│   │   ├── truth-slider-ui.tsx
+│   │   └── truth-slider.tsx
 │   ├── error-display.tsx
 │   ├── explorer
 │   │   ├── consensus-visualization.tsx
@@ -344,6 +362,7 @@ Current directory: ./
 │   ├── useSolanaTransaction.tsx
 │   ├── useSolanaWallet.tsx
 │   ├── useSubmitQuery.ts
+│   ├── useTruthTransaction.tsx
 │   ├── useVoteHistory.ts
 │   └── useVoteResult.ts
 ├── lib
@@ -357,6 +376,7 @@ Current directory: ./
 │   │   ├── client.ts
 │   │   ├── schema-adapter.ts
 │   │   ├── setup.ts
+│   │   ├── user-credits.ts
 │   │   ├── validators.ts
 │   │   └── voteSessions.ts
 │   ├── keyManager.ts
@@ -428,7 +448,13 @@ Current directory: ./
 │   │   │   └── migration.sql
 │   │   ├── 20250530_add_favorites
 │   │   │   └── migration.sql
-│   │   └── 20250530_add_favorites_alter_update
+│   │   ├── 20250530_add_favorites_alter_update
+│   │   │   └── migration.sql
+│   │   ├── 20250601_add_paymenttypes
+│   │   │   └── migration.sql
+│   │   ├── 20250604-2_user_table_freecredit
+│   │   │   └── migration.sql
+│   │   └── 20250604_usercredit
 │   │       └── migration.sql
 │   ├── old_migration.sql
 │   ├── schema.prisma
@@ -470,7 +496,9 @@ Current directory: ./
 │   │   ├── perplexity.png
 │   │   ├── qwen.png
 │   │   ├── raw copy.png
+│   │   ├── solanaLogoMark.png
 │   │   ├── stable.webp
+│   │   ├── truth.png
 │   │   └── zephyr.png
 │   ├── logos
 │   │   ├── android-chrome-192x192.png
@@ -490,7 +518,6 @@ Current directory: ./
 │   ├── verafy_logo_white.svg
 │   ├── vercel.svg
 │   └── window.svg
-├── remote_supabase_backup.dump
 ├── scripts
 │   ├── add-validators.ts
 │   └── fix-gpt-40-modelname.ts
@@ -539,8 +566,398 @@ Current directory: ./
     ├── validatorImageMapping.json
     └── vote-utils.ts
 
-137 directories, 400 files
+146 directories, 418 files
 
+
+--- lib/solana-constants.ts ---
+import { Connection, PublicKey } from "@solana/web3.js";
+import { CURRENT_SOLANA_NETWORK_NAME, DEV_SOLANA_NETWORK_RPC, MAINNET_SOLANA_NETWORK_RPC, QUERY_COST } from "./constants";
+
+// $truth token constants
+export const TRUTH_TOKEN_MINT = new PublicKey("2GmUPhpe93kcTJZrC7NJ2keeDZRT5dBveUgegb13pump");
+export const TRUTH_TOKEN_DECIMALS = 6;
+
+// Default to Mainnet RPC if environment variable is undefined
+const DEFAULT_MAINNET_RPC = "https://api.mainnet-beta.solana.com";
+const DEFAULT_DEVNET_RPC = "https://api.devnet.solana.com";
+
+export const connection = new Connection(
+  CURRENT_SOLANA_NETWORK_NAME === "Devnet"
+    ? DEV_SOLANA_NETWORK_RPC || DEFAULT_DEVNET_RPC
+    : MAINNET_SOLANA_NETWORK_RPC || DEFAULT_MAINNET_RPC,
+  "confirmed",
+);
+
+export const CREDIT_PRICE_SOL = QUERY_COST;
+
+const VERAFY_WALLET_PUBLIC_KEY = process.env.NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY;
+let VERAFY_WALLET: PublicKey;
+
+try {
+  if (!VERAFY_WALLET_PUBLIC_KEY) {
+    throw new Error("NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY is not defined");
+  }
+  VERAFY_WALLET = new PublicKey(VERAFY_WALLET_PUBLIC_KEY);
+} catch (error) {
+  console.error("Invalid NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY:", error);
+  throw error;
+}
+
+export { VERAFY_WALLET };
+--- lib/types.ts ---
+import { ApiKey } from "@prisma/client";
+import {
+  USER_FREE_CREDITS_DEFAULT,
+  USER_PAID_CREDITS_DEFAULT,
+  QUERIES_REQUESTED_DEFAULT,
+  USER_CREDIT_CONVERSION_DEFAULT,
+  QUERIES_COST_EACH_DEFAULT,
+} from "@/lib/constants";
+import { AIValidationResponse } from "./validators/types";
+import { Transaction } from "@solana/web3.js";
+
+// Define interface for custom event attributes
+export interface TestRouteEventAttributes {
+  time: string;
+  route: string;
+  method: string;
+  environment: string;
+  vercelDeploymentId?: string;
+  userId?: string;
+  userEmail?: string;
+  queryParams: string;
+  responseTimeMs: number;
+  supabaseQuerySuccess: boolean;
+  supabaseRowCount?: number;
+  supabaseErrorMessage?: string;
+  supabaseIsAuthenticated: boolean;
+  isAuthorized: boolean;
+  authorizationError?: string;
+  requestOrigin?: string;
+  userAgent?: string;
+  isMobile: boolean;
+  [key: string]: string | number | boolean | undefined;
+}
+
+// Network state and validator interfaces
+export interface Validator {
+  id: string;
+  publicKey: string;
+  isLeader: boolean;
+  provider: string;
+  profileName: string;
+  modelName: string;
+  description: string | null;
+  avatarUrl: string | null;
+  validatorType: string | null;
+  reliability: number | null;
+  totalVotes: number;
+  correctVotes: number;
+  active: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  lastVote?: boolean | null;
+  lastRationale?: string | null;
+  lastResponse?: string | null;
+}
+
+export interface ValidatorResponse {
+  id: string;
+  provider: string;
+  profileName: string;
+  vote?: "YES" | "NO" | "ERROR";
+  rationale?: string;
+  modelName?: string;
+  validatorType?: string;
+  active?: boolean;
+  hasKey?: boolean;
+  keyIds?: string[];
+}
+
+export type ValidatorKey = {
+  id: string;
+  validatorId: string;
+  apiKeyId: string;
+  createdAt: Date;
+  apiKey: ApiKey;
+  validator: Validator;
+};
+
+export interface LlmResponse {
+  decision: boolean;
+  rationale: string;
+}
+
+export interface NetworkState {
+  validators: Validator[];
+  currentLeaderIndex: number;
+  isVoting: boolean;
+  lastQuery: string | null;
+  lastNetworkResponse: string | null;
+  lastConsensusValue: boolean | null;
+  lastConsensusThreshold: number;
+  lastConsensusAchieved: boolean | null;
+  lastVoteTimestamp: string | null;
+}
+
+export interface VoteResult {
+  id: string;
+  isConsensusReached: boolean;
+  consensusValue: boolean | null;
+  queryText: string;
+  validatorResponses: {
+    id: string;
+    provider: string;
+    profileName: string;
+    vote: string;
+    rationale: string;
+  }[];
+  votingResult: {
+    yes: number;
+    no: number;
+    notVoted: number;
+  };
+  timestamp?: string | number;
+}
+
+export interface VoteValidatorResponse extends ValidatorResponse {
+  vote: "YES" | "NO" | "ERROR";
+  rationale: string;
+}
+
+export interface ExtendedApiKey extends ApiKey {
+  decryptable: boolean;
+  keyPattern: string | null;
+  linkedValidators: number;
+}
+
+// Query-related types
+export type QueryMode = "fact-check" | "predict" | "create" | "shop";
+export type ViewMode = "viewStandard" | "viewExpert";
+
+// Cookie-related types
+export interface FreeCreditsCookie {
+  freeCredits: number;
+  lastResetDate: string;
+}
+
+// Constants
+export const DEFAULTS = {
+  USER_FREE_CREDITS: USER_FREE_CREDITS_DEFAULT,
+  USER_PAID_CREDITS: USER_PAID_CREDITS_DEFAULT,
+  QUERIES_REQUESTED: QUERIES_REQUESTED_DEFAULT,
+  USER_CREDIT_CONVERSION: USER_CREDIT_CONVERSION_DEFAULT,
+  QUERIES_COST_EACH: QUERIES_COST_EACH_DEFAULT,
+  FREE_CREDITS_COOKIE_NAME: "verafy_free_credits",
+};
+
+// Request to validate content
+export interface ValidationRequest {
+  statement: string;
+  context?: string;
+  queryMode?: QueryMode;
+}
+
+// Result of validation across multiple models
+export interface ValidationResult {
+  validatorId: string;
+  validatorName: string;
+  vote: boolean;
+  confidence: number;
+  rationale: string;
+  timestamp: number;
+  latency?: number;
+}
+
+// Shared interface for all AI validators
+export interface AIValidator {
+  id?: string;
+  name: string;
+  provider: string;
+  modelName: string;
+  description?: string;
+  validatorType?: string;
+  active: boolean;
+  keyId?: string;
+  validate: (request: ValidationRequest) => Promise<AIValidationResponse>;
+}
+
+// Registry of all available validators
+export interface ValidatorRegistry {
+  addValidator(validator: AIValidator): Promise<AIValidator>;
+  removeValidator(id: string): Promise<boolean>;
+  getValidator(id: string): Promise<AIValidator | undefined>;
+  getAllValidators(): Promise<AIValidator[]>;
+  getActiveValidators(): Promise<AIValidator[]>;
+  toggleValidator(id: string, active: boolean): Promise<boolean>;
+}
+
+// Convert AIValidator to our UI Validator type
+export function aiValidatorToUiValidator(aiValidator: AIValidator): AIValidator {
+  return {
+    id: aiValidator.id,
+    name: aiValidator.name,
+    provider: aiValidator.provider,
+    modelName: aiValidator.modelName,
+    description: aiValidator.description,
+    validatorType: aiValidator.validatorType,
+    active: aiValidator.active,
+    keyId: aiValidator.keyId,
+    validate: aiValidator.validate,
+  };
+}
+
+export interface User {
+  id: string;
+  email?: string;
+}
+
+export interface VoteSession {
+  id: string;
+  queryText: string | null;
+  isConsensusReached: boolean;
+  consensusValue: boolean | null;
+  validatorResponses:
+    | {
+        id: string;
+        provider: string;
+        profileName: string;
+        vote: string;
+        rationale: string;
+      }[]
+    | null;
+  timestamp: string;
+  votesYes: number | null;
+  votesNo: number | null;
+  notVoted: number | null;
+}
+
+export interface VoteStats {
+  totalVotes: number;
+  yesVotes: number;
+  noVotes: number;
+  consensusMatchPercentage: number;
+  nonConsensusPercentage: number;
+}
+
+export interface Favorite {
+  id: string;
+  user_id: string;
+  vote_session_id: string;
+  created_at: string;
+}
+
+export interface Feedback {
+  id: string;
+  userId: string;
+  rating: 'thumbs_up' | 'thumbs_down';
+  username: string;
+  email: string;
+  url: string;
+  component: string;
+  action: string;
+  explanation?: string;
+  options?: string[];
+  createdAt: string;
+  voteSessionId?: string;
+}
+
+export interface TruthTransactionResult {
+  signature: string;
+  signedTx: Transaction;
+  tokenAmount: number;
+}
+--- utils/security-utils.ts ---
+import DOMPurify from 'dompurify';
+import { VoteResult } from '@/lib/types';
+import { SendTransactionError } from '@solana/web3.js';
+import crypto from 'crypto';
+
+// Ensure DOMPurify is only used client-side
+const isClient = typeof window !== 'undefined';
+const sanitizer = isClient ? DOMPurify : { sanitize: (input: string) => input };
+
+/**
+ * Generates a secure CSRF token for protecting API requests.
+ * @returns A random, unique token as a string.
+ */
+export function generateCsrfToken(): string {
+  return crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).slice(2, 18);
+}
+
+/**
+ * Sanitizes query text to prevent XSS by removing or escaping dangerous characters.
+ * @param queryText - The query text to sanitize (string or undefined).
+ * @returns A sanitized string, or an empty string if input is null/undefined.
+ */
+export function sanitizeQueryText(queryText: string | undefined): string {
+  if (!queryText) return '';
+  try {
+    return sanitizer.sanitize(queryText); // Single argument
+  } catch (error) {
+    console.warn('DOMPurify.sanitize failed:', error, 'Input:', queryText);
+    return queryText; // Fallback: return original text
+  }
+}
+
+/**
+ * Sanitizes validator response fields to prevent XSS, returning a sanitized response object.
+ * @param response - The validator response object to sanitize.
+ * @returns A sanitized validator response object.
+ */
+export function sanitizeValidatorResponse(
+  response: VoteResult['validatorResponses'][number]
+): VoteResult['validatorResponses'][number] {
+  try {
+    return {
+      ...response,
+      profileName: sanitizer.sanitize(response.profileName), // Single argument
+      provider: sanitizer.sanitize(response.provider),
+      id: sanitizer.sanitize(response.id),
+      rationale: sanitizer.sanitize(response.rationale || ''),
+    };
+  } catch (error) {
+    console.warn('DOMPurify.sanitize failed for response:', error, 'Input:', response);
+    return response; // Fallback: return original response
+  }
+}
+
+/**
+ * Sanitizes error messages for safe logging, preventing exposure of sensitive details.
+ * @param error - The error to sanitize (unknown type).
+ * @returns A safe string representation of the error message.
+ */
+export function sanitizeError(error: unknown): string {
+  if (error instanceof SendTransactionError) {
+    return `Transaction failed: ${error.message}`;
+  } else if (error instanceof Error) {
+    return `Error: ${error.message}`;
+  }
+  return 'Unknown error occurred';
+}
+--- utils/error-utils.ts ---
+import DOMPurify from "dompurify";
+
+/**
+ * Formats an error into a safe, sanitized error message, defaulting to a fallback message.
+ * @param error - The error to format (Error, string, or unknown).
+ * @param fallbackMessage - The fallback message to use if error is invalid (default: "An unknown error occurred").
+ * @returns A sanitized error message string.
+ */
+export function formatErrorMessage(
+  error: unknown,
+  fallbackMessage: string = "An unknown error occurred"
+): string {
+  let message: string;
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === "string") {
+    message = error;
+  } else {
+    message = fallbackMessage;
+  }
+  return DOMPurify.sanitize(message);
+}
 
 --- app/api/credits/assign/route.ts ---
 import { NextRequest, NextResponse } from "next/server";
@@ -1102,7 +1519,8 @@ export default function CreditsPage() {
 
 --- components/credits/credit-slider-ui.tsx ---
 import * as Slider from "@radix-ui/react-slider";
-import { Coins, Square } from "lucide-react";
+import { Square } from "lucide-react";
+import Image from "next/image";
 
 interface CreditSliderUIProps {
   creditAmount: number;
@@ -1143,14 +1561,21 @@ export default function CreditSliderUI({
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
+    <div className="max-w-md mx-auto p-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
       <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
-        <div className="flex justify-center items-center mb-2">
+        <div className="flex flex-col justify-center items-center mb-2">
           {" "}
-          <Coins size={22} />
-          <h2 className="w-full text-2xl font-semibold ml-2 text-zinc-900 dark:text-zinc-100">
-            Purchase Credits
+          {/* <Coins size={32} /> */}
+          <h2 className="w-full text-2xl font-semibold mb-2 ml-2 text-zinc-900 dark:text-zinc-100">
+            <div className="">Purchase Credits</div>
+            <div className=""> with SOL</div>
           </h2>
+          <Image
+            src={`/icons/solanaLogoMark.png`}
+            alt={`Solana SOL`}
+            width={60}
+            height={60}
+          />
         </div>
       </div>
       <div className="text-center mb-6">
@@ -1160,7 +1585,7 @@ export default function CreditSliderUI({
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Select Credits
+          Select Credits, Pay with SOL
         </label>
         <div className="relative">
           <Slider.Root
@@ -1617,9 +2042,9 @@ export const useCreditAssignment = () => {
       console.log("Fetched CSRF token:", { csrfToken: data.csrfToken });
       setCsrfToken(data.csrfToken);
       return data.csrfToken;
-    } catch (err) {
-      console.error("Error fetching CSRF token:", err);
-      throw err;
+    } catch (error) {
+      console.error("Error fetching CSRF token:", error);
+      throw error;
     }
   }, []);
 
@@ -1642,9 +2067,9 @@ export const useCreditAssignment = () => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "X-CSRF-Token": token, // Include CSRF token in header
+            "X-CSRF-Token": token,
           },
-          credentials: "include", // Ensure cookies are sent
+          credentials: "include",
           body: JSON.stringify({
             walletPublicKey: walletPublicKey.toBase58(),
             creditAmount,
@@ -1662,13 +2087,13 @@ export const useCreditAssignment = () => {
         });
 
         setIsAssigning(false);
-        return { credits: data.credits, unpaidQueries: data.unpaidQueries }; // Return credits and unpaidQueries
-      } catch (err) {
-        const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error("Credit assignment failed:", { error: err, message: errorMessage });
+        return { credits: data.credits, unpaidQueries: data.unpaidQueries };
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : "Unknown error";
+        console.error("Credit assignment failed:", { error, message: errorMessage });
         setError(errorMessage);
         setIsAssigning(false);
-        throw err;
+        throw error;
       }
     },
     [csrfToken, fetchCsrfToken],
@@ -2564,8 +2989,7 @@ export const useCreditsStore = create<CreditsStore>((set, get) => ({
 
 // Solana Network Configuration
 // Constants for configuring the Solana network (Devnet or Mainnet) based on environment variables
-export const CURRENT_SOLANA_NETWORK_NAME =
-  process.env.NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME;
+export const CURRENT_SOLANA_NETWORK_NAME = process.env.NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME || "Mainnet";
 export const DEV_SOLANA_NETWORK_RPC =
   process.env.NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC;
 export const MAINNET_SOLANA_NETWORK_RPC =
@@ -2578,25 +3002,27 @@ export const CURRENT_SOLANA_NETWORK_RPC =
 // Credits and Queries
 // Constants for managing credits, query costs, and query limits in the application
 export const QUERY_COST = 0.00001; // SOL per credit
+export const TRUTH_TOKEN_MINT_ADDRESS = "2GmUPhpe93kcTJZrC7NJ2keeDZRT5dBveUgegb13pump";
+export const TRUTH_TOKEN_DECIMALS = 6;
+export const TRUTH_QUERY_COST = 1; // 1 $truth = 1 credit
 
 // Calculate the number of decimal places in QUERY_COST for display
 const getDecimalPlaces = (num: number): number => {
   if (!Number.isFinite(num)) return 0;
-  const str = num.toFixed(20).replace(/\.?0+$/, ""); // Handle scientific notation and trailing zeros
+  const str = num.toFixed(20).replace(/\.?0+$/, "");
   const decimalIndex = str.indexOf(".");
   return decimalIndex === -1 ? 0 : str.length - decimalIndex - 1;
 };
 
-export const QUERY_COST_FIXED_DECIMALS = getDecimalPlaces(QUERY_COST); // Derived from QUERY_COST
-export const USER_FREE_CREDITS_DEFAULT = 10;
+export const QUERY_COST_FIXED_DECIMALS = getDecimalPlaces(QUERY_COST);
+export const USER_FREE_CREDITS_DEFAULT = 0;
 export const USER_PAID_CREDITS_DEFAULT = 0;
 export const QUERIES_REQUESTED_DEFAULT = 4;
 export const USER_CREDIT_CONVERSION_DEFAULT = 1;
 export const QUERIES_COST_EACH_DEFAULT = 1;
 export const ALLOWED_AMOUNT_QUERIES = 20;
-export const INITIAL_AVAILABLE_QUERIES = USER_FREE_CREDITS_DEFAULT; // Initial queries available, matches USER_FREE_CREDITS_DEFAULT
-export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT; // Default AI query amount, matches QUERIES_REQUESTED_DEFAULT
-export const FREE_CREDITS_COOKIE_NAME = "verafy_free_credits"; // New: Cookie name for free credits
+export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT;
+export const FREE_CREDITS_COOKIE_NAME = "verafy_free_credits";
 
 // Voting Outcomes
 // Constants for representing possible voting results
@@ -2614,40 +3040,33 @@ export const EXPORT_MAX_VALIDATORS = 20;
 // Constants for managing user authentication and authorization
 export const ADMIN_EMAILS = process.env.ADMIN_EMAILS
   ? process.env.ADMIN_EMAILS.split(",").map((email) => email.trim())
-  : []; // Admin emails from environment variable, empty array if not set
+  : [];
 
 function getCurrentDomain(): string | null {
   if (typeof window !== 'undefined' && window.location) {
-    // Compare hostname, not the entire location object
     if (window.location.hostname === 'localhost') {
-      return 'localhost:3000'; // Explicitly include port for localhost
+      return 'localhost:3000';
     }
-    return window.location.hostname; // Return domain (e.g., example.com)
+    return window.location.hostname;
   }
-  return null; // Non-browser environment (e.g., Node.js, SSR)
+  return null;
 }
 
-// Use a function to lazily evaluate the domain, avoiding SSR issues
 export function getCurrentDomainSafe(): string {
   const domain = getCurrentDomain();
-  // Handle null case: return a default or throw an error based on your needs
   if (domain === null) {
-    // Return a default domain with port for SSR
     return 'localhost:3000';
   }
   return domain;
 }
 
-// Get the base URL (protocol + domain) dynamically
 export function getBaseUrl(): string {
   const domain = getCurrentDomainSafe();
-  // Use http for localhost, https for production
   const protocol = domain.includes('localhost') ? 'http' : 'https';
   return `${protocol}://${domain}`;
 }
 
 export const CURRENT_DOMAIN: string = typeof window !== 'undefined' ? getCurrentDomainSafe() : 'localhost:3000';
-
 --- utils/csrf-utils.ts ---
 import { NextRequest, NextResponse } from "next/server";
 import crypto from "crypto";

@@ -28,13 +28,12 @@ const getDecimalPlaces = (num: number): number => {
 };
 
 export const QUERY_COST_FIXED_DECIMALS = getDecimalPlaces(QUERY_COST);
-export const USER_FREE_CREDITS_DEFAULT = 10;
+export const USER_FREE_CREDITS_DEFAULT = 0;
 export const USER_PAID_CREDITS_DEFAULT = 0;
 export const QUERIES_REQUESTED_DEFAULT = 4;
 export const USER_CREDIT_CONVERSION_DEFAULT = 1;
 export const QUERIES_COST_EACH_DEFAULT = 1;
 export const ALLOWED_AMOUNT_QUERIES = 20;
-export const INITIAL_AVAILABLE_QUERIES = USER_FREE_CREDITS_DEFAULT;
 export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT;
 export const FREE_CREDITS_COOKIE_NAME = "verafy_free_credits";
 

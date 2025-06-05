@@ -1,3 +1,4 @@
+// components/credits/credit-slider-ui.tsx
 import * as Slider from "@radix-ui/react-slider";
 import { Square } from "lucide-react";
 import Image from "next/image";
@@ -31,7 +32,8 @@ export default function CreditSliderUI({
   onChangeWallet,
   decimalPlaces,
 }: CreditSliderUIProps) {
-  // Debug log to confirm cost display
+  // const { userFreeCredits, userPaidCredits } = useCreditsStore();
+
   if (process.env.NODE_ENV === "development") {
     console.log("CreditSliderUI cost display:", {
       requiredSol,
@@ -44,12 +46,14 @@ export default function CreditSliderUI({
     <div className="max-w-md mx-auto p-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
       <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
         <div className="flex flex-col justify-center items-center mb-2">
-          {" "}
-          {/* <Coins size={32} /> */}
           <h2 className="w-full text-2xl font-semibold mb-2 ml-2 text-zinc-900 dark:text-zinc-100">
-            <div className="">Purchase Credits</div>
-            <div className=""> with SOL</div>
+            <div>Buy Credits</div>
+            <div><span className="text-light">with</span> SOL</div>
           </h2>
+        </div>
+      </div>
+      <div className="flex text-center mt-1 mb-6 justify-center border-0">
+        <div className="flex justify-center items-center border-0">
           <Image
             src={`/icons/solanaLogoMark.png`}
             alt={`Solana SOL`}
@@ -57,11 +61,15 @@ export default function CreditSliderUI({
             height={60}
           />
         </div>
-      </div>
-      <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
-          {creditAmount}
-        </span>
+        <div className="text-5xl ml-3 font-bold text-zinc-900 dark:text-zinc-100">
+          <div className="flex justify-center items-center">
+            <div className="font-extralight text-3xl">+</div>
+            <div className="ml-1">{creditAmount}</div>
+            <div className="flex ml-2 items-center justify-center text-sm font-light">
+              credits
+            </div>
+          </div>
+        </div>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -96,8 +104,14 @@ export default function CreditSliderUI({
         </p>
       </div>
       <div className="mb-4">
+        {/* <p className="text-sm text-zinc-700 dark:text-zinc-300">
+          Free Credits: {isWalletConnected ? userFreeCredits : 'n/a - connect wallet'}
+        </p>
         <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Current Balance:{" "}
+          Paid Credits: {isWalletConnected ? userPaidCredits : 'n/a - connect wallet'}
+        </p> */}
+        <p className="text-sm text-zinc-700 dark:text-zinc-300">
+          Total Credits:{" "}
           {isWalletConnected && creditBalance !== null
             ? `${creditBalance} credits`
             : "n/a - connect wallet"}
@@ -128,8 +142,8 @@ export default function CreditSliderUI({
           ? "Processing..."
           : creditAmount === 0
             ? "Select Credits"
-            : isWalletConnected
-              ? "Pay Now"
+            : isWalletConnected && solBalance !== null
+              ? <>Pay Now: {requiredSol.toFixed(decimalPlaces)} SOL</>
               : "Connect Wallet"}
       </button>
       {isWalletConnected && (
