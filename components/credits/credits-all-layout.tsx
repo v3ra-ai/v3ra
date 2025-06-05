@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
-import { Coins, Gift, Wallet } from "lucide-react";
+import { Coins, Gift } from "lucide-react";
 import { useCreditsStore } from "@/store/credit-store";
 import CreditSlider from "@/components/credits/credit-slider";
 import TruthSlider from "@/components/credits/truth-slider";
@@ -121,7 +121,7 @@ export function CreditsAllLayout() {
         Get Credits
       </h1>
       <div className="flex flex-col sm:flex-row gap-4 justify-center text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
-        <div className="flex flex-col items-center w-full sm:w-auto">
+        <div className="flex flex-col items-center w-full sm:w-auto p-2">
           <div className="flex items-center">
             <Gift className="mr-1" strokeWidth={1} size={20} />
             {isInitialLoading || creditsLoading ? (
@@ -137,10 +137,10 @@ export function CreditsAllLayout() {
             )}
           </div>
           <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-600">
-            Daily Free Credits
+            Free Credits
           </div>
         </div>
-        <div className="flex flex-col items-center w-full sm:w-auto">
+        <div className="flex flex-col items-center w-full sm:w-auto p-2">
           <div className="flex items-center">
             <Coins className="mr-1" strokeWidth={1} size={20}/>
             {isInitialLoading || creditsLoading ? (
@@ -162,9 +162,9 @@ export function CreditsAllLayout() {
             Paid Credits
           </div>
         </div>
-        <div className="flex flex-col items-center w-full sm:w-auto">
+        <div className="flex flex-col items-center w-full sm:w-auto border-2 p-2">
           <div className="flex items-center">
-            <Wallet className="mr-1" strokeWidth={1} size={20} />
+            {/* <Wallet className="mr-1" strokeWidth={1} size={20} /> */}
             {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
@@ -174,11 +174,11 @@ export function CreditsAllLayout() {
                 message=""
               />
             ) : (
-              <span>All Credits: {totalCredits}</span>
+              <span>Total: {totalCredits}</span>
             )}
           </div>
-          <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-600">
-            Total Available
+          <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-400">
+            Current Total
           </div>
         </div>
       </div>
