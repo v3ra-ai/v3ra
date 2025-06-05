@@ -1,7 +1,7 @@
 // components/credits/credit-slider-ui.tsx
-import * as Slider from '@radix-ui/react-slider';
-import { Square } from 'lucide-react';
-import Image from 'next/image';
+import * as Slider from "@radix-ui/react-slider";
+import { Square } from "lucide-react";
+import Image from "next/image";
 
 interface CreditSliderUIProps {
   creditAmount: number;
@@ -34,8 +34,8 @@ export default function CreditSliderUI({
 }: CreditSliderUIProps) {
   // const { userFreeCredits, userPaidCredits } = useCreditsStore();
 
-  if (process.env.NODE_ENV === 'development') {
-    console.log('CreditSliderUI cost display:', {
+  if (process.env.NODE_ENV === "development") {
+    console.log("CreditSliderUI cost display:", {
       requiredSol,
       decimalPlaces,
       formattedCost: requiredSol.toFixed(decimalPlaces),
@@ -47,14 +47,29 @@ export default function CreditSliderUI({
       <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
         <div className="flex flex-col justify-center items-center mb-2">
           <h2 className="w-full text-2xl font-semibold mb-2 ml-2 text-zinc-900 dark:text-zinc-100">
-            <div>Purchase Credits</div>
-            <div>with SOL</div>
+            <div>Buy Credits</div>
+            <div><span className="text-light">with</span> SOL</div>
           </h2>
-          <Image src={`/icons/solanaLogoMark.png`} alt={`Solana SOL`} width={60} height={60} />
         </div>
       </div>
-      <div className="text-center mb-6">
-        <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">{creditAmount}</span>
+      <div className="flex text-center mt-1 mb-6 justify-center border-0">
+        <div className="flex justify-center items-center border-0">
+          <Image
+            src={`/icons/solanaLogoMark.png`}
+            alt={`Solana SOL`}
+            width={60}
+            height={60}
+          />
+        </div>
+        <div className="text-5xl ml-3 font-bold text-zinc-900 dark:text-zinc-100">
+          <div className="flex justify-center items-center">
+            <div className="font-extralight text-3xl">+</div>
+            <div className="ml-1">{creditAmount}</div>
+            <div className="flex ml-2 items-center justify-center text-sm font-light">
+              credits
+            </div>
+          </div>
+        </div>
       </div>
       <div className="mb-6">
         <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
@@ -96,32 +111,47 @@ export default function CreditSliderUI({
           Paid Credits: {isWalletConnected ? userPaidCredits : 'n/a - connect wallet'}
         </p> */}
         <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Total Credits: {isWalletConnected && creditBalance !== null ? `${creditBalance} credits` : 'n/a - connect wallet'}
+          Total Credits:{" "}
+          {isWalletConnected && creditBalance !== null
+            ? `${creditBalance} credits`
+            : "n/a - connect wallet"}
         </p>
         <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          SOL Balance: {isWalletConnected && solBalance !== null ? `${solBalance.toFixed(decimalPlaces)} SOL` : 'n/a - connect wallet'}
+          SOL Balance:{" "}
+          {isWalletConnected && solBalance !== null
+            ? `${solBalance.toFixed(decimalPlaces)} SOL`
+            : "n/a - connect wallet"}
         </p>
       </div>
       <button
         onClick={onPay}
-        disabled={isLoading || creditAmount === 0 || (!isWalletConnected ? false : !isValid || !hasEnoughSol)}
+        disabled={
+          isLoading ||
+          creditAmount === 0 ||
+          (!isWalletConnected ? false : !isValid || !hasEnoughSol)
+        }
         className={`w-full py-2 px-4 rounded-md font-medium text-white ${
-          isLoading || creditAmount === 0 || (!isWalletConnected ? false : !isValid || !hasEnoughSol)
-            ? 'bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed'
-            : 'bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer'
+          isLoading ||
+          creditAmount === 0 ||
+          (!isWalletConnected ? false : !isValid || !hasEnoughSol)
+            ? "bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed"
+            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer"
         }`}
       >
         {isLoading
-          ? 'Processing...'
+          ? "Processing..."
           : creditAmount === 0
-          ? 'Select Credits'
-          : isWalletConnected
-          ? 'Pay Now'
-          : 'Connect Wallet'}
+            ? "Select Credits"
+            : isWalletConnected && solBalance !== null
+              ? <>Pay Now: {requiredSol.toFixed(decimalPlaces)} SOL</>
+              : "Connect Wallet"}
       </button>
       {isWalletConnected && (
         <div className="text-center mt-2 flex items-center justify-center gap-2">
-          <Square className="h-4 w-4" fill={isWalletConnected ? '#22c55e' : '#ef4444'} />
+          <Square
+            className="h-4 w-4"
+            fill={isWalletConnected ? "#22c55e" : "#ef4444"}
+          />
           <button
             onClick={onChangeWallet}
             className="text-sm text-blue-500 dark:text-blue-400 hover:underline"

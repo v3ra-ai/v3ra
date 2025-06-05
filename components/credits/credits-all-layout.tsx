@@ -3,7 +3,7 @@
 import { useEffect, useCallback, useState } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
-import { Landmark } from "lucide-react";
+import { Coins, Gift, Wallet } from "lucide-react";
 import { useCreditsStore } from "@/store/credit-store";
 import CreditSlider from "@/components/credits/credit-slider";
 import TruthSlider from "@/components/credits/truth-slider";
@@ -102,7 +102,13 @@ export function CreditsAllLayout() {
         timestamp: new Date(savedCreditsTimestamp).toISOString(),
       });
     }
-  }, [creditsLoading, savedCreditsTimestamp, userFreeCredits, userPaidCredits, totalCredits]);
+  }, [
+    creditsLoading,
+    savedCreditsTimestamp,
+    userFreeCredits,
+    userPaidCredits,
+    totalCredits,
+  ]);
 
   return (
     <motion.div
@@ -117,7 +123,7 @@ export function CreditsAllLayout() {
       <div className="flex flex-col sm:flex-row gap-4 justify-center text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
         <div className="flex flex-col items-center w-full sm:w-auto">
           <div className="flex items-center">
-            <Landmark className="mr-2" />
+            <Gift className="mr-1" strokeWidth={1} size={20} />
             {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
@@ -136,7 +142,7 @@ export function CreditsAllLayout() {
         </div>
         <div className="flex flex-col items-center w-full sm:w-auto">
           <div className="flex items-center">
-            <Landmark className="mr-2" />
+            <Coins className="mr-1" strokeWidth={1} size={20}/>
             {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
@@ -146,16 +152,19 @@ export function CreditsAllLayout() {
                 message=""
               />
             ) : (
-              <span>Paid: {userPaidCredits}</span>
+              <div className="">
+                <span className="">Paid: </span>
+                <span className="">{userPaidCredits}</span>
+              </div>
             )}
           </div>
-          <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-600">
-            Purchased Credits
+          <div className="w-full text-xs mt-1 text-zinc-300 dark:text-zinc-600 text-center items-center justify-center">
+            Paid Credits
           </div>
         </div>
         <div className="flex flex-col items-center w-full sm:w-auto">
           <div className="flex items-center">
-            <Landmark className="mr-2" />
+            <Wallet className="mr-1" strokeWidth={1} size={20} />
             {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
@@ -165,7 +174,7 @@ export function CreditsAllLayout() {
                 message=""
               />
             ) : (
-              <span>Total Credits: {totalCredits}</span>
+              <span>All Credits: {totalCredits}</span>
             )}
           </div>
           <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-600">
