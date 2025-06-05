@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import type { VoteResult } from "@/lib/types";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { sanitizeQueryText } from "@/utils/security-utils";
+import { supabase } from '@/lib/supabase-client';
 
 interface UseQueryLogicProps {
   payWithWallet: boolean;
@@ -25,17 +26,11 @@ export function useQueryLogic({
   const [queryText, setQueryText] = useState<string>("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState<string | undefined>(undefined);
   const hasFetchedCredits = useRef(false); // Track initial fetch
 
   const { publicKey } = useWallet();
-  const { fetchSavedCredits, decrementFreeCredits } = useCreditsStore();
-
-  const {
-    userFreeCredits,
-    userPaidCredits,
-    userCreditsTotal,
-    hasPaid: storeHasPaid,
-  } = useCreditsStore();
+  const { fetchAllCredits, decrementFreeCredits, userFreeCredits, userPaidCredits, userCreditsTotal, hasPaid: storeHasPaid } = useCreditsStore(); // Line 31: Replaced fetchSavedCredits
   const {
     queriesRequested,
     queriesUnpaid,
@@ -46,8 +41,7 @@ export function useQueryLogic({
     setQueryMode,
     resetAfterSubmission,
   } = useQueryStore();
-  const { voteHistory, lastVoteResult, setVoteHistory, setLastVoteResult } =
-    useVoteStore();
+  const { voteHistory, lastVoteResult, setVoteHistory, setLastVoteResult } = useVoteStore();
 
   const placeholderText = getPlaceholderText(queryMode);
 
@@ -60,43 +54,45 @@ export function useQueryLogic({
         method: "GET",
         credentials: "include",
       });
-      console.log(
-        "[useQueryLogic] CSRF fetch response status:",
-        response.status
-      );
+      console.log("[useQueryLogic] CSRF fetch response status:", response.status);
       const data = await response.json();
       if (!response.ok || !data.csrfToken) {
-        throw new Error(
-          data.error || `Failed to fetch CSRF token: ${response.status}`
-        );
+        throw new Error(data.error || `Failed to fetch CSRF token: ${response.status}`);
       }
-      console.log(
-        "[useQueryLogic] CSRF token fetched successfully:",
-        data.csrfToken
-      );
+      console.log("[useQueryLogic] CSRF token fetched successfully:", data.csrfToken);
       return data.csrfToken;
     } catch (err) {
       console.error("[useQueryLogic] CSRF token fetch failed:", err);
-      throw new Error(
-        err instanceof Error ? err.message : "Unknown error fetching CSRF token"
-      );
+      throw new Error(err instanceof Error ? err.message : "Unknown error fetching CSRF token");
     }
   };
 
+  // Fetch email on mount
+  useEffect(() => {
+    const fetchEmail = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) throw error;
+        setEmail(session?.user?.email);
+        console.log('[useQueryLogic] Fetched email:', session?.user?.email);
+      } catch (err) {
+        console.error('[useQueryLogic] Error fetching email:', err);
+      }
+    };
+    fetchEmail();
+  }, []);
+
   // Fetch saved credits only on initial mount
   useEffect(() => {
-    if (publicKey && !hasFetchedCredits.current) {
-      console.log("[useQueryLogic] Initial fetchSavedCredits:", {
-        publicKey: publicKey.toBase58(),
+    if (!hasFetchedCredits.current && email) {
+      console.log("[useQueryLogic] Initial fetchAllCredits:", {
+        publicKey: publicKey?.toBase58() || "none",
+        email,
       });
-      fetchSavedCredits(publicKey);
-      hasFetchedCredits.current = true;
-    } else if (!publicKey && !hasFetchedCredits.current) {
-      console.log("[useQueryLogic] Initial fetchSavedCredits with null publicKey");
-      fetchSavedCredits(null);
+      fetchAllCredits(publicKey, email); // Line 71: Replaced fetchSavedCredits
       hasFetchedCredits.current = true;
     }
-  }, [publicKey, fetchSavedCredits]);
+  }, [publicKey, email, fetchAllCredits]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -105,12 +101,7 @@ export function useQueryLogic({
       if (q === "shop") {
         setQueryMode("shop");
       }
-      console.log(
-        "[useQueryLogic] URL param 'q':",
-        q,
-        "Current queryMode:",
-        queryMode
-      );
+      console.log("[useQueryLogic] URL param 'q':", q, "Current queryMode:", queryMode);
     }
   }, [setQueryMode]);
 
@@ -128,15 +119,11 @@ export function useQueryLogic({
     }
   }, [queriesUnpaid, payWithWallet, setPayWithWallet]);
 
-  const handleSetVoteHistory: Dispatch<SetStateAction<VoteResult[]>> = (
-    history
-  ) => {
+  const handleSetVoteHistory: Dispatch<SetStateAction<VoteResult[]>> = (history) => {
     setVoteHistory(history);
   };
 
-  const handleSetLastVoteResult: Dispatch<SetStateAction<VoteResult | null>> = (
-    result
-  ) => {
+  const handleSetLastVoteResult: Dispatch<SetStateAction<VoteResult | null>> = (result) => {
     setLastVoteResult(result);
   };
 
@@ -149,10 +136,7 @@ export function useQueryLogic({
 
   const handleQueryAmountChange = useCallback(
     (newAmount: number) => {
-      const clampedAmount = Math.max(
-        1,
-        Math.min(ALLOWED_AMOUNT_QUERIES, newAmount)
-      );
+      const clampedAmount = Math.max(1, Math.min(ALLOWED_AMOUNT_QUERIES, newAmount));
       console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount);
       setQueriesRequested(clampedAmount, userCreditsTotal);
     },
@@ -181,144 +165,136 @@ export function useQueryLogic({
       }
       return data.credits;
     } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error decrementing credits";
+      const errorMessage = err instanceof Error ? err.message : "Unknown error decrementing credits";
       console.error("[useQueryLogic] Credit decrement failed:", errorMessage);
       throw new Error(errorMessage);
     }
   };
 
   const handleSubmit = async () => {
-  console.log("[useQueryLogic] handleSubmit called", {
-    queryText,
-    queryMode,
-    userCreditsTotal,
-    userFreeCredits,
-    userPaidCredits,
-    queriesRequested,
-    queriesUnpaid,
-    queriesCostTotal,
-    payWithWallet,
-    storeHasPaid,
-    creditsLeft: userCreditsTotal - queriesRequested,
-  });
-
-  try {
-    if (!queryText.trim()) {
-      toast.error("Query cannot be empty", {
-        style: { background: "#fee2e2", color: "#dc2626" },
-        duration: 5000,
-      });
-      return;
-    }
-
-    // Check if credits left can cover the query cost
-    const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
-    console.log("[useQueryLogic] Credit check:", {
-      creditsLeft,
-      queriesCostTotal,
-      userCreditsTotal,
-      queriesRequested,
-      sufficientCredits: creditsLeft >= queriesCostTotal,
-    });
-    // TEMPORARY BYPASS FOR TESTING
-    // if (creditsLeft < queriesCostTotal) {
-    //   console.log("[useQueryLogic] Blocked: Insufficient credits left", {
-    //     creditsLeft,
-    //     queriesCostTotal,
-    //   });
-    //   toast.error("Insufficient credits to cover the query cost. Please purchase more credits.", {
-    //     style: { background: "#fee2e2", color: "#dc2626" },
-    //     duration: 5000,
-    //   });
-    //   return;
-    // }
-
-    // For paid queries, ensure wallet is connected
-    if (payWithWallet && !publicKey) {
-      console.log("[useQueryLogic] Blocked: No wallet connected for paid query");
-      toast.error("Please connect your wallet to submit paid queries", {
-        style: { background: "#fee2e2", color: "#dc2626" },
-        duration: 5000,
-      });
-      return;
-    }
-
-  } catch (err: unknown) {
-    const errorMessage =
-      err instanceof Error ? err.message : "Validation failed unexpectedly";
-    setError(sanitizeQueryText(errorMessage));
-    toast.error(errorMessage, {
-      style: { background: "#fee2e2", color: "#dc2626" },
-      duration: 5000,
-    });
-    setIsSubmitting(false);
-    return;
-  }
-
-  setIsSubmitting(true);
-  setError(null);
-  try {
-    // Optimistically update client-side state for free credits
-    if (!payWithWallet && userFreeCredits >= queriesRequested) {
-      console.log("[useQueryLogic] Processing free credits query", {
-        queriesRequested,
-        userFreeCredits,
-      });
-      decrementFreeCredits(queriesRequested);
-      const csrfToken = await fetchCsrfToken();
-      await broadcastQuery(queryText, {
-        csrfToken,
-        queryMode,
-        queriesRequested,
-      });
-      toast.success(`Query submitted, ${queriesRequested} free credits deducted!`);
-      // Dispatch credits-updated event for free credits
-      window.dispatchEvent(new Event("credits-updated"));
-    } else {
-      // Paid queries require wallet and server-side decrement
-      console.log("[useQueryLogic] Processing paid credits query", {
-        queriesRequested,
-        userPaidCredits,
-        publicKey: publicKey?.toBase58(),
-      });
-      const walletPublicKey = publicKey!.toBase58();
-      await decrementCredits(walletPublicKey, queriesRequested);
-      const csrfToken = await fetchCsrfToken();
-      await broadcastQuery(queryText, {
-        csrfToken,
-        queryMode,
-        queriesRequested,
-      });
-      await fetchSavedCredits(publicKey); // Refresh credits after payment
-      toast.success(`Query submitted, ${queriesRequested} credits deducted!`);
-      // Dispatch credits-updated event for paid credits
-      window.dispatchEvent(new Event("credits-updated"));
-    }
-    resetAfterSubmission(userCreditsTotal);
-    setQueryText("");
-    setPayWithWallet(queriesRequested > userCreditsTotal);
-  } catch (err: unknown) {
-    const errorMessage =
-      err instanceof Error ? err.message : "Failed to submit query";
-    setError(sanitizeQueryText(errorMessage));
-    console.error("[useQueryLogic] Submission failed:", {
-      errorMessage,
+    console.log("[useQueryLogic] handleSubmit called", {
       queryText,
       queryMode,
+      userCreditsTotal,
+      userFreeCredits,
+      userPaidCredits,
       queriesRequested,
       queriesUnpaid,
+      queriesCostTotal,
       payWithWallet,
       storeHasPaid,
+      creditsLeft: userCreditsTotal - queriesRequested,
     });
-    toast.error(errorMessage, {
-      style: { background: "#fee2e2", color: "#dc2626" },
-      duration: 5000,
-    });
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+
+    try {
+      if (!queryText.trim()) {
+        toast.error("Query cannot be empty", {
+          style: { background: "#fee2e2", color: "#dc2626" },
+          duration: 5000,
+        });
+        return;
+      }
+
+      // Check if credits left can cover the query cost
+      const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
+      console.log("[useQueryLogic] Credit check:", {
+        creditsLeft,
+        queriesCostTotal,
+        userCreditsTotal,
+        queriesRequested,
+        sufficientCredits: creditsLeft >= queriesCostTotal,
+      });
+      // TEMPORARY BYPASS FOR TESTING
+      // if (creditsLeft < queriesCostTotal) {
+      //   console.log("[useQueryLogic] Blocked: Insufficient credits left", {
+      //     creditsLeft,
+      //     queriesCostTotal,
+      //   });
+      //   toast.error("Insufficient credits to cover the query cost. Please purchase more credits.", {
+      //     style: { background: "#fee2e2", color: "#dc2626" },
+      //     duration: 5000,
+      //   });
+      //   return;
+      // }
+
+      // For paid queries, ensure wallet is connected
+      if (payWithWallet && !publicKey) {
+        console.log("[useQueryLogic] Blocked: No wallet connected for paid query");
+        toast.error("Please connect your wallet to submit paid queries", {
+          style: { background: "#fee2e2", color: "#dc2626" },
+          duration: 5000,
+        });
+        return;
+      }
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Validation failed unexpectedly";
+      setError(sanitizeQueryText(errorMessage));
+      toast.error(errorMessage, {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+    try {
+      // Optimistically update client-side state for free credits
+      if (!payWithWallet && userFreeCredits >= queriesRequested) {
+        console.log("[useQueryLogic] Processing free credits query", {
+          queriesRequested,
+          userFreeCredits,
+        });
+        decrementFreeCredits(queriesRequested);
+        const csrfToken = await fetchCsrfToken();
+        await broadcastQuery(queryText, {
+          csrfToken,
+          queryMode,
+          queriesRequested,
+        });
+        toast.success(`Query submitted, ${queriesRequested} free credits deducted!`);
+      } else {
+        // Paid queries require wallet and server-side decrement
+        console.log("[useQueryLogic] Processing paid credits query", {
+          queriesRequested,
+          userPaidCredits,
+          publicKey: publicKey?.toBase58(),
+        });
+        const walletPublicKey = publicKey!.toBase58();
+        await decrementCredits(walletPublicKey, queriesRequested);
+        const csrfToken = await fetchCsrfToken();
+        await broadcastQuery(queryText, {
+          csrfToken,
+          queryMode,
+          queriesRequested,
+        });
+        await fetchAllCredits(publicKey, email); // Line 296: Replaced fetchSavedCredits
+        toast.success(`Query submitted, ${queriesRequested} credits deducted!`);
+      }
+      resetAfterSubmission(userCreditsTotal);
+      setQueryText("");
+      setPayWithWallet(queriesRequested > userCreditsTotal);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to submit query";
+      setError(sanitizeQueryText(errorMessage));
+      console.error("[useQueryLogic] Submission failed:", {
+        errorMessage,
+        queryText,
+        queryMode,
+        queriesRequested,
+        queriesUnpaid,
+        payWithWallet,
+        storeHasPaid,
+      });
+      toast.error(errorMessage, {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   return {
     queriesRequested,

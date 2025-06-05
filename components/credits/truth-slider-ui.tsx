@@ -94,7 +94,7 @@ export default function TruthSliderUI({
       </div>
       <div className="mb-4">
         <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Current Balance:{" "}
+          Total Credits:{" "}
           {isWalletConnected && creditBalance !== null
             ? `${creditBalance} credits`
             : "n/a - connect wallet"}

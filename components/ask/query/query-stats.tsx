@@ -1,3 +1,6 @@
+// components/ask/query/query-stats.tsx
+'use client';
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,6 +13,7 @@ import { ChevronDown, Coins, Layers } from "lucide-react";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCreditsStore } from "@/store/credit-store";
+import { supabase } from '@/lib/supabase-client';
 
 interface QueryStatsProps {
   userCreditsTotal: number;
@@ -27,9 +31,10 @@ export default function QueryStats({
   const [isOpen, setIsOpen] = useState(false);
   const [hasTriggeredOpen, setHasTriggeredOpen] = useState(false);
   const [hasTriggeredClose, setHasTriggeredClose] = useState(false);
+  const [email, setEmail] = useState<string | undefined>(undefined);
   const { publicKey } = useWallet();
   const {
-    fetchSavedCredits,
+    fetchAllCredits, // Line 32: Replaced fetchSavedCredits
     savedCredits,
     totalCredits,
     displayUnpaid,
@@ -38,6 +43,20 @@ export default function QueryStats({
     setQueriesCostTotal,
     hasPaid,
   } = useCreditsStore();
+
+  // Fetch email on mount
+  useEffect(() => {
+    const fetchEmail = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        setEmail(session?.user?.email);
+        console.log('[QueryStats] Fetched email:', session?.user?.email);
+      } catch (err) {
+        console.error('[QueryStats] Error fetching email:', err);
+      }
+    };
+    fetchEmail();
+  }, []);
 
   // Fetch saved credits and sync store props
   useEffect(() => {
@@ -48,19 +67,23 @@ export default function QueryStats({
       queriesRequested,
       hasPaid,
       publicKey: publicKey?.toBase58() || "none",
+      email,
     });
-    fetchSavedCredits(publicKey);
+    if (publicKey && email) {
+      fetchAllCredits(publicKey, email); // Replaced fetchSavedCredits
+    }
     setUserCreditsTotal(userCreditsTotal);
     setQueriesUnpaid(queriesUnpaid);
     setQueriesCostTotal(queriesCostTotal);
   }, [
     publicKey,
+    email,
     userCreditsTotal,
     queriesUnpaid,
     queriesCostTotal,
     queriesRequested,
     hasPaid,
-    fetchSavedCredits,
+    fetchAllCredits, // Replaced fetchSavedCredits
     setUserCreditsTotal,
     setQueriesUnpaid,
     setQueriesCostTotal,
@@ -148,7 +171,7 @@ export default function QueryStats({
             </div>
             <Link href="/credits">
               <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
-              Stake to get more
+                Stake to get more
               </Button>
             </Link>
             <Link href="/credits">
@@ -185,12 +208,12 @@ export default function QueryStats({
         <div className="flex justify-between gap-2">
           <Link href="/credits">
             <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
-            <Layers /> Stake to get more
+              <Layers /> Stake to get more
             </Button>
           </Link>
           <Link href="/credits">
-          <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
-          <Coins /> Buy Credits
+            <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
+              <Coins /> Buy Credits
             </Button>
           </Link>
         </div>
