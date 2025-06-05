@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useCallback, useState, useEffect } from 'react';
@@ -15,10 +14,16 @@ interface BroadcastQueryOptions {
   csrfToken?: string;
   queryMode?: string;
   queriesRequested?: number;
+  isFreeQuery?: boolean;
 }
 
 interface BroadcastQueryResult {
   broadcastQuery: (query: string, options?: BroadcastQueryOptions) => Promise<void>;
+}
+
+// Type guard for error response
+function isErrorResponse(result: VoteResult | { error: string }): result is { error: string } {
+  return 'error' in result && typeof result.error === 'string';
 }
 
 export function useBroadcastQuery(
@@ -27,9 +32,9 @@ export function useBroadcastQuery(
   refetchNetworkState?: () => Promise<void>,
   fetchVoteHistory?: () => Promise<void>,
 ): BroadcastQueryResult {
-  const { userFreeCredits, userPaidCredits, decrementFreeCredits, decrementPaidCredits, fetchAllCredits } = useCreditsStore(); // Line 52: Replaced fetchSavedCredits
+  const { userFreeCredits, userPaidCredits, fetchAllCredits } = useCreditsStore();
   const { publicKey } = useWallet();
-  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+  const [, setCsrfToken] = useState<string | null>(null);
   const [email, setEmail] = useState<string | undefined>(undefined);
 
   // Fetch email on mount
@@ -69,81 +74,24 @@ export function useBroadcastQuery(
         query,
         queryMode: options.queryMode,
         queriesRequested: options.queriesRequested,
+        isFreeQuery: options.isFreeQuery,
         csrfToken: options.csrfToken ? '[REDACTED]' : undefined,
+        timestamp: new Date().toISOString(),
       });
 
       const queriesRequested = options.queriesRequested || QUERIES_REQUESTED_DEFAULT;
       const queryCost = queriesRequested * QUERIES_COST_EACH_DEFAULT;
 
-      // Validate credits
-      if (userFreeCredits + userPaidCredits < queryCost) {
-        toast.error('Insufficient credits for query');
-        throw new Error('Insufficient credits for query');
-      }
-
-      // Fetch CSRF token if not cached
-      const token = csrfToken || (await fetchCsrfToken());
-
-      // Deduct credits (free first, then paid)
-      let remainingCost = queryCost;
-      if (userFreeCredits >= remainingCost) {
-        decrementFreeCredits(remainingCost);
-        const response = await fetch('/api/credits/decrement', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': token,
-          },
-          body: JSON.stringify({ type: 'free', creditAmount: remainingCost }),
+      // Skip credit deduction if isFreeQuery is true (handled by useQueryLogic)
+      if (options.isFreeQuery) {
+        console.log('[useBroadcastQuery] Skipping credit deduction: isFreeQuery is true', {
+          timestamp: new Date().toISOString(),
         });
-        if (!response.ok) {
-          const errorData = await response.json();
-          toast.error(errorData.error || 'Failed to deduct free credits');
-          throw new Error(errorData.error || 'Failed to deduct free credits');
-        }
-        remainingCost = 0;
       } else {
-        remainingCost -= userFreeCredits;
-        if (userFreeCredits > 0) {
-          decrementFreeCredits(userFreeCredits);
-          const response = await fetch('/api/credits/decrement', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'X-CSRF-Token': token,
-            },
-            body: JSON.stringify({ type: 'free', creditAmount: userFreeCredits }),
-          });
-          if (!response.ok) {
-            const errorData = await response.json();
-            toast.error(errorData.error || 'Failed to deduct free credits');
-            throw new Error(errorData.error || 'Failed to deduct free credits');
-          }
-        }
-      }
-
-      if (remainingCost > 0) {
-        if (!publicKey) {
-          toast.error('Wallet not connected for paid credits');
-          throw new Error('Wallet not connected for paid credits');
-        }
-        decrementPaidCredits(remainingCost);
-        const response = await fetch('/api/credits/decrement', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-CSRF-Token': token,
-          },
-          body: JSON.stringify({
-            type: 'paid',
-            creditAmount: remainingCost,
-            walletPublicKey: publicKey.toBase58(),
-          }),
-        });
-        if (!response.ok) {
-          const errorData = await response.json();
-          toast.error(errorData.error || 'Failed to deduct paid credits');
-          throw new Error(errorData.error || 'Failed to deduct paid credits');
+        // Validate credits only if not free query
+        if (userFreeCredits + userPaidCredits < queryCost) {
+          toast.error('Insufficient credits for query');
+          throw new Error('Insufficient credits for query');
         }
       }
 
@@ -177,13 +125,14 @@ export function useBroadcastQuery(
           url: response.url,
           headers: Object.fromEntries(response.headers),
           body: voteResult,
+          timestamp: new Date().toISOString(),
         });
 
         if (!response.ok) {
           throw new Error(`Server responded with ${response.status}`);
         }
 
-        if ('error' in voteResult && typeof voteResult.error === 'string') {
+        if (isErrorResponse(voteResult)) {
           throw new Error(voteResult.error);
         }
 
@@ -198,7 +147,7 @@ export function useBroadcastQuery(
         await new Promise((resolve) => setTimeout(resolve, 500));
         await refetchWithRetry(1, fetchVoteHistory, refetchNetworkState);
         if (publicKey && email) {
-          await fetchAllCredits(publicKey, email); // Updated to fetchAllCredits
+          await fetchAllCredits(publicKey, email);
         }
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
@@ -206,6 +155,7 @@ export function useBroadcastQuery(
           query,
           queryMode: options.queryMode,
           queriesRequested,
+          timestamp: new Date().toISOString(),
         });
         toast.error(error.message);
         throw error;
@@ -218,13 +168,10 @@ export function useBroadcastQuery(
       fetchVoteHistory,
       userFreeCredits,
       userPaidCredits,
-      decrementFreeCredits,
-      decrementPaidCredits,
       publicKey,
-      csrfToken,
       fetchCsrfToken,
       email,
-      fetchAllCredits, // Updated dependency
+      fetchAllCredits,
     ],
   );
 

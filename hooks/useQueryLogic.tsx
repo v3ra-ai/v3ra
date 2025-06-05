@@ -40,7 +40,7 @@ export function useQueryLogic({
   const { publicKey } = useWallet();
   const {
     fetchAllCredits,
-    decrementFreeCredits,
+    decrementCreditsForQuery,
     userFreeCredits,
     userPaidCredits,
     userCreditsTotal,
@@ -236,6 +236,7 @@ export function useQueryLogic({
       walletPublicKey,
       creditAmount,
       email,
+      timestamp: new Date().toISOString(),
     });
     let attempts = 0;
     const maxAttempts = 2;
@@ -266,7 +267,7 @@ export function useQueryLogic({
           walletPublicKey,
           creditAmount,
           email: session.user.email,
-          type: "paid", // Added required type field
+          type: "paid",
         };
         console.log(
           "[useQueryLogic] Sending decrement credits request:",
@@ -288,6 +289,7 @@ export function useQueryLogic({
           statusText: response.statusText,
           headers: Object.fromEntries(response.headers),
           rawBody,
+          timestamp: new Date().toISOString(),
         });
 
         let data: DecrementCreditsResponse = {};
@@ -363,6 +365,7 @@ export function useQueryLogic({
       payWithWallet,
       storeHasPaid,
       creditsLeft: userCreditsTotal - queriesRequested,
+      timestamp: new Date().toISOString(),
     });
 
     try {
@@ -408,17 +411,21 @@ export function useQueryLogic({
     setIsSubmitting(true);
     setError(null);
     try {
+      const csrfToken = await fetchCsrfToken();
       if (!payWithWallet && userFreeCredits >= queriesRequested) {
         console.log("[useQueryLogic] Processing free credits query", {
           queriesRequested,
           userFreeCredits,
+          publicKey: publicKey?.toBase58() || "none",
+          email,
+          timestamp: new Date().toISOString(),
         });
-        decrementFreeCredits(queriesRequested);
-        const csrfToken = await fetchCsrfToken();
+        await decrementCreditsForQuery(queriesRequested, publicKey, email);
         await broadcastQuery(queryText, {
           csrfToken,
           queryMode,
           queriesRequested,
+          isFreeQuery: true,
         });
         toast.success(
           `Query submitted, ${queriesRequested} free credits deducted!`,
@@ -432,17 +439,18 @@ export function useQueryLogic({
           queriesRequested,
           userPaidCredits,
           publicKey: publicKey?.toBase58(),
+          timestamp: new Date().toISOString(),
         });
         if (!publicKey) {
           throw new Error("Wallet not connected for paid query");
         }
         const walletPublicKey = publicKey.toBase58();
         await decrementCredits(walletPublicKey, queriesRequested);
-        const csrfToken = await fetchCsrfToken();
         await broadcastQuery(queryText, {
           csrfToken,
           queryMode,
           queriesRequested,
+          isFreeQuery: false,
         });
         await fetchAllCredits(publicKey, email ?? undefined);
         toast.success(
@@ -476,6 +484,7 @@ export function useQueryLogic({
         queriesUnpaid,
         payWithWallet,
         storeHasPaid,
+        timestamp: new Date().toISOString(),
       });
       if (errorMessage.includes("session")) {
         toast.error("Session expired. Please log in again.", {

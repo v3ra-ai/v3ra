@@ -21,8 +21,10 @@ export function CreditsAllLayout() {
     fetchAllCredits,
     setUserCreditsTotal,
     creditsLoading,
+    savedCreditsTimestamp,
   } = useCreditsStore();
   const [email, setEmail] = useState<string | undefined>(undefined);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
 
   // Calculate total credits from store
   const totalCredits = userFreeCredits + userPaidCredits;
@@ -57,10 +59,15 @@ export function CreditsAllLayout() {
         const {
           data: { session },
         } = await supabase.auth.getSession();
-        setEmail(session?.user?.email);
-        console.log("[CreditsAllLayout] Fetched email:", session?.user?.email);
+        const userEmail = session?.user?.email;
+        setEmail(userEmail);
+        console.log("[CreditsAllLayout] Fetched email:", userEmail, {
+          timestamp: new Date().toISOString(),
+        });
       } catch (err) {
-        console.error("[CreditsAllLayout] Error fetching email:", err);
+        console.error("[CreditsAllLayout] Error fetching email:", err, {
+          timestamp: new Date().toISOString(),
+        });
       }
     };
     fetchEmail();
@@ -69,9 +76,33 @@ export function CreditsAllLayout() {
   // Fetch credits when publicKey or email changes
   useEffect(() => {
     if (publicKey && email) {
+      console.log("[CreditsAllLayout] Triggering fetchAllCredits:", {
+        publicKey: publicKey.toBase58(),
+        email,
+        timestamp: new Date().toISOString(),
+      });
       fetchAllCredits(publicKey, email);
+    } else {
+      console.log("[CreditsAllLayout] Skipping fetchAllCredits:", {
+        publicKey: publicKey?.toBase58(),
+        email,
+        timestamp: new Date().toISOString(),
+      });
     }
   }, [publicKey, email, fetchAllCredits]);
+
+  // Update initial loading state
+  useEffect(() => {
+    if (!creditsLoading && savedCreditsTimestamp !== null) {
+      setIsInitialLoading(false);
+      console.log("[CreditsAllLayout] Initial loading complete:", {
+        userFreeCredits,
+        userPaidCredits,
+        totalCredits,
+        timestamp: new Date(savedCreditsTimestamp).toISOString(),
+      });
+    }
+  }, [creditsLoading, savedCreditsTimestamp, userFreeCredits, userPaidCredits, totalCredits]);
 
   return (
     <motion.div
@@ -87,7 +118,7 @@ export function CreditsAllLayout() {
         <div className="flex flex-col items-center w-full sm:w-auto">
           <div className="flex items-center">
             <Landmark className="mr-2" />
-            {creditsLoading ? (
+            {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
                 type="pulse"
@@ -106,7 +137,7 @@ export function CreditsAllLayout() {
         <div className="flex flex-col items-center w-full sm:w-auto">
           <div className="flex items-center">
             <Landmark className="mr-2" />
-            {creditsLoading ? (
+            {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
                 type="pulse"
@@ -125,7 +156,7 @@ export function CreditsAllLayout() {
         <div className="flex flex-col items-center w-full sm:w-auto">
           <div className="flex items-center">
             <Landmark className="mr-2" />
-            {creditsLoading ? (
+            {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
                 type="pulse"
