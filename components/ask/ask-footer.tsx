@@ -114,7 +114,7 @@ export default function AskFooter() {
                   </li>
                   <li>
                     <Link
-                      href="/credits"
+                      href="/credits-all"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       Credits

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Sun, Moon, CircleUser, User, Menu } from "lucide-react";
+import { Sun, Moon, CircleUser, User, Menu, CircleHelp } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import {
@@ -14,7 +14,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const WalletMultiButton = dynamic(
-  () => import("@solana/wallet-adapter-react-ui").then((mod) => mod.WalletMultiButton),
+  () =>
+    import("@solana/wallet-adapter-react-ui").then(
+      (mod) => mod.WalletMultiButton
+    ),
   { ssr: false }
 );
 
@@ -49,11 +52,13 @@ export function NavbarSettings({
 
     checkSession();
 
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state change:", { event, session });
-      setIsLoggedIn(!!session);
-      setUserId(session?.user?.id || null);
-    });
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log("Auth state change:", { event, session });
+        setIsLoggedIn(!!session);
+        setUserId(session?.user?.id || null);
+      }
+    );
 
     return () => {
       authListener.subscription.unsubscribe();
@@ -72,7 +77,7 @@ export function NavbarSettings({
   };
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center space-x-3">
       {mounted && (
         <button
           onClick={handleToggleTheme}
@@ -93,7 +98,11 @@ export function NavbarSettings({
             className="text-gray-800 dark:text-gray-200 focus:outline-none cursor-pointer"
             aria-label={isLoggedIn ? "User menu" : "Login/Signup menu"}
           >
-            {isLoggedIn ? <User className="h-5 w-5" /> : <CircleUser className="h-5 w-5" />}
+            {isLoggedIn ? (
+              <User className="h-5 w-5" />
+            ) : (
+              <CircleUser className="h-5 w-5" />
+            )}
           </button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
@@ -161,6 +170,11 @@ export function NavbarSettings({
       >
         <Menu className="h-5 w-5 text-zinc-500 cursor-pointer" />
       </button>
+      <div className="">
+        <Link href="/docs/faq/" className=" cursor-pointer">
+          <CircleHelp strokeWidth={1.5} />
+        </Link>
+      </div>
     </div>
   );
 }
