@@ -4,16 +4,19 @@ import { useEffect, useState, useCallback } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
-import { Wallet } from "lucide-react";
-import { useCreditsStore } from "@/store/credit-store";
+import { Coins } from "lucide-react";
+import { useCreditsStore, useCreditsStoreWalletSync } from "@/store/credit-store";
 import { supabase } from "@/lib/supabase-client";
 import { memo } from "react";
 
 function NavbarCredits() {
   const { publicKey } = useWallet();
-  const { userFreeCredits, userPaidCredits, creditsLoading, fetchAllCredits, savedCreditsTimestamp, resetCredits } = useCreditsStore();
+  const { userFreeCredits, userPaidCredits, creditsLoading, fetchAllCredits, savedCreditsTimestamp } = useCreditsStore();
   const [email, setEmail] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Sync wallet state changes
+  useCreditsStoreWalletSync(email);
 
   // Calculate total credits
   const totalCredits = userFreeCredits + userPaidCredits;
@@ -27,8 +30,8 @@ function NavbarCredits() {
         console.log("[NavbarCredits] Fetched email:", session?.user?.email, {
           timestamp: new Date().toISOString(),
         });
-      } catch (err) {
-        console.error("[NavbarCredits] Error fetching email:", err, {
+      } catch {
+        console.error("[NavbarCredits] Error fetching email", {
           timestamp: new Date().toISOString(),
         });
       }
@@ -36,11 +39,11 @@ function NavbarCredits() {
     fetchEmail();
   }, []);
 
-  // Fetch credits with reset and forceFetch
+  // Fetch credits when publicKey or email changes
   const fetchCreditsIfNeeded = useCallback(() => {
-    if (!publicKey || !email) {
-      console.log("[NavbarCredits] Skipping fetch: missing publicKey or email", {
-        publicKey: publicKey?.toBase58(),
+    if (!email) {
+      console.log("[NavbarCredits] Skipping fetch: missing email", {
+        publicKey: publicKey?.toBase58() || "none",
         email,
         timestamp: new Date().toISOString(),
       });
@@ -48,32 +51,15 @@ function NavbarCredits() {
     }
 
     console.log("[NavbarCredits] Triggering fetchAllCredits:", {
-      publicKey: publicKey.toBase58(),
+      publicKey: publicKey?.toBase58() || "none",
       email,
       timestamp: new Date().toISOString(),
     });
-    resetCredits(); // Clear stale state
-    fetchAllCredits(publicKey, email, true); // Force fetch
-  }, [publicKey, email, fetchAllCredits, resetCredits]);
+    fetchAllCredits(publicKey, email, true); // Force fetch to bypass cache
+  }, [publicKey, email, fetchAllCredits]);
 
-  // Trigger fetch on mount and dependencies
   useEffect(() => {
     fetchCreditsIfNeeded();
-  }, [fetchCreditsIfNeeded]);
-
-  // Refetch on navigation
-  useEffect(() => {
-    const handleRouteChange = () => {
-      console.log("[NavbarCredits] Route changed, refetching credits:", {
-        pathname: window.location.pathname,
-        timestamp: new Date().toISOString(),
-      });
-      fetchCreditsIfNeeded();
-    };
-
-    // Next.js 13+ App Router doesn't expose router.events, use window.location
-    window.addEventListener('popstate', handleRouteChange);
-    return () => window.removeEventListener('popstate', handleRouteChange);
   }, [fetchCreditsIfNeeded]);
 
   // Update loading state
@@ -100,8 +86,8 @@ function NavbarCredits() {
     }
   }, [creditsLoading, userFreeCredits, userPaidCredits, totalCredits, savedCreditsTimestamp]);
 
-  if (!publicKey) {
-    console.log("[NavbarCredits] No publicKey, returning null", {
+  if (!email) {
+    console.log("[NavbarCredits] No email, returning null", {
       timestamp: new Date().toISOString(),
     });
     return null;
@@ -119,7 +105,7 @@ function NavbarCredits() {
     <div className="flex items-center text-md text-zinc-600 dark:text-zinc-300">
       <Link href="/credits-all/">
         <div className="flex items-center">
-          <Wallet size={16}  strokeWidth={1.5} /> <span className="mx-1">Total Credits:</span>
+          <Coins size={16} /> <span className="mx-2">Total Credits:</span>
           <span className="text-sky-700 dark:text-sky-300 bg-zinc-200 dark:bg-zinc-700 ml-1 px-2 py-1 rounded-md">
             {isLoading ? (
               <>
