@@ -22,8 +22,8 @@ interface CreditsState {
   setQueriesCostTotal: (cost: number) => void;
   setHasPaid: (paid: boolean) => void;
   fetchAllCredits: (publicKey: PublicKey | null, email?: string, forceFetch?: boolean) => Promise<void>;
-  decrementCreditsForQuery: (amount: number, publicKey: PublicKey | null, email?: string) => Promise<void>;
-  resetCredits: () => void; // Added
+  decrementCreditsForQuery: (amount: number, publicKey: PublicKey | null, email?: string, csrfToken?: string) => Promise<void>;
+  resetCredits: () => void;
 }
 
 const CACHE_DURATION = 60 * 1000; // 60 seconds
@@ -334,15 +334,13 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
         context: { publicKey: publicKey?.toBase58(), email },
         timestamp: new Date(now).toISOString(),
       });
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : "Unknown error";
+    } catch {
+      const errorMsg = "Unknown error";
       console.error("[credit-store] Error fetching credits:", errorMsg, {
-        error,
         publicKey: publicKey?.toBase58(),
         email,
         timestamp: new Date().toISOString(),
       });
-      // Reset state on error to prevent stale data
       set({
         userFreeCredits: 0,
         userPaidCredits: 0,
@@ -355,7 +353,7 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
     }
   },
 
-  decrementCreditsForQuery: async (amount: number, publicKey: PublicKey | null, email?: string) => {
+  decrementCreditsForQuery: async (amount: number, publicKey: PublicKey | null, email?: string, csrfToken?: string) => {
     const state = get();
     console.log("[credit-store] decrementCreditsForQuery:", {
       amount,
@@ -363,15 +361,22 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
       userPaidCredits: state.userPaidCredits,
       publicKey: publicKey?.toBase58(),
       email,
+      csrfToken: csrfToken ? "[REDACTED]" : undefined,
       timestamp: new Date().toISOString(),
     });
 
     if (state.userFreeCredits >= amount && email) {
       // Prefer free credits
       try {
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        if (csrfToken) {
+          headers["X-CSRF-Token"] = csrfToken;
+        }
         const response = await fetch('/api/credits/decrement', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           credentials: 'include',
           body: JSON.stringify({
             type: 'free',
@@ -381,7 +386,8 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
@@ -399,15 +405,23 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
         }));
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : "Unknown error";
-        console.error("[credit-store] Error decrementing free credits:", errorMsg);
-        throw error;
+        console.error("[credit-store] Error decrementing free credits:", errorMsg, {
+          timestamp: new Date().toISOString(),
+        });
+        throw new Error(errorMsg);
       }
     } else if (state.userPaidCredits >= amount && publicKey && email) {
       // Fallback to paid credits
       try {
+        const headers: HeadersInit = {
+          "Content-Type": "application/json",
+        };
+        if (csrfToken) {
+          headers["X-CSRF-Token"] = csrfToken;
+        }
         const response = await fetch('/api/credits/decrement', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers,
           credentials: 'include',
           body: JSON.stringify({
             type: 'paid',
@@ -418,7 +432,8 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
         });
 
         if (!response.ok) {
-          throw new Error(`HTTP ${response.status}: ${await response.text()}`);
+          const errorText = await response.text();
+          throw new Error(`HTTP ${response.status}: ${errorText}`);
         }
 
         const data = await response.json();
@@ -436,12 +451,16 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
         }));
       } catch (error) {
         const errorMsg = error instanceof Error ? error.message : "Unknown error";
-        console.error("[credit-store] Error decrementing paid credits:", errorMsg);
-        throw error;
+        console.error("[credit-store] Error decrementing paid credits:", errorMsg, {
+          timestamp: new Date().toISOString(),
+        });
+        throw new Error(errorMsg);
       }
     } else {
       const errorMsg = `Insufficient credits: Need ${amount}, have ${state.userFreeCredits} free, ${state.userPaidCredits} paid`;
-      console.error("[credit-store] Insufficient credits for query:", errorMsg);
+      console.error("[credit-store] Insufficient credits for query:", errorMsg, {
+        timestamp: new Date().toISOString(),
+      });
       throw new Error(errorMsg);
     }
   },

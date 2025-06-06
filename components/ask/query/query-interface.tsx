@@ -7,7 +7,7 @@ import dynamic from 'next/dynamic';
 const WalletToggle = dynamic(() => import('@/components/ask/payments/wallet-toggle'), { ssr: false });
 import QueryStats from "@/components/ask/query/query-stats";
 import QueryResults from "@/components/ask/query/query-results";
-import { useQueryLogic } from "@/hooks/useQueryLogic";
+import useQueryLogic from "@/hooks/useQueryLogic"; // Correct default import
 import { QueryMode } from "@/lib/types";
 import * as Popover from "@radix-ui/react-popover";
 import Link from "next/link";
@@ -42,7 +42,9 @@ export default function QueryInterface() {
     queriesCostTotal,
     error,
     viewMode,
+    timestamp: new Date().toISOString(),
   });
+
   return (
     <div className="container mx-auto px-4 py-1 min-h-screen">
       <div className="flex flex-col md:flex-row items-center justify-center flex-wrap md:flex-nowrap space-x-4 mb-2">
@@ -66,7 +68,7 @@ export default function QueryInterface() {
                 sideOffset={5}
                 align="center"
               >
-                {(["fact-check", "predict", "shop"] as QueryMode[]).map(
+                {(["fact-check", "predict", "create", "shop"] as QueryMode[]).map(
                   (mode) => (
                     <Link
                       key={mode}
