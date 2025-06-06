@@ -122,7 +122,7 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
   setUserCreditsTotal: (credits) =>
     set((state) => {
       const newUserCreditsTotal = credits;
-      const newPaidCredits = credits;
+      const newPaidCredits = Math.max(0, credits - state.userFreeCredits); // Prevent setting paid credits incorrectly
       const newTotalCredits = state.userFreeCredits + newPaidCredits;
       const newState = {
         userPaidCredits: newPaidCredits,
@@ -202,16 +202,6 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
     const currentState = get();
     const now = Date.now();
 
-    // Reset state before fetch to clear stale data
-    if (forceFetch) {
-      get().resetCredits();
-      console.log("[credit-store] Reset credits state before force fetch:", {
-        publicKey: publicKey?.toBase58(),
-        email,
-        timestamp: new Date().toISOString(),
-      });
-    }
-
     // Force fetch if requested or totalCredits is inconsistent
     const expectedTotal = currentState.userFreeCredits + currentState.userPaidCredits;
     const isTotalInvalid = currentState.totalCredits !== expectedTotal;
@@ -237,7 +227,7 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
 
     set({ creditsLoading: true });
     console.log("[credit-store] Fetching all credits:", {
-      publicKey: publicKey?.toBase58(),
+      publicKey: publicKey?.toBase58() || "none",
       email,
       forceFetch,
       isTotalInvalid,
@@ -297,21 +287,21 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
       }
 
       let paidCredits = 0;
-      if (paidResponse && paidResponse.ok) {
+      if (publicKey && paidResponse && paidResponse.ok) {
         const paidData = await paidResponse.json();
         console.log("[credit-store] Fetched paid credits response:", {
           status: paidResponse.status,
           data: paidData,
-          publicKey: publicKey?.toBase58(),
+          publicKey: publicKey.toBase58(),
           timestamp: new Date().toISOString(),
         });
         paidCredits = paidData.paidCredits ?? paidData.credits ?? 0;
       } else {
-        console.warn(
-          "[credit-store] Failed to fetch paid credits:",
-          paidResponse ? paidResponse.statusText : "No response",
-          { publicKey: publicKey?.toBase58(), timestamp: new Date().toISOString() }
-        );
+        console.log("[credit-store] No paid credits fetched:", {
+          publicKey: publicKey?.toBase58() || "none",
+          reason: !publicKey ? "No wallet connected" : "Fetch failed",
+          timestamp: new Date().toISOString(),
+        });
         paidCredits = 0;
       }
 
@@ -331,7 +321,7 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
         userPaidCredits: paidCredits,
         userCreditsTotal: newUserCreditsTotal,
         totalCredits: newTotalCredits,
-        context: { publicKey: publicKey?.toBase58(), email },
+        context: { publicKey: publicKey?.toBase58() || "none", email },
         timestamp: new Date(now).toISOString(),
       });
     } catch {
