@@ -171,7 +171,7 @@ export function NavbarSettings({
         <Menu className="h-5 w-5 text-zinc-500 cursor-pointer" />
       </button>
       <div className="">
-        <Link href="/docs/faq/" className=" cursor-pointer">
+        <Link href="/docs/faqs/" className=" cursor-pointer">
           <CircleHelp strokeWidth={1.5} />
         </Link>
       </div>

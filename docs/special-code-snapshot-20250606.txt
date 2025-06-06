@@ -144,6 +144,10 @@ Current directory: ./
 │   │   └── page.tsx
 │   ├── dashboard
 │   │   └── page.tsx
+│   ├── docs
+│   │   ├── faqs
+│   │   │   └── page.tsx
+│   │   └── page.tsx
 │   ├── error.tsx
 │   ├── explorer
 │   │   └── page.tsx
@@ -341,13 +345,36 @@ Current directory: ./
 │       └── vote-statistics.tsx
 ├── components.json
 ├── docs
+│   ├── 20250606-.vercel-code_snapshot.txt
+│   ├── 20250606-.vscode-code_snapshot.txt
+│   ├── 20250606-allfiles-code_snapshot.txt
+│   ├── 20250606-app-code_snapshot.txt
+│   ├── 20250606-backup_db-code_snapshot.txt
+│   ├── 20250606-code_snapshot.txt
+│   ├── 20250606-components-code_snapshot.txt
+│   ├── 20250606-docs-code_snapshot.txt
+│   ├── 20250606-hooks-code_snapshot.txt
+│   ├── 20250606-lib-code_snapshot.txt
+│   ├── 20250606-prisma-code_snapshot.txt
+│   ├── 20250606-prisma_migrations_backup-code_snapshot.txt
+│   ├── 20250606-public-code_snapshot.txt
+│   ├── 20250606-scripts-code_snapshot.txt
+│   ├── 20250606-store-code_snapshot.txt
+│   ├── 20250606-supabase-code_snapshot.txt
+│   ├── 20250606-test-code_snapshot.txt
+│   ├── 20250606-types-code_snapshot.txt
+│   ├── 20250606-utils-code_snapshot.txt
 │   ├── auth
 │   │   └── auth.md
 │   ├── detailed
 │   │   └── queries.md
+│   ├── mm
+│   │   └── mm-payment.html
 │   ├── payment
 │   │   ├── debug1.md
 │   │   └── payment-snapshot.md
+│   ├── results
+│   │   └── files-results.md
 │   ├── simplified
 │   │   ├── components-query.md
 │   │   ├── useBroadcastQuery.ts.md
@@ -519,6 +546,7 @@ Current directory: ./
 │   │   ├── logo_verafy_imagemark_blue.svg
 │   │   ├── logo_verafy_imagemark_white.svg
 │   │   └── truthnode.png
+│   ├── mm
 │   ├── newrelic.js
 │   ├── next.svg
 │   ├── site.webmanifest
@@ -575,1167 +603,1614 @@ Current directory: ./
     ├── validatorImageMapping.json
     └── vote-utils.ts
 
-149 directories, 424 files
+154 directories, 447 files
 
 
---- components/credits/credit-faq.tsx ---
+--- components/ask/results/ask-results-expert.tsx ---
+"use client";
 
---- components/credits/credit-slider-ui.tsx ---
-// components/credits/credit-slider-ui.tsx
-import * as Slider from "@radix-ui/react-slider";
-import { Square } from "lucide-react";
-import Image from "next/image";
+import { createContext } from "react";
+import { useVoteResult } from "@/hooks/useVoteResult";
+import { useQueryStore } from "@/store/query-store";
+import { VoteResult } from "@/lib/types";
+import CurrentQuery from "@/components/ask/consensus/current-query";
+import NetworkStatus from "@/components/ask/consensus/network-status";
+import NetworkVisualization from "@/components/ask/charts/network-visualization";
+import QueriesChart from "@/components/ask/charts/queries-chart";
+import ValidatorResults from "@/components/ask/consensus/validator-results";
+import ValidatorVoteHistory from "@/components/ask/consensus/vote-history";
+import {
+  sanitizeQueryText,
+  sanitizeValidatorResponse,
+} from "@/utils/security-utils";
+import StakingAreaStacked from "@/components/ask/charts/staking-area-stacked";
 
-interface CreditSliderUIProps {
-  creditAmount: number;
-  setCreditAmount: (value: number) => void;
-  requiredSol: number;
-  creditBalance: number | null;
-  solBalance: number | null;
-  isLoading: boolean;
-  isValid: boolean;
-  hasEnoughSol: boolean;
-  isWalletConnected: boolean;
-  onPay: () => void;
-  onChangeWallet: () => void;
-  decimalPlaces: number;
-}
+export const VoteResultContext = createContext<VoteResult | null>(null);
 
-export default function CreditSliderUI({
-  creditAmount,
-  setCreditAmount,
-  requiredSol,
-  creditBalance,
-  solBalance,
-  isLoading,
-  isValid,
-  hasEnoughSol,
-  isWalletConnected,
-  onPay,
-  onChangeWallet,
-  decimalPlaces,
-}: CreditSliderUIProps) {
-  // const { userFreeCredits, userPaidCredits } = useCreditsStore();
+export default function AskResultsExpert() {
+  const { voteResult } = useVoteResult();
+  const viewMode = useQueryStore((state) => state.viewMode);
 
-  if (process.env.NODE_ENV === "development") {
-    console.log("CreditSliderUI cost display:", {
-      requiredSol,
-      decimalPlaces,
-      formattedCost: requiredSol.toFixed(decimalPlaces),
-    });
+  // Sanitize voteResult to prevent XSS
+  const sanitizedVoteResult = voteResult
+    ? {
+        ...voteResult,
+        queryText: sanitizeQueryText(voteResult.queryText),
+        validatorResponses: voteResult.validatorResponses?.map(
+          sanitizeValidatorResponse
+        ),
+      }
+    : null;
+
+  // Only render in expert mode
+  if (viewMode !== "viewExpert") {
+    console.log("[AskResultsExpert] Not rendering: viewMode is", viewMode);
+    return null;
   }
 
+  console.log("[AskResultsExpert] Rendering in expert mode with components including CurrentQuery");
+
   return (
-    <div className="max-w-md mx-auto p-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-      <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
-        <div className="flex flex-col justify-center items-center mb-2">
-          <h2 className="w-full text-2xl font-semibold mb-2 ml-2 text-zinc-900 dark:text-zinc-100">
-            <div>Buy Credits</div>
-            <div><span className="text-light">with</span> SOL</div>
-          </h2>
-        </div>
-      </div>
-      <div className="flex text-center mt-1 mb-6 justify-center border-0">
-        <div className="flex justify-center items-center border-0">
-          <Image
-            src={`/icons/solanaLogoMark.png`}
-            alt={`Solana SOL`}
-            width={60}
-            height={60}
-          />
-        </div>
-        <div className="text-5xl ml-3 font-bold text-zinc-900 dark:text-zinc-100">
-          <div className="flex justify-center items-center">
-            <div className="font-extralight text-3xl">+</div>
-            <div className="ml-1">{creditAmount}</div>
-            <div className="flex ml-2 items-center justify-center text-sm font-light">
-              credits
-            </div>
+    <VoteResultContext.Provider value={sanitizedVoteResult}>
+      <div
+        className={`
+          container
+          rounded-2xl shadow-md
+          mx-auto px-4 py-8
+          max-w-7xl
+        `}
+      >
+        <h2 className="text-xl text-gray-800 dark:text-zinc-200 mb-6">
+          Expert Query Results
+        </h2>
+        <div className="max-w-6xl mx-auto space-y-6">
+          {/* Network and Query Row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <NetworkVisualization />
+            <CurrentQuery />
+          </div>
+          {/* Network Status Row */}
+          <div>
+            <NetworkStatus />
+          </div>
+          <div>
+            <ValidatorResults />
+          </div>
+          <div>
+            <ValidatorVoteHistory />
+          </div>
+          <div>
+            <StakingAreaStacked />
+          </div>
+          <div>
+            <QueriesChart />
           </div>
         </div>
       </div>
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Select Credits, Pay with SOL
-        </label>
-        <div className="relative">
-          <Slider.Root
-            className="relative flex items-center select-none touch-none w-full h-5"
-            value={[creditAmount]}
-            onValueChange={(value) => setCreditAmount(value[0])}
-            min={0}
-            max={100}
-            step={1}
-          >
-            <Slider.Track className="bg-zinc-300 dark:bg-zinc-600 relative grow rounded-full h-1">
-              <Slider.Range className="absolute bg-blue-500 dark:bg-blue-400 rounded-full h-full" />
-            </Slider.Track>
-            <Slider.Thumb
-              className="block w-5 h-5 bg-blue-500 dark:bg-blue-400 rounded-full hover:bg-blue-600 dark:hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              aria-label="Credits"
-            />
-          </Slider.Root>
-          <div className="flex justify-between mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-            <span>Min. (0)</span>
-            <span>Max. (100)</span>
-          </div>
-        </div>
-      </div>
-      <div className="mb-6 block">
-        <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-          Cost: {requiredSol.toFixed(decimalPlaces)} SOL
-        </p>
-      </div>
-      <div className="mb-4">
-        {/* <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Free Credits: {isWalletConnected ? userFreeCredits : 'n/a - connect wallet'}
-        </p>
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Paid Credits: {isWalletConnected ? userPaidCredits : 'n/a - connect wallet'}
-        </p> */}
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Total Credits:{" "}
-          {isWalletConnected && creditBalance !== null
-            ? `${creditBalance} credits`
-            : "n/a - connect wallet"}
-        </p>
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          SOL Balance:{" "}
-          {isWalletConnected && solBalance !== null
-            ? `${solBalance.toFixed(decimalPlaces)} SOL`
-            : "n/a - connect wallet"}
-        </p>
-      </div>
-      <button
-        onClick={onPay}
-        disabled={
-          isLoading ||
-          creditAmount === 0 ||
-          (!isWalletConnected ? false : !isValid || !hasEnoughSol)
-        }
-        className={`w-full py-2 px-4 rounded-md font-medium text-white ${
-          isLoading ||
-          creditAmount === 0 ||
-          (!isWalletConnected ? false : !isValid || !hasEnoughSol)
-            ? "bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed"
-            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer"
+    </VoteResultContext.Provider>
+  );
+}
+--- components/ask/results/ask-results-standard-ai-consensus.tsx ---
+import Image from "next/image";
+import { VoteResult } from "@/lib/types";
+
+interface AskResultsStandardAiConsensusProps {
+  percentage: string;
+  color: string;
+  sanitizedQuery: VoteResult;
+}
+
+export function AskResultsStandardAiConsensus({
+  percentage,
+  color,
+  sanitizedQuery,
+}: AskResultsStandardAiConsensusProps) {
+  return (
+    <div className="flex items-center space-x-2 border-0 mt-5 mb-5">
+      <Image
+        src="/Verafy-Logo@0.5x.png"
+        alt="Verafy Logo"
+        width={50}
+        height={20}
+        className="object-contain w-8 md:w-10"
+      />
+      <span className="text-sm font-light text-zinc-800 dark:text-zinc-200">AI CONSENSUS:</span>
+      <span
+        className={`text-xl md:text-2xl font-normal ${color} border-0`}
+        aria-label={`Consensus rating: ${percentage} ${
+          sanitizedQuery.isConsensusReached
+            ? sanitizedQuery.consensusValue
+              ? "YES"
+              : "NO"
+            : "N/A"
         }`}
       >
-        {isLoading
-          ? "Processing..."
-          : creditAmount === 0
-            ? "Select Credits"
-            : isWalletConnected && solBalance !== null
-              ? <>Pay Now: {requiredSol.toFixed(decimalPlaces)} SOL</>
-              : "Connect Wallet"}
-      </button>
-      {isWalletConnected && (
-        <div className="text-center mt-2 flex items-center justify-center gap-2">
-          <Square
-            className="h-4 w-4"
-            fill={isWalletConnected ? "#22c55e" : "#ef4444"}
-          />
-          <button
-            onClick={onChangeWallet}
-            className="text-sm text-blue-500 dark:text-blue-400 hover:underline"
-          >
-            Change Wallet
-          </button>
-        </div>
-      )}
+        {percentage}
+      </span>
     </div>
   );
 }
+--- components/ask/results/ask-results-standard-card.tsx ---
+import { VoteResult } from "@/lib/types";
+import { useCleanText } from "@/hooks/useCleanText";
+import {
+  sanitizeQueryText,
+  sanitizeValidatorResponse,
+} from "@/utils/security-utils";
+import { calculateRating } from "@/utils/vote-utils";
+import { formatDateTimeCards } from "@/utils/date-utils";
+import { AskResultsStandardHeader } from "@/components/ask/results/ask-results-standard-header";
+import { AskResultsStandardTitle } from "@/components/ask/results/ask-results-standard-title";
+import { AskResultsStandardConsensus } from "@/components/ask/results/ask-results-standard-consensus";
+import { AskResultsStandardRationale } from "@/components/ask/results/ask-results-standard-rationale";
+import { AskResultsStandardAiConsensus } from "@/components/ask/results/ask-results-standard-ai-consensus";
+import { AskResultsStandardFooter } from "./ask-results-standard-footer";
+import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
+import { parseRationaleDetailed } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
---- components/credits/credit-slider.tsx ---
-"use client";
-
-import { useState, useMemo, useCallback, useEffect, Dispatch, SetStateAction } from "react";
-import { toast } from "sonner";
-import CreditSliderUI from "./credit-slider-ui";
-import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
-import { useCreditAssignment } from "@/hooks/useCreditAssignment";
-import { VERAFY_WALLET, connection } from "@/lib/solana-constants";
-import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, Transaction, SendTransactionError } from "@solana/web3.js";
-import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
-
-interface CreditSliderProps {
-  creditBalance: number | null;
-  setCreditBalance: Dispatch<SetStateAction<number | null>>;
+interface AskResultsStandardCardProps {
+  query: VoteResult;
+  layoutMode: "grid" | "row";
+  isOpen: boolean;
+  toggleItem: (id: string) => void;
 }
 
-export default function CreditSlider({ creditBalance, setCreditBalance }: CreditSliderProps) {
-  const [creditAmount, setCreditAmount] = useState(10);
-  const { publicKey, signTransaction, connected: isWalletConnected, disconnect } = useWallet();
-  const {
-    sendTransaction,
-    isSending,
-    error: txError,
-  } = useSolanaTransaction(
-    publicKey,
-    signTransaction ? (tx: Transaction) => signTransaction(tx) : null
-  );
-  const {
-    assignCredits,
-    isAssigning,
-    error: assignError,
-  } = useCreditAssignment();
-  const { setVisible } = useWalletModal();
-  const [solBalance, setSolBalance] = useState<number | null>(null);
+export default function AskResultsStandardCard({
+  query,
+  layoutMode,
+  isOpen,
+  toggleItem,
+}: AskResultsStandardCardProps) {
+  // Validate query data
+  const isValidQuery = query && query.queryText && query.id;
+  if (!isValidQuery) {
+    console.error("Invalid query data in AskResultsStandardCard:", {
+      query,
+      id: query?.id,
+      queryText: query?.queryText,
+    });
+  }
 
-  // Fetch SOL balance when wallet is connected
-  useEffect(() => {
-    const fetchSolBalance = async () => {
-      if (!publicKey) {
-        setSolBalance(null);
-        return;
+  // Sanitize query data to prevent XSS
+  const sanitizedQuery: VoteResult = isValidQuery
+    ? {
+        ...query,
+        queryText: sanitizeQueryText(query.queryText),
+        validatorResponses:
+          query.validatorResponses?.map(sanitizeValidatorResponse) || [],
+        votingResult: query.votingResult || { yes: 0, no: 0, notVoted: 0 },
       }
-      try {
-        const balanceInLamports = await connection.getBalance(publicKey);
-        const balanceInSol = balanceInLamports / 1_000_000_000; // Convert lamports to SOL
-        setSolBalance(balanceInSol);
-        if (process.env.NODE_ENV === "development") {
-          console.log("Fetched solBalance:", balanceInSol);
-        }
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Error fetching SOL balance:", errorMessage);
-        setSolBalance(0);
-        toast.error(`Failed to fetch SOL balance: ${errorMessage}`);
-      }
-    };
+    : {
+        id: query?.id || "unknown",
+        queryText: "Unknown Query",
+        isConsensusReached: false,
+        consensusValue: null,
+        validatorResponses: [],
+        votingResult: { yes: 0, no: 0, notVoted: 0 },
+        timestamp: query?.timestamp,
+      };
 
-    fetchSolBalance();
-  }, [publicKey]);
+  // Compute matching responses and longest rationale
+  const matchingResponses =
+    sanitizedQuery.validatorResponses?.filter(
+      (response) =>
+        sanitizedQuery.isConsensusReached &&
+        ((sanitizedQuery.consensusValue && response.vote === "YES") ||
+          (!sanitizedQuery.consensusValue && response.vote === "NO"))
+    ) || [];
 
-  const requiredSol = creditAmount * QUERY_COST;
-  const hasEnoughSol = solBalance !== null && solBalance >= requiredSol;
-  const isValid = creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
+  const longestRationaleResponse = matchingResponses.length
+    ? matchingResponses.reduce((longest, response) =>
+        response.rationale.length > longest.rationale.length ? response : longest
+      )
+    : null;
 
-  const handlePayment = useCallback(async () => {
-    if (!isWalletConnected) {
-      setVisible(true);
-      toast.error("Please connect your wallet to proceed.");
-      return;
-    }
-    if (!isValid) {
-      toast.error("Credits must be a whole number between 1 and 100");
-      return;
-    }
-    if (!hasEnoughSol) {
-      toast.error(
-        `Insufficient SOL: Need ${requiredSol.toFixed(QUERY_COST_FIXED_DECIMALS)}, have ${solBalance?.toFixed(QUERY_COST_FIXED_DECIMALS) ?? "0"}`
-      );
-      return;
-    }
-    if (!publicKey || !signTransaction) {
-      setVisible(true);
-      toast.error("Wallet not fully connected. Please reconnect and try again.");
-      return;
-    }
+  const rawLongestRationale = longestRationaleResponse?.rationale || null;
+  const displayRationale = parseRationaleDetailed(rawLongestRationale).rationale;
+  const validatorName =
+    longestRationaleResponse?.profileName || "Unknown Validator";
+  const validatorProvider =
+    longestRationaleResponse?.provider || "Unknown Provider";
 
-    const attemptTransaction = async (): Promise<boolean> => {
-      console.log(`Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`, {
-        creditAmount,
-        recipient: VERAFY_WALLET,
-        requiredSol,
-        walletPublicKey: publicKey.toBase58(),
-      });
+  const { cleanText } = useCleanText(displayRationale);
+  const formattedDate = sanitizedQuery.timestamp
+    ? formatDateTimeCards(sanitizedQuery.timestamp)
+    : "N/A";
+  const { percentage, color } = calculateRating(sanitizedQuery);
 
-      try {
-        const verafyBalance = await connection.getBalance(new PublicKey(VERAFY_WALLET));
-        if (verafyBalance === 0) {
-          toast.error("Recipient wallet is not initialized. Contact support.");
-          return false;
-        }
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Error checking VERAFY_WALLET:", errorMessage);
-        toast.error("Failed to verify recipient wallet. Please try again.");
-        return false;
-      }
-
-      try {
-        const result = await sendTransaction(creditAmount, new PublicKey(VERAFY_WALLET));
-        if (result.signature && result.signedTx && publicKey) {
-          const newBalance = await assignCredits(
-            result.signature,
-            result.signedTx,
-            creditAmount,
-            publicKey
-          );
-          setCreditBalance(newBalance.credits ?? 0);
-          toast.success(`Successfully purchased ${creditAmount} credits!`);
-          return true;
-        }
-        return false;
-      } catch (error: unknown) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Transaction failed:", errorMessage);
-        if (error instanceof WalletSignTransactionError) {
-          toast.error("Transaction not approved. Please check your wallet and try again.");
-        } else if (error instanceof SendTransactionError) {
-          toast.error(`Transaction failed: ${errorMessage}. Check console for details.`);
-        } else {
-          toast.error(`Transaction failed: ${errorMessage}. Please try again.`);
-        }
-        return false;
-      }
-    };
-
-    const success = await attemptTransaction();
-    if (!success) {
-      toast.error("Transaction failed. Please ensure your wallet is set to the correct network.");
-    }
-  }, [
-    isWalletConnected,
-    isValid,
-    hasEnoughSol,
-    publicKey,
-    signTransaction,
-    creditAmount,
-    solBalance,
-    requiredSol,
-    sendTransaction,
-    assignCredits,
-    setCreditBalance,
-    setVisible,
-  ]);
-
-  const handleChangeWallet = async () => {
-    await disconnect();
-    setVisible(true);
-  };
-
-  useMemo(() => {
-    if (txError) toast.error(txError);
-    if (assignError) toast.error(assignError);
-  }, [txError, assignError]);
+  // Render fallback UI if query is invalid
+  if (!isValidQuery) {
+    return (
+      <Card
+        className={`
+          bg-zinc-50 dark:bg-zinc-800
+          pt-4 gap-2
+          border border-zinc-200 dark:border-zinc-700
+          transition-colors
+          ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+        `}
+      >
+        <CardContent className="p-4">
+          <p className="text-zinc-500">Unable to display query data</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <CreditSliderUI
-      creditAmount={creditAmount}
-      setCreditAmount={setCreditAmount}
-      requiredSol={requiredSol}
-      creditBalance={creditBalance}
-      solBalance={solBalance}
-      isLoading={isSending || isAssigning}
-      isValid={isValid}
-      hasEnoughSol={hasEnoughSol}
-      isWalletConnected={isWalletConnected}
-      onPay={handlePayment}
-      onChangeWallet={handleChangeWallet}
-      decimalPlaces={QUERY_COST_FIXED_DECIMALS}
-    />
-  );
-}
---- components/credits/credits-all-layout.tsx ---
-"use client";
-
-import { useEffect, useCallback, useState } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { motion } from "framer-motion";
-import { Coins, Gift } from "lucide-react";
-import { useCreditsStore } from "@/store/credit-store";
-import CreditSlider from "@/components/credits/credit-slider";
-import TruthSlider from "@/components/credits/truth-slider";
-import Image from "next/image";
-import Link from "next/link";
-import { supabase } from "@/lib/supabase-client";
-import { Dispatch, SetStateAction } from "react";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
-
-export function CreditsAllLayout() {
-  const { publicKey } = useWallet();
-  const {
-    userFreeCredits,
-    userPaidCredits,
-    fetchAllCredits,
-    setUserCreditsTotal,
-    creditsLoading,
-    savedCreditsTimestamp,
-  } = useCreditsStore();
-  const [email, setEmail] = useState<string | undefined>(undefined);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
-
-  // Calculate total credits from store
-  const totalCredits = userFreeCredits + userPaidCredits;
-
-  // Define setCreditBalance to update store
-  const setCreditBalance = useCallback<Dispatch<SetStateAction<number | null>>>(
-    (value) => {
-      if (typeof value === "function") {
-        const newValue = value(totalCredits);
-        if (newValue !== null) {
-          setUserCreditsTotal(newValue);
-          console.log("[CreditsAllLayout] setCreditBalance (functional):", {
-            newValue,
-            totalCredits,
-          });
-        }
-      } else if (value !== null) {
-        setUserCreditsTotal(value);
-        console.log("[CreditsAllLayout] setCreditBalance (direct):", {
-          value,
-          totalCredits,
-        });
-      }
-    },
-    [totalCredits, setUserCreditsTotal]
-  );
-
-  // Fetch email on mount
-  useEffect(() => {
-    const fetchEmail = async () => {
-      try {
-        const {
-          data: { session },
-        } = await supabase.auth.getSession();
-        const userEmail = session?.user?.email;
-        setEmail(userEmail);
-        console.log("[CreditsAllLayout] Fetched email:", userEmail, {
-          timestamp: new Date().toISOString(),
-        });
-      } catch (err) {
-        console.error("[CreditsAllLayout] Error fetching email:", err, {
-          timestamp: new Date().toISOString(),
-        });
-      }
-    };
-    fetchEmail();
-  }, []);
-
-  // Fetch credits when publicKey or email changes
-  useEffect(() => {
-    if (publicKey && email) {
-      console.log("[CreditsAllLayout] Triggering fetchAllCredits:", {
-        publicKey: publicKey.toBase58(),
-        email,
-        timestamp: new Date().toISOString(),
-      });
-      fetchAllCredits(publicKey, email);
-    } else {
-      console.log("[CreditsAllLayout] Skipping fetchAllCredits:", {
-        publicKey: publicKey?.toBase58(),
-        email,
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [publicKey, email, fetchAllCredits]);
-
-  // Update initial loading state
-  useEffect(() => {
-    if (!creditsLoading && savedCreditsTimestamp !== null) {
-      setIsInitialLoading(false);
-      console.log("[CreditsAllLayout] Initial loading complete:", {
-        userFreeCredits,
-        userPaidCredits,
-        totalCredits,
-        timestamp: new Date(savedCreditsTimestamp).toISOString(),
-      });
-    }
-  }, [
-    creditsLoading,
-    savedCreditsTimestamp,
-    userFreeCredits,
-    userPaidCredits,
-    totalCredits,
-  ]);
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-      className="w-full max-w-6xl mx-auto p-6 dark:bg-zinc-950 dark:border-zinc-700"
+    <Card
+      className={`
+        bg-zinc-50 dark:bg-zinc-800
+        pt-4 gap-2
+        border border-zinc-200 dark:border-zinc-700
+        hover:border-zinc-400 active:border-zinc-400
+        dark:hover:border-zinc-500 dark:active:border-zinc-500
+        transition-colors
+        ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+      `}
     >
-      <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-4">
-        Get Credits
-      </h1>
-      <div className="flex flex-col sm:flex-row gap-4 justify-center text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
-        <div className="flex flex-col items-center w-full sm:w-auto p-2 border-2 border-transparent">
-          <div className="flex items-center">
-            <Gift className="mr-1" strokeWidth={1} size={20} />
-            {isInitialLoading || creditsLoading ? (
-              <LoadingSpinner
-                noWrapper
-                type="pulse"
-                color="#d946ef"
-                size={5}
-                message=""
-              />
-            ) : (
-              <span>Free: {userFreeCredits}</span>
-            )}
-          </div>
-          <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-600">
-            Free Credits
-          </div>
+      <div className="px-4">
+        <AskResultsStandardHeader
+          formattedDate={formattedDate}
+          sanitizedQuery={sanitizedQuery}
+        />
+      </div>
+      <hr className="h-1 mt-2" />
+      <AskResultsStandardTitle sanitizedQuery={sanitizedQuery} />
+      <hr className="h-1 mt-2" />
+      <CardContent className="space-y-2">
+        <AskResultsStandardConsensus sanitizedQuery={sanitizedQuery} />
+        <AskResultsStandardRationale
+          longestRationale={displayRationale}
+          validatorName={validatorName}
+          validatorProvider={validatorProvider}
+          cleanText={cleanText}
+        />
+        <AskResultsStandardAiConsensus
+          percentage={percentage}
+          color={color}
+          sanitizedQuery={sanitizedQuery}
+        />
+        <div className="mt-3">
+          <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery} />
         </div>
-        <div className="flex flex-col items-center w-full sm:w-auto p-2 border-2 border-transparent">
-          <div className="flex items-center">
-            <Coins className="mr-1" strokeWidth={1} size={20}/>
-            {isInitialLoading || creditsLoading ? (
-              <LoadingSpinner
-                noWrapper
-                type="pulse"
-                color="#d946ef"
-                size={5}
-                message=""
-              />
-            ) : (
-              <div className="">
-                <span className="">Paid: </span>
-                <span className="">{userPaidCredits}</span>
-              </div>
-            )}
-          </div>
-          <div className="w-full text-xs mt-1 text-zinc-300 dark:text-zinc-600 text-center items-center justify-center">
-            Paid Credits
-          </div>
-        </div>
-        <div className="flex flex-col items-center w-full sm:w-auto border-2 p-2">
-          <div className="flex items-center">
-            {/* <Wallet className="mr-1" strokeWidth={1} size={20} /> */}
-            {isInitialLoading || creditsLoading ? (
-              <LoadingSpinner
-                noWrapper
-                type="pulse"
-                color="#d946ef"
-                size={5}
-                message=""
-              />
-            ) : (
-              <span>Total: {totalCredits}</span>
-            )}
-          </div>
-          <div className="text-xs mt-1 text-zinc-300 dark:text-zinc-400">
-            Current Total
-          </div>
+      </CardContent>
+      <AskResultsStandardFooter
+        sanitizedQuery={sanitizedQuery}
+        isOpen={isOpen}
+        toggleItem={toggleItem}
+      />
+    </Card>
+  );
+}
+--- components/ask/results/ask-results-standard-consensus.tsx ---
+import { VoteResult } from "@/lib/types";
+
+interface AskResultsStandardConsensusProps {
+  sanitizedQuery: VoteResult;
+}
+
+export function AskResultsStandardConsensus({ sanitizedQuery }: AskResultsStandardConsensusProps) {
+  return (
+    <div className="my-1">
+      <p className="text-4xl text-zinc-600 dark:text-zinc-300">
+        {sanitizedQuery.isConsensusReached
+          ? sanitizedQuery.consensusValue
+            ? "Yes"
+            : "No"
+          : "No consensus"}
+      </p>
+    </div>
+  );
+}
+--- components/ask/results/ask-results-standard-footer.tsx ---
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { VoteResult } from "@/lib/types";
+import { parseRationale } from "@/lib/utils";
+import { ResultsCardFeedback } from "./results-card-feedback"; // Confirm import
+
+interface AskResultsStandardFooterProps {
+  sanitizedQuery: VoteResult;
+  isOpen: boolean;
+  toggleItem: (id: string) => void;
+}
+
+export function AskResultsStandardFooter({
+  sanitizedQuery,
+  isOpen,
+  toggleItem,
+}: AskResultsStandardFooterProps) {
+  return (
+    <>
+      <div className="ml-5">
+        <ResultsCardFeedback
+          component="ResultsCard"
+          action={sanitizedQuery.id}
+        />
+      </div>
+      <hr className="h-1 mt-2" />
+      <div className="flex justify-start px-1">
+        <div className="w-full">
+          <Collapsible
+            open={isOpen}
+            onOpenChange={() => toggleItem(sanitizedQuery.id)}
+          >
+            <CollapsibleTrigger className="flex px-4 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
+              <span className="">
+                Validator Responses (
+                {sanitizedQuery.validatorResponses?.length ?? 0})
+              </span>
+              {isOpen ? (
+                <ChevronUp className="ml-2 h-4 w-4" />
+              ) : (
+                <ChevronDown className="ml-2 h-4 w-4" />
+              )}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="mt-2 space-y-2">
+              {sanitizedQuery.validatorResponses?.length ? (
+                sanitizedQuery.validatorResponses.map((response) => (
+                  <div
+                    key={response.id}
+                    className="p-2 bg-zinc-100 dark:bg-zinc-700 rounded-md"
+                  >
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      <span className="font-semibold">Provider: </span>
+                      {response.provider}
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      <span className="font-semibold">Profile: </span>
+                      {response.profileName}
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      <span className="font-semibold">Vote: </span>
+                      {response.vote}
+                    </p>
+                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
+                      <span className="font-semibold">Rationale: </span>
+                      {parseRationale(response.rationale)}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-zinc-500 dark:text-zinc-400">
+                  No validator responses available.
+                </p>
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-          <TruthSlider
-            creditBalance={totalCredits}
-            setCreditBalance={setCreditBalance}
-          />
-        </div>
-        <div className="p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-          <CreditSlider
-            creditBalance={totalCredits}
-            setCreditBalance={setCreditBalance}
-          />
-        </div>
-        <div className="p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-          <div className="max-w-md mx-auto p-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-                      <h2 className="text-2xl font-semibold text-center text-zinc-900 dark:text-zinc-100 mb-0">
-            <div>Stake</div>
-            <div>for Rewards</div>
-          </h2>
-            <div className="flex w-full justify-center items-center mb-2">
-              <div className="justify-center mt-3 mb-7">
-                <Link href="https://stakewiz.com/validator/TrutHUEykD2UsmAq7W3hA4r3XiQxGLqhENAwo9522xa">
-                  <Image
-                    src="/logos/truthnode.png"
-                    alt="TruthNode Logo"
-                    width={205}
-                    height={250}
-                    className="mr-2"
-                  />
-                </Link>
-              </div>
-            </div>
-            <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">
-              Current Staked SOL: 0 SOL
-            </p>
-            <Link href="https://stakewiz.com/validator/TrutHUEykD2UsmAq7W3hA4r3XiQxGLqhENAwo9522xa">
-              <button className="w-full py-2 px-4 rounded-md mt-3 font-medium text-white bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer">
-                Stake Now
-              </button>
-            </Link>
-            <div className="mt-2 text-zinc-800 dark:text-zinc-300">
-              Staked amounts are reviewed for rewards if applicable. Promotions
-              may vary, such as credits, queries, and stake to subscribe.
-            </div>
-          </div>
-        </div>
-      </div>
-    </motion.div>
+    </>
   );
 }
 
---- components/credits/stake-slider.tsx ---
-"use client";
+--- components/ask/results/ask-results-standard-header.tsx ---
+import { AskResultsStandardSocialIcons } from "@/components/ask/results/ask-results-standard-social-icons";
+import { VoteResult } from "@/lib/types";
 
-// import { useState } from "react";
-// import * as Slider from "@radix-ui/react-slider";
-import { Layers } from "lucide-react";
-// import { useWallet } from "@solana/wallet-adapter-react";
-// import { QUERY_COST } from "@/lib/constants";
-import Image from "next/image";
-import Link from "next/link";
+interface AskResultsStandardHeaderProps {
+  formattedDate: string;
+  sanitizedQuery: VoteResult;
+}
 
-export default function StakeSlider() {
-  // const [stakeAmount, setStakeAmount] = useState(0);
-  // const { connected: isWalletConnected } = useWallet();
-
-  // const stakeSol = stakeAmount * QUERY_COST;
-
-  // const onChangeWallet = () => {
-  //   // Implement wallet change logic here
-  //   console.log("Changing wallet");
-  // };
-
+export function AskResultsStandardHeader({
+  formattedDate,
+  sanitizedQuery,
+}: AskResultsStandardHeaderProps) {
   return (
-    <div className="max-w-md mx-auto p-6 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-      <div className="flex flex-col w-full text-center justify-center items-center mx-auto">
-        <div className="flex justify-center items-center mb-2">
-          {" "}
-          <Layers size={22} />
-          <h2 className="w-full text-2xl font-semibold ml-2 text-zinc-900 dark:text-zinc-100">
-            Stake for Rewards
-          </h2>
+    <div className="flex items-center font-light text-xs dark:text-zinc-500 text-zinc-500">
+      <div className="w-1/2 items-center">{formattedDate}</div>
+      <div className="w-1/2 justify-end">
+        <div className="flex justify-between">
+          <div className="flex justify-start text-sm text-zinc-500 space-x-2 border-0"></div>
+          <AskResultsStandardSocialIcons query={sanitizedQuery} />
         </div>
-        {/* <div className="flex text-center mb-6">
-            <span className="text-5xl font-bold text-zinc-900 dark:text-zinc-100">
-              {stakeAmount}
-            </span>
-          </div> */}
       </div>
-      <div className="flex w-full justify-center items-centermb-2">
-        <div className="justify-center mt-3 mb-7">
-          <Link href="https://stakewiz.com/validator/TrutHUEykD2UsmAq7W3hA4r3XiQxGLqhENAwo9522xa">
-            <Image
-              src="/logos/truthnode.png"
-              alt="TruthNode Logo"
-              width={205}
-              height={250}
-              className="mr-2"
-            />
-          </Link>
-        </div>
-
-        {/* <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Select Stake Amount
-        </label> */}
-        {/* <div className="relative">
-          <Slider.Root
-            className="relative flex items-center select-none touch-none w-full h-5"
-            value={[stakeAmount]}
-            onValueChange={(value) => setStakeAmount(value[0])}
-            min={0}
-            max={100}
-            step={1}
-          >
-            <Slider.Track className="bg-zinc-300 dark:bg-zinc-600 relative grow rounded-full h-1">
-              <Slider.Range className="absolute bg-blue-500 dark:bg-blue-400 rounded-full h-full" />
-            </Slider.Track>
-            <Slider.Thumb
-              className="block w-5 h-5 bg-blue-500 dark:bg-blue-400 rounded-full hover:bg-blue-600 dark:hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              aria-label="Stake Amount"
-            />
-          </Slider.Root>
-          <div className="flex justify-between mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-            <span>Min. (0)</span>
-            <span>Max. (100)</span>
-          </div>
-        </div> */}
-      </div>
-      {/* <div className="mb-6">
-        <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-          Stake: {stakeSol.toFixed(3)} SOL
-        </p>
-      </div> */}
-      <p className="mb-4 text-sm text-zinc-700 dark:text-zinc-300">
-        Current Staked SOL: 0 SOL
-      </p>
-      <Link href="https://stakewiz.com/validator/TrutHUEykD2UsmAq7W3hA4r3XiQxGLqhENAwo9522xa">
-        <button
-          disabled={false}
-          className="w-full py-2 px-4 rounded-md font-medium text-white
-          bg-zinc-400 dark:bg-zinc-600 cursor-pointer"
-        >
-          Stake Now
-        </button>
-      </Link>
-      <div className="mt-2 text-zinc-800 dark:text-zinc-300">
-        Staked amounts are reviewed for rewards if applicable. Promotions may vary, such as credits, queries and stake to subscribe.
-      </div>
-      {/* {isWalletConnected && (
-        <div className="text-center mt-2 flex items-center justify-center gap-2">
-          <Square
-            className="h-4 w-4"
-            fill={isWalletConnected ? "#22c55e" : "#ef4444"}
-          />
-          <button
-            onClick={onChangeWallet}
-            className="text-sm text-blue-500 dark:text-blue-400 hover:underline"
-          >
-            Change Wallet
-          </button>
-        </div>
-      )} */}
     </div>
   );
 }
 
---- components/credits/truth-slider-ui.tsx ---
-import * as Slider from "@radix-ui/react-slider";
-import { Square } from "lucide-react";
-import Image from "next/image";
+--- components/ask/results/ask-results-standard-rationale.tsx ---
+"use client";
 
-interface TruthSliderUIProps {
-  creditAmount: number;
-  setCreditAmount: (value: number) => void;
-  requiredTruth: number;
-  creditBalance: number | null;
-  truthBalance: number | null;
-  isLoading: boolean;
-  isValid: boolean;
-  hasEnoughTruth: boolean;
-  isWalletConnected: boolean;
-  onPay: () => void;
-  onChangeWallet: () => void;
-  decimalPlaces: number;
+import { useState } from "react";
+
+interface AskResultsStandardRationaleProps {
+  longestRationale: string | null;
+  validatorName: string;
+  validatorProvider: string;
+  cleanText: string;
 }
 
-export default function TruthSliderUI({
-  creditAmount,
-  setCreditAmount,
-  requiredTruth,
-  creditBalance,
-  truthBalance,
-  isLoading,
-  isValid,
-  hasEnoughTruth,
-  isWalletConnected,
-  onPay,
-  onChangeWallet,
-  decimalPlaces,
-}: TruthSliderUIProps) {
-  if (process.env.NODE_ENV === "development") {
-    console.log("TruthSliderUI cost display:", {
-      requiredTruth,
-      decimalPlaces,
-      formattedCost: requiredTruth.toFixed(decimalPlaces),
+export function AskResultsStandardRationale({
+  longestRationale,
+  validatorName,
+  validatorProvider,
+  cleanText,
+}: AskResultsStandardRationaleProps) {
+  const [isRationaleExpanded, setIsRationaleExpanded] = useState(false);
+
+  const toggleRationale = () => {
+    setIsRationaleExpanded((prev) => !prev);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      toggleRationale();
+    }
+  };
+
+  return (
+    <div>
+      {longestRationale ? (
+        <div>
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={toggleRationale}
+            onKeyDown={handleKeyDown}
+            className="cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-900 rounded-md p-1"
+            aria-expanded={isRationaleExpanded}
+            aria-label={isRationaleExpanded ? "Collapse rationale" : "Expand rationale"}
+          >
+            <p
+              className={`text-sm text-zinc-600 dark:text-zinc-300 leading-6 ${
+                isRationaleExpanded ? "" : "line-clamp-5"
+              }`}
+              style={{
+                maxHeight: isRationaleExpanded ? "none" : "12rem",
+              }}
+            >
+              {cleanText.length > 600 && !isRationaleExpanded
+                ? `${cleanText.slice(0, 600)}...`
+                : cleanText}
+            </p>
+          </div>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+            Source: {validatorName} ({validatorProvider})
+          </p>
+        </div>
+      ) : (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">No matching rationale available.</p>
+      )}
+    </div>
+  );
+}
+--- components/ask/results/ask-results-standard-social-icons.tsx ---
+"use client";
+
+import { Twitter, Copy, StickyNote, Star } from "lucide-react";
+import { VoteResult, Favorite } from "@/lib/types";
+import { useMemo, useCallback } from "react";
+import { CURRENT_DOMAIN } from "@/lib/constants";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useFavoritesStore } from "@/store/favorites-store";
+import { toggleFavorite } from "@/app/actions";
+import { toast } from "sonner";
+import { debounce } from "lodash";
+
+interface AskResultsStandardSocialIconsProps {
+  query?: VoteResult;
+}
+
+export function AskResultsStandardSocialIcons({
+  query,
+}: AskResultsStandardSocialIconsProps) {
+  const { copyToClipboard } = useCopyToClipboard();
+  const pathname = usePathname();
+  const favorites = useFavoritesStore((state) => state.favorites);
+  const isFavorited = query?.id
+    ? favorites.some((f: Favorite) => f.vote_session_id === query.id)
+    : false;
+
+  const shareText = useMemo(() => {
+    if (!query?.queryText || !query?.id) {
+      return encodeURIComponent("Check this truth report card!");
+    }
+    return encodeURIComponent(
+      `Check this VERAFY truth report card: ${query.queryText} - ${
+        query.isConsensusReached
+          ? query.consensusValue
+            ? "True"
+            : "False"
+          : "No Consensus"
+      }`
+    );
+  }, [
+    query?.queryText,
+    query?.isConsensusReached,
+    query?.consensusValue,
+    query?.id,
+  ]);
+
+  const protocol = CURRENT_DOMAIN.includes("localhost")
+    ? "http://"
+    : "https://";
+  const shareUrl = query?.id
+    ? `${protocol}${CURRENT_DOMAIN}/ask/${query.id}`
+    : `${protocol}${CURRENT_DOMAIN}/`;
+
+  const twitterIntentUrl = useMemo(
+    () =>
+      `https://x.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(shareUrl)}`,
+    [shareText, shareUrl]
+  );
+
+  const handleCopyLink = () => {
+    copyToClipboard({
+      textToCopy: shareUrl,
+      successDescription: `The link for card ${query?.id || "unknown"} was copied to your clipboard.`,
+      errorDescription: `Failed to copy the link for card ${query?.id || "unknown"}. Try again.`,
     });
+  };
+
+  const handleToggleFavorite = useCallback(
+    debounce(async () => {
+      if (!query?.id) return;
+      try {
+        const result = await toggleFavorite(query.id);
+        if (result.success) {
+          if (result.favorite) {
+            useFavoritesStore.getState().addFavorite(result.favorite);
+          } else {
+            useFavoritesStore.getState().removeFavorite(query.id);
+          }
+          toast.success(result.message);
+        } else {
+          toast.error(result.message);
+        }
+      } catch (error) {
+        const typedError = error as Error;
+        console.error("[social-icons] Error toggling favorite:", typedError);
+        toast.error("Failed to toggle favorite");
+      }
+    }, 500),
+    [query?.id]
+  );
+
+  const isOnCardPage = query?.id && pathname === `/ask/${query.id}`;
+
+  return (
+    <div className="flex justify-end mr-2 items-center text-sm text-zinc-500 space-x-3 border-0">
+      <a
+        href={twitterIntentUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="hover:text-blue-500 transition-colors cursor-pointer"
+        aria-label="Share on Twitter"
+      >
+        <Twitter className="h-5 w-5" />
+      </a>
+      <button
+        onClick={handleCopyLink}
+        className="hover:text-blue-500 transition-colors cursor-pointer"
+        aria-label="Copy share link"
+      >
+        <Copy className="h-5 w-5" />
+      </button>
+      {query?.id && !isOnCardPage && (
+        <Link
+          href={`/ask/${query.id}`}
+          className="hover:text-blue-500 transition-colors cursor-pointer"
+          aria-label="View card details"
+        >
+          <StickyNote className="h-5 w-5" />
+        </Link>
+      )}
+      <button
+        onClick={handleToggleFavorite}
+        className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
+        aria-label={isFavorited ? "Unfavorite" : "Favorite"}
+        disabled={!query?.id}
+      >
+        <Star
+          className={`h-5 w-5 ${
+            isFavorited
+              ? "fill-yellow-400 text-yellow-400"
+              : "text-zinc-600 dark:text-zinc-300 hover:text-yellow-400 dark:hover:text-yellow-400"
+          }`}
+        />
+      </button>
+    </div>
+  );
+}
+
+--- components/ask/results/ask-results-standard-title.tsx ---
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { CircleCheck, X } from "lucide-react";
+import { VoteResult } from "@/lib/types";
+import Link from "next/link";
+
+interface AskResultsStandardTitleProps {
+  sanitizedQuery: VoteResult;
+}
+
+export function AskResultsStandardTitle({
+  sanitizedQuery,
+}: AskResultsStandardTitleProps) {
+  return (
+    <Link
+      href={`/ask/${sanitizedQuery.id}`}
+      className="text-zinc-900 dark:text-zinc-100"
+    >
+      <CardHeader className="dark:bg-zinc-800">
+        <CardDescription className="flex font-light text-xs dark:text-zinc-500 text-zinc-500"></CardDescription>
+        <CardTitle className="text-xl font-medium flex">
+          <div className="">
+            {sanitizedQuery.isConsensusReached &&
+            sanitizedQuery.consensusValue ? (
+              <CircleCheck className="mr-2 h-7 w-7 text-green-700 dark:text-green-300" />
+            ) : sanitizedQuery.isConsensusReached &&
+              !sanitizedQuery.consensusValue ? (
+              <X className="mr-2 h-7 w-7 text-red-700 dark:text-red-300" />
+            ) : null}
+          </div>
+
+          {sanitizedQuery.queryText}
+        </CardTitle>
+      </CardHeader>
+    </Link>
+  );
+}
+
+--- components/ask/results/ask-results-standard-validator-avatars.tsx ---
+import Image from "next/image";
+import Link from "next/link";
+import { VoteResult } from "@/lib/types";
+import validatorImageMapping from "@/utils/validatorImageMapping.json";
+import { parseRationale } from "@/lib/utils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { useState } from "react";
+
+interface AskResultsStandardValidatorAvatarsProps {
+  sanitizedQuery: VoteResult;
+}
+
+export function AskResultsStandardValidatorAvatars({
+  sanitizedQuery,
+}: AskResultsStandardValidatorAvatarsProps) {
+  const [openModalId, setOpenModalId] = useState<string | null>(null);
+
+  const handleOpenModal = (id: string) => {
+    setOpenModalId(id);
+  };
+
+  const handleCloseModal = () => {
+    setOpenModalId(null);
+  };
+
+  return (
+    <div className="mt-3">
+      {sanitizedQuery.validatorResponses?.length ? (
+        <div className="flex flex-wrap gap-4 max-w-full">
+          {sanitizedQuery.validatorResponses.map((response) => {
+            const mapping = validatorImageMapping.find(
+              (m) => m.id === response.id
+            ) as
+              | { id: string; profile: string; avatarUrl: string | null }
+              | undefined;
+
+            // Enhanced debugging for validator data
+            if (process.env.NODE_ENV === "development") {
+              // console.log(`Validator ID: ${response.id}`);
+              // console.log(`Mapping found: ${!!mapping}`);
+              if (mapping) {
+                // console.log(`Mapping data:`, mapping);
+              } else {
+                // console.log(`No mapping for ID ${response.id} in validatorImageMapping`);
+              }
+            }
+
+            const avatarContent = (
+              <div
+                className={`flex w-[40px] h-[40px] ${
+                  response.vote === "YES"
+                    ? "border border-green-500"
+                    : "border border-red-500"
+                } cursor-pointer hover:opacity-80 transition-opacity`}
+              >
+                <Image
+                  src={
+                    mapping?.avatarUrl
+                      ? `/icons/${mapping.avatarUrl}`
+                      : "/icons/placeholder.png"
+                  }
+                  alt={response.profileName}
+                  width={40}
+                  height={38}
+                  className="grayscale object-contain"
+                />
+              </div>
+            );
+
+            const tooltipContent = (
+              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 w-64 p-3 bg-zinc-100 dark:bg-zinc-700 rounded-md shadow-lg text-sm text-zinc-600 dark:text-zinc-300 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none z-10">
+                <p>
+                  <span className="font-semibold">Profile: </span>
+                  {response.profileName}
+                </p>
+                <p>
+                  <span className="font-semibold">Vote: </span>
+                  {response.vote}
+                </p>
+                <p className="text-xs">
+                  <span className="font-semibold">Rationale: </span>
+                  {parseRationale(response.rationale)}
+                </p>
+              </div>
+            );
+
+            const modalContent = (
+              <DialogContent className="bg-zinc-100 dark:bg-zinc-700 text-zinc-600 dark:text-zinc-300 max-w-[90vw] sm:max-w-md p-6 rounded-md">
+                <DialogHeader>
+                  <DialogTitle>Validator Details</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-3">
+                  <p>
+                    <span className="font-semibold">Profile: </span>
+                    {response.profileName}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Vote: </span>
+                    {response.vote}
+                  </p>
+                  <p className="text-sm">
+                    <span className="font-semibold">Rationale: </span>
+                    {parseRationale(response.rationale)}
+                  </p>
+                  <Link
+                    href={`/ask/${sanitizedQuery.id}`}
+                    className="text-blue-500 hover:underline"
+                  >
+                    View Report
+                  </Link>
+                </div>
+                <DialogClose asChild>
+                  <Button
+                    variant="outline"
+                    className="mt-4 w-full"
+                    onClick={handleCloseModal}
+                  >
+                    Close
+                  </Button>
+                </DialogClose>
+              </DialogContent>
+            );
+
+            return (
+              <div
+                key={response.id}
+                className="flex flex-col items-center justify-center max-w-[40px] overflow-wrap-anywhere relative group"
+              >
+                <p className="text-xs text-zinc-600 dark:text-zinc-300 mb-1">
+                  {response.vote}
+                </p>
+                {/* Desktop: Link with Tooltip */}
+                <div className="hidden sm:block">
+                  <Link href={`/validators/${response.id}/profile`}>
+                    {avatarContent}
+                  </Link>
+                  {tooltipContent}
+                </div>
+                {/* Mobile: Dialog Trigger */}
+                <Dialog
+                  open={openModalId === response.id}
+                  onOpenChange={(open) =>
+                    open ? handleOpenModal(response.id) : handleCloseModal()
+                  }
+                >
+                  <DialogTrigger asChild>
+                    <div className="block sm:hidden">{avatarContent}</div>
+                  </DialogTrigger>
+                  {modalContent}
+                </Dialog>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="text-sm text-zinc-500 dark:text-zinc-400">
+          No validator responses available.
+        </p>
+      )}
+    </div>
+  );
+}
+--- components/ask/results/ask-results-standard.tsx ---
+"use client";
+
+import { useVoteHistory } from "@/hooks/useVoteHistory";
+import { useVoteStore } from "@/store/vote-store";
+import { ErrorDisplay } from "@/components/error-display";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { Grid3x3, Rows3, Star } from "lucide-react";
+import { useState, useEffect } from "react";
+import { VoteResult } from "@/lib/types";
+import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
+import { default as DOMPurify } from "dompurify";
+import { Skeleton } from "@/components/ui/skeleton";
+import { RESULT_QUERIES_CARDS } from "@/lib/constants";
+import { parseRationaleDetailed } from "@/lib/utils";
+import { useFavorites } from "@/hooks/useFavorites";
+
+// Custom CSS for skeleton loading animation (pulse + shimmer)
+<style jsx>{`
+  @keyframes shimmer {
+    0% {
+      background-position: -468px 0;
+    }
+    100% {
+      background-position: 468px 0;
+    }
+  }
+  .skeleton-loading {
+    background: linear-gradient(
+      to right,
+      #e2e8f0 0%,
+      #f1f5f9 20%,
+      #e2e8f0 40%,
+      #e2e8f0 100%
+    );
+    background-size: 800px 104px;
+    animation: shimmer 1.5s infinite linear;
+  }
+  .dark .skeleton-loading {
+    background: linear-gradient(
+      to right,
+      #27272a 0%,
+      #3f3f46 20%,
+      #27272a 40%,
+      #27272a 100%
+    );
+  }
+`}</style>;
+
+const LayoutToggle = ({
+  layoutMode,
+  setLayoutMode,
+  showFavoritesOnly,
+  setShowFavoritesOnly,
+}: {
+  layoutMode: "grid" | "row";
+  setLayoutMode: (mode: "grid" | "row") => void;
+  showFavoritesOnly: boolean;
+  setShowFavoritesOnly: (show: boolean) => void;
+}) => (
+  <div className="flex space-x-2 ml-4 invisible lg:visible">
+    <Grid3x3
+      className={`h-5 w-5 cursor-pointer ${
+        layoutMode === "grid"
+          ? "text-zinc-900 dark:text-zinc-100"
+          : "text-zinc-500 dark:text-zinc-400"
+      }`}
+      onClick={() => setLayoutMode("grid")}
+    />
+    <Rows3
+      className={`h-5 w-5 cursor-pointer ${
+        layoutMode === "row"
+          ? "text-zinc-900 dark:text-zinc-100"
+          : "text-zinc-500 dark:text-zinc-400"
+      }`}
+      onClick={() => setLayoutMode("row")}
+    />
+    <Star
+      className={`h-5 w-5 cursor-pointer ${
+        showFavoritesOnly
+          ? "fill-yellow-400 text-yellow-400"
+          : "text-zinc-500 dark:text-zinc-400"
+      }`}
+      onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+    />
+  </div>
+);
+
+const getRecentQueries = (
+  voteHistory: VoteResult[],
+  favorites: string[] = [],
+  showFavoritesOnly: boolean
+) =>
+  [...voteHistory]
+    .filter((vote) => !showFavoritesOnly || favorites.includes(vote.id))
+    .sort((a, b) => {
+      const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return dateB - dateA;
+    })
+    .slice(0, RESULT_QUERIES_CARDS);
+
+// Skeleton card component styled like AskResultsStandardCard
+const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
+  if (process.env.NODE_ENV === "development") {
+    console.log("Rendering SkeletonCard with layoutMode:", layoutMode);
   }
 
   return (
-    <div className="max-w-md mx-auto p-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
-      <div className="flex flex-row w-full text-center justify-center items-center mx-auto">
-        <div className="flex flex-col justify-center items-center mb-2">
-          <h2 className="w-full text-2xl font-semibold ml-2 mb-2 text-zinc-900 dark:text-zinc-100">
-            <div className="">Buy Credits</div>{" "}
-            <div className=""> with $truth</div>
-          </h2>
-
+    <div
+      className={`
+        bg-zinc-200 dark:bg-zinc-900
+        pt-4 gap-2
+        border border-zinc-200 dark:border-zinc-700
+        transition-colors
+        ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+      `}
+    >
+      <div className="flex px-2 font-light text-xs dark:text-zinc-500 text-zinc-500">
+        <div className="w-1/2">
+          <Skeleton className="h-4 w-24" />
+        </div>
+        <div className="w-1/2 flex justify-end">
+          <div className="flex space-x-2">
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-4" />
+            <Skeleton className="h-4 w-4" />
+          </div>
         </div>
       </div>
-<div className="flex text-center mt-1 mb-6 justify-center border-0">
-        <div className="flex justify-center items-center border-0">
-         <Image
-            src={`/icons/truth.png`}
-            alt={`Solana SOL`}
-            width={128}
-            height={128}
-          />
+      <hr className="h-1" />
+      <div className="p-4">
+        <div className="flex w-full justify-center items-center space-x-2">
+          <Skeleton className="h-7 w-7 rounded-full" />
+          <Skeleton className="h-6 w-3/4" />
         </div>
-        <div className="text-5xl ml-3 font-bold text-zinc-900 dark:text-zinc-100">
-          <div className="flex justify-center items-center">
-            <div className="font-extralight text-3xl">+</div>
-            <div className="ml-1">{creditAmount}</div>
-            <div className="flex ml-2 items-center justify-center text-sm font-light">
-              credits
+        <div className="flex mt-4">
+          <Skeleton className="h-10 w-24" />
+          <div className="w-full justify-center ml-8 text-zinc-300 dark:text-zinc-600">
+            Loading...
+          </div>
+        </div>
+        <div className="mt-4">
+          <Skeleton className="h-4 w-full" />
+          <Skeleton className="h-4 w-5/6 mt-1" />
+          <Skeleton className="h-4 w-4/5 mt-1" />
+        </div>
+        <div className="flex items-center space-x-2 mt-5 mb-5">
+          <Skeleton className="h-6 w-8" />
+          <Skeleton className="h-4 w-24" />
+          <Skeleton className="h-6 w-16" />
+        </div>
+        <div className="flex flex-wrap gap-4">
+          {Array.from({ length: 5 }).map((_, index) => (
+            <div key={index} className="flex flex-col items-center">
+              <Skeleton className="h-4 w-12 mb-1" />
+              <Skeleton className="h-10 w-10 rounded-full" />
             </div>
-          </div>
+          ))}
         </div>
       </div>
-      <div className="mb-6">
-        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2">
-          Select Credits, Pay with TruthChain
-        </label>
-        <div className="relative">
-          <Slider.Root
-            className="relative flex items-center select-none touch-none w-full h-5"
-            value={[creditAmount]}
-            onValueChange={(value) => setCreditAmount(value[0])}
-            min={0}
-            max={100}
-            step={1}
-          >
-            <Slider.Track className="bg-zinc-300 dark:bg-zinc-600 relative grow rounded-full h-1">
-              <Slider.Range className="absolute bg-blue-500 dark:bg-blue-400 rounded-full h-full" />
-            </Slider.Track>
-            <Slider.Thumb
-              className="block w-5 h-5 bg-blue-500 dark:bg-blue-400 rounded-full hover:bg-blue-600 dark:hover:bg-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400"
-              aria-label="Credits"
-            />
-          </Slider.Root>
-          <div className="flex justify-between mt-2 text-sm text-zinc-700 dark:text-zinc-300">
-            <span>Min. (0)</span>
-            <span>Max. (100)</span>
-          </div>
-        </div>
+      <hr className="h-1" />
+      <div className="p-2">
+        <Skeleton className="h-4 w-32" />
       </div>
-      <div className="mb-6 block">
-        <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
-          Cost: {requiredTruth.toFixed(decimalPlaces)} $truth
-        </p>
-      </div>
-      <div className="mb-4">
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          Total Credits:{" "}
-          {isWalletConnected && creditBalance !== null
-            ? `${creditBalance} credits`
-            : "n/a - connect wallet"}
-        </p>
-        <p className="text-sm text-zinc-700 dark:text-zinc-300">
-          $truth Balance:{" "}
-          {isWalletConnected && truthBalance !== null
-            ? `${truthBalance.toFixed(decimalPlaces)} $truth`
-            : "n/a - connect wallet"}
-        </p>
-      </div>
-      <button
-        onClick={onPay}
-        disabled={
-          isLoading ||
-          creditAmount === 0 ||
-          (!isWalletConnected ? false : !isValid || !hasEnoughTruth)
-        }
-        className={`w-full py-2 px-4 rounded-md font-medium text-white ${
-          isLoading ||
-          creditAmount === 0 ||
-          (!isWalletConnected ? false : !isValid || !hasEnoughTruth)
-            ? "bg-zinc-400 dark:bg-zinc-600 cursor-not-allowed"
-            : "bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer"
+    </div>
+  );
+};
+
+export default function AskResultsStandard() {
+  const { voteHistory, isLoading, error, refetch } = useVoteHistory();
+  const { lastVoteResult } = useVoteStore();
+  const { favorites, isHydrated } = useFavorites();
+  const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
+  const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+
+  // Debug log to confirm loading state and voteHistory
+  if (process.env.NODE_ENV === "development") {
+    console.log(
+      "AskResultsStandard isLoading:",
+      isLoading,
+      "voteHistory:",
+      voteHistory,
+      "favorites:",
+      favorites
+    );
+  }
+
+  // Sanitize and filter voteHistory to prevent XSS and invalid data
+  const sanitizedVoteHistory = voteHistory
+    .filter((vote) => vote && vote.id && vote.queryText)
+    .map((vote) => ({
+      ...vote,
+      queryText: DOMPurify.sanitize(vote.queryText),
+      validatorResponses: vote.validatorResponses?.map((response) => ({
+        ...response,
+        profileName: DOMPurify.sanitize(response.profileName),
+        provider: DOMPurify.sanitize(response.provider),
+        id: DOMPurify.sanitize(response.id),
+        rationale: DOMPurify.sanitize(
+          parseRationaleDetailed(response.rationale).rationale || ""
+        ),
+      })),
+    }));
+
+  // Refetch vote history when lastVoteResult changes
+  useEffect(() => {
+    if (lastVoteResult?.id) {
+      refetch();
+    }
+  }, [lastVoteResult?.id, refetch]);
+
+  if (error) {
+    return (
+      <ErrorDisplay
+        message={DOMPurify.sanitize(
+          error.message || "Failed to load vote history"
+        )}
+        onRetry={refetch}
+      />
+    );
+  }
+
+  const favoriteIds = favorites.map((f) => f.vote_session_id);
+  const recentQueries = getRecentQueries(
+    sanitizedVoteHistory,
+    favoriteIds,
+    showFavoritesOnly
+  );
+
+  const toggleItem = (id: string) => {
+    setOpenItems((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
+  return (
+    <div
+      className={`
+        container
+        rounded-2xl shadow-md
+        mx-auto px-4 py-4
+        max-w-6xl
+        bg-transparent
+        border-0
+        justify-center
+      `}
+      aria-live="polite"
+    >
+      <div
+        className={`flex items-center mb-2 justify-center mb-3 ${
+          layoutMode === "row" ? "w-full" : ""
         }`}
       >
-        {isLoading
-          ? "Processing..."
-          : creditAmount === 0
-            ? "Select Credits"
-            : isWalletConnected
-              ? <>Pay Now: {requiredTruth.toFixed(decimalPlaces)} $truth</>
-              : "Connect Wallet"}
-      </button>
-      {isWalletConnected && (
-        <div className="text-center mt-2 flex items-center justify-center gap-2">
-          <Square
-            className="h-4 w-4"
-            fill={isWalletConnected ? "#22c55e" : "#ef4444"}
-          />
-          <button
-            onClick={onChangeWallet}
-            className="text-sm text-blue-500 dark:text-blue-400 hover:underline"
-          >
-            Change Wallet
-          </button>
+        {isLoading || !isHydrated ? (
+          <LoadingSpinner type="beat" message="Loading Recent Queries..." />
+        ) : (
+          <h2 className="text-md text-zinc-800 dark:text-zinc-200 font-light">
+            {showFavoritesOnly ? "Favorite Queries" : "Recent Queries"}
+          </h2>
+        )}
+        <LayoutToggle
+          layoutMode={layoutMode}
+          setLayoutMode={setLayoutMode}
+          showFavoritesOnly={showFavoritesOnly}
+          setShowFavoritesOnly={setShowFavoritesOnly}
+        />
+      </div>
+      {isLoading || !isHydrated ? (
+        <div
+          className={`max-w-6xl mx-auto ${
+            layoutMode === "grid"
+              ? "flex flex-wrap justify-center gap-4"
+              : "flex flex-col gap-4 items-center justify-center"
+          }`}
+        >
+          {Array.from({ length: 3 }).map((_, index) => (
+            <SkeletonCard key={index} layoutMode={layoutMode} />
+          ))}
+        </div>
+      ) : recentQueries.length === 0 ? (
+        <p className="text-zinc-500 dark:text-zinc-400">
+          {showFavoritesOnly
+            ? "No favorite queries found."
+            : "No recent queries found."}
+        </p>
+      ) : (
+        <div
+          className={`max-w-7xl mx-auto ${
+            layoutMode === "grid"
+              ? "flex flex-wrap justify-center gap-6"
+              : "flex flex-col gap-4 items-center justify-center"
+          }`}
+        >
+          {recentQueries.map((query) => (
+            <AskResultsStandardCard
+              key={query.id}
+              query={query}
+              layoutMode={layoutMode}
+              isOpen={openItems[query.id] || false}
+              toggleItem={toggleItem}
+            />
+          ))}
         </div>
       )}
     </div>
   );
 }
 
---- components/credits/truth-slider.tsx ---
-"use client";
+--- hooks/useVoteHistory.ts ---
+import { useState, useEffect, useCallback } from "react";
+import type { VoteResult } from "@/lib/types";
+import { useVoteStore } from "@/store/vote-store";
+import { sanitizeError } from "@/utils/security-utils";
+import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 
-import { useState, useMemo, useCallback, useEffect, Dispatch, SetStateAction } from "react";
-import { toast } from "sonner";
-import TruthSliderUI from "@/components/credits/truth-slider-ui";
-import { useTruthTransaction } from "@/hooks/useTruthTransaction";
-import { VERAFY_WALLET, connection, TRUTH_TOKEN_MINT, TRUTH_TOKEN_DECIMALS } from "@/lib/solana-constants";
-import { TRUTH_QUERY_COST } from "@/lib/constants";
-import { useWalletModal } from "@solana/wallet-adapter-react-ui";
-import { useWallet } from "@solana/wallet-adapter-react";
-import { PublicKey, Transaction } from "@solana/web3.js";
-import { WalletSignTransactionError } from "@solana/wallet-adapter-base";
-import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
+// Log to confirm file is loaded
+console.log("[useVoteHistory] File loaded");
 
-interface TruthSliderProps {
-  creditBalance: number | null;
-  setCreditBalance: Dispatch<SetStateAction<number | null>>;
+interface VoteHistoryResult {
+  voteHistory: VoteResult[];
+  setVoteHistory: React.Dispatch<React.SetStateAction<VoteResult[]>>;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: (limit?: number) => Promise<void>;
 }
 
-export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSliderProps) {
-  const [creditAmount, setCreditAmount] = useState(10);
-  const { publicKey, signTransaction, connected: isWalletConnected, disconnect } = useWallet();
-  const {
-    sendTransaction,
-    isSending,
-    error: txError,
-  } = useTruthTransaction(
-    publicKey,
-    signTransaction ? (tx: Transaction) => signTransaction(tx) : null
-  );
-  const { setVisible } = useWalletModal();
-  const [truthBalance, setTruthBalance] = useState<number | null>(null);
-  const [solBalance, setSolBalance] = useState<number | null>(null);
-  const [isAssigning, setIsAssigning] = useState(false);
-  const [assignError, setAssignError] = useState<string | null>(null);
-  const [csrfToken, setCsrfToken] = useState<string | null>(null);
+/**
+ * Fetches the user's vote history from the /api/vote-history endpoint, only refetching if the vote session count has changed.
+ * @param initialLimit Number of vote sessions to fetch (default: RESULT_QUERIES_CARDS = 12).
+ * @returns An object containing the vote history, loading state, error, and refetch function.
+ */
+export function useVoteHistory(initialLimit: number = RESULT_QUERIES_CARDS): VoteHistoryResult {
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<Error | null>(null);
+  const { voteHistory, setVoteHistory, voteSessionCount, setVoteSessionCount } = useVoteStore();
+  const VOTE_HISTORY_API = "/api/vote-history";
 
-  // Fetch CSRF token
-  const fetchCsrfToken = useCallback(async () => {
-    try {
-      const response = await fetch("/api/csrf-token", {
-        method: "GET",
-        headers: { "Content-Type": "application/json" },
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch CSRF token");
-      }
-      const data = await response.json();
-      console.log("[TruthSlider] Fetched CSRF token:", { csrfToken: data.csrfToken });
-      setCsrfToken(data.csrfToken);
-      return data.csrfToken;
-    } catch (error) {
-      console.error("[TruthSlider] Error fetching CSRF token:", error);
-      throw error;
-    }
-  }, []);
-
-  // Fetch $truth and SOL balance
-  const fetchBalances = useCallback(async () => {
-    if (!publicKey) {
-      console.log("[TruthSlider] No publicKey, setting balances to null");
-      setTruthBalance(null);
-      setSolBalance(null);
-      return;
-    }
-
-    console.log("[TruthSlider] Fetching balances for wallet:", {
-      publicKey: publicKey.toBase58(),
-      tokenMint: TRUTH_TOKEN_MINT.toBase58(),
-      rpcEndpoint: connection.rpcEndpoint,
-    });
-
-    // Fetch $truth balance
-    try {
-      const tokenAccount = await getAssociatedTokenAddress(TRUTH_TOKEN_MINT, publicKey);
-      console.log("[TruthSlider] Calculated $truth token account:", tokenAccount.toBase58());
-
+  const refetch = useCallback(
+    async (limit: number = initialLimit) => {
       try {
-        const accountInfo = await getAccount(connection, tokenAccount);
-        console.log("[TruthSlider] Fetched $truth account info:", {
-          amount: accountInfo.amount.toString(),
-          decimals: TRUTH_TOKEN_DECIMALS,
-        });
+        setIsLoading(true);
+        setError(null);
+        console.log("[useVoteHistory] Checking vote session count, current:", voteSessionCount, "limit:", limit);
 
-        const balance = Number(accountInfo.amount) / 10 ** TRUTH_TOKEN_DECIMALS;
-        console.log("[TruthSlider] Calculated $truth balance:", balance);
-        setTruthBalance(balance);
-      } catch (error) {
-        console.error("[TruthSlider] No $truth token account found:", error);
-        toast.error("No $truth token account found for this wallet");
-        setTruthBalance(0);
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("[TruthSlider] Error fetching $truth balance:", errorMessage);
-      toast.error(`Failed to fetch $truth balance: ${errorMessage}`);
-      setTruthBalance(0);
-    }
+        // Fetch vote session count
+        const countResponse = await fetch(`${VOTE_HISTORY_API}?countOnly=true`);
+        console.log("[useVoteHistory] Count fetch status:", countResponse.status);
+        if (!countResponse.ok) {
+          throw new Error(`Vote session count fetch failed: ${countResponse.statusText}`);
+        }
+        const countData = await countResponse.json();
+        console.log("[useVoteHistory] Count response:", countData);
 
-    // Fetch SOL balance
-    try {
-      const balanceInLamports = await connection.getBalance(publicKey);
-      const balanceInSol = balanceInLamports / 1_000_000_000; // Convert lamports to SOL
-      console.log("[TruthSlider] Fetched SOL balance:", balanceInSol);
-      setSolBalance(balanceInSol);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Unknown error";
-      console.error("[TruthSlider] Error fetching SOL balance:", errorMessage);
-      toast.error(`Failed to fetch SOL balance: ${errorMessage}`);
-      setSolBalance(0);
-    }
-  }, [publicKey]);
-
-  // Fetch balances when wallet connects
-  useEffect(() => {
-    fetchBalances();
-  }, [fetchBalances, publicKey]);
-
-  const requiredTruth = creditAmount * TRUTH_QUERY_COST;
-  const hasEnoughTruth = truthBalance !== null && truthBalance >= requiredTruth;
-  const hasEnoughSol = solBalance !== null && solBalance >= 0.01; // Approx. fee for SPL transfer
-  const isValid = creditAmount >= 1 && creditAmount <= 100 && Number.isInteger(creditAmount);
-
-  // Assign credits for $truth
-  const assignCredits = useCallback(
-    async (
-      signature: string,
-      signedTx: Transaction,
-      creditAmount: number,
-      walletPublicKey: PublicKey,
-    ) => {
-      setIsAssigning(true);
-      setAssignError(null);
-      try {
-        const token = csrfToken || (await fetchCsrfToken());
-
-        console.log("[TruthSlider] Sending request to /api/credits-truth/assign with CSRF token:", { token });
-
-        const response = await fetch("/api/credits-truth/assign", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": token,
-          },
-          credentials: "include",
-          body: JSON.stringify({
-            walletPublicKey: walletPublicKey.toBase58(),
-            creditAmount,
-          }),
-        });
-
-        const data = await response.json();
-        if (!response.ok) {
-          throw new Error(data.error || "Failed to assign credits");
+        if (typeof countData.count !== "number") {
+          throw new Error("Invalid vote session count format");
         }
 
-        console.log("[TruthSlider] Credit assignment response:", {
-          credits: data.credits,
-          unpaidQueries: data.unpaidQueries,
-        });
+        // Update store with new count
+        setVoteSessionCount(countData.count);
 
-        setIsAssigning(false);
-        return { credits: data.credits, unpaidQueries: data.unpaidQueries };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("[TruthSlider] Credit assignment failed:", { error, message: errorMessage });
-        setAssignError(errorMessage);
-        setIsAssigning(false);
-        throw error;
+        // Skip full refetch if count hasn't changed
+        if (countData.count === voteSessionCount && voteHistory.length > 0) {
+          console.log("[useVoteHistory] Vote session count unchanged, reusing stored voteHistory:", voteHistory.length, "items");
+          return;
+        }
+
+        // Fetch full vote history
+        console.log("[useVoteHistory] Refetching vote history with limit:", limit);
+        const response = await fetch(`${VOTE_HISTORY_API}?limit=${limit}`);
+        console.log("[useVoteHistory] Refetch status:", response.status, response.statusText);
+        if (!response.ok) {
+          throw new Error(`Vote history refetch failed: ${response.statusText}`);
+        }
+        const data = await response.json();
+        console.log("[useVoteHistory] Refetch response data:", data);
+
+        if (!Array.isArray(data)) {
+          throw new Error("Invalid vote history data format");
+        }
+
+        // Validate and filter vote history
+        const validatedHistory: VoteResult[] = data
+          .filter((item): item is VoteResult =>
+            item &&
+            typeof item.id === 'string' &&
+            typeof item.queryText === 'string' &&
+            item.queryText.trim() !== '' &&
+            Array.isArray(item.validatorResponses) &&
+            typeof item.votingResult === 'object' &&
+            typeof item.votingResult.yes === 'number' &&
+            typeof item.votingResult.no === 'number' &&
+            typeof item.votingResult.notVoted === 'number'
+          )
+          .map((item) => ({
+            id: item.id,
+            queryText: item.queryText,
+            isConsensusReached: item.isConsensusReached ?? false,
+            consensusValue: item.consensusValue ?? null,
+            validatorResponses: item.validatorResponses.map((res) => ({
+              id: res.id,
+              provider: res.provider || 'Unknown',
+              profileName: res.profileName || 'Unknown',
+              vote: res.vote || 'UNKNOWN',
+              rationale: res.rationale || '',
+            })),
+            votingResult: {
+              yes: item.votingResult.yes,
+              no: item.votingResult.no,
+              notVoted: item.votingResult.notVoted,
+            },
+            timestamp: item.timestamp ?? undefined,
+          }));
+
+        // Log invalid entries
+        const invalidEntries = data.filter(
+          (item) => !item || !item.id || !item.queryText || item.queryText.trim() === '' || !Array.isArray(item.validatorResponses)
+        );
+        if (invalidEntries.length > 0) {
+          console.warn("[useVoteHistory] Invalid vote history entries filtered out:", invalidEntries);
+        }
+
+        console.log("[useVoteHistory] Updating voteHistory with", validatedHistory.length, "valid items");
+        setVoteHistory(validatedHistory);
+      } catch (err: unknown) {
+        const error = err instanceof Error ? err : new Error(String(err));
+        console.error("[useVoteHistory] Error:", sanitizeError(error));
+        setError(error);
+        setVoteHistory([]);
+      } finally {
+        setIsLoading(false);
       }
     },
-    [csrfToken, fetchCsrfToken],
+    [initialLimit, voteSessionCount, voteHistory.length, setVoteHistory, setVoteSessionCount],
   );
 
-  const handlePayment = useCallback(async () => {
-    if (!isWalletConnected) {
-      setVisible(true);
-      toast.error("Please connect your wallet to proceed.");
-      return;
-    }
-    if (!isValid) {
-      toast.error("Credits must be a whole number between 1 and 100");
-      return;
-    }
-    if (!hasEnoughTruth) {
-      toast.error(
-        `Insufficient $truth: Need ${requiredTruth.toFixed(0)}, have ${truthBalance?.toFixed(0) ?? "0"}`
-      );
-      return;
-    }
-    if (!hasEnoughSol) {
-      toast.error(
-        `Insufficient SOL for transaction fees: Need at least 0.01 SOL, have ${solBalance?.toFixed(4) ?? "0"} SOL`
-      );
-      return;
-    }
-    if (!publicKey || !signTransaction) {
-      setVisible(true);
-      toast.error("Wallet not fully connected. Please reconnect and try again.");
-      return;
-    }
+  useEffect(() => {
+    console.log("[useVoteHistory] Effect running with initialLimit:", initialLimit);
+    refetch();
+  }, [refetch]);
 
-    const attemptTransaction = async (): Promise<boolean> => {
-      console.log("[TruthSlider] Initiating $truth transaction for", {
-        creditAmount,
-        recipient: VERAFY_WALLET.toBase58(),
-        requiredTruth,
-        walletPublicKey: publicKey.toBase58(),
-        truthBalance,
-        solBalance,
-        rpcEndpoint: connection.rpcEndpoint,
-      });
+  return { voteHistory, setVoteHistory, isLoading, error, refetch };
+}
+--- hooks/useVoteResult.ts ---
+import { useState, useEffect, useCallback } from "react";
+import { useNetworkState } from "./useNetworkState";
+import { useVoteStore } from "@/store/vote-store";
+import type { VoteResult } from "@/lib/types";
+import { sanitizeError } from "@/utils/security-utils";
 
-      try {
-        const result = await sendTransaction(creditAmount, new PublicKey(VERAFY_WALLET));
-        if (result.signature && result.signedTx && publicKey) {
-          const newBalance = await assignCredits(
-            result.signature,
-            result.signedTx,
-            creditAmount,
-            publicKey
-          );
-          setCreditBalance(newBalance.credits ?? 0);
-          toast.success(`Successfully purchased ${creditAmount} credits with $truth!`);
-          // Refresh balances after successful purchase
-          await fetchBalances();
-          // Notify other components of credit update
-          window.dispatchEvent(new CustomEvent("credits-updated"));
-          return true;
-        }
-        console.error("[TruthSlider] Transaction result invalid:", result);
-        toast.error("Transaction failed: Invalid result");
-        return false;
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("[TruthSlider] Transaction failed:", errorMessage);
-        if (error instanceof WalletSignTransactionError) {
-          toast.error("Transaction not approved. Please check your wallet and try again.");
-        } else {
-          toast.error(`Transaction failed: ${errorMessage}`);
-        }
-        return false;
+interface VoteResultHookResult {
+  voteResult: VoteResult | null;
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<void>;
+}
+
+export function useVoteResult(voteSessionId?: string): VoteResultHookResult {
+  const { networkState } = useNetworkState();
+  const lastQuery = networkState?.lastQuery;
+  const { lastVoteResult } = useVoteStore();
+  const [voteResult, setVoteResult] = useState<VoteResult | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<Error | null>(null);
+
+  const fetchVoteResult = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const url = voteSessionId
+        ? `/api/vote-sessions/${voteSessionId}`
+        : "/api/vote-history?limit=1";
+      console.log(`[useVoteResult] Fetching VoteResult from ${url}`);
+
+      const response = await fetch(url);
+      console.log(`[useVoteResult] Fetch status: ${response.status} ${response.statusText}`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
       }
-    };
 
-    const success = await attemptTransaction();
-    if (!success) {
-      console.error("[TruthSlider] Transaction attempt failed");
-      toast.error("Transaction failed. Please check your wallet, SOL balance, and network settings.");
+      const voteData = await response.json();
+      console.log(`[useVoteResult] Fetch response:`, voteData);
+
+      // Parse response based on endpoint
+      let fetchedVoteResult: VoteResult | null = null;
+      if (voteSessionId) {
+        if (voteData && voteData.id) {
+          fetchedVoteResult = {
+            id: voteData.id,
+            queryText: voteData.queryText,
+            isConsensusReached: voteData.isConsensusReached,
+            consensusValue: voteData.consensusValue,
+            votingResult: {
+              yes: voteData.votesYes,
+              no: voteData.votesNo,
+              notVoted: voteData.notVoted,
+            },
+            validatorResponses: voteData.validatorResponses || [],
+            timestamp: voteData.timestamp,
+          };
+        }
+      } else {
+        fetchedVoteResult = Array.isArray(voteData) && voteData[0] ? voteData[0] : null;
+      }
+
+      if (fetchedVoteResult) {
+        console.log(`[useVoteResult] Setting voteResult:`, fetchedVoteResult);
+        setVoteResult(fetchedVoteResult);
+      } else {
+        throw new Error("No vote result found");
+      }
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error(sanitizeError(error));
+      setError(error);
+      setVoteResult(null);
+    } finally {
+      setIsLoading(false);
     }
-    return success;
-  }, [
-    isWalletConnected,
-    isValid,
-    hasEnoughTruth,
-    hasEnoughSol,
-    publicKey,
-    signTransaction,
-    creditAmount,
-    truthBalance,
-    solBalance,
-    requiredTruth,
-    sendTransaction,
-    assignCredits,
-    setCreditBalance,
-    setVisible,
-    fetchBalances,
-  ]);
+  }, [voteSessionId]);
 
-  const handleChangeWallet = async () => {
-    await disconnect();
-    setVisible(true);
-  };
+  // Initial fetch when voteSessionId or lastQuery changes
+  useEffect(() => {
+    console.log(`[useVoteResult] Effect running for initial fetch, voteSessionId: ${voteSessionId}, lastQuery: ${lastQuery}`);
+    fetchVoteResult();
+  }, [voteSessionId, lastQuery, fetchVoteResult]);
 
-  useMemo(() => {
-    if (txError) toast.error(txError);
-    if (assignError) toast.error(assignError);
-  }, [txError, assignError]);
+  // Fetch on query submission if voteSessionId matches lastVoteResult.id
+  useEffect(() => {
+    if (lastVoteResult && (!voteSessionId || lastVoteResult.id === voteSessionId)) {
+      console.log("[useVoteResult] New vote result detected, triggering fetchVoteResult");
+      fetchVoteResult();
+    }
+  }, [lastVoteResult, voteSessionId, fetchVoteResult]);
 
-  return (
-    <TruthSliderUI
-      creditAmount={creditAmount}
-      setCreditAmount={setCreditAmount}
-      requiredTruth={requiredTruth}
-      creditBalance={creditBalance}
-      truthBalance={truthBalance}
-      isLoading={isSending || isAssigning}
-      isValid={isValid}
-      hasEnoughTruth={hasEnoughTruth}
-      isWalletConnected={isWalletConnected}
-      onPay={handlePayment}
-      onChangeWallet={handleChangeWallet}
-      decimalPlaces={0} // $truth uses whole numbers (1:1)
-    />
-  );
+  const refetch = useCallback(async () => {
+    console.log("[useVoteResult] Manual refetch triggered");
+    await fetchVoteResult();
+  }, [fetchVoteResult]);
+
+  return { voteResult, isLoading, error, refetch };
+}
+--- prisma/schema.prisma ---
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum QueryMode {
+  factCheck
+  create
+  predict
+  shop
+}
+
+enum QueryStatus {
+  Pending
+  Voting
+  Completed
+  Failed
+}
+
+model User {
+  id           String      @id @default(uuid())
+  email        String      @unique
+  name         String
+  userCredit   UserCredit? @relation(name: "UserToUserCredit")
+  userCreditId String?     @unique
+  freeCredits  Int         @default(10) // Daily free credits
+  lastResetDate DateTime   @default(now()) // Tracks last reset
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  feedbacks    Feedback[]  @relation("UserToFeedback")
+}
+
+model UserCredit {
+  id              String        @id @default(uuid())
+  walletPublicKey String        @unique
+  credits         Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  userId          String?       @unique
+  user            User?         @relation(name: "UserToUserCredit", fields: [userId], references: [id], onDelete: SetNull)
+  voteSessions    VoteSession[]
+}
+
+model PaymentLog {
+  id              String    @id
+  walletPublicKey String
+  credits         Int
+  solAmount       Float?
+  otherAmount     Float?
+  otherPayType    String?
+  status          String
+  error           String?
+  createdAt       DateTime  @default(now())
+}
+
+model ApiKey {
+  id            String         @id @default(dbgenerated("uuid_generate_v4()"))
+  name          String
+  provider      String
+  key           String
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  lastUsed      DateTime?
+  validatorKeys ValidatorKey[]
+
+  @@index([provider, isActive])
+}
+
+model ValidatorKey {
+  id          String    @id @default(uuid())
+  validatorId String
+  apiKeyId    String
+  createdAt   DateTime  @default(now())
+  apiKey      ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  validator   Validator @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+
+  @@unique([validatorId, apiKeyId])
+}
+
+model Validator {
+  id            String              @id @default(uuid())
+  profileName   String
+  provider      String
+  modelName     String
+  publicKey     String
+  isLeader      Boolean             @default(false)
+  active        Boolean             @default(true)
+  description   String?
+  avatarUrl     String?
+  validatorType String?
+  reliability   Float?              @default(0.0)
+  totalVotes    Int                 @default(0)
+  correctVotes  Int                 @default(0)
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  graphEdges    GraphEdge[]         @relation("ValidatorEdges")
+  apiKeys       ValidatorKey[]
+  responses     ValidatorResponse[]
+
+  @@index([provider])
+  @@index([active])
+}
+
+model VoteSession {
+  id                 String              @id @default(uuid())
+  queryText          String
+  context            String?
+  timestamp          DateTime            @default(now())
+  isConsensusReached Boolean
+  consensusValue     Boolean?
+  votesYes           Int                 @default(0)
+  votesNo            Int                 @default(0)
+  notVoted           Int                 @default(0)
+  leaderId           String?
+  txHash             String?
+  blockchainNetwork  String?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  graphEdges         GraphEdge[]         @relation("VoteSessionEdges")
+  threads            Thread[]
+  validatorResponses ValidatorResponse[]
+  mode               QueryMode? // Nullable for legacy compatibility
+  queryAiCountReq    Int? // Nullable, number of AIs requested
+  walletPublicKey    String? // Nullable, wallet key for user
+  userId             String? // Nullable, foreign key to UserCredit
+  statusProcessing   QueryStatus? // Nullable, query status
+  queryCost          Float? // Nullable, cost in credits
+  responseLatency    Int? // Nullable, latency in milliseconds
+  user               UserCredit?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+  favorites          Favorite[]          @relation // Added opposite relation
+
+  @@index([timestamp])
+  @@index([consensusValue])
+  @@index([isConsensusReached])
+}
+
+model ValidatorResponse {
+  id                 String      @id @default(uuid())
+  vote               String
+  rationale          String
+  confidence         Float?      @default(0.5)
+  rationaleEmbedding String?
+  latency            Int?
+  matchedConsensus   Boolean?
+  voteSessionId      String
+  validatorId        String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  error              String?
+  validator          Validator   @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+  voteSession        VoteSession @relation(fields: [voteSessionId], references: [id])
+
+  @@index([vote])
+  @@index([voteSessionId])
+  @@index([validatorId])
+  @@index([matchedConsensus])
+}
+
+model GraphEdge {
+  id            String       @id @default(uuid())
+  sourceType    String
+  targetType    String
+  sourceId      String
+  targetId      String
+  relationship  String
+  weight        Float?
+  properties    String       @default("")
+  createdAt     DateTime     @default(now())
+  validatorId   String?
+  voteSessionId String?
+  voteSession   VoteSession? @relation("VoteSessionEdges", fields: [voteSessionId], references: [id])
+  validator     Validator?   @relation("ValidatorEdges", fields: [validatorId], references: [id], onDelete: Cascade)
+
+  @@index([sourceType, sourceId])
+  @@index([targetType, targetId])
+  @@index([relationship])
+}
+
+model Thread {
+  id            String      @id @default(uuid())
+  title         String
+  body          String
+  upvotes       Int         @default(0)
+  downvotes     Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  voteSessionId String
+  replies       Reply[]
+  voteSession   VoteSession @relation(fields: [voteSessionId], references: [id], onDelete: Cascade)
+}
+
+model Reply {
+  id        String   @id @default(uuid())
+  body      String
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  threadId  String
+  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
+}
+
+model Feedback {
+  id                 String   @id @default(uuid())
+  userId             String
+  username           String
+  email              String
+  rating             String   @default("thumbs_up") // "thumbs_up" or "thumbs_down"
+  explanation        String?
+  options            String[] @default([]) // e.g., ["slow_response", "error_response", "bad_ui"]
+  includeBrowserInfo Boolean  @default(true)
+  browserInfo        Json?
+  url                String
+  component          String
+  action             String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  user               User     @relation("UserToFeedback", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model Favorite {
+  id              String   @id @default(uuid()) @db.Uuid
+  user_id         String   @db.Uuid // Foreign key to auth.users, no relation
+  vote_session_id String   // Changed to String (TEXT) to match vote_sessions.id
+  created_at      DateTime @default(now()) @db.Timestamptz(3)
+  vote_session    VoteSession @relation(fields: [vote_session_id], references: [id], onDelete: Cascade)
+  @@unique([user_id, vote_session_id])
+  @@index([user_id])
 }

@@ -211,7 +211,7 @@ export default function CreditFAQ() {
       className="w-full max-w-6xl mx-auto p-6 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm"
     >
       <h2 className="text-2xl font-semibold text-center text-zinc-900 dark:text-zinc-100 mb-6">
-        Frequently Asked Questions
+        Credit/Payment FAQs
       </h2>
       <Accordion.Root
         type="single"

@@ -45,7 +45,7 @@ export default function FeedbackTable({ feedback }: FeedbackTableProps) {
                 Explanation
               </th>
               <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                Page
+                Type
               </th>
               <th className="px-4 py-2 text-left text-sm font-medium text-zinc-900 dark:text-zinc-100">
                 Options

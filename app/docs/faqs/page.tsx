@@ -1,5 +1,6 @@
 import AskFooter from "@/components/ask/ask-footer";
 import Navbar from "@/components/ask/navbar/navbar";
+import QueryFAQ from "@/components/ask/results/ask-results-faq";
 import CreditFAQ from "@/components/credits/credit-faq";
 import { FeedbackModal } from "@/components/feedback-modal";
 import { FeedbackWidget } from "@/components/feedback-widget";
@@ -46,15 +47,19 @@ export default function FAQsPage() {
           {/* Main Content */}
           <main className="container mx-auto px-4 py-8">
             <section className="max-w-2xl mx-auto space-y-6">
-              <h2 className="text-xl font-semibold sm:text-2xl">Verafy FAQs</h2>
-              <p className="text-base text-muted-foreground sm:text-lg">
+              <h2 className="text-xl font-semibold sm:text-2xl">Verafy: Frequently Asked Questions</h2>
+              <p className="text-lg font-semibold sm:text-md">Payment FAQs, AI Query FAQs</p>
+              {/* <p className="text-lg font-semibold sm:text-md">AI Query FAQs</p> */}
+              {/* <p className="text-base text-muted-foreground sm:text-lg">
                 Add your FAQ components here (e.g., accordion, collapsible
                 sections) to answer common user questions about features,
                 credits, or usage.
-              </p>
+              </p> */}
               {/* Placeholder for FAQ components */}
 
               <CreditFAQ />
+              <QueryFAQ />
+
             </section>
           </main>
         </div>
