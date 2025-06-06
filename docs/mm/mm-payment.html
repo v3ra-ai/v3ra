@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="ie=edge">
+<title>Markmap</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+}
+#mindmap {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+}
+</style>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.10/dist/style.css">
+</head>
+<body>
+<svg id="mindmap"></svg>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-view@0.18.10/dist/browser/index.js"></script><script src="https://cdn.jsdelivr.net/npm/markmap-toolbar@0.18.10/dist/index.js"></script><script>(r => {
+              setTimeout(r);
+            })(function renderToolbar() {
+  const {
+    markmap,
+    mm
+  } = window;
+  const {
+    el
+  } = markmap.Toolbar.create(mm);
+  el.setAttribute('style', 'position:absolute;bottom:20px;right:20px');
+  document.body.append(el);
+})</script><script>((getMarkmap, getOptions, root2, jsonOptions) => {
+              const markmap = getMarkmap();
+              window.mm = markmap.Markmap.create(
+                "svg#mindmap",
+                (getOptions || markmap.deriveOptions)(jsonOptions),
+                root2
+              );
+            })(() => window.markmap,null,{"content":"Explanation of New Scenarios and Edge Cases","children":[{"content":"1. \n<p data-lines=\"3,4\"><strong>User is logged in with no free credits and wallet connected</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the case where the user has no free credits but has paid credits. Ensures the system correctly handles zero free credits.","children":[],"payload":{"tag":"li","lines":"4,5"}},{"content":"<strong>Edge Case</strong>: Verifies that the total credits calculation works when free credits are 0.","children":[],"payload":{"tag":"li","lines":"5,7"}}],"payload":{"tag":"li","lines":"3,7","listIndex":1}},{"content":"2. \n<p data-lines=\"7,8\"><strong>User is logged in with no free credits and wallet disconnected</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the case where both free and paid credits are zero due to no free credits and a disconnected wallet.","children":[],"payload":{"tag":"li","lines":"8,9"}},{"content":"<strong>Edge Case</strong>: Ensures the UI and store handle a &quot;zero-state&quot; correctly.","children":[],"payload":{"tag":"li","lines":"9,11"}}],"payload":{"tag":"li","lines":"7,11","listIndex":2}},{"content":"3. \n<p data-lines=\"11,12\"><strong>User is logged in and wallet has no paid credits</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the case where the wallet is connected but has no paid credits in the <code>UserCredit</code> table.","children":[],"payload":{"tag":"li","lines":"12,13"}},{"content":"<strong>Edge Case</strong>: Verifies that paid credits are correctly set to 0 when the wallet has no associated credits.","children":[],"payload":{"tag":"li","lines":"13,15"}}],"payload":{"tag":"li","lines":"11,15","listIndex":3}},{"content":"4. \n<p data-lines=\"15,16\"><strong>User reconnects wallet while logged in</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the dynamic update of credits when a user reconnects their wallet after being disconnected.","children":[],"payload":{"tag":"li","lines":"16,17"}},{"content":"<strong>Edge Case</strong>: Ensures the store and UI update correctly without stale data from the disconnected state.","children":[],"payload":{"tag":"li","lines":"17,19"}}],"payload":{"tag":"li","lines":"15,19","listIndex":4}},{"content":"5. \n<p data-lines=\"19,20\"><strong>Database query for free credits fails</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests error handling when the <code>User</code> table query fails (e.g., due to network issues or database downtime).","children":[],"payload":{"tag":"li","lines":"20,21"}},{"content":"<strong>Edge Case</strong>: Ensures the system falls back to 0 free credits and displays an error message to the user.","children":[],"payload":{"tag":"li","lines":"21,23"}}],"payload":{"tag":"li","lines":"19,23","listIndex":5}},{"content":"6. \n<p data-lines=\"23,24\"><strong>Database query for paid credits fails</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests error handling when the <code>UserCredit</code> table query fails.","children":[],"payload":{"tag":"li","lines":"24,25"}},{"content":"<strong>Edge Case</strong>: Verifies that the system uses free credits and sets paid credits to 0, with a warning to the user.","children":[],"payload":{"tag":"li","lines":"25,27"}}],"payload":{"tag":"li","lines":"23,27","listIndex":6}},{"content":"7. \n<p data-lines=\"27,28\"><strong>User logs out while wallet is connected</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the transition from a logged-in, wallet-connected state to a logged-out state.","children":[],"payload":{"tag":"li","lines":"28,29"}},{"content":"<strong>Edge Case</strong>: Ensures the store and UI reset all credits to 0 upon logout.","children":[],"payload":{"tag":"li","lines":"29,31"}}],"payload":{"tag":"li","lines":"27,31","listIndex":7}},{"content":"8. \n<p data-lines=\"31,32\"><strong>Wallet disconnects while UI is open on multiple pages</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the consistency of the centralized store across multiple pages when the wallet state changes.","children":[],"payload":{"tag":"li","lines":"32,33"}},{"content":"<strong>Edge Case</strong>: Verifies that all pages reflect the updated state (0 paid credits) after disconnection.","children":[],"payload":{"tag":"li","lines":"33,35"}}],"payload":{"tag":"li","lines":"31,35","listIndex":8}},{"content":"9. \n<p data-lines=\"35,36\"><strong>User has null or missing data in User table</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the case where the <code>User</code> table has incomplete or corrupt data (e.g., null free credits).","children":[],"payload":{"tag":"li","lines":"36,37"}},{"content":"<strong>Edge Case</strong>: Ensures the system defaults to 0 free credits to avoid crashes or incorrect displays.","children":[],"payload":{"tag":"li","lines":"37,39"}}],"payload":{"tag":"li","lines":"35,39","listIndex":9}},{"content":"10. \n<p data-lines=\"39,40\"><strong>Wallet public key is invalid or missing</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the case where the wallet connection is technically &quot;connected&quot; but provides an invalid or missing public key.","children":[],"payload":{"tag":"li","lines":"40,41"}},{"content":"<strong>Edge Case</strong>: Verifies that paid credits are set to 0 and a warning is shown to the user.","children":[],"payload":{"tag":"li","lines":"41,43"}}],"payload":{"tag":"li","lines":"39,43","listIndex":10}},{"content":"11. \n<p data-lines=\"43,44\"><strong>Rapid wallet connect and disconnect</strong>:</p>","children":[{"content":"<strong>Purpose</strong>: Tests the system&apos;s stability under rapid state changes (e.g., user toggling wallet connection quickly).","children":[],"payload":{"tag":"li","lines":"44,45"}},{"content":"<strong>Edge Case</strong>: Ensures the store and UI stabilize on the correct state (likely disconnected, as it&#x2019;s the final state) without race conditions or inconsistent updates.","children":[],"payload":{"tag":"li","lines":"45,46"}}],"payload":{"tag":"li","lines":"43,46","listIndex":11}}],"payload":{"tag":"h3","lines":"1,2"}},{})</script>
+</body>
+</html>

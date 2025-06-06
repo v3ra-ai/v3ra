@@ -12,6 +12,7 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 import { Dispatch, SetStateAction } from "react";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
+import CreditFAQ from "./credit-faq";
 
 export function CreditsAllLayout() {
   const { publicKey } = useWallet();
@@ -121,7 +122,7 @@ export function CreditsAllLayout() {
         Get Credits
       </h1>
       <div className="flex flex-col sm:flex-row gap-4 justify-center text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
-        <div className="flex flex-col items-center w-full sm:w-auto p-2">
+        <div className="flex flex-col items-center w-full sm:w-auto p-2 border-2 border-transparent">
           <div className="flex items-center">
             <Gift className="mr-1" strokeWidth={1} size={20} />
             {isInitialLoading || creditsLoading ? (
@@ -140,9 +141,9 @@ export function CreditsAllLayout() {
             Free Credits
           </div>
         </div>
-        <div className="flex flex-col items-center w-full sm:w-auto p-2">
+        <div className="flex flex-col items-center w-full sm:w-auto p-2 border-2 border-transparent">
           <div className="flex items-center">
-            <Coins className="mr-1" strokeWidth={1} size={20}/>
+            <Coins className="mr-1" strokeWidth={1} size={20} />
             {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
@@ -196,11 +197,11 @@ export function CreditsAllLayout() {
           />
         </div>
         <div className="p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-          <h2 className="text-2xl font-semibold text-center text-zinc-900 dark:text-zinc-100 mb-0">
-            <div>Stake</div>
-            <div>for Rewards</div>
-          </h2>
           <div className="max-w-md mx-auto p-2 bg-zinc-200 dark:bg-zinc-800 rounded-lg shadow-md">
+            <h2 className="text-2xl font-semibold text-center text-zinc-900 dark:text-zinc-100 mb-0">
+              <div>Stake</div>
+              <div>for Rewards</div>
+            </h2>
             <div className="flex w-full justify-center items-center mb-2">
               <div className="justify-center mt-3 mb-7">
                 <Link href="https://stakewiz.com/validator/TrutHUEykD2UsmAq7W3hA4r3XiQxGLqhENAwo9522xa">
@@ -218,7 +219,7 @@ export function CreditsAllLayout() {
               Current Staked SOL: 0 SOL
             </p>
             <Link href="https://stakewiz.com/validator/TrutHUEykD2UsmAq7W3hA4r3XiQxGLqhENAwo9522xa">
-              <button className="w-full py-2 px-4 rounded-md font-medium text-white bg-zinc-400 dark:bg-zinc-600 cursor-pointer">
+              <button className="w-full py-2 px-4 rounded-md mt-3 font-medium text-white bg-blue-500 dark:bg-blue-600 hover:bg-blue-600 dark:hover:bg-blue-500 cursor-pointer">
                 Stake Now
               </button>
             </Link>
@@ -228,6 +229,9 @@ export function CreditsAllLayout() {
             </div>
           </div>
         </div>
+      </div>
+      <div className="mt-8">
+        <CreditFAQ />
       </div>
     </motion.div>
   );

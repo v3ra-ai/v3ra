@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import Link from 'next/link';
-import PageFeedback from './ask-page-feedback';
-import { supabase } from '@/lib/supabase-client';
-import { FeedbackModal } from '../feedback-modal';
-
+import { useState, useEffect } from "react";
+import Link from "next/link";
+import PageFeedback from "./ask-page-feedback";
+import { supabase } from "@/lib/supabase-client";
+import { FeedbackModal } from "../feedback-modal";
+import { CircleHelp } from "lucide-react";
 
 export default function AskFooter() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -13,16 +13,20 @@ export default function AskFooter() {
   // Check Supabase session to determine login status
   useEffect(() => {
     async function checkSession() {
-      const { data: { session } } = await supabase.auth.getSession();
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
       setIsLoggedIn(!!session);
     }
 
     checkSession();
 
     // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setIsLoggedIn(!!session);
-    });
+    const { data: authListener } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setIsLoggedIn(!!session);
+      }
+    );
 
     return () => {
       authListener.subscription.unsubscribe();
@@ -72,6 +76,12 @@ export default function AskFooter() {
                     </Link>
                   </li>
                   <li>
+                    <Link href="/docs/faqs/" className=" cursor-pointer">
+                      <div className="flex"><CircleHelp strokeWidth={1.5} /> <span className="ml-1">Help/FAQs</span></div>
+                    </Link>
+                  </li>
+
+                  <li>
                     <Link
                       href="https://t.me/truth_chain"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
@@ -114,7 +124,7 @@ export default function AskFooter() {
                   </li>
                   <li>
                     <Link
-                      href="/credits"
+                      href="/credits-all"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       Credits

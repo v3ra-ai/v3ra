@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import { PublicKey } from "@solana/web3.js";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { useEffect } from "react";
 
 interface CreditsState {
   userFreeCredits: number;
@@ -122,7 +124,7 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
   setUserCreditsTotal: (credits) =>
     set((state) => {
       const newUserCreditsTotal = credits;
-      const newPaidCredits = Math.max(0, credits - state.userFreeCredits); // Prevent setting paid credits incorrectly
+      const newPaidCredits = Math.max(0, credits - state.userFreeCredits);
       const newTotalCredits = state.userFreeCredits + newPaidCredits;
       const newState = {
         userPaidCredits: newPaidCredits,
@@ -220,7 +222,7 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
         userPaidCredits: currentState.userPaidCredits,
         totalCredits: currentState.totalCredits,
         timestamp: new Date(currentState.savedCreditsTimestamp).toISOString(),
-        context: { publicKey: publicKey?.toBase58(), email },
+        context: { publicKey: publicKey?.toBase58() || "none", email },
       });
       return;
     }
@@ -259,7 +261,7 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
               }),
             }).catch((err) => {
               console.error("[credit-store] Paid credits fetch error:", err, {
-                publicKey: publicKey?.toBase58(),
+                publicKey: publicKey.toBase58(),
                 timestamp: new Date().toISOString(),
               });
               return null;
@@ -455,3 +457,30 @@ export const useCreditsStore = create<CreditsState>((set, get) => ({
     }
   },
 }));
+
+// Subscribe to wallet state changes
+export function useCreditsStoreWalletSync(email?: string) {
+  const { publicKey } = useWallet();
+  const { fetchAllCredits, resetCredits } = useCreditsStore();
+
+  useEffect(() => {
+    console.log("[credit-store] Wallet state changed:", {
+      publicKey: publicKey?.toBase58() || "none",
+      email,
+      timestamp: new Date().toISOString(),
+    });
+
+    if (!publicKey) {
+      // Wallet disconnected: Reset paid credits and fetch free credits
+      resetCredits();
+      if (email) {
+        fetchAllCredits(null, email, true);
+      }
+    } else {
+      // Wallet connected: Fetch both free and paid credits
+      if (email) {
+        fetchAllCredits(publicKey, email, true);
+      }
+    }
+  }, [publicKey, email, fetchAllCredits, resetCredits]);
+}
