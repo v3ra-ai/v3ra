@@ -14,20 +14,12 @@ import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { supabase } from "@/lib/supabase-client";
 
-// Interface for decrementCredits response
-interface DecrementCreditsResponse {
-  credits?: number;
-  error?: string;
-  message?: string;
-  success?: boolean;
-}
-
 interface UseQueryLogicProps {
   payWithWallet: boolean;
   setPayWithWallet: Dispatch<SetStateAction<boolean>>;
 }
 
-export function useQueryLogic({
+export default function useQueryLogic({
   payWithWallet,
   setPayWithWallet,
 }: UseQueryLogicProps) {
@@ -62,7 +54,7 @@ export function useQueryLogic({
 
   console.log("[useQueryLogic] Initial queryMode:", queryMode);
 
-  const fetchCsrfToken = async (): Promise<string> => {
+  const fetchCsrfToken = useCallback(async (): Promise<string> => {
     console.log("[useQueryLogic] Starting CSRF token fetch");
     let attempts = 0;
     const maxAttempts = 3;
@@ -75,6 +67,7 @@ export function useQueryLogic({
         console.log("[useQueryLogic] CSRF fetch response:", {
           status: response.status,
           headers: Object.fromEntries(response.headers),
+          timestamp: new Date().toISOString(),
         });
         const data = await response.json();
         if (!response.ok) {
@@ -94,26 +87,22 @@ export function useQueryLogic({
           data.csrfToken
         );
         return data.csrfToken;
-      } catch (err) {
+      } catch {
         attempts++;
         console.error(
           "[useQueryLogic] CSRF token fetch attempt",
           attempts,
-          "failed:",
-          err
+          "failed",
+          { timestamp: new Date().toISOString() }
         );
         if (attempts === maxAttempts) {
-          throw new Error(
-            err instanceof Error
-              ? err.message
-              : "Failed to fetch CSRF token after retries"
-          );
+          throw new Error("Failed to fetch CSRF token after retries");
         }
         await new Promise((resolve) => setTimeout(resolve, 1000));
       }
     }
     throw new Error("Max CSRF token fetch attempts reached");
-  };
+  }, []);
 
   // Fetch email on mount
   useEffect(() => {
@@ -137,9 +126,13 @@ export function useQueryLogic({
         }
 
         setEmail(session.user.email);
-        console.log("[useQueryLogic] Fetched email:", session.user.email);
-      } catch (err) {
-        console.error("[useQueryLogic] Error fetching email:", err);
+        console.log("[useQueryLogic] Fetched email:", session.user.email, {
+          timestamp: new Date().toISOString(),
+        });
+      } catch {
+        console.error("[useQueryLogic] Error fetching email", {
+          timestamp: new Date().toISOString(),
+        });
         toast.error("Failed to fetch user session. Please log in again.", {
           style: { background: "#dc2626", color: "#fee2e2" },
           duration: 5000,
@@ -155,6 +148,7 @@ export function useQueryLogic({
       console.log("[useQueryLogic] Initial fetchAllCredits:", {
         publicKey: publicKey?.toBase58() || "none",
         email,
+        timestamp: new Date().toISOString(),
       });
       fetchAllCredits(publicKey, email);
       hasFetchedCredits.current = true;
@@ -175,7 +169,8 @@ export function useQueryLogic({
         "[useQueryLogic] URL param 'q':",
         q,
         "Current queryMode:",
-        queryMode
+        queryMode,
+        { timestamp: new Date().toISOString() }
       );
     }
   }, [queryMode]);
@@ -184,16 +179,20 @@ export function useQueryLogic({
     console.log("[useQueryLogic] payWithWallet effect running:", {
       queriesUnpaid,
       currentPayWithWallet: payWithWallet,
+      timestamp: new Date().toISOString(),
     });
     const shouldPayWithWallet = queriesUnpaid > 0;
     if (payWithWallet !== shouldPayWithWallet) {
       console.log(
         "[useQueryLogic] Setting payWithWallet to:",
-        shouldPayWithWallet
+        shouldPayWithWallet,
+        { timestamp: new Date().toISOString() }
       );
       setPayWithWallet(shouldPayWithWallet);
     } else {
-      console.log("[payWithWallet] No change needed for payWithWallet");
+      console.log("[payWithWallet] No change needed for payWithWallet", {
+        timestamp: new Date().toISOString(),
+      });
     }
   }, [queriesUnpaid, payWithWallet, setPayWithWallet]);
 
@@ -222,135 +221,13 @@ export function useQueryLogic({
         1,
         Math.min(ALLOWED_AMOUNT_QUERIES, newAmount)
       );
-      console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount);
+      console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount, {
+        timestamp: new Date().toISOString(),
+      });
       setQueriesRequested(clampedAmount, userCreditsTotal);
     },
     [setQueriesRequested, userCreditsTotal]
   );
-
-  const decrementCredits = async (
-    walletPublicKey: string,
-    creditAmount: number
-  ) => {
-    console.log("[useQueryLogic] Attempting to decrement credits:", {
-      walletPublicKey,
-      creditAmount,
-      email,
-      timestamp: new Date().toISOString(),
-    });
-    let attempts = 0;
-    const maxAttempts = 2;
-    while (attempts < maxAttempts) {
-      try {
-        // Validate session
-        const {
-          data: { session },
-          error: sessionError,
-        } = await supabase.auth.getSession();
-        if (sessionError || !session?.user?.email) {
-          console.error(
-            "[useQueryLogic] Session fetch failed:",
-            sessionError?.message || "No session"
-          );
-          throw new Error("Invalid or missing session. Please log in again.");
-        }
-        if (email && session.user.email !== email) {
-          console.warn("[useQueryLogic] Session email mismatch:", {
-            sessionEmail: session.user.email,
-            storedEmail: email,
-          });
-          setEmail(session.user.email);
-        }
-
-        const csrfToken = await fetchCsrfToken();
-        const requestBody = {
-          walletPublicKey,
-          creditAmount,
-          email: session.user.email,
-          type: "paid",
-        };
-        console.log(
-          "[useQueryLogic] Sending decrement credits request:",
-          requestBody
-        );
-        const response = await fetch("/api/credits/decrement", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-Token": csrfToken,
-          },
-          credentials: "include",
-          body: JSON.stringify(requestBody),
-        });
-
-        const rawBody = await response.text();
-        console.log("[useQueryLogic] Decrement credits response:", {
-          status: response.status,
-          statusText: response.statusText,
-          headers: Object.fromEntries(response.headers),
-          rawBody,
-          timestamp: new Date().toISOString(),
-        });
-
-        let data: DecrementCreditsResponse = {};
-        if (rawBody) {
-          try {
-            data = JSON.parse(rawBody);
-          } catch (jsonError) {
-            console.error(
-              "[useQueryLogic] Failed to parse response JSON:",
-              rawBody,
-              jsonError
-            );
-            throw new Error(
-              `Invalid server response format: ${rawBody || "Empty response"}`
-            );
-          }
-        } else {
-          console.error("[useQueryLogic] Empty response body received");
-          throw new Error(
-            `Server returned empty response: HTTP ${response.status} ${response.statusText}`
-          );
-        }
-
-        if (!response.ok) {
-          const errorMsg =
-            data.error ||
-            data.message ||
-            rawBody ||
-            `HTTP ${response.status}: ${response.statusText}`;
-          console.error("[useQueryLogic] Decrement credits failed:", {
-            status: response.status,
-            error: errorMsg,
-            data,
-          });
-          throw new Error(errorMsg);
-        }
-
-        console.log("[useQueryLogic] Credits decremented successfully:", data);
-        return data.credits || 0;
-      } catch (err) {
-        attempts++;
-        const errorMessage =
-          err instanceof Error
-            ? err.message
-            : "Unknown error decrementing credits";
-        console.error(
-          "[useQueryLogic] Credit decrement attempt",
-          attempts,
-          "failed:",
-          errorMessage,
-          { error: err }
-        );
-        if (attempts === maxAttempts || errorMessage.includes("session")) {
-          throw new Error(errorMessage);
-        }
-        console.log("[useQueryLogic] Retrying after unauthorized error");
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-      }
-    }
-    throw new Error("Max credit decrement attempts reached");
-  };
 
   const handleSubmit = async () => {
     console.log("[useQueryLogic] handleSubmit called", {
@@ -384,21 +261,23 @@ export function useQueryLogic({
         userCreditsTotal,
         queriesRequested,
         sufficientCredits: creditsLeft >= queriesCostTotal,
+        timestamp: new Date().toISOString(),
       });
 
-      if (payWithWallet && !publicKey) {
-        console.log(
-          "[useQueryLogic] Blocked: No wallet connected for paid query"
-        );
-        toast.error("Please connect your wallet to submit paid queries", {
+      if (creditsLeft < queriesCostTotal) {
+        console.log("[useQueryLogic] Blocked: Insufficient total credits", {
+          creditsLeft,
+          queriesCostTotal,
+          timestamp: new Date().toISOString(),
+        });
+        toast.error("Insufficient credits to cover the query cost", {
           style: { background: "#dc2626", color: "#fee2e2" },
           duration: 5000,
         });
         return null;
       }
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Validation failed unexpectedly";
+    } catch {
+      const errorMessage = "Validation failed unexpectedly";
       setError(sanitizeQueryText(errorMessage));
       toast.error(errorMessage, {
         style: { background: "#dc2626", color: "#fee2e2" },
@@ -412,71 +291,38 @@ export function useQueryLogic({
     setError(null);
     try {
       const csrfToken = await fetchCsrfToken();
-      if (!payWithWallet && userFreeCredits >= queriesRequested) {
-        console.log("[useQueryLogic] Processing free credits query", {
-          queriesRequested,
-          userFreeCredits,
-          publicKey: publicKey?.toBase58() || "none",
-          email,
-          timestamp: new Date().toISOString(),
-        });
-        await decrementCreditsForQuery(queriesRequested, publicKey, email);
-        await broadcastQuery(queryText, {
-          csrfToken,
-          queryMode,
-          queriesRequested,
-          isFreeQuery: true,
-        });
-        toast.success(
-          `Query submitted, ${queriesRequested} free credits deducted!`,
-          {
-            style: { background: "#22c55e", color: "#ffffff" },
-            duration: 5000,
-          }
-        );
-      } else {
-        console.log("[useQueryLogic] Processing paid credits query", {
-          queriesRequested,
-          userPaidCredits,
-          publicKey: publicKey?.toBase58(),
-          timestamp: new Date().toISOString(),
-        });
-        if (!publicKey) {
-          throw new Error("Wallet not connected for paid query");
+      console.log("[useQueryLogic] Processing query with decrementCreditsForQuery", {
+        queriesRequested,
+        userFreeCredits,
+        userPaidCredits,
+        publicKey: publicKey?.toBase58() || "none",
+        email,
+        payWithWallet,
+        csrfToken: csrfToken ? "[REDACTED]" : undefined,
+        timestamp: new Date().toISOString(),
+      });
+      await decrementCreditsForQuery(queriesRequested, publicKey, email, csrfToken);
+      await broadcastQuery(queryText, {
+        csrfToken,
+        queryMode,
+        queriesRequested,
+        isFreeQuery: userFreeCredits >= queriesRequested,
+      });
+      await fetchAllCredits(publicKey, email ?? undefined, true);
+      toast.success(
+        `Query submitted, ${queriesRequested} credits deducted!`,
+        {
+          style: { background: "#22c55e", color: "#ffffff" },
+          duration: 5000,
         }
-        const walletPublicKey = publicKey.toBase58();
-        await decrementCredits(walletPublicKey, queriesRequested);
-        await broadcastQuery(queryText, {
-          csrfToken,
-          queryMode,
-          queriesRequested,
-          isFreeQuery: false,
-        });
-        await fetchAllCredits(publicKey, email ?? undefined);
-        toast.success(
-          `Query submitted, ${queriesRequested} credits deducted!`,
-          {
-            style: { background: "#22c55e", color: "#ffffff" },
-            duration: 5000,
-          }
-        );
-      }
+      );
       resetAfterSubmission(userCreditsTotal);
       setQueryText("");
       setPayWithWallet(queriesRequested > userCreditsTotal);
-    } catch (err: unknown) {
-      let errorMessage = "Failed to submit query";
-      if (err instanceof Error) {
-        errorMessage = err.message;
-      } else if (typeof err === "object" && err !== null) {
-        errorMessage =
-          JSON.stringify(err, Object.getOwnPropertyNames(err)) || errorMessage;
-      } else {
-        errorMessage = String(err) || errorMessage;
-      }
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : "Failed to submit query";
       setError(sanitizeQueryText(errorMessage));
       console.error("[useQueryLogic] Submission failed:", {
-        error: err,
         errorMessage,
         queryText,
         queryMode,
@@ -486,17 +332,10 @@ export function useQueryLogic({
         storeHasPaid,
         timestamp: new Date().toISOString(),
       });
-      if (errorMessage.includes("session")) {
-        toast.error("Session expired. Please log in again.", {
-          style: { background: "#dc2626", color: "#fee2e2" },
-          duration: 5000,
-        });
-      } else {
-        toast.error(errorMessage, {
-          style: { background: "#dc2626", color: "#fee2e2" },
-          duration: 5000,
-        });
-      }
+      toast.error(errorMessage, {
+        style: { background: "#dc2626", color: "#fee2e2" },
+        duration: 5000,
+      });
     } finally {
       setIsSubmitting(false);
     }
