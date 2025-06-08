@@ -160,7 +160,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
           console.log(`Creating generic validator for provider: ${validator.provider}`);
           return {
             ...aiValidator,
-            validate: async (request: ValidationRequest): Promise<AIValidationResponse> => {
+            validate: async (_request: ValidationRequest): Promise<AIValidationResponse> => {
               return {
                 vote: false,
                 confidence: 0.5,
@@ -176,7 +176,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       console.error(`[ValidatorRegistry] Error creating validator for ${validator.profileName} (${validator.provider}):`, error);
       return {
         ...aiValidator,
-        validate: async (request: ValidationRequest): Promise<AIValidationResponse> => {
+        validate: async (_request: ValidationRequest): Promise<AIValidationResponse> => {
           return {
             vote: false,
             confidence: 0,

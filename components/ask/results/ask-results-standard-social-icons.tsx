@@ -67,29 +67,34 @@ export function AskResultsStandardSocialIcons({
     });
   };
 
-  const handleToggleFavorite = useCallback(
-    debounce(async () => {
-      if (!query?.id) return;
-      try {
-        const result = await toggleFavorite(query.id);
-        if (result.success) {
-          if (result.favorite) {
-            useFavoritesStore.getState().addFavorite(result.favorite);
+  const debouncedToggleFavorite = useMemo(
+    () =>
+      debounce(async (id: string) => {
+        try {
+          const result = await toggleFavorite(id);
+          if (result.success) {
+            if (result.favorite) {
+              useFavoritesStore.getState().addFavorite(result.favorite);
+            } else {
+              useFavoritesStore.getState().removeFavorite(id);
+            }
+            toast.success(result.message);
           } else {
-            useFavoritesStore.getState().removeFavorite(query.id);
+            toast.error(result.message);
           }
-          toast.success(result.message);
-        } else {
-          toast.error(result.message);
+        } catch (error) {
+          const typedError = error as Error;
+          console.error("[social-icons] Error toggling favorite:", typedError);
+          toast.error("Failed to toggle favorite");
         }
-      } catch (error) {
-        const typedError = error as Error;
-        console.error("[social-icons] Error toggling favorite:", typedError);
-        toast.error("Failed to toggle favorite");
-      }
-    }, 500),
-    [query?.id]
+      }, 500),
+    []
   );
+
+  const handleToggleFavorite = useCallback(() => {
+    if (!query?.id) return;
+    debouncedToggleFavorite(query.id);
+  }, [query?.id, debouncedToggleFavorite]);
 
   const isOnCardPage = query?.id && pathname === `/ask/${query.id}`;
 
