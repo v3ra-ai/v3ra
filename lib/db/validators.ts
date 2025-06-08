@@ -1,11 +1,11 @@
-import { prisma } from "@/lib/db/client";
+import { prisma } from "./client";
 import { Validator } from "@prisma/client";
 import { AIValidator } from "../validators/types";
-import { VoteResult } from "@/lib/types";
-import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
+import { VoteResult } from "./../types";
+import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "./../constants";
 
-// Exception list of validator IDs to skip
-const EXCLUDED_VALIDATOR_IDS = ["3d279b08-9b0a-46af-9b40-30b79ea7f787"];
+// Exception list of validator IDs to skip - REMOVED HARDCODED EXCLUSIONS
+const EXCLUDED_VALIDATOR_IDS: string[] = [];
 
 // Fetch all validators from the database
 export async function getValidators(): Promise<Validator[]> {

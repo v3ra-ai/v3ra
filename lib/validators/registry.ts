@@ -1,4 +1,4 @@
-import { AIValidator, ValidatorRegistry } from "./types";
+import { AIValidator, ValidatorRegistry, ValidationRequest, AIValidationResponse } from "./types";
 import { dbValidatorToAIValidator } from "../db/validators";
 import { OpenAIValidator } from "./providers/openai";
 import { AnthropicValidator } from "./providers/anthropic";
@@ -85,105 +85,138 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
   ): Promise<AIValidator> {
     const aiValidator = dbValidatorToAIValidator(validator);
 
-    switch (validator.provider) {
-      case "OpenAI": {
-        const openaiValidator = new OpenAIValidator({
-          id: validator.id,
-          name: validator.profileName,
-          modelName: validator.modelName,
-          keyId: validator.apiKeys?.[0]?.apiKeyId,
-          active: validator.active,
-        });
-        return {
-          ...aiValidator,
-          validate: openaiValidator.validate.bind(openaiValidator),
-        };
-      }
+    try {
+      switch (validator.provider) {
+        case "OpenAI": {
+          const openaiValidator = new OpenAIValidator({
+            id: validator.id,
+            name: validator.profileName,
+            modelName: validator.modelName,
+            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            active: validator.active,
+          });
+          return {
+            ...aiValidator,
+            validate: openaiValidator.validate.bind(openaiValidator),
+          };
+        }
 
-      case "Anthropic": {
-        const anthropicValidator = new AnthropicValidator({
-          id: validator.id,
-          name: validator.profileName,
-          modelName: validator.modelName,
-          keyId: validator.apiKeys?.[0]?.apiKeyId,
-          active: validator.active,
-        });
-        return {
-          ...aiValidator,
-          validate: anthropicValidator.validate.bind(anthropicValidator),
-        };
-      }
+        case "Anthropic": {
+          const anthropicValidator = new AnthropicValidator({
+            id: validator.id,
+            name: validator.profileName,
+            modelName: validator.modelName,
+            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            active: validator.active,
+          });
+          return {
+            ...aiValidator,
+            validate: anthropicValidator.validate.bind(anthropicValidator),
+          };
+        }
 
-      case "OpenRouter": {
-        const orValidator = new OpenRouterValidator({
-          id: validator.id,
-          name: validator.profileName,
-          modelName: validator.modelName,
-          active: validator.active,
-        });
-        return {
-          ...aiValidator,
-          validate: orValidator.validate.bind(orValidator),
-        };
-      }
+        case "OpenRouter": {
+          const orValidator = new OpenRouterValidator({
+            id: validator.id,
+            name: validator.profileName,
+            modelName: validator.modelName,
+            active: validator.active,
+          });
+          return {
+            ...aiValidator,
+            validate: orValidator.validate.bind(orValidator),
+          };
+        }
 
-      case "Google": {
-        const geminiValidator = new GeminiValidator({
-          id: validator.id,
-          name: validator.profileName,
-          modelName: validator.modelName,
-          keyId: validator.apiKeys?.[0]?.apiKeyId,
-          active: validator.active,
-        });
-        return {
-          ...aiValidator,
-          validate: geminiValidator.validate.bind(geminiValidator),
-        };
-      }
+        case "Google": {
+          const geminiValidator = new GeminiValidator({
+            id: validator.id,
+            name: validator.profileName,
+            modelName: validator.modelName,
+            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            active: validator.active,
+          });
+          return {
+            ...aiValidator,
+            validate: geminiValidator.validate.bind(geminiValidator),
+          };
+        }
 
-      case "HuggingFace": {
-        const hfValidator = new HuggingFaceValidator({
-          id: validator.id,
-          name: validator.profileName,
-          modelName: validator.modelName,
-          keyId: validator.apiKeys?.[0]?.apiKeyId,
-          active: validator.active,
-        });
-        return {
-          ...aiValidator,
-          validate: hfValidator.validate.bind(hfValidator),
-        };
-      }
+        case "HuggingFace": {
+          const hfValidator = new HuggingFaceValidator({
+            id: validator.id,
+            name: validator.profileName,
+            modelName: validator.modelName,
+            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            active: validator.active,
+          });
+          return {
+            ...aiValidator,
+            validate: hfValidator.validate.bind(hfValidator),
+          };
+        }
 
-      default:
-        return aiValidator;
+        default:
+          console.log(`Creating generic validator for provider: ${validator.provider}`);
+          return {
+            ...aiValidator,
+            validate: async (request: ValidationRequest): Promise<AIValidationResponse> => {
+              return {
+                vote: false,
+                confidence: 0.5,
+                rationale: `Validation not implemented for ${validator.provider} provider. This is a placeholder response.`,
+                providerName: validator.provider,
+                modelName: validator.modelName,
+                error: `Provider ${validator.provider} not fully supported yet`,
+              };
+            },
+          };
+      }
+    } catch (error) {
+      console.error(`[ValidatorRegistry] Error creating validator for ${validator.profileName} (${validator.provider}):`, error);
+      return {
+        ...aiValidator,
+        validate: async (request: ValidationRequest): Promise<AIValidationResponse> => {
+          return {
+            vote: false,
+            confidence: 0,
+            rationale: `Validator initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`,
+            providerName: validator.provider,
+            modelName: validator.modelName,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          };
+        },
+      };
     }
   }
 
   async getAllValidators(): Promise<AIValidator[]> {
     try {
+      console.log("[ValidatorRegistry] getAllValidators called");
       if (isServer) {
+        console.log("[ValidatorRegistry] Running on server, fetching from database...");
         const dbValidators = await validatorService.getAllValidators();
+        console.log(`[ValidatorRegistry] Found ${dbValidators.length} validators in database`);
+        
         const aiValidators = await Promise.all(
-          dbValidators.map((validator) => this.createValidatorImplementation(validator)),
+          dbValidators.map((v) => this.createValidatorImplementation(v)),
         );
+        
+        // Cache them in memory
         aiValidators.forEach((validator) => {
           if (validator.id) {
             this.validators.set(validator.id, validator);
           }
         });
+        
+        console.log(`[ValidatorRegistry] Returning ${aiValidators.length} AI validators`);
         return aiValidators;
       } else {
-        const validators = await Promise.resolve<AIValidator[]>([]);
-        validators.forEach((validator) => {
-          if (validator.id) {
-            this.validators.set(validator.id, validator);
-          }
-        });
-        return validators;
+        console.log("[ValidatorRegistry] Running on client, returning cached validators");
+        return Array.from(this.validators.values());
       }
     } catch (error) {
-      console.error("Failed to get all validators:", error);
+      console.error("[ValidatorRegistry] Error getting all validators:", error);
       return [];
     }
   }
