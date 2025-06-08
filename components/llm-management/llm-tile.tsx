@@ -25,7 +25,11 @@ function getModelIconPath(modelName: string, provider: string): string {
   const modelNameLower = modelName.toLowerCase();
 
   // Map for LLM models - OpenAI
-  if (modelNameLower.includes("gpt-4") || modelNameLower.includes("gpt-3.5") || modelNameLower.includes("openai")) {
+  if (
+    modelNameLower.includes("gpt-4") ||
+    modelNameLower.includes("gpt-3.5") ||
+    modelNameLower.includes("openai")
+  ) {
     return "/icons/chatgpt.png";
   }
 
@@ -109,7 +113,8 @@ function getModelIconPath(modelName: string, provider: string): string {
     Custom: "verafy-logo.png",
   };
 
-  return `/icons/${providerLogos[provider as keyof ProviderLogo] || "placeholder.png"}`;
+  const logoProvider = Object.keys(providerLogos).includes(provider) ? provider : "Custom";
+  return `/icons/${providerLogos[logoProvider as keyof ProviderLogo]}`;
 }
 
 export default function LLMTile({ llm }: Props) {
@@ -120,7 +125,7 @@ export default function LLMTile({ llm }: Props) {
       className={clsx(
         "relative flex flex-col items-center p-3 rounded-xl transition-all cursor-pointer select-none border-2",
         llm.enabled
-          ? "border-emerald-500/80 bg-emerald-950/90 hover:bg-emerald-950 shadow-lg shadow-emerald-600/20"
+          ? "border-emerald-600/80 bg-emerald-950/90 hover:bg-emerald-950 shadow-lg shadow-emerald-600/20"
           : "border-zinc-700/60 bg-zinc-900 opacity-60 hover:opacity-80",
         llm.pinned && "ring-2 ring-amber-400",
       )}

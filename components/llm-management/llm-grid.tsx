@@ -19,17 +19,67 @@ const TILE_HEIGHT = 160;
 const GAP = 16;
 
 export default function LLMGrid() {
-  const { llms, activeProvider, search, sort, showPinned } = useLLMStore();
+  const { llms, activeProvider, search, sort, showPinned, activeCategory, categories } = useLLMStore();
 
   const filtered = useMemo(() => {
+    console.log("[LLMGrid] All LLM IDs:", llms.map((l) => ({ id: l.id, name: l.name })));
+    console.log("[LLMGrid] Active provider:", activeProvider);
+
     let list = [...llms];
-    if (showPinned) list = list.filter((l) => l.pinned);
-    if (activeProvider !== "All") list = list.filter((l) => l.provider === activeProvider);
-    if (search) list = list.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
-    if (sort === "name") list = list.sort((a, b) => a.name.localeCompare(b.name));
-    if (sort === "provider") list = list.sort((a, b) => a.provider.localeCompare(b.provider));
+
+    // Apply category filter if active (highest priority)
+    if (activeCategory) {
+      const category = categories.find((c) => c.name === activeCategory);
+      if (category) {
+        console.log(`[LLMGrid] Filtering by category ${activeCategory}:`, category.models);
+        list = list.filter((l) =>
+          category.models.some(
+            (m) =>
+              m.validatorId === l.id ||
+              m.name.trim().toLowerCase() === l.name.trim().toLowerCase(),
+          ),
+        );
+        console.log(
+          "[LLMGrid] Category filter matches:",
+          list.map((l) => ({ id: l.id, name: l.name })),
+        );
+      }
+    } else {
+      // Apply pinned filter if no category is active
+      if (showPinned) {
+        list = list.filter((l) => l.pinned);
+        console.log("[LLMGrid] Pinned filter matches:", list.map((l) => ({ id: l.id, name: l.name })));
+      }
+      // Apply provider filter only if no category is active
+      if (activeProvider !== "All") {
+        list = list.filter((l) => l.provider === activeProvider);
+        console.log(
+          "[LLMGrid] Provider filter matches (activeProvider: " + activeProvider + "):",
+          list.map((l) => ({ id: l.id, name: l.name })),
+        );
+      }
+    }
+
+    // Apply search filter
+    if (search) {
+      list = list.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
+      console.log(
+        "[LLMGrid] Search filter matches (search: " + search + "):",
+        list.map((l) => ({ id: l.id, name: l.name })),
+      );
+    }
+
+    // Apply sort
+    if (sort === "name") {
+      list = list.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sort === "provider") {
+      list = list.sort((a, b) => a.provider.localeCompare(b.provider));
+    }
+    console.log("[LLMGrid] After sort (" + sort + "):", list.map((l) => ({ id: l.id, name: l.name })));
+
+    console.log("[LLMGrid] Filtered LLMs:", list.map((l) => ({ id: l.id, name: l.name })));
     return list;
-  }, [llms, activeProvider, search, sort, showPinned]);
+  }, [llms, activeProvider, search, sort, showPinned, activeCategory, categories]);
 
   // Infinite scroll: assume fetchBatch stub for now
   const fetchMore = useLLMStore((s) => s.fetchBatch as (() => void));
@@ -91,7 +141,7 @@ const Cell = ({ columnIndex, rowIndex, style, data }: CellProps) => {
   const llm = data.filtered[index];
   if (!llm) return null;
 
-  // Safely handle style properties which might be strings or numbers
+  // Safely handle style properties
   const safeLeft = typeof style.left === "number" ? style.left + GAP : style.left;
   const safeTop = typeof style.top === "number" ? style.top + GAP : style.top;
 

@@ -9,12 +9,17 @@ import { X, Star } from "lucide-react";
 
 // Define precise type for server validators
 interface Validator {
-  id?: string | number;
+  id: string | number;
   modelName?: string;
   profileName?: string;
   provider?: string;
   active?: boolean;
   avatarUrl?: string | null;
+  publicKey?: string;
+  isLeader?: boolean;
+  description?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface Props {
@@ -31,11 +36,13 @@ export default function ManageLLMsClient({ initial }: Props) {
   const showPinned = useLLMStore((s) => s.showPinned);
   const toggleShowPinned = useLLMStore((s) => s.toggleShowPinned);
   const clearAllEnabled = useLLMStore((s) => s.clearAllEnabled);
+  const categories = useLLMStore((s) => s.categories);
+  const activeCategory = useLLMStore((s) => s.activeCategory);
+  const setCategory = useLLMStore((s) => s.setCategory);
 
   // State for profile name input
   const [profileName, setProfileName] = useState("");
 
-  // Map server validators to LLM objects once on mount
   useEffect(() => {
     const mapped: LLM[] = initial.map((v) => {
       const modelName = typeof v.modelName === "string" ? v.modelName : "";
@@ -57,15 +64,17 @@ export default function ManageLLMsClient({ initial }: Props) {
         profileName = profileName.replace(" Validator", "");
       }
 
-      return {
+      const llm = {
         id: id,
         name: profileName || cleanedModelName || "Unnamed",
         provider: providerName as Provider,
         enabled: active,
         avatar: avatarUrl,
       };
+      return llm;
     });
-    console.log("[ManageLLMs] initial mapped", mapped.length);
+    console.log("[ManageLLMs] Initial validators:", initial);
+    console.log("[ManageLLMs] Mapped LLMs:", mapped);
     init(mapped);
   }, [initial, init]);
 
@@ -103,19 +112,36 @@ export default function ManageLLMsClient({ initial }: Props) {
         onChange={(e) => setSearch(e.target.value)}
         className="border border-zinc-300 dark:border-zinc-700 rounded-md px-3 py-1 bg-background"
       />
-      {/* Pinned filter toggle */}
-      <div className="flex items-center gap-2">
-        <button
+      {/* Filter toggles */}
+      <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
+        <motion.button
           onClick={toggleShowPinned}
           className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
             showPinned
               ? "bg-amber-500 text-white"
               : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-zinc-600"
           }`}
+          animate={{ scale: showPinned ? 1.05 : 1 }}
+          transition={{ duration: 0.2 }}
         >
           <Star className="size-4" />
           Show Pinned
-        </button>
+        </motion.button>
+        {categories.map((category) => (
+          <motion.button
+            key={category.name}
+            onClick={() => setCategory(category.name)}
+            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              activeCategory === category.name
+                ? "bg-amber-600 text-white"
+                : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+            }`}
+            animate={{ scale: activeCategory === category.name ? 1.05 : 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            {category.name}
+          </motion.button>
+        ))}
       </div>
       {/* Tags for enabled LLMs with Clear All button */}
       <div className="flex flex-wrap gap-2 items-center">

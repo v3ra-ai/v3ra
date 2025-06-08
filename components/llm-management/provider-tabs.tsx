@@ -29,12 +29,17 @@ export default function ProviderTabs() {
     }
   };
 
+  const handleSetProvider = (provider: ProviderTab) => {
+    setProvider(provider);
+    console.log("[ProviderTabs] Set activeProvider to:", provider);
+  };
+
   return (
     <div className="flex w-full overflow-x-auto no-scrollbar gap-2 py-2 px-1 sm:px-0">
       {providers.map((p) => (
         <div key={p} className="flex items-center gap-1">
           <button
-            onClick={() => setProvider(p)}
+            onClick={() => handleSetProvider(p)}
             className={clsx(
               "whitespace-nowrap px-3 py-1.5 rounded-full text-sm font-medium transition-colors",
               activeProvider === p

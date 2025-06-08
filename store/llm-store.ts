@@ -25,6 +25,11 @@ export interface Profile {
   llmIds: string[];
 }
 
+export interface Category {
+  name: string;
+  models: { validatorId: string; name: string }[];
+}
+
 // Define precise type for server validators
 interface Validator {
   id: string | number;
@@ -33,6 +38,11 @@ interface Validator {
   provider?: string;
   active?: boolean;
   avatarUrl?: string | null;
+  publicKey?: string;
+  isLeader?: boolean;
+  description?: string | null;
+  createdAt?: Date;
+  updatedAt?: Date;
 }
 
 interface LLMState {
@@ -43,6 +53,8 @@ interface LLMState {
   hasMore: boolean;
   showPinned: boolean;
   profiles: Profile[];
+  categories: Category[];
+  activeCategory: string | null;
   fetchBatch: () => void;
   init: (initial: LLM[]) => void;
   fetchAll: () => Promise<void>;
@@ -56,6 +68,7 @@ interface LLMState {
   deleteProfile: (profileName: string) => void;
   toggleShowPinned: () => void;
   clearAllEnabled: () => void;
+  setCategory: (category: string | null) => void;
 }
 
 export const useLLMStore = create<LLMState>()(
@@ -68,13 +81,59 @@ export const useLLMStore = create<LLMState>()(
       hasMore: false,
       showPinned: false,
       profiles: [],
+      categories: [
+        {
+          name: "Legal",
+          models: [
+            { validatorId: "4da9dcd2-d5ea-4150-855a-898f274c597f", name: "Claude 3 Opus" },
+            { validatorId: "65462fc9-04f8-4a31-9d97-181812e3dcac", name: "Claude 3 Sonnet" },
+            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
+            { validatorId: "1696ebf0-5b22-4e46-bf63-517f286a1a8a", name: "Llama 3.1 70B" },
+            { validatorId: "8d501469-9f7f-4c55-ba44-45c26cc0f87e", name: "Cohere Command-R" },
+          ],
+        },
+        {
+          name: "Health",
+          models: [
+            { validatorId: "2506da74-07fb-4b12-9cdd-5d34ffc66893", name: "Gemini 1.5 Pro" },
+            { validatorId: "4da9dcd2-d5ea-4150-855a-898f274c597f", name: "Claude 3 Opus" },
+            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
+            { validatorId: "228db12f-5d5b-4e34-af58-1c0972b9164e", name: "DeepSeek V3" },
+            { validatorId: "9eaf26f1-08e3-4b1e-ae2f-c7a7fcfcdf90", name: "Qwen 2.5 7B" },
+          ],
+        },
+        {
+          name: "Business",
+          models: [
+            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
+            { validatorId: "65462fc9-04f8-4a31-9d97-181812e3dcac", name: "Claude 3 Sonnet" },
+            { validatorId: "1696ebf0-5b22-4e46-bf63-517f286a1a8a", name: "Llama 3.1 70B" },
+            { validatorId: "273c8adb-9235-465e-9397-0dbdda4f936f", name: "Mistral Large" },
+            { validatorId: "2506da74-07fb-4b12-9cdd-5d34ffc66893", name: "Gemini 1.5 Pro" },
+          ],
+        },
+        {
+          name: "Economics",
+          models: [
+            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
+            { validatorId: "4da9dcd2-d5ea-4150-855a-898f274c597f", name: "Claude 3 Opus" },
+            { validatorId: "1696ebf0-5b22-4e46-bf63-517f286a1a8a", name: "Llama 3.1 70B" },
+            { validatorId: "228db12f-5d5b-4e34-af58-1c0972b9164e", name: "DeepSeek V3" },
+            { validatorId: "2506da74-07fb-4b12-9cdd-5d34ffc66893", name: "Gemini 1.5 Pro" },
+          ],
+        },
+      ],
+      activeCategory: null,
 
       fetchBatch: () => {
         console.log("Fetching next batch of LLMs");
         set({ hasMore: false });
       },
 
-      init: (initial) => set({ llms: initial }),
+      init: (initial) => {
+        console.log("[llm-store] Initializing LLMs:", initial);
+        set({ llms: initial });
+      },
 
       async fetchAll() {
         try {
@@ -99,7 +158,7 @@ export const useLLMStore = create<LLMState>()(
           });
           set({ llms: mapped });
         } catch (err) {
-          console.error("[llm-store] fetchAll error", err);
+          console.error("[llm-store] fetchAll error:", err);
         }
       },
 
@@ -117,11 +176,14 @@ export const useLLMStore = create<LLMState>()(
             body: JSON.stringify({ active: !target.enabled }),
           });
         } catch (err) {
-          console.error("[llm-store] toggle backend error", err);
+          console.error("[llm-store] toggle backend error:", err);
         }
       },
 
-      setProvider: (provider) => set({ activeProvider: provider }),
+      setProvider: (provider) => {
+        console.log("[llm-store] Setting activeProvider to:", provider);
+        set({ activeProvider: provider });
+      },
       setSearch: (q) => set({ search: q }),
       setSort: (s) => set({ sort: s }),
 
@@ -137,7 +199,6 @@ export const useLLMStore = create<LLMState>()(
       addProfile: (profile) =>
         set((state) => {
           const newProfiles = [...state.profiles, profile];
-          // Update LLMs to use the profile name as provider
           const updatedLLMs = state.llms.map((llm) =>
             profile.llmIds.includes(llm.id)
               ? { ...llm, provider: profile.name, createdByUser: true }
@@ -148,15 +209,12 @@ export const useLLMStore = create<LLMState>()(
 
       deleteProfile: (profileName) =>
         set((state) => {
-          // Remove profile from profiles
           const newProfiles = state.profiles.filter((p) => p.name !== profileName);
-          // Revert LLMs with this provider to Custom
           const updatedLLMs = state.llms.map((llm) =>
             llm.provider === profileName
               ? { ...llm, provider: "Custom", createdByUser: false }
               : llm,
           );
-          // Reset activeProvider if it was the deleted profile
           const newActiveProvider =
             state.activeProvider === profileName ? "All" : state.activeProvider;
           return {
@@ -171,6 +229,13 @@ export const useLLMStore = create<LLMState>()(
       clearAllEnabled: () =>
         set((state) => ({
           llms: state.llms.map((llm) => ({ ...llm, enabled: false })),
+        })),
+
+      setCategory: (category) =>
+        set((state) => ({
+          activeCategory: state.activeCategory === category ? null : category,
+          showPinned: false,
+          activeProvider: "All", // Reset provider when category is set
         })),
     }),
     {
