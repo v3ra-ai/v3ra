@@ -2,6 +2,9 @@
 
 import { useMemo, useCallback } from "react";
 import { FixedSizeGrid as Grid } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { LLM, useLLMStore } from "@/store/llm-store";
+import LLMTile from "./llm-tile";
 
 // Define proper interface for Grid render props
 interface GridOnItemsRenderedProps {
@@ -10,25 +13,23 @@ interface GridOnItemsRenderedProps {
   visibleColumnStartIndex: number;
   visibleColumnStopIndex: number;
 }
-import AutoSizer from "react-virtualized-auto-sizer";
-import { LLM, useLLMStore } from "@/store/llm-store";
-import LLMTile from "./llm-tile";
 
 const TILE_WIDTH = 140;
 const TILE_HEIGHT = 160;
 const GAP = 16;
 
 export default function LLMGrid() {
-  const { llms, activeProvider, search, sort } = useLLMStore();
+  const { llms, activeProvider, search, sort, showPinned } = useLLMStore();
 
   const filtered = useMemo(() => {
     let list = [...llms];
+    if (showPinned) list = list.filter((l) => l.pinned);
     if (activeProvider !== "All") list = list.filter((l) => l.provider === activeProvider);
     if (search) list = list.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
-    if (sort === "name") list = list.sort((a,b)=>a.name.localeCompare(b.name));
-    if (sort === "provider") list = list.sort((a,b)=>a.provider.localeCompare(b.provider));
+    if (sort === "name") list = list.sort((a, b) => a.name.localeCompare(b.name));
+    if (sort === "provider") list = list.sort((a, b) => a.provider.localeCompare(b.provider));
     return list;
-  }, [llms, activeProvider, search, sort]);
+  }, [llms, activeProvider, search, sort, showPinned]);
 
   // Infinite scroll: assume fetchBatch stub for now
   const fetchMore = useLLMStore((s) => s.fetchBatch as (() => void));
@@ -91,9 +92,9 @@ const Cell = ({ columnIndex, rowIndex, style, data }: CellProps) => {
   if (!llm) return null;
 
   // Safely handle style properties which might be strings or numbers
-  const safeLeft = typeof style.left === 'number' ? style.left + GAP : style.left;
-  const safeTop = typeof style.top === 'number' ? style.top + GAP : style.top;
-  
+  const safeLeft = typeof style.left === "number" ? style.left + GAP : style.left;
+  const safeTop = typeof style.top === "number" ? style.top + GAP : style.top;
+
   return (
     <div style={{ ...style, left: safeLeft, top: safeTop }}>
       <LLMTile llm={llm} />
