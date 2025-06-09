@@ -8,6 +8,7 @@ import { QueryFormModeSelector } from "./query-form-mode-selector";
 import { QueryFormAISlider } from "./query-form-ai-slider";
 import { QueryMode, Validator } from "@/lib/types";
 import { useCreditsStore } from "@/store/credit-store";
+import { useLLMStore } from "@/store/llm-store";
 import { toast } from "sonner";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { formatQueryMode } from "@/utils/text-utils";
@@ -124,12 +125,16 @@ export function QueryFormInput({
   allowedAmountQueries,
 }: QueryFormInputProps) {
   const { displayUnpaid, totalCredits } = useCreditsStore();
+  const { llms } = useLLMStore();
   const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [validators, setValidators] = useState<Validator[]>([]);
   const [loading, setLoading] = useState(false);
   const dialogContentRef = useRef<HTMLDivElement>(null);
+
+  const hasSelectedLLMs = llms.some((llm) => llm.enabled);
+  const chooseButtonText = hasSelectedLLMs ? "AI Selected" : "Choose...";
 
   const handleOpenModal = async () => {
     console.log("[QueryFormInput] Choose... button clicked, setting isModalOpen to true");
@@ -281,7 +286,7 @@ export function QueryFormInput({
               className="bg-teal-500 hover:bg-teal-600 text-white rounded-md px-4 py-2 z-10 cursor-pointer"
               onClick={handleOpenModal}
             >
-              Choose...
+              {chooseButtonText}
             </Button>
           </div>
         </div>
