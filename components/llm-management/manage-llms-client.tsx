@@ -6,21 +6,11 @@ import ProviderTabs from "./provider-tabs";
 import LLMGrid from "./llm-grid";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star } from "lucide-react";
-
-// Define precise type for server validators
-interface Validator {
-  id: string | number;
-  modelName?: string;
-  profileName?: string;
-  provider?: string;
-  active?: boolean;
-  avatarUrl?: string | null;
-  publicKey?: string;
-  isLeader?: boolean;
-  description?: string | null;
-  createdAt?: Date;
-  updatedAt?: Date;
-}
+import { QueryFormAISlider } from "@/components/ask/query/query-form-ai-slider";
+import { useQueryStore } from "@/store/query-store";
+import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+import { useCreditsStore } from "@/store/credit-store";
+import { Validator } from "@/lib/types";
 
 interface Props {
   initial: Validator[];
@@ -39,49 +29,56 @@ export default function ManageLLMsClient({ initial }: Props) {
   const categories = useLLMStore((s) => s.categories);
   const activeCategory = useLLMStore((s) => s.activeCategory);
   const setCategory = useLLMStore((s) => s.setCategory);
+  const { queriesRequested, setQueriesRequested } = useQueryStore();
+  const { totalCredits } = useCreditsStore();
 
-  // State for profile name input
   const [profileName, setProfileName] = useState("");
 
   useEffect(() => {
-    const mapped: LLM[] = initial.map((v) => {
+    // Deduplicate validators by id
+    const uniqueValidators = Array.from(
+      new Map(initial.map((v) => [String(v.id), v])).values(),
+    );
+    console.log("[ManageLLMs] Deduplicated validators:", uniqueValidators.length);
+
+    const mapped: LLM[] = uniqueValidators.map((v) => {
       const modelName = typeof v.modelName === "string" ? v.modelName : "";
       const cleanedModelName = modelName === "gpt-40" ? "gpt-4o" : modelName;
 
       if (modelName === "gpt-40") {
         console.warn(
-          `[ManageLLMs] Found outdated model name 'gpt-40', replacing with 'gpt-4o'. Please update database.`,
+          `[ManageLLMs] Found outdated model name 'gpt-40', replacing with 'gpt-4o'.`,
         );
       }
 
       const id = String(v.id || "");
       let profileName = typeof v.profileName === "string" ? v.profileName : "";
       const providerName = typeof v.provider === "string" ? v.provider : "Custom";
-      const active = typeof v.active === "boolean" ? v.active : true;
-      const avatarUrl = typeof v.avatarUrl === "string" ? v.avatarUrl : null;
+      const active = typeof v.active === "boolean" ? v.active : false;
 
       if (profileName.includes(" Validator")) {
         profileName = profileName.replace(" Validator", "");
       }
 
-      const llm = {
-        id: id,
+      return {
+        id,
         name: profileName || cleanedModelName || "Unnamed",
         provider: providerName as Provider,
         enabled: active,
-        avatar: avatarUrl,
+        avatar: v.avatarUrl ?? null,
       };
-      return llm;
     });
     console.log("[ManageLLMs] Initial validators:", initial);
     console.log("[ManageLLMs] Mapped LLMs:", mapped);
     init(mapped);
   }, [initial, init]);
 
-  // Get enabled LLMs for tags
+  useEffect(() => {
+    console.log("[ManageLLMs] Store llms after init:", llms);
+  }, [llms]);
+
   const enabledLLMs = llms.filter((llm) => llm.enabled);
 
-  // Handle profile creation
   const handleCreateProfile = () => {
     if (!profileName.trim()) {
       console.warn("[ManageLLMs] Profile name is required");
@@ -98,12 +95,24 @@ export default function ManageLLMsClient({ initial }: Props) {
     addProfile(profile);
     console.log("[ManageLLMs] Created profile", profile);
     setProfileName("");
-    // Keep LLMs enabled for further editing
+  };
+
+  const handleQueryAmountChange = (newAmount: number) => {
+    console.log("[ManageLLMs] Query amount changed to:", newAmount);
+    setQueriesRequested(newAmount, totalCredits);
   };
 
   return (
     <main className="h-[100dvh] flex flex-col p-4 gap-4">
-      <h1 className="text-2xl font-semibold">Manage LLMs</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-semibold">Manage LLMs</h1>
+        <QueryFormAISlider
+          queriesRequested={queriesRequested}
+          handleQueryAmountChange={handleQueryAmountChange}
+          allowedAmountQueries={ALLOWED_AMOUNT_QUERIES}
+          hideButtons={true}
+        />
+      </div>
       <ProviderTabs />
       <input
         type="text"
@@ -112,7 +121,6 @@ export default function ManageLLMsClient({ initial }: Props) {
         onChange={(e) => setSearch(e.target.value)}
         className="border border-zinc-300 dark:border-zinc-700 rounded-md px-3 py-1 bg-background"
       />
-      {/* Filter toggles */}
       <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
         <motion.button
           onClick={toggleShowPinned}
@@ -143,7 +151,6 @@ export default function ManageLLMsClient({ initial }: Props) {
           </motion.button>
         ))}
       </div>
-      {/* Tags for enabled LLMs with Clear All button */}
       <div className="flex flex-wrap gap-2 items-center">
         <AnimatePresence>
           {enabledLLMs.map((llm) => (
@@ -174,7 +181,6 @@ export default function ManageLLMsClient({ initial }: Props) {
           </button>
         )}
       </div>
-      {/* Profile creation form */}
       <div className="flex gap-2">
         <input
           type="text"

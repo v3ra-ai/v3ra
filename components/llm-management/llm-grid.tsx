@@ -6,7 +6,6 @@ import AutoSizer from "react-virtualized-auto-sizer";
 import { LLM, useLLMStore } from "@/store/llm-store";
 import LLMTile from "./llm-tile";
 
-// Define proper interface for Grid render props
 interface GridOnItemsRenderedProps {
   visibleRowStartIndex: number;
   visibleRowStopIndex: number;
@@ -22,12 +21,11 @@ export default function LLMGrid() {
   const { llms, activeProvider, search, sort, showPinned, activeCategory, categories } = useLLMStore();
 
   const filtered = useMemo(() => {
-    console.log("[LLMGrid] All LLM IDs:", llms.map((l) => ({ id: l.id, name: l.name })));
+    console.log("[LLMGrid] All LLM IDs:", llms.map((l) => ({ id: l.id, name: l.name, enabled: l.enabled })));
     console.log("[LLMGrid] Active provider:", activeProvider);
 
     let list = [...llms];
 
-    // Apply category filter if active (highest priority)
     if (activeCategory) {
       const category = categories.find((c) => c.name === activeCategory);
       if (category) {
@@ -45,12 +43,10 @@ export default function LLMGrid() {
         );
       }
     } else {
-      // Apply pinned filter if no category is active
       if (showPinned) {
         list = list.filter((l) => l.pinned);
         console.log("[LLMGrid] Pinned filter matches:", list.map((l) => ({ id: l.id, name: l.name })));
       }
-      // Apply provider filter only if no category is active
       if (activeProvider !== "All") {
         list = list.filter((l) => l.provider === activeProvider);
         console.log(
@@ -60,7 +56,6 @@ export default function LLMGrid() {
       }
     }
 
-    // Apply search filter
     if (search) {
       list = list.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
       console.log(
@@ -69,7 +64,6 @@ export default function LLMGrid() {
       );
     }
 
-    // Apply sort
     if (sort === "name") {
       list = list.sort((a, b) => a.name.localeCompare(b.name));
     } else if (sort === "provider") {
@@ -81,7 +75,6 @@ export default function LLMGrid() {
     return list;
   }, [llms, activeProvider, search, sort, showPinned, activeCategory, categories]);
 
-  // Infinite scroll: assume fetchBatch stub for now
   const fetchMore = useLLMStore((s) => s.fetchBatch as (() => void));
   const hasMore = useLLMStore((s) => s.hasMore as boolean);
 
@@ -141,7 +134,6 @@ const Cell = ({ columnIndex, rowIndex, style, data }: CellProps) => {
   const llm = data.filtered[index];
   if (!llm) return null;
 
-  // Safely handle style properties
   const safeLeft = typeof style.left === "number" ? style.left + GAP : style.left;
   const safeTop = typeof style.top === "number" ? style.top + GAP : style.top;
 

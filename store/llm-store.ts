@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { useQueryStore } from "./query-store";
 
 export type Provider =
   | "OpenAI"
@@ -7,7 +8,7 @@ export type Provider =
   | "OpenRouter"
   | "HuggingFace"
   | "Custom"
-  | string; // Allow profile names as providers
+  | string;
 
 export interface LLM {
   id: string;
@@ -30,7 +31,6 @@ export interface Category {
   models: { validatorId: string; name: string }[];
 }
 
-// Define precise type for server validators
 interface Validator {
   id: string | number;
   modelName?: string;
@@ -38,11 +38,15 @@ interface Validator {
   provider?: string;
   active?: boolean;
   avatarUrl?: string | null;
-  publicKey?: string;
-  isLeader?: boolean;
+  publicKey: string;
+  isLeader: boolean;
   description?: string | null;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+  validatorType: string;
+  reliability: number;
+  totalVotes: number;
+  correctVotes: number;
 }
 
 interface LLMState {
@@ -69,6 +73,8 @@ interface LLMState {
   toggleShowPinned: () => void;
   clearAllEnabled: () => void;
   setCategory: (category: string | null) => void;
+  getSelectedLLMIds: () => string[];
+  resetStore: () => void;
 }
 
 export const useLLMStore = create<LLMState>()(
@@ -143,7 +149,7 @@ export const useLLMStore = create<LLMState>()(
             let modelName = v.modelName || "";
             if (modelName === "gpt-40") {
               console.warn(
-                `[llm-store] Found outdated model name 'gpt-40', replacing with 'gpt-4o'. Please update database.`,
+                `[llm-store] Found outdated model name 'gpt-40', replacing with 'gpt-4o'.`,
               );
               modelName = "gpt-4o";
             }
@@ -152,21 +158,27 @@ export const useLLMStore = create<LLMState>()(
               id: String(v.id),
               name: v.profileName || modelName || "Unnamed",
               provider: (v.provider || "Custom") as Provider,
-              enabled: v.active ?? true,
+              enabled: v.active ?? false,
               avatar: v.avatarUrl ?? null,
             };
           });
+          console.log("[llm-store] Fetched and mapped LLMs:", mapped);
           set({ llms: mapped });
-        } catch (err) {
-          console.error("[llm-store] fetchAll error:", err);
+        } catch {
+          console.error("[llm-store] fetchAll error");
         }
       },
 
       toggleLLM: async (id) => {
         const prev = get().llms;
-        set({
-          llms: prev.map((l) => (l.id === id ? { ...l, enabled: !l.enabled } : l)),
-        });
+        const updatedLLMs = prev.map((l) => (l.id === id ? { ...l, enabled: !l.enabled } : l));
+        set({ llms: updatedLLMs });
+
+        const selectedLLMIds = updatedLLMs.filter((l) => l.enabled).map((l) => l.id);
+        const setSelectedLLMIds = useQueryStore.getState().setSelectedLLMIds;
+        setSelectedLLMIds(selectedLLMIds);
+        console.log("[llm-store] Toggled LLM:", id, "Enabled:", !prev.find((l) => l.id === id)?.enabled);
+
         try {
           const target = prev.find((l) => l.id === id);
           if (!target) return;
@@ -175,8 +187,8 @@ export const useLLMStore = create<LLMState>()(
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ active: !target.enabled }),
           });
-        } catch (err) {
-          console.error("[llm-store] toggle backend error:", err);
+        } catch {
+          console.error("[llm-store] toggle backend error");
         }
       },
 
@@ -210,13 +222,17 @@ export const useLLMStore = create<LLMState>()(
       deleteProfile: (profileName) =>
         set((state) => {
           const newProfiles = state.profiles.filter((p) => p.name !== profileName);
+          const profile = state.profiles.find((p) => p.name === profileName);
           const updatedLLMs = state.llms.map((llm) =>
-            llm.provider === profileName
-              ? { ...llm, provider: "Custom", createdByUser: false }
+            profile?.llmIds.includes(llm.id)
+              ? { ...llm, provider: "Custom", createdByUser: false, enabled: false }
               : llm,
           );
           const newActiveProvider =
             state.activeProvider === profileName ? "All" : state.activeProvider;
+          const selectedLLMIds = updatedLLMs.filter((l) => l.enabled).map((l) => l.id);
+          useQueryStore.getState().setSelectedLLMIds(selectedLLMIds);
+          console.log("[llm-store] Deleted profile:", profileName, "Updated LLMs:", updatedLLMs);
           return {
             profiles: newProfiles,
             llms: updatedLLMs,
@@ -227,16 +243,35 @@ export const useLLMStore = create<LLMState>()(
       toggleShowPinned: () => set((state) => ({ showPinned: !state.showPinned })),
 
       clearAllEnabled: () =>
-        set((state) => ({
-          llms: state.llms.map((llm) => ({ ...llm, enabled: false })),
-        })),
+        set((state) => {
+          const updatedLLMs = state.llms.map((llm) => ({ ...llm, enabled: false }));
+          useQueryStore.getState().setSelectedLLMIds([]);
+          console.log("[llm-store] Cleared all enabled LLMs:", updatedLLMs);
+          return { llms: updatedLLMs };
+        }),
 
       setCategory: (category) =>
         set((state) => ({
           activeCategory: state.activeCategory === category ? null : category,
           showPinned: false,
-          activeProvider: "All", // Reset provider when category is set
+          activeProvider: "All",
         })),
+
+      getSelectedLLMIds: () => get().llms.filter((l) => l.enabled).map((l) => l.id),
+
+      resetStore: () => {
+        console.log("[llm-store] Resetting store");
+        set({
+          llms: [],
+          profiles: [],
+          activeProvider: "All",
+          search: "",
+          sort: "name",
+          hasMore: false,
+          showPinned: false,
+          activeCategory: null,
+        });
+      },
     }),
     {
       name: "llm-store",

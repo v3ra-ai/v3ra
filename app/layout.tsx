@@ -21,7 +21,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <link rel="preload" as="image" href="/bg_home_black.jpg" />
-        {/* Inline script to apply theme before render */}
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -41,7 +40,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             `,
           }}
         />
-        {/* New Relic Browser JavaScript snippet */}
         <Script
           src="/newrelic.js"
           strategy="afterInteractive"
@@ -62,7 +60,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <ValidatorHealthCheck />
           </div>
           <SolanaProvider>
-            {children}
+            <main className="w-full max-w-none mx-auto debug-layout">{children}</main>
             <Toaster
               richColors
               position="bottom-center"
