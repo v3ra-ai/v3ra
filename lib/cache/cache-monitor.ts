@@ -9,6 +9,14 @@ interface CacheMetrics {
   lastReset: Date;
 }
 
+interface CacheStatus {
+  isHit: boolean;
+  lastUpdated: Date | null;
+  expiresAt: Date | null;
+  size: number;
+  ttl: number;
+}
+
 class CacheMonitor {
   private metrics: CacheMetrics = {
     hitRate: 0,
@@ -75,7 +83,7 @@ class CacheMonitor {
     };
   }
 
-  private getRecommendations(metrics: CacheMetrics, status: any): string[] {
+  private getRecommendations(metrics: CacheMetrics, status: CacheStatus): string[] {
     const recommendations: string[] = [];
 
     if (metrics.hitRate < 80) {

@@ -13,7 +13,7 @@ import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { formatQueryMode } from "@/utils/text-utils";
 import ManageLLMsClient from "@/components/llm-management/manage-llms-client";
 import { X } from "lucide-react";
-import { fetchValidators } from "@/app/llms/manage/page";
+import { fetchValidators } from "@/lib/validators/fetch-validators";
 import { cn } from "@/lib/utils";
 
 // Custom ManageLLMsDialog components
@@ -100,6 +100,7 @@ interface QueryFormInputProps {
   queriesCostTotal: number;
   userFreeCredits: number;
   userPaidCredits: number;
+  userCreditsTotal: number;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
   queryMode: QueryMode;
@@ -118,6 +119,7 @@ export function QueryFormInput({
   queriesCostTotal,
   userFreeCredits,
   userPaidCredits,
+  userCreditsTotal,
   isSubmitInteracted,
   setIsSubmitInteracted,
   queryMode,
@@ -125,7 +127,7 @@ export function QueryFormInput({
   handleQueryAmountChange,
   allowedAmountQueries,
 }: QueryFormInputProps) {
-  const { displayUnpaid, totalCredits } = useCreditsStore();
+  const { displayUnpaid } = useCreditsStore();
   const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -182,15 +184,15 @@ export function QueryFormInput({
       isSubmitting,
       queriesUnpaid,
       queriesCostTotal,
-      totalCredits,
+      userCreditsTotal,
       userPaidCredits,
       userFreeCredits,
       queriesRequested,
       queryMode,
-      creditsLeft: Math.max(0, totalCredits - queriesRequested),
+      creditsLeft: Math.max(0, userCreditsTotal - queriesRequested),
     });
 
-    const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+    const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
     if (creditsLeft < queriesCostTotal) {
       console.log("[QueryFormInput] Blocked: Insufficient credits", {
         creditsLeft,
@@ -222,7 +224,7 @@ export function QueryFormInput({
     }
   }, [isSubmitting, queryMode, cancelTimer]);
 
-  const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+  const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
   const isSubmitDisabled = isSubmitting || creditsLeft < queriesCostTotal;
 
   const displayedQueryCost = Math.max(0, queriesRequested - userFreeCredits);
@@ -230,7 +232,7 @@ export function QueryFormInput({
   console.log("[QueryFormInput] render:", {
     isSubmitting,
     displayUnpaid,
-    totalCredits,
+    userCreditsTotal,
     queriesCostTotal,
     displayedQueryCost,
     queriesRequested,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -63,19 +63,19 @@ export function CacheManager() {
     }
   };
 
-  const refreshData = async () => {
+  const refreshData = useCallback(async () => {
     setIsLoading(true);
     await Promise.all([fetchCacheStatus(), fetchCacheHealth()]);
     setLastRefresh(new Date());
     setIsLoading(false);
-  };
+  }, []);
 
   useEffect(() => {
     refreshData();
     // Auto-refresh every 30 seconds
     const interval = setInterval(refreshData, 30000);
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshData]);
 
   const handleInvalidateCache = async () => {
     setIsInvalidating(true);

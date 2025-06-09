@@ -16,8 +16,15 @@ export interface CacheStatus {
   ttl: number;
 }
 
+interface ValidatorKey {
+  id: string;
+  createdAt: Date;
+  validatorId: string;
+  apiKeyId: string;
+}
+
 export interface ValidatorWithKeys extends Validator {
-  apiKeys: any[];
+  apiKeys: ValidatorKey[];
 }
 
 export interface ValidatorCacheService {
