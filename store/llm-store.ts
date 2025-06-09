@@ -276,7 +276,7 @@ export const useLLMStore = create<LLMState>()(
     {
       name: "llm-store",
       partialize: (state) => ({
-        llms: state.llms,
+        llms: state.llms, // Persist the entire llms array, including enabled state
         profiles: state.profiles,
       }),
     },

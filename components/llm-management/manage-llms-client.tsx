@@ -35,49 +35,59 @@ export default function ManageLLMsClient({ initial }: Props) {
   const [profileName, setProfileName] = useState("");
 
   useEffect(() => {
-    // Deduplicate validators by id
     const uniqueValidators = Array.from(
       new Map(initial.map((v) => [String(v.id), v])).values(),
     );
     console.log("[ManageLLMs] Deduplicated validators:", uniqueValidators.length);
 
-    const mapped: LLM[] = uniqueValidators.map((v) => {
-      const modelName = typeof v.modelName === "string" ? v.modelName : "";
-      const cleanedModelName = modelName === "gpt-40" ? "gpt-4o" : modelName;
+    // Initialize only if store is empty or new validators are introduced
+    if (llms.length === 0 || uniqueValidators.some((v) => !llms.find((l) => l.id === String(v.id)))) {
+      const mapped: LLM[] = uniqueValidators.map((v) => {
+        const modelName = typeof v.modelName === "string" ? v.modelName : "";
+        const cleanedModelName = modelName === "gpt-40" ? "gpt-4o" : modelName;
 
-      if (modelName === "gpt-40") {
-        console.warn(
-          `[ManageLLMs] Found outdated model name 'gpt-40', replacing with 'gpt-4o'.`,
-        );
-      }
+        if (modelName === "gpt-40") {
+          console.warn(
+            `[ManageLLMs] Found outdated model name 'gpt-40', replacing with 'gpt-4o'.`,
+          );
+        }
 
-      const id = String(v.id || "");
-      let profileName = typeof v.profileName === "string" ? v.profileName : "";
-      const providerName = typeof v.provider === "string" ? v.provider : "Custom";
-      const active = typeof v.active === "boolean" ? v.active : false;
+        const id = String(v.id || "");
+        let profileName = typeof v.profileName === "string" ? v.profileName : "";
+        const providerName = typeof v.provider === "string" ? v.provider : "Custom";
+        const existingLLM = llms.find((l) => l.id === id);
 
-      if (profileName.includes(" Validator")) {
-        profileName = profileName.replace(" Validator", "");
-      }
+        if (profileName.includes(" Validator")) {
+          profileName = profileName.replace(" Validator", "");
+        }
 
-      return {
-        id,
-        name: profileName || cleanedModelName || "Unnamed",
-        provider: providerName as Provider,
-        enabled: active,
-        avatar: v.avatarUrl ?? null,
-      };
-    });
-    console.log("[ManageLLMs] Initial validators:", initial);
-    console.log("[ManageLLMs] Mapped LLMs:", mapped);
-    init(mapped);
-  }, [initial, init]);
+        return {
+          id,
+          name: profileName || cleanedModelName || "Unnamed",
+          provider: providerName as Provider,
+          enabled: existingLLM?.enabled ?? false,
+          avatar: v.avatarUrl ?? null,
+        };
+      });
+      console.log("[ManageLLMs] Initial validators:", initial);
+      console.log("[ManageLLMs] Mapped LLMs:", mapped);
+      init(mapped);
+    }
+  }, [initial, llms, init]);
 
   useEffect(() => {
     console.log("[ManageLLMs] Store llms after init:", llms);
   }, [llms]);
 
   const enabledLLMs = llms.filter((llm) => llm.enabled);
+  const selectedCount = enabledLLMs.length;
+
+  // Synchronize queriesRequested with selectedCount
+  useEffect(() => {
+    if (selectedCount > 0) {
+      setQueriesRequested(selectedCount, totalCredits);
+    }
+  }, [selectedCount, setQueriesRequested, totalCredits]);
 
   const handleCreateProfile = () => {
     if (!profileName.trim()) {
@@ -101,6 +111,13 @@ export default function ManageLLMsClient({ initial }: Props) {
     console.log("[ManageLLMs] Query amount changed to:", newAmount);
     setQueriesRequested(newAmount, totalCredits);
   };
+
+  const chooseButtonText = selectedCount > 0
+    ? `Choose ${selectedCount} AIs Selected For Query`
+    : "Please Select AIs Below";
+  const chooseButtonClass = selectedCount > 0
+    ? "bg-blue-600 text-white cursor-pointer px-4 py-1 rounded-md hover:bg-blue-700 transition-colors"
+    : "bg-zinc-600 text-white cursor-pointer px-4 py-1 rounded-md hover:bg-zinc-700 transition-colors";
 
   return (
     <main className="h-[100dvh] flex flex-col p-4 gap-4">
@@ -187,13 +204,19 @@ export default function ManageLLMsClient({ initial }: Props) {
           placeholder="Profile name…"
           value={profileName}
           onChange={(e) => setProfileName(e.target.value)}
-          className="flex-1 border border-zinc-300 dark:border-zinc-700 rounded-md px-3 py-1 bg-background"
+          className="flex border border-zinc-300 dark:border-zinc-700 rounded-md px-3 py-1 bg-background"
         />
         <button
           onClick={handleCreateProfile}
-          className="bg-emerald-600 text-white px-4 py-1 rounded-md hover:bg-emerald-700 transition-colors"
+          className="bg-zinc-600 text-white cursor-pointer px-4 py-1 rounded-md hover:bg-zinc-700 transition-colors"
         >
-          Create
+          Create Profile
+        </button>
+        <button
+          onClick={handleCreateProfile}
+          className={chooseButtonClass}
+        >
+          {chooseButtonText}
         </button>
       </div>
       <div className="flex-1 min-h-0">
