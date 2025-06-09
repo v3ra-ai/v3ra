@@ -90,16 +90,26 @@ npm install axios openai --legacy-peer-deps
 
 Recommended to have in your .env (also a sample .env is in .envExample and below)
 
+### ENV File
+
 ```bash
-# set your current db url (dev, Default): export DATABASE_URL=$LOCAL_DATABASE_URL
-# set your current db url (prod): export DATABASE_URL=$REMOTE_DATABASE_URL
-# verify your current db url (if blank uses default local): echo $DATABASE_URL
+# Validator Cache Configuration
+VALIDATOR_CACHE_TTL=600           # Cache TTL in seconds (default: 600 = 10 minutes)
+VALIDATOR_CACHE_ENABLED=true      # Enable/disable caching (default: true)
+WARM_CACHE_ON_INVALIDATE=true     # Warm cache after invalidation (default: true)
+
+REDIS_URL=redis://localhost:6379  # Redis connection URL
 
 LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
 REMOTE_DATABASE_URL=postgresql://postgres:[your-db-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
 DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default to local, if not set manually
 
-
+ENCRYPTION_KEY=your-32-character-key-here...  create with CLI: "openssl rand -hex 16"
+ENCRYPTION_IV=your-16-character-iv-here... CLI: "openssl rand -hex 8"
+OPENAI_API_KEY=your-key
+ANTHROPIC_API_KEY=your-key
+GROK_API_KEY=your-key
+GEMINI_API_KEY=your-key
 ```
 
 #### 8. **Connect to Remote Supabase (Recommended)**:
@@ -114,7 +124,7 @@ DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default
   ```bash
   supabase db pull
   ```
-- Update `.env` with the database url you are using with export `DATABASE_URL` (see "ENV File" below).
+- Update `.env` with the database url you are using with export `DATABASE_URL` (see "ENV File" section below).
 - Creates or updates supabase/migrations/ with files like 20230404123456_remote_schema.sql.
 
 Check local to make sure tables are there: http://127.0.0.1:54323/project/default/database/tables
@@ -331,7 +341,11 @@ LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
 REMOTE_DATABASE_URL=postgresql://postgres:[your-db-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true
 DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default to local, if not set manually
 
-REDIS_URL=redis://localhost:6379
+# Validator Cache Configuration
+VALIDATOR_CACHE_TTL=600           # Cache TTL in seconds (default: 600 = 10 minutes)
+VALIDATOR_CACHE_ENABLED=true      # Enable/disable caching (default: true)
+WARM_CACHE_ON_INVALIDATE=true     # Warm cache after invalidation (default: true)
+
 ENCRYPTION_KEY=your-32-char-key  # From openssl rand -hex 16
 ENCRYPTION_IV=your-16-char-iv    # From openssl rand -hex 8
 OPENAI_API_KEY=your-openai-key
@@ -468,14 +482,23 @@ For local dev, deployed dev may be set in teh team Vercel account.
 note: DATABASE_URL= should use the team account one, the `quuuhdbozcmhkwzhamuh` is a sample, that is the project reference given by Supabase, each team acct. has a different one, so find out yours and replace that with yours.
 
 ```
-DATABASE_URL=postgresql://postgres:[supabase team acct. db password]@db.quuuhdbozcmhkwzhamuh.supabase.co:6543/postgres?pgbouncer=true
-REDIS_URL=redis://localhost:6379
+# Validator Cache Configuration
+VALIDATOR_CACHE_TTL=600           # Cache TTL in seconds (default: 600 = 10 minutes)
+VALIDATOR_CACHE_ENABLED=true      # Enable/disable caching (default: true)
+WARM_CACHE_ON_INVALIDATE=true     # Warm cache after invalidation (default: true)
+
+REDIS_URL=redis://localhost:6379  # Redis connection URL
+
+LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
+REMOTE_DATABASE_URL=postgresql://postgres:[supabase team acct. db password]@db.quuuhdbozcmhkwzhamuh.supabase.co:6543/postgres?pgbouncer=true
+DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres" # Default to local, if not set manually
+
+ENCRYPTION_KEY=your-32-character-key-here...  create with CLI: "openssl rand -hex 16"
+ENCRYPTION_IV=your-16-character-iv-here... CLI: "openssl rand -hex 8"
 OPENAI_API_KEY=your-key
 ANTHROPIC_API_KEY=your-key
 GROK_API_KEY=your-key
 GEMINI_API_KEY=your-key
-ENCRYPTION_KEY=your-32-character-key-here...  create with CLI: "openssl rand -hex 16"
-ENCRYPTION_IV=your-16-character-iv-here... CLI: "openssl rand -hex 8"
 ```
 
 ## API Endpoints
@@ -562,7 +585,7 @@ Reasons for migration:
 
 **What It Does:** The system uses a hybrid architecture combining real-time messaging (Redis), persistent storage (PostgreSQL), and modular services (broadcaster and validators) to handle query distribution, voting, and result tracking.
 
-**Flow:** Queries enter through the broadcaster, which uses Redis to send them to validators in real-time. Validators process the query, vote, and send responses back through Redis. The leader validator aggregates votes, determines consensus, and stores results in PostgreSQL.
+**Flow:** Queries enter through the broadcaster, which uses Redis to send them to validators in real-time. Validators process the query, vote, and send responses back through Redis. The leader uses Redis to coordinate and collect these responses.
 
 **UI to Services:** The UI communicates with the broadcaster via API endpoints (e.g., `/broadcast`). The broadcaster uses Redis pub/sub to coordinate with validators, and PostgreSQL ensures data durability, which the UI can later query for historical data.
 
@@ -670,7 +693,12 @@ Reasons for migration:
 
 ### Summary
 
-The Verafy Testnet is a modular system where the UI (Next.js) serves as the entry point, sending queries to the broadcaster service. The broadcaster uses Redis to distribute queries to validators, which vote using their AI models. The leader validator calculates consensus, stores results in PostgreSQL, and rotates leadership. The UI retrieves and displays these results via API endpoints. Admin tools monitor and repair the system, while Docker Compose streamlines deployment. This flow ensures a scalable, verifiable AI validation network.
+The Verafy Testnet is a modular system where the UI (Next.js) serves as the entry point, sending queries to the broadcaster service.
+
+- The broadcaster distribute queries to validators, which vote using their AI models.
+- The leader validator calculates consensus, stores results in PostgreSQL, and rotates leadership.
+- The UI retrieves and displays these results via API endpoints.
+- Admin tools monitor and repair the system, while Docker Compose streamlines deployment. This flow ensures a scalable, verifiable AI validation network.
 
 ## Flow
 
@@ -959,7 +987,7 @@ Expected: Valid response (empty string is allowed) or `{"error":"Query text cann
 
 #### Broadcast Endpoint, Missing QueryText (Error Case):
 
-`curl -X POST -H "Content-Type: application/json" -d '{"queryText":""}' http://localhost:3000/api/broadcast`
+`curl -X POST -H "Content-Type: application/json" -d '{}' http://localhost:3000/api/broadcast`
 
 Expected: `{"error":"Query text is required"} `(add this check if missing).
 
@@ -1011,7 +1039,6 @@ curl -X POST http://localhost:3000/api/credits/assign \
 | unused_index           | Unused Index           | INFO  | EXTERNAL | ["PERFORMANCE"] | Detects if an index has never been used and may be a candidate for removal.                         | Index \`Validator_provider_idx\` on table \`public.Validator\` has not been used                                                                        | https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index           | {"name":"Validator","type":"table","schema":"public"}                                                                | unused_index_public_Validator_Validator_provider_idx                         |
 | unused_index           | Unused Index           | INFO  | EXTERNAL | ["PERFORMANCE"] | Detects if an index has never been used and may be a candidate for removal.                         | Index \`VoteSession_consensusValue_idx\` on table \`public.VoteSession\` has not been used                                                              | https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index           | {"name":"VoteSession","type":"table","schema":"public"}                                                              | unused_index_public_VoteSession_VoteSession_consensusValue_idx               |
 | unused_index           | Unused Index           | INFO  | EXTERNAL | ["PERFORMANCE"] | Detects if an index has never been used and may be a candidate for removal.                         | Index \`VoteSession_isConsensusReached_idx\` on table \`public.VoteSession\` has not been used                                                          | https://supabase.com/docs/guides/database/database-linter?lint=0005_unused_index           | {"name":"VoteSession","type":"table","schema":"public"}                                                              | unused_index_public_VoteSession_VoteSession_isConsensusReached_idx           |
-
 
 ----------------------
 
@@ -1137,4 +1164,3 @@ To integrate New Relic with Vercel and a Next.js application for enhanced loggin
 - [Vercel Integrations Marketplace](https://vercel.com/integrations)
 - [New Relic Vercel Integration Guide](https://docs.newrelic.com/docs/logs/integrations/vercel-integration/)
 - [Next.js Documentation](https://nextjs.org/docs)
-

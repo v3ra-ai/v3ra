@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "qa": "ts-node --project tsconfig.scripts.json test/test-qa.ts",
+    "test:cache": "ts-node --project tsconfig.scripts.json scripts/test-validator-cache.ts",
+    "benchmark:cache": "ts-node --project tsconfig.scripts.json scripts/benchmark-validator-cache.ts",
     "start": "next start",
     "lint": "next lint",
     "format": "prettier --write \"**/*.{js,ts,tsx,css,json,md}\"",
