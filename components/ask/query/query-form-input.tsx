@@ -134,7 +134,7 @@ export function QueryFormInput({
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
   const hasSelectedLLMs = llms.some((llm) => llm.enabled);
-  const chooseButtonText = hasSelectedLLMs ? "AI Selected" : "Choose...";
+  const chooseButtonText = hasSelectedLLMs ? "Selected" : "Choose...";
 
   const handleOpenModal = async () => {
     console.log("[QueryFormInput] Choose... button clicked, setting isModalOpen to true");

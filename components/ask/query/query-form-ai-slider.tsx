@@ -17,8 +17,8 @@ export function QueryFormAISlider({
   hideButtons = false,
 }: QueryFormAISliderProps) {
   return (
-    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md px-2 py-0">
-      <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-2 py-1 rounded-md min-w-[120px] text-center">
+    <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md px-0 py-0">
+      <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-0 py-1 rounded-md min-w-[120px] text-center">
         <span className="text-gray-500 dark:text-gray-200 ml-1 whitespace-nowrap">
           Query {queriesRequested} AIs:
         </span>
@@ -43,7 +43,7 @@ export function QueryFormAISlider({
           [&>*]:rounded-full"
       />
       {context !== "scrollbar" && !hideButtons && (
-        <div className="invisible md:visible min-w-24">
+        <div className="invisible md:visible min-w-18">
           <Button
             className="border-zinc-300 dark:border-zinc-700 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer md:visible"
             onClick={() => handleQueryAmountChange(queriesRequested - 1)}
