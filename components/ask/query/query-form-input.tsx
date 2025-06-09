@@ -272,7 +272,7 @@ export function QueryFormInput({
               allowedAmountQueries={allowedAmountQueries}
             />
             <Button
-              className="bg-teal-500 hover:bg-teal-600 text-white rounded-md px-4 py-2 z-10"
+              className="bg-teal-500 hover:bg-teal-600 cursor-pointer text-white rounded-md px-4 py-2 z-10"
               onClick={handleOpenModal}
             >
               Choose...
