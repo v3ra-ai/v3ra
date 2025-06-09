@@ -100,6 +100,7 @@ interface QueryFormInputProps {
   queriesCostTotal: number;
   userFreeCredits: number;
   userPaidCredits: number;
+  userCreditsTotal: number;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
   queryMode: QueryMode;
@@ -118,6 +119,7 @@ export function QueryFormInput({
   queriesCostTotal,
   userFreeCredits,
   userPaidCredits,
+  userCreditsTotal,
   isSubmitInteracted,
   setIsSubmitInteracted,
   queryMode,
@@ -194,15 +196,15 @@ export function QueryFormInput({
       isSubmitting,
       queriesUnpaid,
       queriesCostTotal,
-      totalCredits,
+      userCreditsTotal,
       userPaidCredits,
       userFreeCredits,
       queriesRequested,
       queryMode,
-      creditsLeft: Math.max(0, totalCredits - queriesRequested),
+      creditsLeft: Math.max(0, userCreditsTotal - queriesRequested),
     });
 
-    const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+    const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
     if (creditsLeft < queriesCostTotal) {
       console.log("[QueryFormInput] Blocked: Insufficient credits", {
         creditsLeft,
@@ -234,7 +236,7 @@ export function QueryFormInput({
     }
   }, [isSubmitting, queryMode, cancelTimer]);
 
-  const creditsLeft = Math.max(0, totalCredits - queriesRequested);
+  const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
   const isSubmitDisabled = isSubmitting || creditsLeft < queriesCostTotal;
 
   const displayedQueryCost = Math.max(0, queriesRequested - userFreeCredits);
@@ -242,7 +244,7 @@ export function QueryFormInput({
   console.log("[QueryFormInput] render:", {
     isSubmitting,
     displayUnpaid,
-    totalCredits,
+    userCreditsTotal,
     queriesCostTotal,
     displayedQueryCost,
     queriesRequested,
