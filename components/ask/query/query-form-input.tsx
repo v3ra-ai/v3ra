@@ -16,6 +16,7 @@ import ManageLLMsClient from "@/components/llm-management/manage-llms-client";
 import { fetchValidators } from "@/app/llms/manage/page";
 import { cn } from "@/lib/utils";
 import { BeatLoader } from "react-spinners";
+import { X } from "lucide-react";
 
 // Custom ManageLLMsDialog components
 const ManageLLMsDialog = DialogPrimitive.Root;
@@ -311,10 +312,11 @@ export function QueryFormInput({
           className="w-full max-w-[calc(100%-2rem)] sm:w-3/4 sm:max-w-7xl"
           ref={dialogContentRef}
         >
-          <ManageLLMsDialogHeader className="px-6 py-4">
+          <ManageLLMsDialogHeader className="px-6 py-0">
             <ManageLLMsDialogTitle className="text-2xl font-semibold">
             </ManageLLMsDialogTitle>
             <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+              <X />
             </ManageLLMsDialogClose>
           </ManageLLMsDialogHeader>
           <div className="flex flex-col h-full overflow-hidden">
