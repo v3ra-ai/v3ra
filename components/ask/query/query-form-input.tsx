@@ -178,10 +178,6 @@ export function QueryFormInput({
         loadingState: loading,
       });
     }
-    if (!open) {
-      setValidators([]); // Reset validators when closing
-      setLoading(false);
-    }
     setIsModalOpen(open);
   };
 
