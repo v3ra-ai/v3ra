@@ -12,9 +12,9 @@ import { toast } from "sonner";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { formatQueryMode } from "@/utils/text-utils";
 import ManageLLMsClient from "@/components/llm-management/manage-llms-client";
-import { X } from "lucide-react";
 import { fetchValidators } from "@/app/llms/manage/page";
 import { cn } from "@/lib/utils";
+import { BeatLoader } from "react-spinners";
 
 // Custom ManageLLMsDialog components
 const ManageLLMsDialog = DialogPrimitive.Root;
@@ -45,15 +45,13 @@ const ManageLLMsDialogContent = React.forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-100 grid gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg w-full max-w-[calc(100%-2rem)] transform -translate-x-1/2 -translate-y-[calc(50%-50px)]",
+        "fixed left-1/2 top-1/2 z-100 grid gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 w-full max-w-[calc(100%-2rem)] sm:w-3/4 sm:max-w-7xl sm:rounded-lg transform -translate-x-1/2 -translate-y-[calc(50%-50px)]",
         className,
       )}
       {...props}
     >
       {children}
-      <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
-        {/* <X className="h-4 w-4" /> */}
-        <span className="sr-only">Close</span>
+      <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
       </ManageLLMsDialogClose>
     </DialogPrimitive.Content>
   </ManageLLMsDialogPortal>
@@ -130,20 +128,26 @@ export function QueryFormInput({
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [validators, setValidators] = useState<Validator[]>([]);
+  const [loading, setLoading] = useState(false);
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
   const handleOpenModal = async () => {
     console.log("[QueryFormInput] Choose... button clicked, setting isModalOpen to true");
-    try {
-      const fetchedValidators = await fetchValidators();
-      console.log("[QueryFormInput] Fetched validators:", fetchedValidators.length, fetchedValidators);
-      setValidators(fetchedValidators);
-      setIsModalOpen(true);
-    } catch {
-      console.error("[QueryFormInput] Failed to fetch validators for modal");
-      setValidators([]);
-      setIsModalOpen(true);
-    }
+    setIsModalOpen(true);
+    setLoading(true);
+    // Delay fetch until animation completes (~200ms)
+    setTimeout(async () => {
+      try {
+        const fetchedValidators = await fetchValidators();
+        console.log("[QueryFormInput] Fetched validators:", fetchedValidators.length, fetchedValidators);
+        setValidators(fetchedValidators);
+      } catch {
+        console.error("[QueryFormInput] Failed to fetch validators for modal");
+        setValidators([]);
+      } finally {
+        setLoading(false);
+      }
+    }, 200);
   };
 
   const handleModalOpenChange = (open: boolean) => {
@@ -166,11 +170,17 @@ export function QueryFormInput({
         computedWidth: computedStyle.width,
         computedMaxWidth: computedStyle.maxWidth,
         computedTransform: computedStyle.transform,
+        computedAnimation: computedStyle.animation,
         parentTag: parent?.tagName,
         parentClass: parent?.className,
         parentPosition: parentStyle?.position,
         parentTransform: parentStyle?.transform,
+        loadingState: loading,
       });
+    }
+    if (!open) {
+      setValidators([]); // Reset validators when closing
+      setLoading(false);
     }
     setIsModalOpen(open);
   };
@@ -249,7 +259,7 @@ export function QueryFormInput({
   });
 
   return (
-    <>
+    <div>
       <div className="flex flex-col mb-2">
         <textarea
           className={`w-full p-4 border rounded-lg h-24 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg ${
@@ -272,7 +282,7 @@ export function QueryFormInput({
               allowedAmountQueries={allowedAmountQueries}
             />
             <Button
-              className="bg-teal-500 hover:bg-teal-600 cursor-pointer text-white rounded-md px-4 py-2 z-10"
+              className="bg-teal-500 hover:bg-teal-600 text-white rounded-md px-4 py-2 z-10 cursor-pointer"
               onClick={handleOpenModal}
             >
               Choose...
@@ -302,17 +312,22 @@ export function QueryFormInput({
         >
           <ManageLLMsDialogHeader className="px-6 py-4">
             <ManageLLMsDialogTitle className="text-2xl font-semibold">
-              Manage LLMs
             </ManageLLMsDialogTitle>
             <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              <X className="size-5 text-zinc-700 dark:text-zinc-300" />
             </ManageLLMsDialogClose>
           </ManageLLMsDialogHeader>
           <div className="flex flex-col h-full overflow-hidden">
-            <ManageLLMsClient initial={validators} />
+            {loading ? (
+              <div className="flex flex-col items-center justify-center h-full gap-4">
+                <BeatLoader color="#2DD4BF" size={15} />
+                <span className="text-lg text-gray-700 dark:text-gray-300">Loading</span>
+              </div>
+            ) : (
+              <ManageLLMsClient initial={validators} />
+            )}
           </div>
         </ManageLLMsDialogContent>
       </ManageLLMsDialog>
-    </>
+    </div>
   );
 }

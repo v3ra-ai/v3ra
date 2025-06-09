@@ -187,13 +187,19 @@ export default function ManageLLMsClient({ initial }: Props) {
           placeholder="Profile name…"
           value={profileName}
           onChange={(e) => setProfileName(e.target.value)}
-          className="flex-1 border border-zinc-300 dark:border-zinc-700 rounded-md px-3 py-1 bg-background"
+          className="flex border border-zinc-300 dark:border-zinc-700 rounded-md px-3 py-1 bg-background"
         />
         <button
           onClick={handleCreateProfile}
-          className="bg-emerald-600 text-white px-4 py-1 rounded-md hover:bg-emerald-700 transition-colors"
+          className="bg-zinc-600 text-white cursor-pointer px-4 py-1 rounded-md hover:bg-zinc-700 transition-colors"
         >
-          Create
+          Create Profile
+        </button>
+                <button
+          onClick={handleCreateProfile}
+          className="bg-blue-600 text-white cursor-pointer px-4 py-1 rounded-md hover:bg-blue-700 transition-colors"
+        >
+          Choose Selected for Query
         </button>
       </div>
       <div className="flex-1 min-h-0">
