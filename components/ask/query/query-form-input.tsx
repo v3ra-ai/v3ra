@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { formatQueryMode } from "@/utils/text-utils";
 import ManageLLMsClient from "@/components/llm-management/manage-llms-client";
-import { fetchValidators } from "@/app/llms/manage/page";
+import { fetchValidators } from "@/lib/validators/fetch-validators";
 import { cn } from "@/lib/utils";
 import { BeatLoader } from "react-spinners";
 import { X } from "lucide-react";
@@ -100,7 +100,6 @@ interface QueryFormInputProps {
   queriesCostTotal: number;
   userFreeCredits: number;
   userPaidCredits: number;
-  userCreditsTotal: number;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
   queryMode: QueryMode;
@@ -119,7 +118,6 @@ export function QueryFormInput({
   queriesCostTotal,
   userFreeCredits,
   userPaidCredits,
-  userCreditsTotal,
   isSubmitInteracted,
   setIsSubmitInteracted,
   queryMode,
@@ -196,15 +194,15 @@ export function QueryFormInput({
       isSubmitting,
       queriesUnpaid,
       queriesCostTotal,
-      userCreditsTotal,
+      totalCredits,
       userPaidCredits,
       userFreeCredits,
       queriesRequested,
       queryMode,
-      creditsLeft: Math.max(0, userCreditsTotal - queriesRequested),
+      creditsLeft: Math.max(0, totalCredits - queriesRequested),
     });
 
-    const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
+    const creditsLeft = Math.max(0, totalCredits - queriesRequested);
     if (creditsLeft < queriesCostTotal) {
       console.log("[QueryFormInput] Blocked: Insufficient credits", {
         creditsLeft,
@@ -236,7 +234,7 @@ export function QueryFormInput({
     }
   }, [isSubmitting, queryMode, cancelTimer]);
 
-  const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
+  const creditsLeft = Math.max(0, totalCredits - queriesRequested);
   const isSubmitDisabled = isSubmitting || creditsLeft < queriesCostTotal;
 
   const displayedQueryCost = Math.max(0, queriesRequested - userFreeCredits);
@@ -244,7 +242,7 @@ export function QueryFormInput({
   console.log("[QueryFormInput] render:", {
     isSubmitting,
     displayUnpaid,
-    userCreditsTotal,
+    totalCredits,
     queriesCostTotal,
     displayedQueryCost,
     queriesRequested,
