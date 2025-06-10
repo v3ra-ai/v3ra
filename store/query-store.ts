@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { DEFAULTS, QueryMode, ViewMode } from "@/lib/types";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+import { useLLMStore } from "./llm-store";
 
 console.log("[query-store] Initializing store");
 
@@ -43,24 +44,39 @@ const calculateQueriesState = (
   };
 };
 
+// Initialize selectedLLMIds and queriesRequested based on useLLMStore
+const getInitialLLMState = () => {
+  const llms = useLLMStore.getState().llms;
+  const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
+  const queriesRequested = enabledLLMIds.length > 0
+    ? enabledLLMIds.length
+    : DEFAULTS.QUERIES_REQUESTED;
+  console.log("[query-store] Initial LLM state:", {
+    enabledLLMIds,
+    queriesRequested,
+  });
+  return { selectedLLMIds: enabledLLMIds, queriesRequested };
+};
+
 export const useQueryStore = create<QueryStore>((set) => {
+  const { selectedLLMIds, queriesRequested } = getInitialLLMState();
   const initialState = {
-    queriesRequested: DEFAULTS.QUERIES_REQUESTED,
+    queriesRequested,
     queriesUnpaid: Math.max(
       0,
-      DEFAULTS.QUERIES_REQUESTED - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS),
+      queriesRequested - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS),
     ),
     queriesCostEach: DEFAULTS.QUERIES_COST_EACH,
     queriesCostTotal:
       Math.max(
         0,
-        DEFAULTS.QUERIES_REQUESTED - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS),
+        queriesRequested - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS),
       ) * DEFAULTS.QUERIES_COST_EACH,
     userCreditConversion: DEFAULTS.USER_CREDIT_CONVERSION,
     userCreditsTotal: DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS,
     queryMode: "fact-check" as QueryMode,
     viewMode: "viewExpert" as ViewMode,
-    selectedLLMIds: [],
+    selectedLLMIds,
   };
   console.log("[query-store] Initial state:", initialState);
   return {
@@ -132,15 +148,24 @@ export const useQueryStore = create<QueryStore>((set) => {
 
     resetAfterSubmission: (creditsTotal) => {
       console.log("[query-store] Resetting after submission");
-      set((state) => ({
-        queriesRequested: state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : DEFAULTS.QUERIES_REQUESTED,
-        selectedLLMIds: [],
-        ...calculateQueriesState(
-          state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : DEFAULTS.QUERIES_REQUESTED,
-          creditsTotal,
-          DEFAULTS.QUERIES_COST_EACH,
-        ),
-      }));
+      set(() => {
+        const llms = useLLMStore.getState().llms;
+        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
+        const newQueriesRequested = enabledLLMIds.length > 0 ? enabledLLMIds.length : DEFAULTS.QUERIES_REQUESTED;
+        console.log("[query-store] Reset after submission:", {
+          enabledLLMIds,
+          newQueriesRequested,
+        });
+        return {
+          queriesRequested: newQueriesRequested,
+          selectedLLMIds: enabledLLMIds,
+          ...calculateQueriesState(
+            newQueriesRequested,
+            creditsTotal,
+            DEFAULTS.QUERIES_COST_EACH,
+          ),
+        };
+      });
     },
 
     setUserCreditsTotal: (creditsTotal) => {
