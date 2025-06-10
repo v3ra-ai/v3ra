@@ -6,17 +6,16 @@ import ProviderTabs from "./provider-tabs";
 import LLMGrid from "./llm-grid";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star } from "lucide-react";
-import { QueryFormAISlider } from "@/components/ask/query/query-form-ai-slider";
 import { useQueryStore } from "@/store/query-store";
-import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { useCreditsStore } from "@/store/credit-store";
 import { Validator } from "@/lib/types";
 
 interface Props {
   initial: Validator[];
+  onClose: () => void;
 }
 
-export default function ManageLLMsClient({ initial }: Props) {
+export default function ManageLLMsClient({ initial, onClose }: Props) {
   const init = useLLMStore((s) => s.init);
   const search = useLLMStore((s) => s.search);
   const setSearch = useLLMStore((s) => s.setSearch);
@@ -29,7 +28,7 @@ export default function ManageLLMsClient({ initial }: Props) {
   const categories = useLLMStore((s) => s.categories);
   const activeCategory = useLLMStore((s) => s.activeCategory);
   const setCategory = useLLMStore((s) => s.setCategory);
-  const { queriesRequested, setQueriesRequested } = useQueryStore();
+  const { setQueriesRequested } = useQueryStore();
   const { totalCredits } = useCreditsStore();
 
   const [profileName, setProfileName] = useState("");
@@ -38,7 +37,7 @@ export default function ManageLLMsClient({ initial }: Props) {
   useEffect(() => {
     // Only initialize once to prevent infinite loops
     if (initializedRef.current) return;
-    
+
     const uniqueValidators = Array.from(
       new Map(initial.map((v) => [String(v.id), v])).values(),
     );
@@ -86,13 +85,6 @@ export default function ManageLLMsClient({ initial }: Props) {
   const enabledLLMs = llms.filter((llm) => llm.enabled);
   const selectedCount = enabledLLMs.length;
 
-  // Synchronize queriesRequested with selectedCount
-  useEffect(() => {
-    if (selectedCount > 0) {
-      setQueriesRequested(selectedCount, totalCredits);
-    }
-  }, [selectedCount, setQueriesRequested, totalCredits]);
-
   const handleCreateProfile = () => {
     if (!profileName.trim()) {
       console.warn("[ManageLLMs] Profile name is required");
@@ -111,9 +103,10 @@ export default function ManageLLMsClient({ initial }: Props) {
     setProfileName("");
   };
 
-  const handleQueryAmountChange = (newAmount: number) => {
-    console.log("[ManageLLMs] Query amount changed to:", newAmount);
-    setQueriesRequested(newAmount, totalCredits);
+  const handleChoose = () => {
+    console.log("[ManageLLMs] Choose button clicked, closing modal", { selectedCount });
+    setQueriesRequested(selectedCount > 0 ? selectedCount : 4, totalCredits); // Sync queriesRequested
+    onClose();
   };
 
   const chooseButtonText = selectedCount > 0
@@ -127,12 +120,6 @@ export default function ManageLLMsClient({ initial }: Props) {
     <main className="h-[100dvh] flex flex-col p-4 gap-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">Manage LLMs</h1>
-        <QueryFormAISlider
-          queriesRequested={queriesRequested}
-          handleQueryAmountChange={handleQueryAmountChange}
-          allowedAmountQueries={ALLOWED_AMOUNT_QUERIES}
-          hideButtons={true}
-        />
       </div>
       <ProviderTabs />
       <input
@@ -217,7 +204,7 @@ export default function ManageLLMsClient({ initial }: Props) {
           Create Profile
         </button>
         <button
-          onClick={handleCreateProfile}
+          onClick={handleChoose}
           className={chooseButtonClass}
         >
           {chooseButtonText}

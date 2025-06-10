@@ -191,6 +191,11 @@ export function QueryFormInput({
     setIsModalOpen(open);
   };
 
+  const handleModalClose = () => {
+    console.log("[QueryFormInput] Closing modal");
+    setIsModalOpen(false);
+  };
+
   const onSubmit = () => {
     console.log("[QueryFormInput] onSubmit called:", {
       queryText,
@@ -345,7 +350,7 @@ export function QueryFormInput({
                 <span className="text-lg text-gray-700 dark:text-gray-300">Loading</span>
               </div>
             ) : (
-              <ManageLLMsClient initial={validators} />
+              <ManageLLMsClient initial={validators} onClose={handleModalClose} />
             )}
           </div>
         </ManageLLMsDialogContent>
