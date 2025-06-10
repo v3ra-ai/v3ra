@@ -119,7 +119,7 @@ class SimpleValidatorCache implements ValidatorCacheService {
   private async fetchFromDatabase(): Promise<ValidatorWithKeys[]> {
     // Dynamic import to avoid circular dependencies
     const { validatorService } = await import('../services/validatorService');
-    return validatorService.getAllValidatorsFromDB();
+    return validatorService.getAllValidators();
   }
 
   async invalidateCache(): Promise<void> {

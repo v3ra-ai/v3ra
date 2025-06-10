@@ -119,7 +119,7 @@ export default function QueryStats({
         timestamp: new Date().toISOString(),
       });
     }
-  }, [creditsLoading, savedCreditsTimestamp, totalCredits, queriesRequested]);
+  }, [creditsLoading, savedCreditsTimestamp, totalCredits, queriesRequested, savedCredits]);
 
   // Auto-trigger open/close based on displayUnpaid
   useEffect(() => {
