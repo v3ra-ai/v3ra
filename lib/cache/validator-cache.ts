@@ -1,4 +1,4 @@
-import Redis from 'ioredis';
+
 import { Validator } from '@prisma/client';
 import { cacheMonitor } from './cache-monitor';
 
@@ -53,7 +53,7 @@ class ValidatorCache implements ValidatorCacheService {
     }
 
     const redisUrl = process.env.REDIS_URL || 'redis://localhost:6379';
-    
+
     try {
       this.redis = new Redis(redisUrl, {
         connectTimeout: 2000,
@@ -80,7 +80,7 @@ class ValidatorCache implements ValidatorCacheService {
 
   async getValidators(): Promise<ValidatorWithKeys[]> {
     const startTime = Date.now();
-    
+
     // If caching is disabled, always fetch from DB
     if (!CACHE_ENABLED) {
       const validators = await this.fetchFromDatabase();
@@ -108,10 +108,10 @@ class ValidatorCache implements ValidatorCacheService {
     const responseTime = Date.now() - startTime;
     cacheMonitor.recordCacheMiss(responseTime);
     console.log(`[ValidatorCache] Cache miss (${responseTime}ms)`);
-    
+
     // Store in cache for next time
     await this.setCache(validators);
-    
+
     return validators;
   }
 
@@ -163,7 +163,7 @@ class ValidatorCache implements ValidatorCacheService {
 
   async invalidateCache(): Promise<void> {
     console.log('[ValidatorCache] Invalidating cache');
-    
+
     // Clear Redis cache
     if (this.redis) {
       try {
@@ -195,7 +195,7 @@ class ValidatorCache implements ValidatorCacheService {
           isHit = true;
           ttl = await this.redis.ttl(CACHE_KEY);
           size = JSON.parse(cached).length;
-          
+
           // Calculate timestamps
           const now = Date.now();
           lastUpdated = new Date(now - (CACHE_TTL - ttl) * 1000);
