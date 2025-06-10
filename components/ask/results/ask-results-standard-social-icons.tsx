@@ -10,7 +10,6 @@ import { usePathname } from "next/navigation";
 import { useFavoritesStore } from "@/store/favorites-store";
 import { toggleFavorite } from "@/app/actions";
 import { toast } from "sonner";
-import { debounce } from "lodash";
 
 interface AskResultsStandardSocialIconsProps {
   query?: VoteResult;
@@ -87,6 +86,13 @@ export function AskResultsStandardSocialIcons({
           console.error("[social-icons] Error toggling favorite:", typedError);
           toast.error("Failed to toggle favorite");
         }
+      } catch (error) {
+        const typedError = error as Error;
+        console.error("[social-icons] Error toggling favorite:", typedError);
+        toast.error("Failed to toggle favorite");
+      }
+    },
+    [query?.id]
       }, 500),
     []
   );

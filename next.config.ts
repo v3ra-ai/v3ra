@@ -20,7 +20,7 @@ const nextConfig: NextConfig = {
       "@": __dirname,
     };
 
-    // Exclude ioredis and other server-only modules from client bundle
+    // Exclude server-only modules from client bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -30,12 +30,6 @@ const nextConfig: NextConfig = {
         fs: false,
         child_process: false,
       };
-      
-      config.externals = [
-        ...(config.externals || []),
-        'ioredis',
-        'redis',
-      ];
     }
 
     return config;

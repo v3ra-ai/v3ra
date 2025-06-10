@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { NextRequest } from "next/server"; // Added missing import
 import { PrismaClient } from "@prisma/client";
-import { limitVoteRequest } from "@/utils/rate-limit-utils";
+import { limitVoteRequest } from "@/utils/simple-rate-limit-utils";
 
 const prisma = new PrismaClient();
 
