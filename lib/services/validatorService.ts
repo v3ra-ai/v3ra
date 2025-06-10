@@ -2,6 +2,7 @@ import { PrismaClient, Validator, ValidatorKey } from "@prisma/client";
 import { AIValidator } from "../validators/types";
 import { dbValidatorToAIValidator } from "../db/validators";
 import { v4 as uuidv4 } from "uuid";
+import { validatorCache } from "../cache/simple-validator-cache";
 
 const prisma = new PrismaClient();
 
@@ -9,6 +10,12 @@ type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
 export const validatorService = {
   async getAllValidators(): Promise<DbValidatorWithKeys[]> {
+    // Use cache for getAllValidators
+    return validatorCache.getValidators();
+  },
+
+  async getAllValidatorsFromDB(): Promise<DbValidatorWithKeys[]> {
+    // Direct DB access (for cache warming or bypassing cache)
     return prisma.validator.findMany({
       include: { apiKeys: true },
     });
@@ -49,11 +56,16 @@ export const validatorService = {
       });
     }
 
+    // Invalidate cache after adding validator
+    await validatorCache.invalidateCache();
+
     return dbValidatorToAIValidator(dbValidator);
   },
 
   async removeValidator(id: string): Promise<boolean> {
     await prisma.validator.delete({ where: { id } });
+    // Invalidate cache after removing validator
+    await validatorCache.invalidateCache();
     return true;
   },
 
@@ -62,6 +74,8 @@ export const validatorService = {
       where: { id },
       data: { active },
     });
+    // Invalidate cache after toggling validator
+    await validatorCache.invalidateCache();
     return true;
   },
 

@@ -25,16 +25,18 @@ type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 export async function broadcastCustomQuery(
   query: string,
   queryMode: QueryMode = "fact-check",
-  queriesRequested?: number // Number of validators to query
+  queriesRequested?: number,
+  selectedLLMIds?: string[]
 ): Promise<VoteResult | { error: string }> {
   try {
     console.log("[actions] Processing custom query:", {
       query,
       queryMode,
       queriesRequested,
+      selectedLLMIds: selectedLLMIds || "none",
     });
 
-    const dbValidators: DbValidatorWithKeys[] =
+    let dbValidators: DbValidatorWithKeys[] =
       await validatorService.getActiveDbValidators();
 
     if (!dbValidators || dbValidators.length === 0) {
@@ -42,9 +44,29 @@ export async function broadcastCustomQuery(
       return { error: "No active validators found" };
     }
 
+    // Filter by selectedLLMIds if provided
+    if (selectedLLMIds && selectedLLMIds.length > 0) {
+      dbValidators = dbValidators.filter((v) => selectedLLMIds.includes(v.id));
+      console.log("[actions] Filtered validators by selectedLLMIds:", {
+        selectedCount: dbValidators.length,
+        requestedIds: selectedLLMIds,
+      });
+
+      if (dbValidators.length === 0) {
+        console.warn("[actions] No validators match the provided selectedLLMIds");
+        return { error: "No matching validators found for the selected LLMs" };
+      }
+    }
+
+    // Apply queriesRequested limit
     const selectedValidators = queriesRequested
       ? dbValidators.slice(0, Math.min(queriesRequested, dbValidators.length))
       : dbValidators;
+
+    if (selectedValidators.length === 0) {
+      console.warn("[actions] No validators selected after filtering");
+      return { error: "No validators available after filtering" };
+    }
 
     const sessionId = uuidv4();
 
@@ -282,7 +304,6 @@ export async function fetchVoteHistory(): Promise<
   }
 }
 
-// Toggle favorite action
 export async function toggleFavorite(
   voteSessionId: string
 ): Promise<{ success: boolean; message: string; favorite?: Favorite }> {
@@ -330,7 +351,7 @@ export async function toggleFavorite(
       const { data: newFavorite, error: insertError } = await supabase
         .from("Favorite")
         .insert({
-          id: newId, // Explicit UUID
+          id: newId,
           user_id: user.id,
           vote_session_id: voteSessionId,
         })
@@ -355,7 +376,6 @@ export async function toggleFavorite(
   }
 }
 
-// Fetch user favorites
 export async function fetchUserFavorites(): Promise<
   Favorite[] | { error: string }
 > {

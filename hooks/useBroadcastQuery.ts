@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import type { VoteResult } from '@/lib/types';
 import { Dispatch, SetStateAction } from 'react';
 import { sanitizeError } from '@/utils/security-utils';
@@ -15,13 +15,18 @@ interface BroadcastQueryOptions {
   queryMode?: string;
   queriesRequested?: number;
   isFreeQuery?: boolean;
+  selectedLLMIds?: string[];
+}
+
+interface BroadcastQueryParams {
+  query: string;
+  options?: BroadcastQueryOptions;
 }
 
 interface BroadcastQueryResult {
-  broadcastQuery: (query: string, options?: BroadcastQueryOptions) => Promise<void>;
+  broadcastQuery: (params: BroadcastQueryParams) => Promise<void>;
 }
 
-// Type guard for error response
 function isErrorResponse(result: VoteResult | { error: string }): result is { error: string } {
   return 'error' in result && typeof result.error === 'string';
 }
@@ -34,7 +39,6 @@ export function useBroadcastQuery(
 ): BroadcastQueryResult {
   const { userFreeCredits, userPaidCredits, fetchAllCredits } = useCreditsStore();
   const { publicKey } = useWallet();
-  const [, setCsrfToken] = useState<string | null>(null);
   const [email, setEmail] = useState<string | undefined>(undefined);
 
   // Fetch email on mount
@@ -45,135 +49,108 @@ export function useBroadcastQuery(
         if (error) throw error;
         setEmail(session?.user?.email);
         console.log('[useBroadcastQuery] Fetched email:', session?.user?.email);
-      } catch (err) {
-        console.error('[useBroadcastQuery] Error fetching email:', err);
+      } catch {
+        console.error('[useBroadcastQuery] Error fetching email');
       }
     };
     fetchEmail();
   }, []);
 
-  const fetchCsrfToken = useCallback(async () => {
-    try {
-      const response = await fetch('/api/csrf-token', {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-      });
-      if (!response.ok) throw new Error('Failed to fetch CSRF token');
-      const data = await response.json();
-      setCsrfToken(data.csrfToken);
-      return data.csrfToken;
-    } catch (error) {
-      console.error('[useBroadcastQuery] Error fetching CSRF token:', error);
-      throw error;
-    }
-  }, []);
+  const broadcastQuery = async ({ query, options = {} }: BroadcastQueryParams) => {
+    console.log('[useBroadcastQuery] Received query with options:', {
+      query,
+      queryMode: options.queryMode,
+      queriesRequested: options.queriesRequested,
+      isFreeQuery: options.isFreeQuery,
+      selectedLLMIds: options.selectedLLMIds,
+      csrfToken: options.csrfToken ? '[REDACTED]' : undefined,
+      timestamp: new Date().toISOString(),
+    });
 
-  const broadcastQuery = useCallback(
-    async (query: string, options: BroadcastQueryOptions = {}) => {
-      console.log('[useBroadcastQuery] Received query with options:', {
-        query,
-        queryMode: options.queryMode,
-        queriesRequested: options.queriesRequested,
-        isFreeQuery: options.isFreeQuery,
-        csrfToken: options.csrfToken ? '[REDACTED]' : undefined,
+    const queriesRequested = options.queriesRequested || QUERIES_REQUESTED_DEFAULT;
+    const queryCost = queriesRequested * QUERIES_COST_EACH_DEFAULT;
+
+    // Skip credit deduction if isFreeQuery is true (handled by useQueryLogic)
+    if (options.isFreeQuery) {
+      console.log('[useBroadcastQuery] Skipping credit deduction: isFreeQuery is true', {
+        timestamp: new Date().toISOString(),
+      });
+    } else {
+      // Validate credits only if not free query
+      if (userFreeCredits + userPaidCredits < queryCost) {
+        toast.error('Insufficient credits for query');
+        throw new Error('Insufficient credits for query');
+      }
+    }
+
+    try {
+      const response = await fetch('/api/broadcast-query', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(options.csrfToken && { 'X-CSRF-Token': options.csrfToken }),
+        },
+        body: JSON.stringify({
+          queryText: query,
+          queryMode: options.queryMode,
+          queriesRequested,
+          selectedLLMIds: options.selectedLLMIds,
+        }),
+        credentials: 'include',
+      });
+
+      const rawBody = await response.text();
+      type QueryResponse = VoteResult | { error: string };
+      let voteResult: QueryResponse;
+      try {
+        voteResult = JSON.parse(rawBody);
+      } catch {
+        console.error('[useBroadcastQuery] Invalid JSON response:', rawBody);
+        throw new Error(`Invalid JSON response from server: ${rawBody}`);
+      }
+
+      console.log('[useBroadcastQuery] Broadcast query response:', {
+        status: response.status,
+        url: response.url,
+        headers: Object.fromEntries(response.headers),
+        body: voteResult,
         timestamp: new Date().toISOString(),
       });
 
-      const queriesRequested = options.queriesRequested || QUERIES_REQUESTED_DEFAULT;
-      const queryCost = queriesRequested * QUERIES_COST_EACH_DEFAULT;
-
-      // Skip credit deduction if isFreeQuery is true (handled by useQueryLogic)
-      if (options.isFreeQuery) {
-        console.log('[useBroadcastQuery] Skipping credit deduction: isFreeQuery is true', {
-          timestamp: new Date().toISOString(),
-        });
-      } else {
-        // Validate credits only if not free query
-        if (userFreeCredits + userPaidCredits < queryCost) {
-          toast.error('Insufficient credits for query');
-          throw new Error('Insufficient credits for query');
-        }
+      if (!response.ok) {
+        throw new Error(`Server responded with ${response.status}`);
       }
 
-      try {
-        const response = await fetch('/api/broadcast-query', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            ...(options.csrfToken && { 'X-CSRF-Token': options.csrfToken }),
-          },
-          body: JSON.stringify({
-            queryText: query,
-            queryMode: options.queryMode,
-            queriesRequested,
-          }),
-          credentials: 'include',
-        });
-
-        const rawBody = await response.text();
-        type QueryResponse = VoteResult | { error: string };
-        let voteResult: QueryResponse;
-        try {
-          voteResult = JSON.parse(rawBody);
-        } catch {
-          console.error('[useBroadcastQuery] Invalid JSON response:', rawBody);
-          throw new Error(`Invalid JSON response from server: ${rawBody}`);
-        }
-
-        console.log('[useBroadcastQuery] Broadcast query response:', {
-          status: response.status,
-          url: response.url,
-          headers: Object.fromEntries(response.headers),
-          body: voteResult,
-          timestamp: new Date().toISOString(),
-        });
-
-        if (!response.ok) {
-          throw new Error(`Server responded with ${response.status}`);
-        }
-
-        if (isErrorResponse(voteResult)) {
-          throw new Error(voteResult.error);
-        }
-
-        const result = voteResult as VoteResult;
-        setLastVoteResult(result);
-        setVoteHistory((prevHistory: VoteResult[]) => {
-          const newHistory = [result, ...prevHistory].slice(0, RESULT_QUERIES_CARDS);
-          console.log('[useBroadcastQuery] Updating voteHistory:', newHistory.length, 'items');
-          return newHistory;
-        });
-
-        await new Promise((resolve) => setTimeout(resolve, 500));
-        await refetchWithRetry(1, fetchVoteHistory, refetchNetworkState);
-        if (publicKey && email) {
-          await fetchAllCredits(publicKey, email);
-        }
-      } catch (err: unknown) {
-        const error = err instanceof Error ? err : new Error(String(err));
-        console.error('[useBroadcastQuery] Error:', sanitizeError(error), {
-          query,
-          queryMode: options.queryMode,
-          queriesRequested,
-          timestamp: new Date().toISOString(),
-        });
-        toast.error(error.message);
-        throw error;
+      if (isErrorResponse(voteResult)) {
+        throw new Error(voteResult.error);
       }
-    },
-    [
-      setVoteHistory,
-      setLastVoteResult,
-      refetchNetworkState,
-      fetchVoteHistory,
-      userFreeCredits,
-      userPaidCredits,
-      publicKey,
-      fetchCsrfToken,
-      email,
-      fetchAllCredits,
-    ],
-  );
+
+      const result = voteResult as VoteResult;
+      setLastVoteResult(result);
+      setVoteHistory((prevHistory: VoteResult[]) => {
+        const newHistory = [result, ...prevHistory].slice(0, RESULT_QUERIES_CARDS);
+        console.log('[useBroadcastQuery] Updating voteHistory:', newHistory.length, 'items');
+        return newHistory;
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 500));
+      await refetchWithRetry(1, fetchVoteHistory, refetchNetworkState);
+      if (publicKey && email) {
+        await fetchAllCredits(publicKey, email);
+      }
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error('[useBroadcastQuery] Error:', sanitizeError(error), {
+        query,
+        queryMode: options.queryMode,
+        queriesRequested,
+        selectedLLMIds: options.selectedLLMIds,
+        timestamp: new Date().toISOString(),
+      });
+      toast.error(error.message);
+      throw error;
+    }
+  };
 
   return { broadcastQuery };
 }

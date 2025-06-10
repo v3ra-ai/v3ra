@@ -138,15 +138,14 @@ export async function POST(req: NextRequest) {
     }
 
     if (type === 'free') {
+      // Check if user exists first
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { freeCredits: true },
+        select: { id: true },
       });
 
-      if (!user || user.freeCredits < creditAmount) {
-        const errorMessage = `Insufficient free credits: Need ${creditAmount}, have ${
-          user?.freeCredits ?? 0
-        }`;
+      if (!user) {
+        const errorMessage = `User not found: ${userId}`;
         await prisma.paymentLog.create({
           data: {
             id: uuidv4(),
@@ -161,32 +160,46 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: errorMessage }, { status: 400 });
       }
 
-      const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          freeCredits: { decrement: creditAmount },
-          updatedAt: new Date(),
-        },
-      });
+      // Use secure function to decrement free credits
+      try {
+        const result = await prisma.$queryRaw<{ decrement_free_credits: number }[]>`
+          SELECT security.decrement_free_credits(
+            ${userId},
+            ${creditAmount}::integer,
+            'Query execution'
+          ) as decrement_free_credits;
+        `;
+        
+        const newCredits = result[0].decrement_free_credits;
 
-      await prisma.paymentLog.create({
-        data: {
-          id: uuidv4(),
-          walletPublicKey: walletPublicKey ?? 'unknown',
-          credits: creditAmount,
-          solAmount: creditAmount * QUERY_COST,
-          status: 'DECREMENTED',
-          createdAt: new Date(),
-        },
-      });
+        await prisma.paymentLog.create({
+          data: {
+            id: uuidv4(),
+            walletPublicKey: walletPublicKey ?? 'unknown',
+            credits: creditAmount,
+            solAmount: creditAmount * QUERY_COST,
+            status: 'DECREMENTED',
+            createdAt: new Date(),
+          },
+        });
 
-      return NextResponse.json(
-        {
-          success: true,
-          credits: updatedUser.freeCredits,
-        },
-        { status: 200 },
-      );
+        return NextResponse.json(
+          {
+            success: true,
+            credits: newCredits,
+          },
+          { status: 200 },
+        );
+      } catch (error) {
+        console.error('[credits/decrement] Secure function error:', error);
+        
+        // Handle specific error cases
+        if (error instanceof Error && error.message.includes('Insufficient credits')) {
+          return NextResponse.json({ error: error.message }, { status: 400 });
+        }
+        
+        throw error; // Re-throw other errors
+      }
     }
 
     /* ---------- PAID CREDITS ---------- */
@@ -247,7 +260,7 @@ export async function POST(req: NextRequest) {
       },
       { status: 200 },
     );
-  } catch (error: unknown) {
+  } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Failed to decrement credits';
     await prisma.paymentLog.create({
