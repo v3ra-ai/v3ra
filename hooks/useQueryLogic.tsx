@@ -13,6 +13,7 @@ import type { VoteResult } from "@/lib/types";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { supabase } from "@/lib/supabase-client";
+import { useLLMStore } from "@/store/llm-store";
 
 interface UseQueryLogicProps {
   payWithWallet: boolean;
@@ -46,9 +47,11 @@ export default function useQueryLogic({
     viewMode,
     setQueriesRequested,
     resetAfterSubmission,
+    selectedLLMIds,
   } = useQueryStore();
   const { voteHistory, lastVoteResult, setVoteHistory, setLastVoteResult } =
     useVoteStore();
+  const { llms } = useLLMStore();
 
   const placeholderText = getPlaceholderText(queryMode);
 
@@ -242,6 +245,7 @@ export default function useQueryLogic({
       payWithWallet,
       storeHasPaid,
       creditsLeft: userCreditsTotal - queriesRequested,
+      selectedLLMIds,
       timestamp: new Date().toISOString(),
     });
 
@@ -276,6 +280,19 @@ export default function useQueryLogic({
         });
         return null;
       }
+
+      const selectedLLMs = llms.filter((llm) => llm.enabled);
+      if (selectedLLMs.length > 0 && queriesRequested > selectedLLMs.length) {
+        console.log("[useQueryLogic] Blocked: Queries requested exceeds selected LLMs", {
+          queriesRequested,
+          selectedLLMCount: selectedLLMs.length,
+        });
+        toast.error(`Cannot query ${queriesRequested} AIs when only ${selectedLLMs.length} are selected.`, {
+          style: { background: "#dc2626", color: "#fee2e2" },
+          duration: 5000,
+        });
+        return null;
+      }
     } catch {
       const errorMessage = "Validation failed unexpectedly";
       setError(sanitizeQueryText(errorMessage));
@@ -299,14 +316,19 @@ export default function useQueryLogic({
         email,
         payWithWallet,
         csrfToken: csrfToken ? "[REDACTED]" : undefined,
+        selectedLLMIds,
         timestamp: new Date().toISOString(),
       });
       await decrementCreditsForQuery(queriesRequested, publicKey, email, csrfToken);
-      await broadcastQuery(queryText, {
-        csrfToken,
-        queryMode,
-        queriesRequested,
-        isFreeQuery: userFreeCredits >= queriesRequested,
+      await broadcastQuery({
+        query: queryText,
+        options: {
+          csrfToken,
+          queryMode,
+          queriesRequested,
+          isFreeQuery: userFreeCredits >= queriesRequested,
+          selectedLLMIds,
+        },
       });
       await fetchAllCredits(publicKey, email ?? undefined, true);
       toast.success(
@@ -330,6 +352,7 @@ export default function useQueryLogic({
         queriesUnpaid,
         payWithWallet,
         storeHasPaid,
+        selectedLLMIds,
         timestamp: new Date().toISOString(),
       });
       toast.error(errorMessage, {

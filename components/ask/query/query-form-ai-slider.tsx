@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
+import { useLLMStore } from "@/store/llm-store";
 
 interface QueryFormAISliderProps {
   queriesRequested: number;
@@ -16,6 +17,10 @@ export function QueryFormAISlider({
   context,
   hideButtons = false,
 }: QueryFormAISliderProps) {
+  const { llms } = useLLMStore();
+  const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
+  const maxQueries = selectedLLMCount > 0 ? selectedLLMCount : allowedAmountQueries;
+
   return (
     <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md px-0 py-0">
       <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-0 py-1 rounded-md min-w-[120px] text-center">
@@ -27,7 +32,7 @@ export function QueryFormAISlider({
         value={[queriesRequested]}
         onValueChange={(value) => handleQueryAmountChange(value[0])}
         min={1}
-        max={allowedAmountQueries}
+        max={maxQueries}
         step={1}
         className="w-20
           [&_[role=slider]]:h-5 [&_[role=slider]]:w-5
@@ -54,7 +59,7 @@ export function QueryFormAISlider({
           <Button
             className="border-zinc-300 dark:border-zinc-800 bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300 h-8 w-8 p-0 rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-800 text-xl cursor-pointer ml-1 md:visible"
             onClick={() => handleQueryAmountChange(queriesRequested + 1)}
-            disabled={queriesRequested >= allowedAmountQueries}
+            disabled={queriesRequested >= maxQueries}
           >
             +
           </Button>

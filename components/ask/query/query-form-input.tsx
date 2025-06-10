@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
-import { Dispatch, ReactNode, SetStateAction, useEffect, useState, useRef } from "react";
+import { Dispatch, ReactNode, SetStateAction } from "react";
 import { QueryFormModeSelector } from "./query-form-mode-selector";
 import { QueryFormAISlider } from "./query-form-ai-slider";
 import { QueryMode, Validator } from "@/lib/types";
@@ -54,6 +54,7 @@ const ManageLLMsDialogContent = React.forwardRef<
     >
       {children}
       <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
+        <X />
       </ManageLLMsDialogClose>
     </DialogPrimitive.Content>
   </ManageLLMsDialogPortal>
@@ -137,14 +138,14 @@ export function QueryFormInput({
   const [loading, setLoading] = useState(false);
   const dialogContentRef = useRef<HTMLDivElement>(null);
 
-  const hasSelectedLLMs = llms.some((llm) => llm.enabled);
-  const chooseButtonText = hasSelectedLLMs ? "Selected" : "Choose...";
+  const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
+  const hasSelectedLLMs = selectedLLMCount > 0;
+  const chooseButtonText = hasSelectedLLMs ? `Selected (${selectedLLMCount})` : "Choose...";
 
   const handleOpenModal = async () => {
     console.log("[QueryFormInput] Choose... button clicked, setting isModalOpen to true");
     setIsModalOpen(true);
     setLoading(true);
-    // Delay fetch until animation completes (~200ms)
     setTimeout(async () => {
       try {
         const fetchedValidators = await fetchValidators();
@@ -203,6 +204,7 @@ export function QueryFormInput({
       queriesRequested,
       queryMode,
       creditsLeft: Math.max(0, totalCredits - queriesRequested),
+      selectedLLMCount,
     });
 
     const creditsLeft = Math.max(0, totalCredits - queriesRequested);
@@ -212,6 +214,17 @@ export function QueryFormInput({
         queriesCostTotal,
       });
       toast.error("Insufficient credits to cover the query cost. Please purchase more credits.", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+      });
+      return;
+    }
+
+    if (hasSelectedLLMs && queriesRequested > selectedLLMCount) {
+      console.log("[QueryFormInput] Blocked: Queries requested exceeds selected LLMs", {
+        queriesRequested,
+        selectedLLMCount,
+      });
+      toast.error(`Cannot query ${queriesRequested} AIs when only ${selectedLLMCount} are selected.`, {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
       return;
@@ -238,7 +251,7 @@ export function QueryFormInput({
   }, [isSubmitting, queryMode, cancelTimer]);
 
   const creditsLeft = Math.max(0, totalCredits - queriesRequested);
-  const isSubmitDisabled = isSubmitting || creditsLeft < queriesCostTotal;
+  const isSubmitDisabled = isSubmitting || creditsLeft < queriesCostTotal || (hasSelectedLLMs && queriesRequested > selectedLLMCount);
 
   const displayedQueryCost = Math.max(0, queriesRequested - userFreeCredits);
 
@@ -255,10 +268,12 @@ export function QueryFormInput({
     userFreeCredits,
     queryMode,
     buttonText,
+    selectedLLMCount,
     disableReason: isSubmitDisabled
       ? {
           isSubmitting,
           insufficientCreditsLeft: creditsLeft < queriesCostTotal,
+          queriesExceedSelected: hasSelectedLLMs && queriesRequested > selectedLLMCount,
         }
       : "none",
   });
@@ -317,6 +332,7 @@ export function QueryFormInput({
         >
           <ManageLLMsDialogHeader className="px-6 py-0">
             <ManageLLMsDialogTitle className="text-2xl font-semibold">
+              Select AI Validators
             </ManageLLMsDialogTitle>
             <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
               <X />

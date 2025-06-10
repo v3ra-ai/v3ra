@@ -16,9 +16,7 @@ import { ErrorDisplay } from "@/components/error-display";
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
-// import { useAutoRefresh } from "@/hooks/useAutoRefresh";
 import { toast } from "sonner";
-import { sanitizeError } from "@/utils/security-utils";
 import type { VoteResult, Validator } from "@/lib/types";
 
 const Explorer: React.FC = () => {
@@ -61,9 +59,8 @@ const Explorer: React.FC = () => {
         }
         const data = await response.json();
         setCsrfToken(data.csrfToken);
-      } catch (err) {
-        // const errorMessage = err instanceof Error ? err.message : "Unknown error";
-        console.error(sanitizeError(err));
+      } catch {
+        console.error("[Explorer] Failed to fetch CSRF token");
         setCsrfError("Failed to initialize CSRF protection");
         toast.error("Failed to initialize CSRF protection", {
           style: { background: "#fee2e2", color: "#dc2626" },
@@ -81,11 +78,20 @@ const Explorer: React.FC = () => {
     refetchVoteHistory,
   );
 
-  // useAutoRefresh({
-  //   isEnabled: autoRefresh,
-  //   intervalMs: 5000,
-  //   fetchCallbacks: [refetchNetwork, refetchVoteHistory],
-  // });
+  const handleSubmitQuery = async (
+    query: string,
+    options?: { csrfToken?: string },
+  ) => {
+    try {
+      await broadcastQuery({ query, options });
+    } catch (error) {
+      console.error("[Explorer] Query submission failed:", error);
+      toast.error("Failed to submit query", {
+        style: { background: "#fee2e2", color: "#dc2626" },
+        duration: 5000,
+      });
+    }
+  };
 
   if (isLoading) {
     return <LoadingSpinner />;
@@ -109,7 +115,7 @@ const Explorer: React.FC = () => {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <CustomQueryForm
-          onSubmit={broadcastQuery}
+          onSubmit={handleSubmitQuery}
           isOpen={showCustomQuery}
           onToggle={() => setShowCustomQuery(!showCustomQuery)}
           csrfToken={csrfToken}

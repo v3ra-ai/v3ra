@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { DEFAULTS, QueryMode, ViewMode } from "@/lib/types";
+import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 
 console.log("[query-store] Initializing store");
 
@@ -21,6 +22,7 @@ interface QueryStore {
   setUserAiQueryAmountRequested: (amount: number, queriesTotal: number) => void;
   setSelectedLLMIds: (llmIds: string[]) => void;
   resetAfterSubmission: (creditsTotal: number) => void;
+  setUserCreditsTotal: (creditsTotal: number) => void;
 }
 
 const calculateQueriesState = (
@@ -64,13 +66,16 @@ export const useQueryStore = create<QueryStore>((set) => {
   return {
     ...initialState,
 
-    setQueriesRequested: (amount, creditsTotal) => {
-      console.log("[query-store] Setting queriesRequested:", amount);
-      set(() => ({
-        queriesRequested: amount,
-        ...calculateQueriesState(amount, creditsTotal, DEFAULTS.QUERIES_COST_EACH),
-      }));
-    },
+    setQueriesRequested: (amount, creditsTotal) =>
+      set((state) => {
+        const maxQueries = state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : ALLOWED_AMOUNT_QUERIES;
+        const clampedAmount = Math.max(1, Math.min(maxQueries, amount));
+        console.log("[query-store] Setting queriesRequested:", clampedAmount, { maxQueries });
+        return {
+          queriesRequested: clampedAmount,
+          ...calculateQueriesState(clampedAmount, creditsTotal, state.queriesCostEach),
+        };
+      }),
 
     setQueryMode: (mode) => {
       console.log("[query-store] Setting queryMode:", mode);
@@ -82,29 +87,27 @@ export const useQueryStore = create<QueryStore>((set) => {
       set(() => ({ viewMode: mode }));
     },
 
-    decrementQueries: (amount, creditsTotal) => {
-      console.log("[query-store] Decrementing queries by:", amount);
-      set((state) => ({
-        queriesRequested: Math.max(1, state.queriesRequested - amount),
-        ...calculateQueriesState(
-          Math.max(1, state.queriesRequested - amount),
-          creditsTotal,
-          state.queriesCostEach,
-        ),
-      }));
-    },
+    decrementQueries: (amount, creditsTotal) =>
+      set((state) => {
+        const maxQueries = state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : ALLOWED_AMOUNT_QUERIES;
+        const newAmount = Math.max(1, Math.min(maxQueries, state.queriesRequested - amount));
+        console.log("[query-store] Decrementing queries:", newAmount);
+        return {
+          queriesRequested: newAmount,
+          ...calculateQueriesState(newAmount, creditsTotal, state.queriesCostEach),
+        };
+      }),
 
-    incrementQueries: (amount, creditsTotal) => {
-      console.log("[query-store] Incrementing queries by:", amount);
-      set((state) => ({
-        queriesRequested: state.queriesRequested + amount,
-        ...calculateQueriesState(
-          state.queriesRequested + amount,
-          creditsTotal,
-          state.queriesCostEach,
-        ),
-      }));
-    },
+    incrementQueries: (amount, creditsTotal) =>
+      set((state) => {
+        const maxQueries = state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : ALLOWED_AMOUNT_QUERIES;
+        const newAmount = Math.min(maxQueries, state.queriesRequested + amount);
+        console.log("[query-store] Incrementing queries:", newAmount);
+        return {
+          queriesRequested: newAmount,
+          ...calculateQueriesState(newAmount, creditsTotal, state.queriesCostEach),
+        };
+      }),
 
     setUserAiQueryAmountRequested: (amount, creditsTotal) => {
       console.log("[query-store] Setting user AI query amount requested:", amount);
@@ -118,21 +121,33 @@ export const useQueryStore = create<QueryStore>((set) => {
       console.log("[query-store] Setting selectedLLMIds:", llmIds);
       set((state) => ({
         selectedLLMIds: llmIds,
-        queriesRequested: llmIds.length,
-        ...calculateQueriesState(llmIds.length, state.userCreditsTotal, DEFAULTS.QUERIES_COST_EACH),
+        queriesRequested: llmIds.length > 0 ? Math.min(llmIds.length, state.queriesRequested) : state.queriesRequested,
+        ...calculateQueriesState(
+          llmIds.length > 0 ? Math.min(llmIds.length, state.queriesRequested) : state.queriesRequested,
+          state.userCreditsTotal,
+          state.queriesCostEach,
+        ),
       }));
     },
 
     resetAfterSubmission: (creditsTotal) => {
       console.log("[query-store] Resetting after submission");
-      set(() => ({
-        queriesRequested: DEFAULTS.QUERIES_REQUESTED,
+      set((state) => ({
+        queriesRequested: state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : DEFAULTS.QUERIES_REQUESTED,
         selectedLLMIds: [],
         ...calculateQueriesState(
-          DEFAULTS.QUERIES_REQUESTED,
+          state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : DEFAULTS.QUERIES_REQUESTED,
           creditsTotal,
           DEFAULTS.QUERIES_COST_EACH,
         ),
+      }));
+    },
+
+    setUserCreditsTotal: (creditsTotal) => {
+      console.log("[query-store] Setting userCreditsTotal:", creditsTotal);
+      set((state) => ({
+        userCreditsTotal: creditsTotal,
+        ...calculateQueriesState(state.queriesRequested, creditsTotal, state.queriesCostEach),
       }));
     },
   };
