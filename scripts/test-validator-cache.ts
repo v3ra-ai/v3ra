@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-import { validatorCache } from '../lib/cache/validator-cache';
-import { cacheMonitor } from '../lib/cache/cache-monitor';
+import { validatorCache } from '../lib/cache/simple-validator-cache';
+import { cacheMonitor } from '../lib/cache/simple-cache-monitor';
 
 // Add colors for better output
 const colors = {
@@ -58,7 +58,7 @@ async function testValidatorCache() {
 
     // Test 5: Cache metrics
     log('Test 5: Cache metrics', colors.yellow);
-    const health = await cacheMonitor.getCacheHealth();
+    const health = await cacheMonitor.getCacheHealth(status);
     log('Cache Metrics:', colors.blue);
     log(`  - Hit Rate: ${health.metrics.hitRate.toFixed(1)}%`);
     log(`  - Total Requests: ${health.metrics.totalRequests}`);
@@ -82,7 +82,8 @@ async function testValidatorCache() {
     log('✓ Cache warmed successfully\n', colors.green);
 
     // Final health check
-    const finalHealth = await cacheMonitor.getCacheHealth();
+    const finalStatus = await validatorCache.getCacheStatus();
+    const finalHealth = await cacheMonitor.getCacheHealth(finalStatus);
     log('🎯 Final Cache Health:', colors.magenta);
     log(`  - Is Healthy: ${finalHealth.health.isHealthy ? 'Yes ✓' : 'No ✗'}`);
     if (finalHealth.health.recommendations.length > 0) {

@@ -100,6 +100,7 @@ interface QueryFormInputProps {
   queriesCostTotal: number;
   userFreeCredits: number;
   userPaidCredits: number;
+  userCreditsTotal: number;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
   queryMode: QueryMode;
@@ -114,10 +115,12 @@ export function QueryFormInput({
   placeholderText,
   handleSubmit,
   isSubmitting,
+  payWithWallet: _payWithWallet,
   queriesUnpaid,
   queriesCostTotal,
   userFreeCredits,
   userPaidCredits,
+  userCreditsTotal: _userCreditsTotal,
   isSubmitInteracted,
   setIsSubmitInteracted,
   queryMode,

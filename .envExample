@@ -14,7 +14,6 @@ DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west
 PRISMA_DATABASE_URL=postgresql://postgres.dmrylpiaazevwqxcucsr:<password>@aws-0-us-west-1.pooler.supabase.com:5432/postgres
 
 
-REDIS_URL=redis://localhost:6379
 OPENAI_API_KEY=your-key
 ANTHROPIC_API_KEY=your-key
 GROK_API_KEY=your-key

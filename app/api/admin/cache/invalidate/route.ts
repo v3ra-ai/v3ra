@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { validatorCache } from '@/lib/cache/validator-cache';
+import { validatorCache } from '@/lib/cache/simple-validator-cache';
 
 export async function POST() {
   try {

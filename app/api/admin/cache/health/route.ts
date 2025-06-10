@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
-import { cacheMonitor } from '@/lib/cache/cache-monitor';
+import { cacheMonitor } from '@/lib/cache/simple-cache-monitor';
+import { validatorCache } from '@/lib/cache/simple-validator-cache';
 
 export async function GET() {
   try {
-    const health = await cacheMonitor.getCacheHealth();
+    // Get cache status first
+    const cacheStatus = await validatorCache.getCacheStatus();
+    const health = await cacheMonitor.getCacheHealth(cacheStatus);
     
     return NextResponse.json({
       success: true,

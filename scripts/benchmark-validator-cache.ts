@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { validatorCache } from '../lib/cache/validator-cache';
+import { validatorCache } from '../lib/cache/simple-validator-cache';
 import { validatorService } from '../lib/services/validatorService';
 
 const colors = {
