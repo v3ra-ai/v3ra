@@ -2,6 +2,7 @@ import { PrismaClient, Validator, ValidatorKey } from "@prisma/client";
 import { AIValidator } from "../validators/types";
 import { dbValidatorToAIValidator } from "../db/validators";
 import { v4 as uuidv4 } from "uuid";
+import { validatorCache } from "../cache/simple-validator-cache";
 
 const prisma = new PrismaClient();
 
