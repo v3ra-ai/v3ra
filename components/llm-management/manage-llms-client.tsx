@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useLLMStore, LLM, Provider } from "@/store/llm-store";
 import ProviderTabs from "./provider-tabs";
 import LLMGrid from "./llm-grid";
@@ -33,15 +33,18 @@ export default function ManageLLMsClient({ initial }: Props) {
   const { totalCredits } = useCreditsStore();
 
   const [profileName, setProfileName] = useState("");
+  const initializedRef = useRef(false);
 
   useEffect(() => {
+    // Only initialize once to prevent infinite loops
+    if (initializedRef.current) return;
+    
     const uniqueValidators = Array.from(
       new Map(initial.map((v) => [String(v.id), v])).values(),
     );
     console.log("[ManageLLMs] Deduplicated validators:", uniqueValidators.length);
 
-    // Initialize only if store is empty or new validators are introduced
-    if (llms.length === 0 || uniqueValidators.some((v) => !llms.find((l) => l.id === String(v.id)))) {
+    if (uniqueValidators.length > 0) {
       const mapped: LLM[] = uniqueValidators.map((v) => {
         const modelName = typeof v.modelName === "string" ? v.modelName : "";
         const cleanedModelName = modelName === "gpt-40" ? "gpt-4o" : modelName;
@@ -72,8 +75,9 @@ export default function ManageLLMsClient({ initial }: Props) {
       console.log("[ManageLLMs] Initial validators:", initial);
       console.log("[ManageLLMs] Mapped LLMs:", mapped);
       init(mapped);
+      initializedRef.current = true;
     }
-  }, [initial, llms, init]);
+  }, [initial, init]);
 
   useEffect(() => {
     console.log("[ManageLLMs] Store llms after init:", llms);
