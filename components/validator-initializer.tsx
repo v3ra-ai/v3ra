@@ -1,20 +1,13 @@
 "use client";
 
-// This component initializes our validator system and doesn't use hooks to avoid TypeScript issues
+// This component no longer initializes validators on the client side
+// Validator initialization should happen server-side only
 export function ValidatorInitializer() {
-  // This component uses a direct script execution approach
-  if (typeof window !== "undefined") {
-    // Dynamically import and initialize validators
-    import("@/lib/validators/init")
-      .then((module) => {
-        console.log("Initializing validators on client-side...");
-        module.initializeValidators();
-      })
-      .catch((error) => {
-        console.error("Failed to initialize validators:", error);
-      });
-  }
-
+  // Validators are now initialized server-side through API routes
+  // This prevents ioredis and other server-only modules from being bundled on the client
+  
+  console.log("ValidatorInitializer: Client-side initialization disabled for server-only modules");
+  
   // This component doesn't render anything
   return null;
 }

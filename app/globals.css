@@ -112,6 +112,7 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
+
 /* Apply background to body */
 body {
   @apply bg-background text-foreground;

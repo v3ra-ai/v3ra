@@ -2,35 +2,79 @@
 
 import { useMemo, useCallback } from "react";
 import { FixedSizeGrid as Grid } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
+import { LLM, useLLMStore } from "@/store/llm-store";
+import LLMTile from "./llm-tile";
 
-// Define proper interface for Grid render props
 interface GridOnItemsRenderedProps {
   visibleRowStartIndex: number;
   visibleRowStopIndex: number;
   visibleColumnStartIndex: number;
   visibleColumnStopIndex: number;
 }
-import AutoSizer from "react-virtualized-auto-sizer";
-import { LLM, useLLMStore } from "@/store/llm-store";
-import LLMTile from "./llm-tile";
 
 const TILE_WIDTH = 140;
 const TILE_HEIGHT = 160;
 const GAP = 16;
 
 export default function LLMGrid() {
-  const { llms, activeProvider, search, sort } = useLLMStore();
+  const { llms, activeProvider, search, sort, showPinned, activeCategory, categories } = useLLMStore();
 
   const filtered = useMemo(() => {
-    let list = [...llms];
-    if (activeProvider !== "All") list = list.filter((l) => l.provider === activeProvider);
-    if (search) list = list.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
-    if (sort === "name") list = list.sort((a,b)=>a.name.localeCompare(b.name));
-    if (sort === "provider") list = list.sort((a,b)=>a.provider.localeCompare(b.provider));
-    return list;
-  }, [llms, activeProvider, search, sort]);
+    console.log("[LLMGrid] All LLM IDs:", llms.map((l) => ({ id: l.id, name: l.name, enabled: l.enabled })));
+    console.log("[LLMGrid] Active provider:", activeProvider);
 
-  // Infinite scroll: assume fetchBatch stub for now
+    let list = [...llms];
+
+    if (activeCategory) {
+      const category = categories.find((c) => c.name === activeCategory);
+      if (category) {
+        console.log(`[LLMGrid] Filtering by category ${activeCategory}:`, category.models);
+        list = list.filter((l) =>
+          category.models.some(
+            (m) =>
+              m.validatorId === l.id ||
+              m.name.trim().toLowerCase() === l.name.trim().toLowerCase(),
+          ),
+        );
+        console.log(
+          "[LLMGrid] Category filter matches:",
+          list.map((l) => ({ id: l.id, name: l.name })),
+        );
+      }
+    } else {
+      if (showPinned) {
+        list = list.filter((l) => l.pinned);
+        console.log("[LLMGrid] Pinned filter matches:", list.map((l) => ({ id: l.id, name: l.name })));
+      }
+      if (activeProvider !== "All") {
+        list = list.filter((l) => l.provider === activeProvider);
+        console.log(
+          "[LLMGrid] Provider filter matches (activeProvider: " + activeProvider + "):",
+          list.map((l) => ({ id: l.id, name: l.name })),
+        );
+      }
+    }
+
+    if (search) {
+      list = list.filter((l) => l.name.toLowerCase().includes(search.toLowerCase()));
+      console.log(
+        "[LLMGrid] Search filter matches (search: " + search + "):",
+        list.map((l) => ({ id: l.id, name: l.name })),
+      );
+    }
+
+    if (sort === "name") {
+      list = list.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sort === "provider") {
+      list = list.sort((a, b) => a.provider.localeCompare(b.provider));
+    }
+    console.log("[LLMGrid] After sort (" + sort + "):", list.map((l) => ({ id: l.id, name: l.name })));
+
+    console.log("[LLMGrid] Filtered LLMs:", list.map((l) => ({ id: l.id, name: l.name })));
+    return list;
+  }, [llms, activeProvider, search, sort, showPinned, activeCategory, categories]);
+
   const fetchMore = useLLMStore((s) => s.fetchBatch as (() => void));
   const hasMore = useLLMStore((s) => s.hasMore as boolean);
 
@@ -90,10 +134,9 @@ const Cell = ({ columnIndex, rowIndex, style, data }: CellProps) => {
   const llm = data.filtered[index];
   if (!llm) return null;
 
-  // Safely handle style properties which might be strings or numbers
-  const safeLeft = typeof style.left === 'number' ? style.left + GAP : style.left;
-  const safeTop = typeof style.top === 'number' ? style.top + GAP : style.top;
-  
+  const safeLeft = typeof style.left === "number" ? style.left + GAP : style.left;
+  const safeTop = typeof style.top === "number" ? style.top + GAP : style.top;
+
   return (
     <div style={{ ...style, left: safeLeft, top: safeTop }}>
       <LLMTile llm={llm} />
