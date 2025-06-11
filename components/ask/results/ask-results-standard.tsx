@@ -4,15 +4,14 @@ import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useVoteStore } from "@/store/vote-store";
 import { ErrorDisplay } from "@/components/error-display";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
-import { Grid3x3, Rows3, Star } from "lucide-react";
+import { Grid3x3, Rows3, Star, Zap } from "lucide-react";
 import { useState, useEffect } from "react";
-import { VoteResult } from "@/lib/types";
 import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
 import { default as DOMPurify } from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RESULT_QUERIES_CARDS } from "@/lib/constants";
-import { parseRationaleDetailed } from "@/lib/utils";
 import { useFavorites } from "@/hooks/useFavorites";
+import { InfiniteScrollContainer } from "./infinite-scroll-container";
+import { VirtualScrollContainer } from "./virtual-scroll-container";
 
 // Custom CSS for skeleton loading animation (pulse + shimmer)
 <style jsx>{`
@@ -51,53 +50,77 @@ const LayoutToggle = ({
   setLayoutMode,
   showFavoritesOnly,
   setShowFavoritesOnly,
+  useVirtualScroll,
+  setUseVirtualScroll,
+  totalItems,
 }: {
   layoutMode: "grid" | "row";
   setLayoutMode: (mode: "grid" | "row") => void;
   showFavoritesOnly: boolean;
   setShowFavoritesOnly: (show: boolean) => void;
+  useVirtualScroll: boolean;
+  setUseVirtualScroll: (show: boolean) => void;
+  totalItems: number;
 }) => (
-  <div className="flex space-x-2 ml-4 invisible lg:visible">
-    <Grid3x3
-      className={`h-5 w-5 cursor-pointer ${
-        layoutMode === "grid"
-          ? "text-zinc-900 dark:text-zinc-100"
-          : "text-zinc-500 dark:text-zinc-400"
-      }`}
-      onClick={() => setLayoutMode("grid")}
-    />
-    <Rows3
-      className={`h-5 w-5 cursor-pointer ${
-        layoutMode === "row"
-          ? "text-zinc-900 dark:text-zinc-100"
-          : "text-zinc-500 dark:text-zinc-400"
-      }`}
-      onClick={() => setLayoutMode("row")}
-    />
-    <Star
-      className={`h-5 w-5 cursor-pointer ${
-        showFavoritesOnly
-          ? "fill-yellow-400 text-yellow-400"
-          : "text-zinc-500 dark:text-zinc-400"
-      }`}
+  <div className="flex items-center gap-2 ml-2 opacity-70 transition-opacity duration-200 hover:opacity-100">
+    <button
       onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-    />
+      className={`p-1.5 rounded-md transition-all duration-200 ${
+        showFavoritesOnly
+          ? "bg-amber-500 text-white shadow-md"
+          : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      }`}
+      aria-label={showFavoritesOnly ? "Show all queries" : "Show favorites only"}
+      title={showFavoritesOnly ? "Showing favorites only" : "Show favorites only"}
+    >
+      <Star
+        className={`h-4 w-4 transition-transform duration-200 ${
+          showFavoritesOnly ? "fill-current scale-110" : ""
+        }`}
+      />
+    </button>
+    {totalItems > 20 && (
+      <button
+        onClick={() => setUseVirtualScroll(!useVirtualScroll)}
+        className={`p-1.5 rounded-md transition-all duration-200 ${
+          useVirtualScroll
+            ? "bg-blue-500 text-white shadow-md"
+            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+        }`}
+        aria-label={useVirtualScroll ? "Disable virtual scrolling" : "Enable virtual scrolling"}
+        title={useVirtualScroll ? "Virtual scrolling enabled" : "Enable virtual scrolling for better performance"}
+      >
+        <Zap
+          className={`h-4 w-4 transition-transform duration-200 ${
+            useVirtualScroll ? "scale-110" : ""
+          }`}
+        />
+      </button>
+    )}
+    <button
+      onClick={() => setLayoutMode("grid")}
+      className={`p-1.5 rounded-md transition-colors duration-200 ${
+        layoutMode === "grid"
+          ? "bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900"
+          : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      }`}
+      aria-label="Grid view"
+    >
+      <Grid3x3 className="h-4 w-4" />
+    </button>
+    <button
+      onClick={() => setLayoutMode("row")}
+      className={`p-1.5 rounded-md transition-colors duration-200 ${
+        layoutMode === "row"
+          ? "bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900"
+          : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
+      }`}
+      aria-label="Row view"
+    >
+      <Rows3 className="h-4 w-4" />
+    </button>
   </div>
 );
-
-const getRecentQueries = (
-  voteHistory: VoteResult[],
-  favorites: string[] = [],
-  showFavoritesOnly: boolean
-) =>
-  [...voteHistory]
-    .filter((vote) => !showFavoritesOnly || favorites.includes(vote.id))
-    .sort((a, b) => {
-      const dateA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
-      const dateB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
-      return dateB - dateA;
-    })
-    .slice(0, RESULT_QUERIES_CARDS);
 
 // Skeleton card component styled like AskResultsStandardCard
 const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
@@ -167,12 +190,13 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
 };
 
 export default function AskResultsStandard() {
-  const { voteHistory, isLoading, error, refetch } = useVoteHistory();
+  const { voteHistory, isLoading, isLoadingMore, error, hasMore, refetch, loadMore } = useVoteHistory();
   const { lastVoteResult } = useVoteStore();
   const { favorites, isHydrated } = useFavorites();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
+  const [useVirtualScroll, setUseVirtualScroll] = useState<boolean>(false);
 
   // Debug log to confirm loading state and voteHistory
   if (process.env.NODE_ENV === "development") {
@@ -182,7 +206,9 @@ export default function AskResultsStandard() {
       "voteHistory:",
       voteHistory,
       "favorites:",
-      favorites
+      favorites,
+      "hasMore:",
+      hasMore
     );
   }
 
@@ -197,43 +223,34 @@ export default function AskResultsStandard() {
         profileName: DOMPurify.sanitize(response.profileName),
         provider: DOMPurify.sanitize(response.provider),
         id: DOMPurify.sanitize(response.id),
-        rationale: DOMPurify.sanitize(
-          parseRationaleDetailed(response.rationale).rationale || ""
-        ),
-      })),
+        rationale: DOMPurify.sanitize(response.rationale || ""),
+      })) || [],
     }));
 
-  // Refetch vote history when lastVoteResult changes
-  useEffect(() => {
-    if (lastVoteResult?.id) {
-      refetch();
-    }
-  }, [lastVoteResult?.id, refetch]);
+  // Combine lastVoteResult with voteHistory and remove duplicates
+  const combinedVoteHistory = lastVoteResult
+    ? [lastVoteResult, ...sanitizedVoteHistory.filter((v) => v.id !== lastVoteResult.id)]
+    : sanitizedVoteHistory;
 
-  if (error) {
-    return (
-      <ErrorDisplay
-        message={DOMPurify.sanitize(
-          error.message || "Failed to load vote history"
-        )}
-        onRetry={refetch}
-      />
-    );
-  }
-
-  const favoriteIds = favorites.map((f) => f.vote_session_id);
-  const recentQueries = getRecentQueries(
-    sanitizedVoteHistory,
-    favoriteIds,
-    showFavoritesOnly
-  );
+  // Filter to show only favorites if enabled
+  const filteredQueries = showFavoritesOnly && isHydrated
+    ? combinedVoteHistory.filter((vote) => favorites.some(fav => fav.vote_session_id === vote.id))
+    : combinedVoteHistory;
 
   const toggleItem = (id: string) => {
-    setOpenItems((prev) => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+    setOpenItems((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
+  // Effect to refetch if the component is loaded but we have no data
+  useEffect(() => {
+    if (!isLoading && voteHistory.length === 0) {
+      refetch();
+    }
+  }, [isLoading, voteHistory.length, refetch]);
+
+  if (error) {
+    return <ErrorDisplay message={error.message} onRetry={refetch} />;
+  }
 
   return (
     <div
@@ -265,8 +282,12 @@ export default function AskResultsStandard() {
           setLayoutMode={setLayoutMode}
           showFavoritesOnly={showFavoritesOnly}
           setShowFavoritesOnly={setShowFavoritesOnly}
+          useVirtualScroll={useVirtualScroll}
+          setUseVirtualScroll={setUseVirtualScroll}
+          totalItems={filteredQueries.length}
         />
       </div>
+      
       {isLoading || !isHydrated ? (
         <div
           className={`max-w-6xl mx-auto ${
@@ -279,30 +300,59 @@ export default function AskResultsStandard() {
             <SkeletonCard key={index} layoutMode={layoutMode} />
           ))}
         </div>
-      ) : recentQueries.length === 0 ? (
-        <p className="text-zinc-500 dark:text-zinc-400">
+      ) : filteredQueries.length === 0 ? (
+        <p className="text-zinc-500 dark:text-zinc-400 text-center">
           {showFavoritesOnly
             ? "No favorite queries found."
             : "No recent queries found."}
         </p>
-      ) : (
-        <div
-          className={`max-w-7xl mx-auto ${
-            layoutMode === "grid"
-              ? "flex flex-wrap justify-center gap-6"
-              : "flex flex-col gap-4 items-center justify-center"
-          }`}
-        >
-          {recentQueries.map((query) => (
-            <AskResultsStandardCard
-              key={query.id}
-              query={query}
-              layoutMode={layoutMode}
-              isOpen={openItems[query.id] || false}
-              toggleItem={toggleItem}
-            />
-          ))}
+      ) : useVirtualScroll && filteredQueries.length > 20 ? (
+        <div className="h-[800px] w-full">
+          <VirtualScrollContainer
+            items={filteredQueries}
+            renderItem={(query) => (
+              <div className={`mb-4 ${layoutMode === "grid" ? "inline-block" : "w-full"}`}>
+                <AskResultsStandardCard
+                  key={query.id}
+                  query={query}
+                  layoutMode={layoutMode}
+                  isOpen={openItems[query.id] || false}
+                  toggleItem={toggleItem}
+                />
+              </div>
+            )}
+            loadMore={loadMore}
+            hasMore={hasMore && !showFavoritesOnly}
+            isLoadingMore={isLoadingMore}
+            estimateSize={layoutMode === "grid" ? 450 : 250}
+            className="px-4"
+          />
         </div>
+      ) : (
+        <InfiniteScrollContainer
+          loadMore={loadMore}
+          hasMore={hasMore && !showFavoritesOnly} // Disable infinite scroll for favorites
+          isLoadingMore={isLoadingMore}
+        >
+          <div
+            className={`max-w-7xl mx-auto ${
+              layoutMode === "grid"
+                ? "flex flex-wrap justify-center gap-6"
+                : "flex flex-col gap-4 items-center justify-center"
+            }`}
+          >
+            {filteredQueries.map((query) => (
+              <div key={query.id} className="card-entrance">
+                <AskResultsStandardCard
+                  query={query}
+                  layoutMode={layoutMode}
+                  isOpen={openItems[query.id] || false}
+                  toggleItem={toggleItem}
+                />
+              </div>
+            ))}
+          </div>
+        </InfiniteScrollContainer>
       )}
     </div>
   );

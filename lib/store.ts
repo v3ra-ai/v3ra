@@ -185,10 +185,12 @@ export async function resetNetwork(): Promise<void> {
 // Get historical vote sessions from the database
 export async function getHistoricalVoteSessions(
   limit: number = 10,
+  offset: number = 0,
 ): Promise<VoteResult[]> {
   try {
     const sessions = await prisma.voteSession.findMany({
       take: limit,
+      skip: offset,
       orderBy: { timestamp: "desc" },
       include: {
         validatorResponses: {

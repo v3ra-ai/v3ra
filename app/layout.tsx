@@ -44,8 +44,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           src="/newrelic.js"
           strategy="afterInteractive"
           type="text/javascript"
-          integrity="sha384-<your-hash-here>"
-          crossOrigin="anonymous"
         />
       </head>
       <body className={inter.className} suppressHydrationWarning>

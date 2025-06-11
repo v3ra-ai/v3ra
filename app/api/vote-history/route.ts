@@ -30,7 +30,9 @@ interface VoteHistoryEntry {
 
 /**
  * API endpoint to retrieve vote history or vote session count
- * GET /api/vote-history?limit=12&countOnly=true
+ * GET /api/vote-history?limit=12&offset=0&countOnly=true
+ * @param limit Number of items to return
+ * @param offset Number of items to skip (for pagination)
  * @param countOnly If true, returns only the total number of vote sessions
  */
 export async function GET(request: Request) {
@@ -40,12 +42,14 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const limitRaw = searchParams.get("limit");
+    const offsetRaw = searchParams.get("offset");
     const countOnly = searchParams.get("countOnly") === "true";
     const limit = limitRaw
       ? parseInt(limitRaw, 10) || RESULT_QUERIES_CARDS
       : RESULT_QUERIES_CARDS;
+    const offset = offsetRaw ? parseInt(offsetRaw, 10) || 0 : 0;
 
-    console.log("[vote-history] Handling GET request:", { limitRaw, limit, countOnly });
+    console.log("[vote-history] Handling GET request:", { limitRaw, limit, offsetRaw, offset, countOnly });
 
     // Validate limit
     if (isNaN(limit) || limit < 1) {
@@ -65,7 +69,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ count });
       }
 
-      const historicalVotes = await getHistoricalVoteSessions(limit);
+      const historicalVotes = await getHistoricalVoteSessions(limit, offset);
 
       if (historicalVotes && historicalVotes.length > 0) {
         const voteHistory: VoteHistoryEntry[] = historicalVotes.map(

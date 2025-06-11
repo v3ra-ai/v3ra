@@ -33,7 +33,10 @@ export const useFavoritesStore = create<FavoritesState>()(
         try {
           const result = await fetchUserFavorites();
           if ("error" in result) {
-            console.error("[favorites-store] Hydration error:", result.error);
+            // Only log non-authentication errors to reduce console noise
+            if (result.error !== "User not authenticated") {
+              console.error("[favorites-store] Hydration error:", result.error);
+            }
             set({ favorites: [], isHydrated: true });
             return;
           }

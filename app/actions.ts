@@ -387,7 +387,7 @@ export async function fetchUserFavorites(): Promise<
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      console.error("[actions] User not authenticated:", authError?.message);
+      // Don't log authentication errors as they're expected for non-logged-in users
       return { error: "User not authenticated" };
     }
 

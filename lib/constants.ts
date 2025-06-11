@@ -47,6 +47,12 @@ export const MAX_VOTE_HISTORY_RESULTS = 300;
 export const RECENT_HISTORY_RESULTS = 50;
 export const RESULT_QUERIES_CARDS = 12;
 
+// Pagination constants for infinite scroll
+export const INITIAL_LOAD_COUNT = 12; // Initial load same as current
+export const LOAD_MORE_COUNT = 12; // Load 12 more each time
+export const SCROLL_THRESHOLD = 0.8; // Load more when 80% scrolled
+export const PRELOAD_THRESHOLD = 200; // Preload when within 200px of bottom
+
 export const EXPORT_MAX_VALIDATORS = 20;
 
 // Authentication

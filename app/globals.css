@@ -170,3 +170,95 @@ body {
     --chart-10: #0ea5e9;
   }
 }
+
+/* Apple-style animations for infinite scroll */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes subtleFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+/* Card entrance animations */
+.card-entrance {
+  animation: fadeInUp 0.6s cubic-bezier(0.32, 0.72, 0, 1);
+  animation-fill-mode: both;
+}
+
+.card-entrance-scale {
+  animation: fadeInScale 0.5s cubic-bezier(0.32, 0.72, 0, 1);
+  animation-fill-mode: both;
+}
+
+/* Stagger effect for multiple cards */
+.card-entrance:nth-child(1) { animation-delay: 0ms; }
+.card-entrance:nth-child(2) { animation-delay: 50ms; }
+.card-entrance:nth-child(3) { animation-delay: 100ms; }
+.card-entrance:nth-child(4) { animation-delay: 150ms; }
+.card-entrance:nth-child(5) { animation-delay: 200ms; }
+.card-entrance:nth-child(6) { animation-delay: 250ms; }
+
+/* Smooth scroll behavior */
+@supports (scroll-behavior: smooth) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+/* iOS-style momentum scrolling */
+.momentum-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar styling */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: oklch(0.5 0 0 / 20%);
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(0.5 0 0 / 30%);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: oklch(1 0 0 / 20%);
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: oklch(1 0 0 / 30%);
+}

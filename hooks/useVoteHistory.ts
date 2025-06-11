@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import type { VoteResult } from "@/lib/types";
 import { useVoteStore } from "@/store/vote-store";
 import { sanitizeError } from "@/utils/security-utils";
-import { RESULT_QUERIES_CARDS } from "@/lib/constants";
+import { INITIAL_LOAD_COUNT, LOAD_MORE_COUNT, MAX_VOTE_HISTORY_RESULTS } from "@/lib/constants";
 
 // Log to confirm file is loaded
 console.log("[useVoteHistory] File loaded");
@@ -11,107 +11,104 @@ interface VoteHistoryResult {
   voteHistory: VoteResult[];
   setVoteHistory: React.Dispatch<React.SetStateAction<VoteResult[]>>;
   isLoading: boolean;
+  isLoadingMore: boolean;
   error: Error | null;
+  hasMore: boolean;
   refetch: (limit?: number) => Promise<void>;
+  loadMore: () => Promise<void>;
 }
 
 /**
- * Fetches the user's vote history from the /api/vote-history endpoint, only refetching if the vote session count has changed.
- * @param initialLimit Number of vote sessions to fetch (default: RESULT_QUERIES_CARDS = 12).
- * @returns An object containing the vote history, loading state, error, and refetch function.
+ * Fetches the user's vote history from the /api/vote-history endpoint with infinite scroll support.
+ * @param initialLimit Number of vote sessions to fetch initially (default: INITIAL_LOAD_COUNT).
+ * @returns An object containing the vote history, loading states, error, and control functions.
  */
-export function useVoteHistory(initialLimit: number = RESULT_QUERIES_CARDS): VoteHistoryResult {
+export function useVoteHistory(initialLimit: number = INITIAL_LOAD_COUNT): VoteHistoryResult {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
-  const { voteHistory, setVoteHistory, voteSessionCount, setVoteSessionCount } = useVoteStore();
+  const {
+    voteHistory,
+    setVoteHistory,
+    appendVoteHistory,
+    voteSessionCount,
+    setVoteSessionCount,
+    isLoadingMore,
+    setIsLoadingMore,
+    hasMore,
+    setHasMore,
+    offset,
+    setOffset,
+    resetPagination,
+  } = useVoteStore();
   const VOTE_HISTORY_API = "/api/vote-history";
+
+  const validateAndFormatHistory = (data: any[]): VoteResult[] => {
+    return data
+      .filter((item): item is VoteResult =>
+        item &&
+        typeof item.id === 'string' &&
+        typeof item.queryText === 'string' &&
+        item.queryText.trim() !== '' &&
+        Array.isArray(item.validatorResponses) &&
+        typeof item.votingResult === 'object' &&
+        typeof item.votingResult.yes === 'number' &&
+        typeof item.votingResult.no === 'number' &&
+        typeof item.votingResult.notVoted === 'number'
+      )
+      .map((item) => ({
+        id: item.id,
+        queryText: item.queryText,
+        isConsensusReached: item.isConsensusReached ?? false,
+        consensusValue: item.consensusValue ?? null,
+        validatorResponses: item.validatorResponses.map((res: any) => ({
+          id: res.id,
+          provider: res.provider || 'Unknown',
+          profileName: res.profileName || 'Unknown',
+          vote: res.vote || 'UNKNOWN',
+          rationale: res.rationale || '',
+        })),
+        votingResult: {
+          yes: item.votingResult.yes,
+          no: item.votingResult.no,
+          notVoted: item.votingResult.notVoted,
+        },
+        timestamp: item.timestamp ?? undefined,
+      }));
+  };
 
   const refetch = useCallback(
     async (limit: number = initialLimit) => {
       try {
         setIsLoading(true);
         setError(null);
-        console.log("[useVoteHistory] Checking vote session count, current:", voteSessionCount, "limit:", limit);
+        resetPagination();
+        console.log("[useVoteHistory] Refetching with limit:", limit);
 
         // Fetch vote session count
         const countResponse = await fetch(`${VOTE_HISTORY_API}?countOnly=true`);
-        console.log("[useVoteHistory] Count fetch status:", countResponse.status);
         if (!countResponse.ok) {
           throw new Error(`Vote session count fetch failed: ${countResponse.statusText}`);
         }
         const countData = await countResponse.json();
-        console.log("[useVoteHistory] Count response:", countData);
-
-        if (typeof countData.count !== "number") {
-          throw new Error("Invalid vote session count format");
-        }
-
-        // Update store with new count
         setVoteSessionCount(countData.count);
 
-        // Skip full refetch if count hasn't changed
-        if (countData.count === voteSessionCount && voteHistory.length > 0) {
-          console.log("[useVoteHistory] Vote session count unchanged, reusing stored voteHistory:", voteHistory.length, "items");
-          return;
-        }
-
-        // Fetch full vote history
-        console.log("[useVoteHistory] Refetching vote history with limit:", limit);
-        const response = await fetch(`${VOTE_HISTORY_API}?limit=${limit}`);
-        console.log("[useVoteHistory] Refetch status:", response.status, response.statusText);
+        // Fetch initial vote history
+        const response = await fetch(`${VOTE_HISTORY_API}?limit=${limit}&offset=0`);
         if (!response.ok) {
-          throw new Error(`Vote history refetch failed: ${response.statusText}`);
+          throw new Error(`Vote history fetch failed: ${response.statusText}`);
         }
         const data = await response.json();
-        console.log("[useVoteHistory] Refetch response data:", data);
 
         if (!Array.isArray(data)) {
           throw new Error("Invalid vote history data format");
         }
 
-        // Validate and filter vote history
-        const validatedHistory: VoteResult[] = data
-          .filter((item): item is VoteResult =>
-            item &&
-            typeof item.id === 'string' &&
-            typeof item.queryText === 'string' &&
-            item.queryText.trim() !== '' &&
-            Array.isArray(item.validatorResponses) &&
-            typeof item.votingResult === 'object' &&
-            typeof item.votingResult.yes === 'number' &&
-            typeof item.votingResult.no === 'number' &&
-            typeof item.votingResult.notVoted === 'number'
-          )
-          .map((item) => ({
-            id: item.id,
-            queryText: item.queryText,
-            isConsensusReached: item.isConsensusReached ?? false,
-            consensusValue: item.consensusValue ?? null,
-            validatorResponses: item.validatorResponses.map((res) => ({
-              id: res.id,
-              provider: res.provider || 'Unknown',
-              profileName: res.profileName || 'Unknown',
-              vote: res.vote || 'UNKNOWN',
-              rationale: res.rationale || '',
-            })),
-            votingResult: {
-              yes: item.votingResult.yes,
-              no: item.votingResult.no,
-              notVoted: item.votingResult.notVoted,
-            },
-            timestamp: item.timestamp ?? undefined,
-          }));
-
-        // Log invalid entries
-        const invalidEntries = data.filter(
-          (item) => !item || !item.id || !item.queryText || item.queryText.trim() === '' || !Array.isArray(item.validatorResponses)
-        );
-        if (invalidEntries.length > 0) {
-          console.warn("[useVoteHistory] Invalid vote history entries filtered out:", invalidEntries);
-        }
-
-        console.log("[useVoteHistory] Updating voteHistory with", validatedHistory.length, "valid items");
+        const validatedHistory = validateAndFormatHistory(data);
+        console.log("[useVoteHistory] Initial load:", validatedHistory.length, "items");
+        
         setVoteHistory(validatedHistory);
+        setOffset(validatedHistory.length);
+        setHasMore(validatedHistory.length < countData.count && validatedHistory.length < MAX_VOTE_HISTORY_RESULTS);
       } catch (err: unknown) {
         const error = err instanceof Error ? err : new Error(String(err));
         console.error("[useVoteHistory] Error:", sanitizeError(error));
@@ -121,13 +118,67 @@ export function useVoteHistory(initialLimit: number = RESULT_QUERIES_CARDS): Vot
         setIsLoading(false);
       }
     },
-    [initialLimit, voteSessionCount, voteHistory.length, setVoteHistory, setVoteSessionCount],
+    [initialLimit, setVoteHistory, setVoteSessionCount, setOffset, setHasMore, resetPagination],
   );
 
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore) {
+      console.log("[useVoteHistory] Skipping loadMore:", { isLoadingMore, hasMore });
+      return;
+    }
+
+    try {
+      setIsLoadingMore(true);
+      setError(null);
+      console.log("[useVoteHistory] Loading more from offset:", offset);
+
+      const response = await fetch(`${VOTE_HISTORY_API}?limit=${LOAD_MORE_COUNT}&offset=${offset}`);
+      if (!response.ok) {
+        throw new Error(`Vote history loadMore failed: ${response.statusText}`);
+      }
+      const data = await response.json();
+
+      if (!Array.isArray(data)) {
+        throw new Error("Invalid vote history data format");
+      }
+
+      const validatedHistory = validateAndFormatHistory(data);
+      console.log("[useVoteHistory] Loaded", validatedHistory.length, "more items");
+
+      if (validatedHistory.length === 0) {
+        setHasMore(false);
+      } else {
+        appendVoteHistory(validatedHistory);
+        // Check if we've reached the limit
+        const newTotal = voteHistory.length + validatedHistory.length;
+        setHasMore(
+          validatedHistory.length === LOAD_MORE_COUNT && 
+          newTotal < voteSessionCount && 
+          newTotal < MAX_VOTE_HISTORY_RESULTS
+        );
+      }
+    } catch (err: unknown) {
+      const error = err instanceof Error ? err : new Error(String(err));
+      console.error("[useVoteHistory] LoadMore error:", sanitizeError(error));
+      setError(error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [isLoadingMore, hasMore, offset, voteHistory.length, voteSessionCount, appendVoteHistory, setIsLoadingMore, setHasMore]);
+
   useEffect(() => {
-    console.log("[useVoteHistory] Effect running with initialLimit:", initialLimit);
+    console.log("[useVoteHistory] Initial effect running");
     refetch();
   }, [refetch]);
 
-  return { voteHistory, setVoteHistory, isLoading, error, refetch };
+  return { 
+    voteHistory, 
+    setVoteHistory, 
+    isLoading, 
+    isLoadingMore,
+    error, 
+    hasMore,
+    refetch,
+    loadMore,
+  };
 }
