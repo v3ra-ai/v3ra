@@ -14,6 +14,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Validator } from "@/lib/types";
+import { getModelIconPath } from "@/lib/utils/icon-mapping";
 
 // Utility function to truncate UUID to first two segments (e.g., "228db12f-5d5b-4e34-af58-1c0972b9164e" → "228db12f-5d5b...")
 function truncateId(id: string): string {
@@ -61,15 +62,15 @@ export default function ValidatorsClient({ validators }: ValidatorsClientProps) 
                     >
                       <TableCell>
                         <Image
-                          src={
+                          src={getModelIconPath(
+                            validator.modelName || validator.profileName,
+                            validator.provider,
                             validator.avatarUrl
-                              ? `/icons/${validator.avatarUrl}`
-                              : "/icons/placeholder.png"
-                          }
+                          )}
                           alt={validator.profileName}
                           width={40}
                           height={38}
-                          className="grayscale object-contain"
+                          className="object-contain"
                         />
                       </TableCell>
                       <TableCell className="text-zinc-600 dark:text-zinc-300">

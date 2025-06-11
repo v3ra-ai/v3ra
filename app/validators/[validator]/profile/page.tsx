@@ -1,26 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
-import validatorImageMapping from "@/utils/validatorImageMapping.json";
 import { getValidatorById, getValidatorVoteStats } from "@/lib/db/validators";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import VoteHistoryTable from "@/components/validators/vote-history-table";
-
-// Type for validatorImageMapping.json entries
-interface ValidatorImageMapping {
-  id: string;
-  profile: string;
-  avatarUrl: string;
-}
-
-// Fetch imageName from validatorImageMapping.json
-function getValidatorImageName(id: string): string | null {
-  const mappings = validatorImageMapping as ValidatorImageMapping[];
-  const mapping = mappings.find((m) => m.id === id);
-  if (!mapping && process.env.NODE_ENV === "development") {
-    console.log(`No image mapping found for validator ID: ${id}`);
-  }
-  return mapping?.avatarUrl || null;
-}
+import { getModelIconPath } from "@/lib/utils/icon-mapping";
 
 export default async function ValidatorProfilePage({
   params,
@@ -30,7 +13,6 @@ export default async function ValidatorProfilePage({
   const { validator: validatorId } = await params; // Await params to resolve validator
   const validator = await getValidatorById(validatorId);
   const stats = await getValidatorVoteStats(validatorId);
-  const imageName = getValidatorImageName(validatorId);
 
   if (!validator) {
     notFound();
@@ -46,15 +28,15 @@ export default async function ValidatorProfilePage({
                 <div className="flex md:w-1/2 items-center border-0">
                   <div className="w-[80px]">
                     <Image
-                      src={
-                        imageName
-                          ? `/icons/${imageName}`
-                          : "/icons/placeholder.png"
-                      }
+                      src={getModelIconPath(
+                        validator.modelName || validator.profileName,
+                        validator.provider,
+                        validator.avatarUrl
+                      )}
                       alt={validator.profileName}
                       width={80}
                       height={76}
-                      className="grayscale"
+                      className="object-contain"
                     />
                   </div>
                   <div className="pl-4">

@@ -12,7 +12,7 @@ import { Validator } from "@/lib/types";
 
 interface Props {
   initial: Validator[];
-  onClose: () => void;
+  onClose?: () => void;
 }
 
 export default function ManageLLMsClient({ initial, onClose }: Props) {
@@ -106,7 +106,9 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
   const handleChoose = () => {
     console.log("[ManageLLMs] Choose button clicked, closing modal", { selectedCount });
     setQueriesRequested(selectedCount > 0 ? selectedCount : 4, totalCredits); // Sync queriesRequested
-    onClose();
+    if (onClose) {
+      onClose();
+    }
   };
 
   const chooseButtonText = selectedCount > 0

@@ -8,5 +8,5 @@ export default async function ManageLLMsPage() {
   const validators: Validator[] = await fetchValidators();
   console.log("[ManageLLMsPage] Fetched validators:", validators.length);
 
-  return <ManageLLMsClient initial={validators} onClose={() => {}} />;
+  return <ManageLLMsClient initial={validators} />;
 }

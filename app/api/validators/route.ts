@@ -15,12 +15,14 @@ export async function GET() {
       return {
         id: validator.id,
         name: validator.name,
+        profileName: validator.name, // Add profileName for compatibility
         provider: validator.provider,
         modelName: validator.modelName || "unknown",
         description: validator.description || undefined,
         validatorType: validator.validatorType || undefined,
         active: validator.active !== undefined ? validator.active : true,
         keyId: validator.keyId || undefined, // AIValidator uses keyId
+        avatarUrl: null, // Will be determined by icon-mapping utility
       };
     });
 
