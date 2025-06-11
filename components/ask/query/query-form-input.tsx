@@ -9,6 +9,7 @@ import { QueryFormAISlider } from "./query-form-ai-slider";
 import { QueryMode, Validator } from "@/lib/types";
 import { useCreditsStore } from "@/store/credit-store";
 import { useLLMStore } from "@/store/llm-store";
+import { useQueryStore } from "@/store/query-store";
 import { toast } from "sonner";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { formatQueryMode } from "@/utils/text-utils";
@@ -131,6 +132,7 @@ export function QueryFormInput({
 }: QueryFormInputProps) {
   const { displayUnpaid, totalCredits } = useCreditsStore();
   const { llms } = useLLMStore();
+  const { setQueriesRequested } = useQueryStore();
   const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -141,6 +143,17 @@ export function QueryFormInput({
   const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
   const hasSelectedLLMs = selectedLLMCount > 0;
   const chooseButtonText = hasSelectedLLMs ? `Selected (${selectedLLMCount})` : "Choose...";
+
+  // Sync queriesRequested with selectedLLMCount on mount
+  useEffect(() => {
+    if (hasSelectedLLMs && queriesRequested !== selectedLLMCount) {
+      console.log("[QueryFormInput] Syncing queriesRequested with selectedLLMCount on mount:", {
+        selectedLLMCount,
+        queriesRequested,
+      });
+      setQueriesRequested(selectedLLMCount, totalCredits);
+    }
+  }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested, totalCredits]);
 
   const handleOpenModal = async () => {
     console.log("[QueryFormInput] Choose... button clicked, setting isModalOpen to true");

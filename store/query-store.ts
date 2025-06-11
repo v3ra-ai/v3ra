@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { DEFAULTS, QueryMode, ViewMode } from "@/lib/types";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
+import { useLLMStore } from "./llm-store";
 
 console.log("[query-store] Initializing store");
 
@@ -43,16 +44,18 @@ const calculateQueriesState = (
   };
 };
 
-// Initialize selectedLLMIds and queriesRequested with defaults
+// Initialize selectedLLMIds and queriesRequested based on useLLMStore
 const getInitialLLMState = () => {
-  // Start with empty selectedLLMIds and default queries
-  // The llm-store will update these values when it initializes
-  const queriesRequested = DEFAULTS.QUERIES_REQUESTED;
-  console.log("[query-store] Initial LLM state (defaults):", {
-    enabledLLMIds: [],
+  const llms = useLLMStore.getState().llms;
+  const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
+  const queriesRequested = enabledLLMIds.length > 0
+    ? enabledLLMIds.length
+    : DEFAULTS.QUERIES_REQUESTED;
+  console.log("[query-store] Initial LLM state:", {
+    enabledLLMIds,
     queriesRequested,
   });
-  return { selectedLLMIds: [], queriesRequested };
+  return { selectedLLMIds: enabledLLMIds, queriesRequested };
 };
 
 export const useQueryStore = create<QueryStore>((set) => {
@@ -81,7 +84,9 @@ export const useQueryStore = create<QueryStore>((set) => {
 
     setQueriesRequested: (amount, creditsTotal) =>
       set((state) => {
-        const maxQueries = state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : ALLOWED_AMOUNT_QUERIES;
+        const llms = useLLMStore.getState().llms;
+        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
+        const maxQueries = enabledLLMIds.length > 0 ? enabledLLMIds.length : ALLOWED_AMOUNT_QUERIES;
         const clampedAmount = Math.max(1, Math.min(maxQueries, amount));
         console.log("[query-store] Setting queriesRequested:", clampedAmount, { maxQueries });
         return {
@@ -102,7 +107,9 @@ export const useQueryStore = create<QueryStore>((set) => {
 
     decrementQueries: (amount, creditsTotal) =>
       set((state) => {
-        const maxQueries = state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : ALLOWED_AMOUNT_QUERIES;
+        const llms = useLLMStore.getState().llms;
+        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
+        const maxQueries = enabledLLMIds.length > 0 ? enabledLLMIds.length : ALLOWED_AMOUNT_QUERIES;
         const newAmount = Math.max(1, Math.min(maxQueries, state.queriesRequested - amount));
         console.log("[query-store] Decrementing queries:", newAmount);
         return {
@@ -113,7 +120,9 @@ export const useQueryStore = create<QueryStore>((set) => {
 
     incrementQueries: (amount, creditsTotal) =>
       set((state) => {
-        const maxQueries = state.selectedLLMIds.length > 0 ? state.selectedLLMIds.length : ALLOWED_AMOUNT_QUERIES;
+        const llms = useLLMStore.getState().llms;
+        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
+        const maxQueries = enabledLLMIds.length > 0 ? enabledLLMIds.length : ALLOWED_AMOUNT_QUERIES;
         const newAmount = Math.min(maxQueries, state.queriesRequested + amount);
         console.log("[query-store] Incrementing queries:", newAmount);
         return {
@@ -134,9 +143,9 @@ export const useQueryStore = create<QueryStore>((set) => {
       console.log("[query-store] Setting selectedLLMIds:", llmIds);
       set((state) => ({
         selectedLLMIds: llmIds,
-        queriesRequested: llmIds.length > 0 ? Math.min(llmIds.length, state.queriesRequested) : state.queriesRequested,
+        queriesRequested: llmIds.length > 0 ? llmIds.length : DEFAULTS.QUERIES_REQUESTED,
         ...calculateQueriesState(
-          llmIds.length > 0 ? Math.min(llmIds.length, state.queriesRequested) : state.queriesRequested,
+          llmIds.length > 0 ? llmIds.length : DEFAULTS.QUERIES_REQUESTED,
           state.userCreditsTotal,
           state.queriesCostEach,
         ),
@@ -145,18 +154,17 @@ export const useQueryStore = create<QueryStore>((set) => {
 
     resetAfterSubmission: (creditsTotal) => {
       console.log("[query-store] Resetting after submission");
-      set((state) => {
-        // Use the current selectedLLMIds from state instead of accessing LLM store
-        const newQueriesRequested = state.selectedLLMIds.length > 0 
-          ? state.selectedLLMIds.length 
-          : DEFAULTS.QUERIES_REQUESTED;
+      set(() => {
+        const llms = useLLMStore.getState().llms;
+        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
+        const newQueriesRequested = enabledLLMIds.length > 0 ? enabledLLMIds.length : DEFAULTS.QUERIES_REQUESTED;
         console.log("[query-store] Reset after submission:", {
-          selectedLLMIds: state.selectedLLMIds,
+          enabledLLMIds,
           newQueriesRequested,
         });
         return {
           queriesRequested: newQueriesRequested,
-          selectedLLMIds: state.selectedLLMIds,
+          selectedLLMIds: enabledLLMIds,
           ...calculateQueriesState(
             newQueriesRequested,
             creditsTotal,
