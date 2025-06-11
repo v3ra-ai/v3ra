@@ -58,7 +58,7 @@ const LayoutToggle = ({
   <div className="flex items-center gap-2 ml-2 opacity-70 transition-opacity duration-200 hover:opacity-100">
     <button
       onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-      className={`p-1.5 rounded-md transition-all duration-200 ${
+      className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer ${
         showFavoritesOnly
           ? "bg-amber-500 text-white shadow-md"
           : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -67,7 +67,7 @@ const LayoutToggle = ({
       title={showFavoritesOnly ? "Showing favorites only" : "Show favorites only"}
     >
       <Star
-        className={`h-4 w-4 transition-transform duration-200 ${
+        className={`h-4 w-4 transition-transform duration-200 cursor-pointer ${
           showFavoritesOnly ? "fill-current scale-110" : ""
         }`}
       />
@@ -75,7 +75,7 @@ const LayoutToggle = ({
     {/* Virtual scroll toggle removed per user request */}
     <button
       onClick={() => setLayoutMode("grid")}
-      className={`p-1.5 rounded-md transition-colors duration-200 ${
+      className={`p-1.5 rounded-md transition-colors duration-200 cursor-pointer ${
         layoutMode === "grid"
           ? "bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900"
           : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -86,7 +86,7 @@ const LayoutToggle = ({
     </button>
     <button
       onClick={() => setLayoutMode("row")}
-      className={`p-1.5 rounded-md transition-colors duration-200 ${
+      className={`p-1.5 rounded-md transition-colors duration-200 cursor-pointer ${
         layoutMode === "row"
           ? "bg-zinc-800 text-white dark:bg-zinc-100 dark:text-zinc-900"
           : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
@@ -259,7 +259,7 @@ export default function AskResultsStandard() {
           setShowFavoritesOnly={setShowFavoritesOnly}
         />
       </div>
-      
+
       {isLoading || !isHydrated ? (
         <div
           className={`max-w-6xl mx-auto ${
