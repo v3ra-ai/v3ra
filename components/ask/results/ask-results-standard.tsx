@@ -4,14 +4,13 @@ import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useVoteStore } from "@/store/vote-store";
 import { ErrorDisplay } from "@/components/error-display";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
-import { Grid3x3, Rows3, Star, Zap } from "lucide-react";
+import { Grid3x3, AlignJustify, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
 import { default as DOMPurify } from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFavorites } from "@/hooks/useFavorites";
 import { InfiniteScrollContainer } from "./infinite-scroll-container";
-import { VirtualScrollContainer } from "./virtual-scroll-container";
 
 // Custom CSS for skeleton loading animation (pulse + shimmer)
 <style jsx>{`
@@ -50,17 +49,11 @@ const LayoutToggle = ({
   setLayoutMode,
   showFavoritesOnly,
   setShowFavoritesOnly,
-  useVirtualScroll,
-  setUseVirtualScroll,
-  totalItems,
 }: {
   layoutMode: "grid" | "row";
   setLayoutMode: (mode: "grid" | "row") => void;
   showFavoritesOnly: boolean;
   setShowFavoritesOnly: (show: boolean) => void;
-  useVirtualScroll: boolean;
-  setUseVirtualScroll: (show: boolean) => void;
-  totalItems: number;
 }) => (
   <div className="flex items-center gap-2 ml-2 opacity-70 transition-opacity duration-200 hover:opacity-100">
     <button
@@ -79,24 +72,7 @@ const LayoutToggle = ({
         }`}
       />
     </button>
-    {totalItems > 20 && (
-      <button
-        onClick={() => setUseVirtualScroll(!useVirtualScroll)}
-        className={`p-1.5 rounded-md transition-all duration-200 ${
-          useVirtualScroll
-            ? "bg-blue-500 text-white shadow-md"
-            : "text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-        }`}
-        aria-label={useVirtualScroll ? "Disable virtual scrolling" : "Enable virtual scrolling"}
-        title={useVirtualScroll ? "Virtual scrolling enabled" : "Enable virtual scrolling for better performance"}
-      >
-        <Zap
-          className={`h-4 w-4 transition-transform duration-200 ${
-            useVirtualScroll ? "scale-110" : ""
-          }`}
-        />
-      </button>
-    )}
+    {/* Virtual scroll toggle removed per user request */}
     <button
       onClick={() => setLayoutMode("grid")}
       className={`p-1.5 rounded-md transition-colors duration-200 ${
@@ -117,7 +93,7 @@ const LayoutToggle = ({
       }`}
       aria-label="Row view"
     >
-      <Rows3 className="h-4 w-4" />
+      <AlignJustify className="h-4 w-4" />
     </button>
   </div>
 );
@@ -135,7 +111,7 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
         pt-4 gap-2
         border border-zinc-200 dark:border-zinc-700
         transition-colors
-        ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+        ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-[95%] sm:w-[90%] md:w-[85%] lg:w-5xl max-w-5xl"}
       `}
     >
       <div className="flex px-2 font-light text-xs dark:text-zinc-500 text-zinc-500">
@@ -196,7 +172,6 @@ export default function AskResultsStandard() {
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
   const [layoutMode, setLayoutMode] = useState<"grid" | "row">("grid");
   const [showFavoritesOnly, setShowFavoritesOnly] = useState<boolean>(false);
-  const [useVirtualScroll, setUseVirtualScroll] = useState<boolean>(false);
 
   // Debug log to confirm loading state and voteHistory
   if (process.env.NODE_ENV === "development") {
@@ -282,9 +257,6 @@ export default function AskResultsStandard() {
           setLayoutMode={setLayoutMode}
           showFavoritesOnly={showFavoritesOnly}
           setShowFavoritesOnly={setShowFavoritesOnly}
-          useVirtualScroll={useVirtualScroll}
-          setUseVirtualScroll={setUseVirtualScroll}
-          totalItems={filteredQueries.length}
         />
       </div>
       
@@ -293,7 +265,7 @@ export default function AskResultsStandard() {
           className={`max-w-6xl mx-auto ${
             layoutMode === "grid"
               ? "flex flex-wrap justify-center gap-4"
-              : "flex flex-col gap-4 items-center justify-center"
+              : "flex flex-col gap-4 items-center"
           }`}
         >
           {Array.from({ length: 3 }).map((_, index) => (
@@ -306,28 +278,6 @@ export default function AskResultsStandard() {
             ? "No favorite queries found."
             : "No recent queries found."}
         </p>
-      ) : useVirtualScroll && filteredQueries.length > 20 ? (
-        <div className="h-[800px] w-full">
-          <VirtualScrollContainer
-            items={filteredQueries}
-            renderItem={(query) => (
-              <div className={`mb-4 ${layoutMode === "grid" ? "inline-block" : "w-full"}`}>
-                <AskResultsStandardCard
-                  key={query.id}
-                  query={query}
-                  layoutMode={layoutMode}
-                  isOpen={openItems[query.id] || false}
-                  toggleItem={toggleItem}
-                />
-              </div>
-            )}
-            loadMore={loadMore}
-            hasMore={hasMore && !showFavoritesOnly}
-            isLoadingMore={isLoadingMore}
-            estimateSize={layoutMode === "grid" ? 450 : 250}
-            className="px-4"
-          />
-        </div>
       ) : (
         <InfiniteScrollContainer
           loadMore={loadMore}
@@ -338,11 +288,11 @@ export default function AskResultsStandard() {
             className={`max-w-7xl mx-auto ${
               layoutMode === "grid"
                 ? "flex flex-wrap justify-center gap-6"
-                : "flex flex-col gap-4 items-center justify-center"
+                : "flex flex-col gap-4 items-center"
             }`}
           >
             {filteredQueries.map((query) => (
-              <div key={query.id} className="card-entrance">
+              <div key={query.id} className={`card-entrance ${layoutMode === "row" ? "w-full flex justify-center" : ""}`}>
                 <AskResultsStandardCard
                   query={query}
                   layoutMode={layoutMode}

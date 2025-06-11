@@ -95,7 +95,7 @@ export default function AskResultsStandardCard({
           pt-4 gap-2
           border border-zinc-200 dark:border-zinc-700
           transition-colors
-          ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+          ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-[95%] sm:w-[90%] md:w-[85%] lg:w-5xl max-w-5xl"}
         `}
       >
         <CardContent className="p-4">
