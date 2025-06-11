@@ -1,7 +1,8 @@
-import { prisma } from '@/lib/db/client';
-import Navbar from '@/components/ask/navbar/navbar';
-import AskFooter from '@/components/ask/ask-footer';
-import Link from 'next/link';
+import { prisma } from "@/lib/db/client";
+import Navbar from "@/components/ask/navbar/navbar";
+import AskFooter from "@/components/ask/ask-footer";
+import Link from "next/link";
+import { ThumbsUp, ThumbsDown } from "lucide-react";
 
 interface FeedbackEntry {
   username: string;
@@ -29,11 +30,11 @@ async function getFeedback(): Promise<FeedbackEntry[]> {
         action: true,
         options: true,
       },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: "desc" },
     });
     return feedback;
-  } catch (error: unknown) {
-    console.error('[FeedbackPage] Error fetching feedback:', error);
+  } catch {
+    console.error("[FeedbackPage] Error fetching feedback");
     return [];
   }
 }
@@ -41,27 +42,27 @@ async function getFeedback(): Promise<FeedbackEntry[]> {
 async function getLeaderboard(): Promise<LeaderboardEntry[]> {
   try {
     const leaderboard = await prisma.feedback.groupBy({
-      by: ['username'],
+      by: ["username"],
       _count: {
-        id: true, // Count feedback entries by id
+        id: true,
       },
       _max: {
         createdAt: true,
       },
       orderBy: {
         _count: {
-          id: 'desc', // Sort by count of id
+          id: "desc",
         },
       },
       take: 12,
     });
     return leaderboard.map((entry) => ({
       username: entry.username,
-      feedbackCount: entry._count?.id ?? 0, // Safe access to _count.id
-      latestEntry: entry._max?.createdAt ?? new Date(0), // Safe access to _max.createdAt
+      feedbackCount: entry._count?.id ?? 0,
+      latestEntry: entry._max?.createdAt ?? new Date(0),
     }));
-  } catch (error: unknown) {
-    console.error('[FeedbackPage] Error fetching leaderboard:', error);
+  } catch {
+    console.error("[FeedbackPage] Error fetching leaderboard");
     return [];
   }
 }
@@ -69,20 +70,19 @@ async function getLeaderboard(): Promise<LeaderboardEntry[]> {
 export default async function FeedbackPage() {
   const feedback = await getFeedback();
   const leaderboard = await getLeaderboard();
-  // Static background image (replace with your actual path)
-  const backgroundImage = 'url(/path/to/background.jpg)';
+  const backgroundImage = "url(/path/to/background.jpg)";
 
   return (
     <div
       className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950"
       style={{
         backgroundImage,
-        backgroundSize: 'cover',
-        backgroundPosition: 'center',
-        backgroundAttachment: 'fixed',
-        backgroundRepeat: 'no-repeat',
-        width: '100vw',
-        height: '100vh',
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        backgroundRepeat: "no-repeat",
+        width: "100vw",
+        height: "100vh",
       }}
     >
       <Navbar />
@@ -91,7 +91,9 @@ export default async function FeedbackPage() {
           Feedback Leaderboard
         </h1>
         {leaderboard.length === 0 ? (
-          <p className="text-zinc-500 dark:text-zinc-400 mb-8">No feedback submitted yet.</p>
+          <p className="text-zinc-500 dark:text-zinc-400 mb-8">
+            No feedback submitted yet.
+          </p>
         ) : (
           <div className="overflow-x-auto mb-8">
             <table className="w-full border-collapse bg-white dark:bg-zinc-800 rounded-lg shadow">
@@ -133,7 +135,9 @@ export default async function FeedbackPage() {
           Feedback Submitted
         </h1>
         {feedback.length === 0 ? (
-          <p className="text-zinc-500 dark:text-zinc-400">No feedback submitted yet.</p>
+          <p className="text-zinc-500 dark:text-zinc-400">
+            No feedback submitted yet.
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full border-collapse bg-white dark:bg-zinc-800 rounded-lg shadow">
@@ -160,53 +164,84 @@ export default async function FeedbackPage() {
                 </tr>
               </thead>
               <tbody>
-                {feedback.map((entry, index) => (
-                  <tr
-                    key={`${entry.action}-${index}`}
-                    className="border-t border-zinc-200 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700"
-                  >
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      {entry.username}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      {entry.rating === 'thumbs_up' ? '👍 Thumbs Up' : '👎 Thumbs Down'}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      {entry.explanation || 'N/A'}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      {entry.component}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      {entry.options.length > 0 ? (
-                        <div className="flex flex-wrap gap-1">
-                          {entry.options.map((option) => (
-                            <span
-                              key={option}
-                              className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-zinc-200 dark:bg-zinc-600 text-zinc-700 dark:text-zinc-200"
-                            >
-                              {option.replace('_', ' ').toLowerCase()}
-                            </span>
-                          ))}
-                        </div>
-                      ) : (
-                        'None'
-                      )}
-                    </td>
-                    <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
-                      {entry.component === 'ResultsCard' ? (
-                        <Link
-                          href={`/ask/${entry.action}`}
-                          className="text-blue-500 hover:underline dark:text-blue-400"
-                        >
-                          /ask/{entry.action}
-                        </Link>
-                      ) : (
-                        entry.action
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                {feedback.map((entry, index) => {
+                  const truncatedExplanation =
+                    entry.explanation && entry.explanation.length > 20
+                      ? `${entry.explanation.slice(0, 20)}...`
+                      : entry.explanation || "N/A";
+                  const displayUrl =
+                    entry.component === "ResultsCard"
+                      ? `/ask/${
+                          entry.action.length > 20
+                            ? `${entry.action.slice(0, 20)}...`
+                            : entry.action
+                        }`
+                      : entry.action.length > 20
+                      ? `${entry.action.slice(0, 20)}...`
+                      : entry.action;
+
+                  return (
+                    <tr
+                      key={`${entry.action}-${index}`}
+                      className="border-t border-zinc-200 dark:border-zinc-600 hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                    >
+                      <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        {entry.username}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        {entry.rating === "thumbs_up" ? (
+                          <ThumbsUp
+                            className="text-emerald-400 fill-emerald-400"
+                            strokeWidth={1}
+                            size={20}
+                            aria-label="Thumbs Up"
+                          />
+                        ) : (
+                          <ThumbsDown
+                            className="text-red-400 fill-red-400"
+                            strokeWidth={1}
+                            size={20}
+                            aria-label="Thumbs Down"
+                          />
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        {truncatedExplanation}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        {entry.component}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        {entry.options.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {entry.options.map((option) => (
+                              <span
+                                key={option}
+                                className="inline-block px-2 py-1 text-xs font-medium rounded-full bg-zinc-200 dark:bg-zinc-600 text-zinc-700 dark:text-zinc-200"
+                              >
+                                {option.replace("_", " ").toLowerCase()}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          "None"
+                        )}
+                      </td>
+                      <td className="px-4 py-2 text-sm text-zinc-700 dark:text-zinc-300">
+                        {entry.component === "ResultsCard" ? (
+                          <Link
+                            href={`/ask/${entry.action}`}
+                            className="text-blue-500 hover:underline dark:text-blue-400"
+                          >
+                            {displayUrl}
+                          </Link>
+                        ) : (
+                          displayUrl
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

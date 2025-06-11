@@ -4,6 +4,7 @@ import { CreditsAllLayout } from "@/components/credits/credits-all-layout";
 import Navbar from "@/components/ask/navbar/navbar";
 import { SolanaProvider } from "@/components/solana-provider";
 import { useBackgroundImage } from "@/hooks/useBackgroundImage";
+import AskFooter from "@/components/ask/ask-footer";
 
 export default function CreditsAllPage() {
   const backgroundImage = useBackgroundImage();
@@ -24,6 +25,7 @@ export default function CreditsAllPage() {
       >
         <Navbar />
         <CreditsAllLayout />
+        <AskFooter />
       </div>
     </SolanaProvider>
   );
