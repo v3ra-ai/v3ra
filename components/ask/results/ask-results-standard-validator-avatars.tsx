@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { VoteResult } from "@/lib/types";
-import validatorImageMapping from "@/utils/validatorImageMapping.json";
 import { parseRationale } from "@/lib/utils";
+import { getValidatorIcon } from "@/lib/utils/icon-mapping";
 import {
   Dialog,
   DialogContent,
@@ -36,23 +36,6 @@ export function AskResultsStandardValidatorAvatars({
       {sanitizedQuery.validatorResponses?.length ? (
         <div className="flex flex-wrap gap-4 max-w-full">
           {sanitizedQuery.validatorResponses.map((response) => {
-            const mapping = validatorImageMapping.find(
-              (m) => m.id === response.id
-            ) as
-              | { id: string; profile: string; avatarUrl: string | null }
-              | undefined;
-
-            // Enhanced debugging for validator data
-            if (process.env.NODE_ENV === "development") {
-              // console.log(`Validator ID: ${response.id}`);
-              // console.log(`Mapping found: ${!!mapping}`);
-              if (mapping) {
-                // console.log(`Mapping data:`, mapping);
-              } else {
-                // console.log(`No mapping for ID ${response.id} in validatorImageMapping`);
-              }
-            }
-
             const avatarContent = (
               <div
                 className={`flex w-[40px] h-[40px] ${
@@ -62,15 +45,11 @@ export function AskResultsStandardValidatorAvatars({
                 } cursor-pointer hover:opacity-80 transition-opacity`}
               >
                 <Image
-                  src={
-                    mapping?.avatarUrl
-                      ? `/icons/${mapping.avatarUrl}`
-                      : "/icons/placeholder.png"
-                  }
+                  src={getValidatorIcon(response.id, response)}
                   alt={response.profileName}
                   width={40}
                   height={38}
-                  className="grayscale object-contain"
+                  className="object-contain"
                 />
               </div>
             );

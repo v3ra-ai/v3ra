@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import { DEFAULTS, QueryMode, ViewMode } from "@/lib/types";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
-import { useLLMStore } from "./llm-store";
 
 console.log("[query-store] Initializing store");
 
@@ -44,18 +43,16 @@ const calculateQueriesState = (
   };
 };
 
-// Initialize selectedLLMIds and queriesRequested based on useLLMStore
+// Initialize selectedLLMIds and queriesRequested with defaults
 const getInitialLLMState = () => {
-  const llms = useLLMStore.getState().llms;
-  const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
-  const queriesRequested = enabledLLMIds.length > 0
-    ? enabledLLMIds.length
-    : DEFAULTS.QUERIES_REQUESTED;
-  console.log("[query-store] Initial LLM state:", {
-    enabledLLMIds,
+  // Start with empty selectedLLMIds and default queries
+  // The llm-store will update these values when it initializes
+  const queriesRequested = DEFAULTS.QUERIES_REQUESTED;
+  console.log("[query-store] Initial LLM state (defaults):", {
+    enabledLLMIds: [],
     queriesRequested,
   });
-  return { selectedLLMIds: enabledLLMIds, queriesRequested };
+  return { selectedLLMIds: [], queriesRequested };
 };
 
 export const useQueryStore = create<QueryStore>((set) => {
@@ -148,17 +145,18 @@ export const useQueryStore = create<QueryStore>((set) => {
 
     resetAfterSubmission: (creditsTotal) => {
       console.log("[query-store] Resetting after submission");
-      set(() => {
-        const llms = useLLMStore.getState().llms;
-        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
-        const newQueriesRequested = enabledLLMIds.length > 0 ? enabledLLMIds.length : DEFAULTS.QUERIES_REQUESTED;
+      set((state) => {
+        // Use the current selectedLLMIds from state instead of accessing LLM store
+        const newQueriesRequested = state.selectedLLMIds.length > 0 
+          ? state.selectedLLMIds.length 
+          : DEFAULTS.QUERIES_REQUESTED;
         console.log("[query-store] Reset after submission:", {
-          enabledLLMIds,
+          selectedLLMIds: state.selectedLLMIds,
           newQueriesRequested,
         });
         return {
           queriesRequested: newQueriesRequested,
-          selectedLLMIds: enabledLLMIds,
+          selectedLLMIds: state.selectedLLMIds,
           ...calculateQueriesState(
             newQueriesRequested,
             creditsTotal,

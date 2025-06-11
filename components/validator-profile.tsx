@@ -3,6 +3,7 @@ import { Validator } from "@/lib/types";
 import Image from "next/image";
 // (Removed unused Badge import)
 import { parseRationaleDetailed } from "@/lib/utils";
+import { getModelIconPath } from "@/lib/utils/icon-mapping";
 
 interface ValidatorProfileProps {
   validator: Validator | null;
@@ -69,19 +70,17 @@ export function ValidatorProfile({
         <div className="relative h-32 bg-gradient-to-r from-blue-500 to-purple-600">
           <div className="absolute -bottom-16 left-1/2 transform -translate-x-1/2">
             <div className="h-32 w-32 rounded-full border-4 border-white dark:border-gray-800 overflow-hidden bg-white flex items-center justify-center">
-              {validator.avatarUrl ? (
-                <Image
-                  src={`/icons/${validator.avatarUrl}`}
-                  alt={validator.profileName}
-                  width={128}
-                  height={128}
-                  className="object-cover"
-                />
-              ) : (
-                <div className="text-5xl font-bold text-gray-300">
-                  {validator.profileName.charAt(0)}
-                </div>
-              )}
+              <Image
+                src={getModelIconPath(
+                  validator.modelName || validator.profileName,
+                  validator.provider,
+                  validator.avatarUrl
+                )}
+                alt={validator.profileName}
+                width={128}
+                height={128}
+                className="object-cover"
+              />
             </div>
           </div>
         </div>
