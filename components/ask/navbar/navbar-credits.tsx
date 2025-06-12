@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import Link from "next/link";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
@@ -11,23 +11,27 @@ import { memo } from "react";
 
 function NavbarCredits() {
   const { publicKey } = useWallet();
-  const { userFreeCredits, userPaidCredits, creditsLoading, fetchAllCredits, savedCreditsTimestamp } = useCreditsStore();
+  const { userFreeCredits, userPaidCredits, creditsLoading, fetchAllCredits } = useCreditsStore();
   const [email, setEmail] = useState<string | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(true);
 
   // Sync wallet state changes
   useCreditsStoreWalletSync(email);
 
-  // Calculate total credits
-  const totalCredits = userFreeCredits + userPaidCredits;
+  // Calculate total credits with useMemo for performance
+  const totalCredits = useMemo(
+    () => userFreeCredits + userPaidCredits,
+    [userFreeCredits, userPaidCredits]
+  );
 
   // Fetch email on mount
   useEffect(() => {
     const fetchEmail = async () => {
       try {
         const { data: { session } } = await supabase.auth.getSession();
-        setEmail(session?.user?.email);
-        console.log("[NavbarCredits] Fetched email:", session?.user?.email, {
+        const userEmail = session?.user?.email;
+        setEmail(userEmail);
+        console.log("[NavbarCredits] Fetched email:", userEmail, {
           timestamp: new Date().toISOString(),
         });
       } catch {
@@ -62,29 +66,41 @@ function NavbarCredits() {
     fetchCreditsIfNeeded();
   }, [fetchCreditsIfNeeded]);
 
+  // Listen for credits-updated event to refresh credits
+  useEffect(() => {
+    const handleCreditsUpdated = () => {
+      console.log("[NavbarCredits] Received credits-updated event, fetching credits", {
+        publicKey: publicKey?.toBase58() || "none",
+        email,
+        timestamp: new Date().toISOString(),
+      });
+      fetchCreditsIfNeeded();
+    };
+
+    window.addEventListener("credits-updated", handleCreditsUpdated);
+    return () => window.removeEventListener("credits-updated", handleCreditsUpdated);
+  }, [fetchCreditsIfNeeded, publicKey, email]);
+
   // Update loading state
   useEffect(() => {
-    if (!creditsLoading && (userFreeCredits !== 0 || userPaidCredits !== 0)) {
+    if (!creditsLoading) {
       setIsLoading(false);
       console.log("[NavbarCredits] Credits loaded:", {
         userFreeCredits,
         userPaidCredits,
         totalCredits,
-        savedCreditsTimestamp: savedCreditsTimestamp
-          ? new Date(savedCreditsTimestamp).toISOString()
-          : null,
         timestamp: new Date().toISOString(),
       });
     } else {
       setIsLoading(true);
-      console.log("[NavbarCredits] Credits loading or zero:", {
+      console.log("[NavbarCredits] Credits loading:", {
         creditsLoading,
         userFreeCredits,
         userPaidCredits,
         timestamp: new Date().toISOString(),
       });
     }
-  }, [creditsLoading, userFreeCredits, userPaidCredits, totalCredits, savedCreditsTimestamp]);
+  }, [creditsLoading, userFreeCredits, userPaidCredits, totalCredits]);
 
   if (!email) {
     console.log("[NavbarCredits] No email, returning null", {
