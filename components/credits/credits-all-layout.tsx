@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback, useState, useMemo, Dispatch, SetStateAction } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { motion } from "framer-motion";
 import { Coins, Gift } from "lucide-react";
@@ -10,7 +10,6 @@ import TruthSlider from "@/components/credits/truth-slider";
 import Image from "next/image";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
-import { Dispatch, SetStateAction } from "react";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import CreditFAQ from "./credit-faq";
 
@@ -27,10 +26,13 @@ export function CreditsAllLayout() {
   const [email, setEmail] = useState<string | undefined>(undefined);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
 
-  // Calculate total credits from store
-  const totalCredits = userFreeCredits + userPaidCredits;
+  // Compute total credits with useMemo to prevent unnecessary recalculations
+  const totalCredits = useMemo(
+    () => userFreeCredits + userPaidCredits,
+    [userFreeCredits, userPaidCredits]
+  );
 
-  // Define setCreditBalance to update store
+  // Define setCreditBalance to update store with correct type
   const setCreditBalance = useCallback<Dispatch<SetStateAction<number | null>>>(
     (value) => {
       if (typeof value === "function") {
@@ -165,7 +167,6 @@ export function CreditsAllLayout() {
         </div>
         <div className="flex flex-col items-center w-full sm:w-auto border-2 p-2">
           <div className="flex items-center">
-            {/* <Wallet className="mr-1" strokeWidth={1} size={20} /> */}
             {isInitialLoading || creditsLoading ? (
               <LoadingSpinner
                 noWrapper
@@ -236,3 +237,5 @@ export function CreditsAllLayout() {
     </motion.div>
   );
 }
+
+export default CreditsAllLayout;
