@@ -87,7 +87,7 @@ export default function Navbar() {
   const isCreditsPage = false; // Placeholder until pathname is used
 
   // Select logo based on theme, default to dark logo before mounting
-  const logoSrc = !mounted || theme === "dark" ? "/verafy_logo_white.svg" : "/verafy_logo_black.svg";
+  const logoSrc = !mounted || theme === "dark" ? "/verafy_swarmexplorer_white_beta.svg" : "/verafy_swarmexplorer_black_beta.svg";
 
   // Toggle hamburger menu
   const toggleMenu = () => {
@@ -111,7 +111,12 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-            <Image src={logoSrc} alt="Logo" width={130} height={40} />
+            <Image
+              src={logoSrc}
+              alt="Logo"
+              width={145}
+              height={50}
+            />
           </Link>
         </div>
 

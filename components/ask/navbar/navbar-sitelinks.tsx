@@ -22,18 +22,18 @@ export function NavbarSitelinks() {
       >
         Facts
       </Link>
-      <Link
+      {/* <Link
         href="/ask/predict"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Predict
-      </Link>
-      <Link
+      </Link> */}
+      {/* <Link
         href="/ask/shop"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Shop
-      </Link>
+      </Link> */}
       {/* <Link
         href="/explorer"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
