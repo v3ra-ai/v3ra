@@ -1,30 +1,26 @@
-"use client";
-
-import { useEffect } from "react";
+import { redirect } from "next/navigation";
 import Navbar from "@/components/ask/navbar/navbar";
 import QueryInterface from "@/components/ask/query/query-interface";
 import { SolanaProvider } from "@/components/solana-provider";
 import AskFooter from "@/components/ask/ask-footer";
-import { useQueryStore } from "@/store/query-store";
-import { useBackgroundImage } from "@/hooks/useBackgroundImage";
 import { FeedbackWidget } from "@/components/feedback-widget";
 import { FeedbackModal } from "@/components/feedback-modal";
+import { checkBetaAccess } from "@/lib/beta-access";
 
-export default function AskPage() {
-  const backgroundImage = useBackgroundImage();
-  const setQueryMode = useQueryStore((state) => state.setQueryMode);
+export default async function AskPage() {
+  const { isAllowed } = await checkBetaAccess();
+  console.log("[ask/page] Beta access check:", { isAllowed });
 
-  useEffect(() => {
-    setQueryMode("fact-check");
-    console.log("[ask/page] Set queryMode to fact-check");
-  }, [setQueryMode]);
+  if (!isAllowed) {
+    console.log("[ask/page] Redirecting to beta-info");
+    redirect("/beta-info?reason=beta_access_denied");
+  }
 
   return (
     <SolanaProvider>
       <main
         className="min-h-screen bg-background"
         style={{
-          backgroundImage,
           backgroundSize: "cover",
           backgroundPosition: "center",
           backgroundAttachment: "fixed",

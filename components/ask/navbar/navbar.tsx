@@ -111,7 +111,12 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-            <Image src={logoSrc} alt="Logo" width={130} height={40} />
+            <Image
+              src={logoSrc}
+              alt="Logo"
+              width={130}
+              height={40}
+            />
           </Link>
         </div>
 

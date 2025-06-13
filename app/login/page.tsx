@@ -1,77 +1,142 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { getBaseUrl } from "@/lib/constants"; // Import the new function
+import { getBaseUrl } from "@/lib/constants";
 import Navbar from "@/components/ask/navbar/navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { toast } from "sonner";
+import { ArrowRight } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const betaSignupUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdIf4VDxZkQYJChBia-_kS7f0kxm-slwLozUVp0AzmFbT1JOg/viewform?usp=header";
 
-  // Handle email login (send one-time code)
+  useEffect(() => {
+    if (searchParams.get("reason") === "beta_access_denied") {
+      toast.error("Access restricted to beta testers", {
+        description: "Join the waitlist to get early access to our platform.",
+        duration: 5000,
+        action: {
+          label: "Join Waitlist",
+          onClick: () => window.open(betaSignupUrl, "_blank"),
+        },
+      });
+    }
+  }, [searchParams]);
+
   const handleEmailLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      // Debug cookies before OTP initiation
-      const cookiesBefore = document.cookie.split(";").map((c) => c.trim());
-      console.log("Client-side cookies before OTP initiation:", cookiesBefore);
+      console.log("[login] Cookies before OTP:", document.cookie.split(";").map((c) => c.trim()));
 
-      const { error } = await supabase.auth.signInWithOtp({
-        email,
-        options: {
-          emailRedirectTo: `${getBaseUrl()}/auth/callback`, // Dynamic URL
-        },
-      });
+      const redirectTo = `${getBaseUrl()}/auth/callback`;
+      console.log("[login] Email:", email, "RedirectTo:", redirectTo);
 
-      if (error) {
-        throw new Error(error.message || "Failed to send login code. Please check your email or try again.");
+      // Validate email
+      if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        throw new Error("Please enter a valid email address.");
       }
 
-      // Debug cookies after initiating OTP
-      const cookiesAfter = document.cookie.split(";").map((c) => c.trim());
-      console.log("Client-side cookies after OTP initiation:", cookiesAfter);
+      // Retry logic for signInWithOtp
+      let attempts = 0;
+      const maxAttempts = 3;
+      let lastError: Error | null = null;
 
+      while (attempts < maxAttempts) {
+        attempts++;
+        console.log(`[login] Attempt ${attempts} of ${maxAttempts} for signInWithOtp`);
+
+        try {
+          const { error } = await supabase.auth.signInWithOtp({
+            email,
+            options: {
+              emailRedirectTo: redirectTo,
+            },
+          });
+
+          if (error) {
+            console.error("[login] Supabase OTP error:", {
+              message: error.message,
+              name: error.name,
+              code: error.code,
+              status: error.status,
+              stack: error.stack,
+            });
+            lastError = error;
+            if (!error.message.includes("fetch") && error.code !== "429") {
+              throw error; // Non-retryable error
+            }
+          } else {
+            lastError = null;
+            break; // Success
+          }
+        } catch (err) {
+          lastError = err as Error;
+          console.error("[login] Fetch attempt error:", {
+            message: lastError.message,
+            name: lastError.name,
+            stack: lastError.stack,
+          });
+        }
+
+        if (attempts < maxAttempts) {
+          console.log(`[login] Retrying after 1s delay...`);
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+
+      if (lastError) {
+        throw lastError; // Throw the last error if all attempts fail
+      }
+
+      console.log("[login] Cookies after OTP:", document.cookie.split(";").map((c) => c.trim()));
       localStorage.setItem("signupEmail", email);
+      console.log("[login] Redirecting to /auth/verify");
       router.push("/auth/verify");
-    } catch (err: unknown) {
-      const error = err as Error;
-      setError(error.message || "Failed to send login code. Please try again.");
+    } catch (err) {
+      const error = err as Error & { code?: string; status?: number };
+      console.error("[login] Final error:", {
+        message: error.message,
+        name: error.name,
+        code: error.code,
+        status: error.status,
+        cause: error.cause,
+        stack: error.stack,
+      });
+
+      let userMessage = "Failed to send login code. Please try again.";
+      if (error.message.includes("fetch") || error.message.includes("AuthRetryableFetchError")) {
+        userMessage = "Network error connecting to authentication server. Please check your connection or try again later.";
+        if (navigator.userAgent.includes("Chrome")) {
+          toast.error("Login failed", {
+            description: "A browser extension (e.g., a crypto wallet) may be interfering. Try in incognito mode or disable extensions.",
+            duration: 10000,
+            action: {
+              label: "Learn More",
+              onClick: () => window.open("https://support.google.com/chrome/answer/95464", "_blank"),
+            },
+          });
+        }
+      } else if (error.code === "429") {
+        userMessage = "Too many requests. Please wait a minute and try again.";
+      } else if (error.message.includes("invalid")) {
+        userMessage = "Invalid email or configuration. Please check your email and try again.";
+      }
+      setError(userMessage);
       setLoading(false);
     }
   };
-
-  // Handle OAuth login (Google/GitHub)
-  // const handleOAuthLogin = async (provider: "google" | "github") => {
-  //   setLoading(true);
-  //   setError(null);
-
-  //   try {
-  //     const { error } = await supabase.auth.signInWithOAuth({
-  //       provider,
-  //       options: {
-  //         redirectTo: `${getBaseUrl()}/auth/callback`, // Dynamic URL
-  //       },
-  //     });
-
-  //     if (error) {
-  //       throw new Error(error.message || `Failed to log in with ${provider}. Please try again.`);
-  //     }
-  //   } catch (err: unknown) {
-  //     const error = err as Error;
-  //     setError(error.message || `Failed to log in with ${provider}. Please try again.`);
-  //     setLoading(false);
-  //   }
-  // };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
@@ -105,24 +170,18 @@ export default function LoginPage() {
               {loading ? "Sending..." : "Log In with Email"}
             </Button>
           </form>
-          {/* <div className="mt-6 space-y-4">
+          <div className="mt-6 space-y-4">
             <Button
+              asChild
               variant="outline"
-              onClick={() => handleOAuthLogin("google")}
-              disabled={loading}
               className="w-full border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200 cursor-pointer"
             >
-              Log In with Google
+              <a href={betaSignupUrl} target="_blank" rel="noopener noreferrer">
+                Request Beta Access
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </a>
             </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleOAuthLogin("github")}
-              disabled={loading}
-              className="w-full border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200 cursor-pointer"
-            >
-              Log In with GitHub
-            </Button>
-          </div> */}
+          </div>
         </div>
       </div>
     </div>
