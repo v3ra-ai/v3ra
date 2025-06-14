@@ -29,7 +29,6 @@ export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [, setIsLoggedIn] = useState(false);
-  const [isBetaTester, setIsBetaTester] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   // Handle hydration
@@ -37,44 +36,21 @@ export default function Navbar() {
     setMounted(true);
   }, []);
 
-  // Check login state and beta tester status
+  // Check login state
   useEffect(() => {
-    const checkSessionAndBetaStatus = async () => {
-      try {
-        const { data, error } = await supabase.auth.getSession();
-        if (error) {
-          console.error("Error checking session:", error.message);
-          setIsLoggedIn(false);
-          setIsBetaTester(false);
-          return;
-        }
-        const isLoggedIn = !!data.session;
-        setIsLoggedIn(isLoggedIn);
-
-        // Check beta tester status using environment variable
-        if (isLoggedIn && data.session?.user?.id) {
-          const betaTesters = process.env.NEXT_PUBLIC_BETA_TESTERS
-            ? JSON.parse(process.env.NEXT_PUBLIC_BETA_TESTERS)
-            : [];
-          const isBetaTester = betaTesters.includes(data.session.user.id);
-          setIsBetaTester(isBetaTester);
-          console.log("[Navbar] Beta tester check:", { userId: data.session.user.id, isBetaTester });
-        } else {
-          setIsBetaTester(false);
-        }
-      } catch {
-        console.error("Unexpected session or beta error");
-        setIsLoggedIn(false);
-        setIsBetaTester(false);
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) {
+        console.error("Error checking session:", error.message);
+        return;
       }
+      setIsLoggedIn(!!data.session);
     };
 
-    checkSessionAndBetaStatus();
+    checkSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state change:", { event, session });
       setIsLoggedIn(!!session);
-      setIsBetaTester(false); // Reset beta status, recheck in next effect cycle
     });
 
     return () => {
@@ -87,7 +63,7 @@ export default function Navbar() {
     const handleScroll = debounce(() => {
       setShowSearch(window.scrollY > 50);
       console.log("[Navbar] Scroll handled, showSearch:", window.scrollY > 50);
-    }, 100);
+    }, 100); // 100ms debounce
 
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
@@ -95,7 +71,7 @@ export default function Navbar() {
 
   // Add padding to body to prevent content overlap with fixed navbar
   useEffect(() => {
-    document.body.style.paddingTop = "80px";
+    document.body.style.paddingTop = "80px"; // Adjust based on navbar height
     return () => {
       document.body.style.paddingTop = "0";
     };
@@ -108,7 +84,7 @@ export default function Navbar() {
   };
 
   // Disable toggle on /credits due to forced light theme
-  const isCreditsPage = false;
+  const isCreditsPage = false; // Placeholder until pathname is used
 
   // Select logo based on theme, default to dark logo before mounting
   const logoSrc = !mounted || theme === "dark" ? "/verafy_swarmexplorer_white_beta.svg" : "/verafy_swarmexplorer_black_beta.svg";
@@ -160,9 +136,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {isBetaTester && (
-        <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
-      )}
+      <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
 
       {/* Mobile Menu Drawer */}
       <AnimatePresence>
