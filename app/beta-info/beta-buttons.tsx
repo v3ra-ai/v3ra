@@ -13,7 +13,7 @@ export default function BetaButtons({ isLoggedIn }: BetaButtonsProps) {
     "https://docs.google.com/forms/d/e/1FAIpQLSdIf4VDxZkQYJChBia-_kS7f0kxm-slwLozUVp0AzmFbT1JOg/viewform?usp=header";
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col space-y-4">
       <Button
         asChild
         className="w-full bg-teal-600 hover:bg-teal-700 dark:bg-teal-400 dark:hover:bg-teal-500 cursor-pointer"
@@ -23,6 +23,9 @@ export default function BetaButtons({ isLoggedIn }: BetaButtonsProps) {
           <ArrowRight className="ml-2 h-4 w-4" />
         </Link>
       </Button>
+      <div className="w-full justify-center">
+        <p className="text-xs text-center">* Requires approval to access the site</p>
+      </div>
       {!isLoggedIn && (
         <>
           <Button
