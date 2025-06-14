@@ -1,6 +1,6 @@
 "use client";
 
-import Navbar from "@/components/ask/navbar/navbar";
+import BetaNavbar from "./beta-navbar"; // Updated import
 import BetaButtons from "./beta-buttons";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
@@ -9,8 +9,7 @@ import { supabase } from "@/lib/supabase-client";
 
 export default function BetaInfoPage() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isInterfaceImageEnlarged, setIsInterfaceImageEnlarged] =
-    useState(false);
+  const [isInterfaceImageEnlarged, setIsInterfaceImageEnlarged] = useState(false);
   const [isLLMsImageEnlarged, setIsLLMsImageEnlarged] = useState(false);
   const [imageError, setImageError] = useState<string | null>(null);
 
@@ -61,7 +60,7 @@ export default function BetaInfoPage() {
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
+      <BetaNavbar />
       <div className="w-full max-w-2xl mx-auto p-6">
         <div className="p-8 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
           <h1 className="text-3xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-6">
