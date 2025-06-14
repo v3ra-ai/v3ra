@@ -160,7 +160,7 @@ export function PaymentControls({
                 Processing...
               </>
             ) : (
-              `Pay ${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} Dev SOL`
+              `Pay ${(queriesCostTotal * QUERY_COST).toFixed(QUERY_COST_FIXED_DECIMALS)} SOL`
             )}
           </button>
         </>
