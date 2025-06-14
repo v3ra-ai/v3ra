@@ -11,6 +11,12 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Skip beta access check for newrelic.js
+  if (pathname === "/newrelic.js") {
+    console.log("[middleware] Newrelic.js file, skipping beta check:", pathname);
+    return NextResponse.next();
+  }
+
   if (ALLOWED_PAGES.includes(pathname)) {
     console.log("[middleware] Allowed page, skipping beta check:", pathname);
     return NextResponse.next();
