@@ -13,6 +13,7 @@ import { ValidatorAdmin } from "@/components/explorer/validator-admin";
 import { ExplorerHeader } from "@/components/explorer/explorer-header";
 import { LoadingSpinner } from "@/components/loading-spinner";
 import { ErrorDisplay } from "@/components/error-display";
+import TopVotedResponses from "@/components/ask/consensus/top-voted-responses";
 import { useNetworkState } from "@/hooks/useNetworkState";
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
@@ -176,6 +177,18 @@ const Explorer: React.FC = () => {
               </div>
             </div>
           )}
+
+          <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
+            <div className="p-4 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center">
+                <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+                Community Voted Responses
+              </h2>
+            </div>
+            <div className="p-6">
+              <TopVotedResponses voteSessionId={lastVoteResult?.id} />
+            </div>
+          </div>
 
           <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
             <div className="p-4 border-b border-gray-200 dark:border-gray-800">
