@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
+import sanitizeHtml from "sanitize-html";
+import { validate as uuidValidate } from "uuid";
 
 interface ValidatorResponseWithVotes {
   id: string;
@@ -13,16 +15,64 @@ interface ValidatorResponseWithVotes {
   downvotes: number;
 }
 
+/**
+ * Sanitizes input string using sanitize-html to prevent XSS.
+ * @param input - The input string to sanitize.
+ * @returns A sanitized string, or empty string if input is null/undefined.
+ */
+function sanitizeInput(input: string | undefined | null): string {
+  if (!input) return "";
+  try {
+    return sanitizeHtml(input, {
+      allowedTags: [], // Disallow all HTML tags
+      allowedAttributes: {}, // Disallow all attributes
+    });
+  } catch (error) {
+    console.warn("sanitize-html failed:", error, "Input:", input);
+    return ""; // Return empty string on failure
+  }
+}
+
+/**
+ * Sanitizes error messages for safe logging.
+ * @param error - The error to sanitize.
+ * @returns A safe string representation of the error.
+ */
+function sanitizeError(error: unknown): string {
+  if (error instanceof Error) {
+    return `Error: ${sanitizeInput(error.message)}`;
+  }
+  return "Unknown error occurred";
+}
+
 export async function GET(
   request: NextRequest,
   context: { params: Promise<{ voteSessionId: string }> }
 ) {
   try {
     const params = await context.params;
-    const { voteSessionId } = params;
+    let { voteSessionId } = params;
     const url = new URL(request.url);
-    const limit = parseInt(url.searchParams.get("limit") || "2");
+    let limitParam = url.searchParams.get("limit") || "2";
 
+    // Sanitize and validate voteSessionId
+    voteSessionId = sanitizeInput(voteSessionId);
+    if (!voteSessionId || !uuidValidate(voteSessionId)) {
+      return NextResponse.json(
+        { error: "Invalid voteSessionId format" },
+        { status: 400 }
+      );
+    }
+
+    // Sanitize and validate limit
+    limitParam = sanitizeInput(limitParam);
+    const limit = Math.min(Math.max(parseInt(limitParam, 10) || 2, 1), 10);
+    if (isNaN(limit)) {
+      return NextResponse.json(
+        { error: "Invalid limit parameter" },
+        { status: 400 }
+      );
+    }
 
     // Get vote session with validator responses
     const voteSession = await prisma.voteSession.findUnique({
@@ -43,26 +93,28 @@ export async function GET(
       );
     }
 
-    // Since we don't have a direct voting mechanism on validator responses yet,
-    // we'll simulate it based on confidence scores and consensus matching
-    // In a real implementation, you would have a separate voting table for responses
-    
+    // Process validator responses with simulated voting
     const responsesWithVotes: ValidatorResponseWithVotes[] = voteSession.validatorResponses.map(
       (response) => {
-        // Simulate voting based on confidence and consensus matching
         const baseVotes = Math.floor(Math.random() * 100) + 1;
         const confidenceMultiplier = response.confidence || 0.5;
         const consensusBonus = response.matchedConsensus ? 1.5 : 0.8;
-        
-        const upvotes = Math.floor(baseVotes * confidenceMultiplier * consensusBonus);
-        const downvotes = Math.floor(baseVotes * (1 - confidenceMultiplier) * (response.matchedConsensus ? 0.5 : 1.2));
+
+        const upvotes = Math.floor(
+          baseVotes * confidenceMultiplier * consensusBonus
+        );
+        const downvotes = Math.floor(
+          baseVotes *
+            (1 - confidenceMultiplier) *
+            (response.matchedConsensus ? 0.5 : 1.2)
+        );
 
         return {
           id: response.id,
-          profileName: response.validator.profileName,
-          provider: response.validator.provider,
+          profileName: sanitizeInput(response.validator.profileName), // Sanitize database fields
+          provider: sanitizeInput(response.validator.provider),
           vote: response.vote,
-          rationale: response.rationale,
+          rationale: sanitizeInput(response.rationale),
           confidence: response.confidence,
           matchedConsensus: response.matchedConsensus,
           upvotes,
@@ -88,7 +140,7 @@ export async function GET(
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("Error fetching top responses:", error);
+    console.error("Error fetching top responses:", sanitizeError(error));
     return NextResponse.json(
       { error: "Failed to fetch top responses" },
       { status: 500 }
