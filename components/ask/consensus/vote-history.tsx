@@ -76,6 +76,11 @@ const VoteHistory = memo(() => {
       }
       debugLog("Fetching vote history via fetchVoteHistory, isInitialLoad:", isInitialLoad);
       const result = await fetchVoteHistory();
+      if (!result) {
+        debugLog("Fetch vote history returned undefined");
+        setVoteHistoryError("Failed to fetch vote history");
+        return;
+      }
       if ("error" in result) {
         debugLog("Fetch vote history failed:", result.error);
         setVoteHistoryError(formatErrorMessage(result.error));

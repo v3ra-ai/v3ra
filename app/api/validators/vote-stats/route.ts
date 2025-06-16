@@ -1,36 +1,118 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getValidatorVoteStats } from "@/lib/db/validators";
 import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
+import { validate as uuidValidate } from "uuid";
 
-export async function GET(req: NextRequest) {
-  const { searchParams } = new URL(req.url);
-  const validatorId = searchParams.get("validatorId");
-  const limit = searchParams.get("limit");
+function sanitizeInput(input: string | undefined | null): string {
+  if (!input) return "";
+  // Simple sanitization to remove potentially malicious characters
+  // Replace with sanitize-html if preferred
+  return input.replace(/[<>]/g, "");
+}
 
-  if (!validatorId || typeof validatorId !== "string") {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Invalid or missing validatorId:", validatorId);
-    }
-    return NextResponse.json({ error: "Invalid or missing validatorId" }, { status: 400 });
+function sanitizeError(error: unknown): string {
+  if (error instanceof Error) {
+    return `Error: ${sanitizeInput(error.message)}`;
   }
+  return "Unknown error occurred";
+}
 
+export async function GET(request: NextRequest) {
   try {
-    const parsedLimit = limit ? parseInt(limit) : RECENT_HISTORY_RESULTS;
-    if (isNaN(parsedLimit) && limit !== '') {
+    const { searchParams } = new URL(request.url);
+    const validatorId = searchParams.get("validatorId");
+    const validatorIds = searchParams.get("validatorIds");
+    const limitParam = searchParams.get("limit") || RECENT_HISTORY_RESULTS.toString();
+
+    // Sanitize and validate limit
+    const sanitizedLimit = sanitizeInput(limitParam);
+    const parsedLimit = parseInt(sanitizedLimit);
+    if (isNaN(parsedLimit) && sanitizedLimit !== "") {
       if (process.env.NODE_ENV === "development") {
-        console.error("Invalid limit parameter:", limit);
+        console.error("Invalid limit parameter:", limitParam);
       }
       return NextResponse.json({ error: "Invalid limit parameter" }, { status: 400 });
     }
-    // Enforce maximum limit of MAX_VOTE_HISTORY_RESULTS
-    const effectiveLimit = limit === '' || parsedLimit === 0 ? MAX_VOTE_HISTORY_RESULTS : Math.min(parsedLimit, MAX_VOTE_HISTORY_RESULTS);
-    if (process.env.NODE_ENV === "development") {
-      // console.log(`Fetching vote stats for validator ${validatorId} with limit: ${effectiveLimit}`);
+    const effectiveLimit =
+      sanitizedLimit === "" || parsedLimit === 0
+        ? MAX_VOTE_HISTORY_RESULTS
+        : Math.min(parsedLimit, MAX_VOTE_HISTORY_RESULTS);
+
+    // Handle single validatorId (for VoteHistoryTable)
+    if (validatorId) {
+      const sanitizedValidatorId = sanitizeInput(validatorId);
+      if (!sanitizedValidatorId || !uuidValidate(sanitizedValidatorId)) {
+        if (process.env.NODE_ENV === "development") {
+          console.error("Invalid or missing validatorId:", validatorId);
+        }
+        return NextResponse.json(
+          { error: "Invalid or missing validatorId" },
+          { status: 400 }
+        );
+      }
+
+      if (process.env.NODE_ENV === "development") {
+        console.log(
+          `Fetching vote stats for validator ${sanitizedValidatorId} with limit: ${effectiveLimit}`
+        );
+      }
+
+      const stats = await getValidatorVoteStats(sanitizedValidatorId, effectiveLimit);
+      return NextResponse.json(stats);
     }
-    const stats = await getValidatorVoteStats(validatorId, effectiveLimit);
-    return NextResponse.json(stats);
+
+    // Handle multiple validatorIds (for NetworkVisualization)
+    if (validatorIds) {
+      const sanitizedIds = sanitizeInput(validatorIds);
+      const validatorIdArray = sanitizedIds
+        .split(",")
+        .filter((id) => id && uuidValidate(id));
+
+      if (process.env.NODE_ENV === "development") {
+        console.log("Processed validator IDs:", validatorIdArray);
+      }
+
+      if (validatorIdArray.length === 0) {
+        if (process.env.NODE_ENV === "development") {
+          console.warn("No valid validator IDs provided, returning empty stats");
+        }
+        return NextResponse.json([]);
+      }
+
+      const statsPromises = validatorIdArray.map(async (id) => {
+        try {
+          const stats = await getValidatorVoteStats(id, effectiveLimit);
+          return {
+            validatorId: id,
+            totalVotes: stats.totalVotes || 0,
+            consensusMatchPercentage: stats.consensusMatchPercentage || 0,
+          };
+        } catch (error) {
+          if (process.env.NODE_ENV === "development") {
+            console.error(`Error fetching stats for validator ${id}:`, error);
+          }
+          return {
+            validatorId: id,
+            totalVotes: 0,
+            consensusMatchPercentage: 0,
+          };
+        }
+      });
+
+      const stats = await Promise.all(statsPromises);
+      return NextResponse.json(stats);
+    }
+
+    // No valid parameters provided
+    return NextResponse.json(
+      { error: "Must provide validatorId or validatorIds" },
+      { status: 400 }
+    );
   } catch (error) {
-    console.error(`Error fetching vote stats for validator ${validatorId}:`, error);
-    return NextResponse.json({ error: `Internal server error: ${error instanceof Error ? error.message : 'Unknown error'}` }, { status: 500 });
+    console.error("Error fetching vote stats:", sanitizeError(error));
+    return NextResponse.json(
+      { error: "Failed to fetch vote stats" },
+      { status: 500 }
+    );
   }
 }

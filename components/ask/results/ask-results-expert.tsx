@@ -15,6 +15,7 @@ import {
   sanitizeValidatorResponse,
 } from "@/utils/security-utils";
 import StakingAreaStacked from "@/components/ask/charts/staking-area-stacked";
+import TopVotedResponses from "@/components/ask/consensus/top-voted-responses";
 
 export const VoteResultContext = createContext<VoteResult | null>(null);
 
@@ -66,6 +67,9 @@ export default function AskResultsExpert() {
           </div>
           <div>
             <ValidatorResults />
+          </div>
+          <div>
+            <TopVotedResponses voteSessionId={sanitizedVoteResult?.id} />
           </div>
           <div>
             <ValidatorVoteHistory />
