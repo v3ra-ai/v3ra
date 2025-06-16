@@ -17,6 +17,7 @@ export default function LoginClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const betaSignupUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdIf4VDxZkQYJChBia-_kS7f0kxm-slwLozUVp0AzmFbT1JOg/viewform?usp=header";
+  const returnTo = searchParams.get("returnTo") || null;
 
   useEffect(() => {
     if (searchParams.get("reason") === "beta_access_denied") {
@@ -101,6 +102,12 @@ export default function LoginClient() {
 
       console.log("[login] Cookies after OTP:", document.cookie.split(";").map((c) => c.trim()));
       localStorage.setItem("signupEmail", email);
+      
+      // Store the return URL if provided
+      if (returnTo) {
+        localStorage.setItem("authReturnTo", returnTo);
+      }
+      
       console.log("[login] Redirecting to /auth/verify");
       router.push("/auth/verify");
     } catch (err) {

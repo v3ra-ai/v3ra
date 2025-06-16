@@ -25,9 +25,12 @@ export default async function AdminLayout({
       throw new AuthError(error.message, error.status);
     }
 
-    // If no user is authenticated or no email, redirect to login
+    // If no user is authenticated or no email, redirect to login with return URL
     if (!user || !user.email) {
-      redirect("/login?error=" + encodeURIComponent("Please log in to access this page."));
+      const loginUrl = new URL("/login", process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000");
+      loginUrl.searchParams.set("error", "Please log in to access this page.");
+      loginUrl.searchParams.set("returnTo", "/admin");
+      redirect(loginUrl.toString());
     }
 
     // Explicitly type the user for clarity
@@ -35,8 +38,10 @@ export default async function AdminLayout({
 
     // Check if the user's email is in the allowed list
     if (!ADMIN_EMAILS.includes(typedUser.email as typeof ADMIN_EMAILS[number])) {
+      console.log("[AdminLayout] User not authorized:", typedUser.email);
+      console.log("[AdminLayout] Admin emails:", ADMIN_EMAILS);
       redirect(
-        "/login?error=" +
+        "/?error=" +
           encodeURIComponent("You are not authorized to access this page.")
       );
     }

@@ -65,8 +65,16 @@ export default function AuthCallback() {
             throw new Error("No user returned from createOrGetUser.");
           }
 
-          console.log("Redirecting to profile:", `/users/profile/${result.user.id}`);
-          router.push(`/users/profile/${result.user.id}`);
+          // Check for stored return URL
+          const returnTo = localStorage.getItem("authReturnTo");
+          if (returnTo) {
+            localStorage.removeItem("authReturnTo");
+            console.log("Redirecting to stored return URL:", returnTo);
+            router.push(returnTo);
+          } else {
+            console.log("Redirecting to profile:", `/users/profile/${result.user.id}`);
+            router.push(`/users/profile/${result.user.id}`);
+          }
           return; // Exit on success
         } catch (err: unknown) {
           attempts++;
@@ -79,8 +87,16 @@ export default function AuthCallback() {
             const { data } = await supabase.auth.getSession();
             const user = data.session?.user;
             if (user) {
-              console.log("Redirecting to profile for existing user:", `/users/profile/${user.id}`);
-              router.push(`/users/profile/${user.id}`);
+              // Check for stored return URL for existing users too
+              const returnTo = localStorage.getItem("authReturnTo");
+              if (returnTo) {
+                localStorage.removeItem("authReturnTo");
+                console.log("Redirecting existing user to stored return URL:", returnTo);
+                router.push(returnTo);
+              } else {
+                console.log("Redirecting to profile for existing user:", `/users/profile/${user.id}`);
+                router.push(`/users/profile/${user.id}`);
+              }
               return; // Exit without retry
             }
             throw new Error("Failed to fetch existing user session.");
