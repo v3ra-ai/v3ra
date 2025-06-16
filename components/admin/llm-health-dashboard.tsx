@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -9,8 +9,7 @@ import {
   Activity, 
   AlertTriangle, 
   CheckCircle, 
-  XCircle, 
-  Clock,
+  XCircle,
   Zap,
   TrendingDown,
   Info
@@ -18,7 +17,6 @@ import {
 import { Progress } from '@/components/ui/progress';
 import { LLMProviderCard } from './llm-provider-card';
 import { LLMAlertPanel } from './llm-alert-panel';
-import { cn } from '@/lib/utils';
 
 interface ProviderHealthSummary {
   provider: string;
@@ -43,7 +41,11 @@ interface SystemHealthReport {
   overallScore: number;
   providers: ProviderHealthSummary[];
   activeIssues: ModelDeprecationAlert[];
-  recentProbes: any[];
+  recentProbes: Array<{
+    provider: string;
+    model: string;
+    status: string;
+  }>;
 }
 
 export function LLMHealthDashboard() {
@@ -112,7 +114,7 @@ export function LLMHealthDashboard() {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, { variant: any; icon: JSX.Element }> = {
+    const variants: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: React.ReactElement }> = {
       healthy: { variant: 'default', icon: <CheckCircle className="h-3 w-3" /> },
       degraded: { variant: 'secondary', icon: <TrendingDown className="h-3 w-3" /> },
       deprecated: { variant: 'destructive', icon: <AlertTriangle className="h-3 w-3" /> },
@@ -168,7 +170,7 @@ export function LLMHealthDashboard() {
             disabled={isRefreshing}
             size="sm"
           >
-            <RefreshCw className={cn("h-4 w-4 mr-2", isRefreshing && "animate-spin")} />
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`} />
             Run Health Check
           </Button>
         </div>
@@ -190,7 +192,7 @@ export function LLMHealthDashboard() {
             <div>
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium">Overall Health</span>
-                <span className={cn("text-2xl font-bold", getHealthColor(healthReport.overallScore))}>
+                <span className={`text-2xl font-bold ${getHealthColor(healthReport.overallScore)}`}>
                   {healthReport.overallScore}%
                 </span>
               </div>
@@ -204,12 +206,11 @@ export function LLMHealthDashboard() {
                 <button
                   key={provider.provider}
                   onClick={() => setSelectedProvider(provider.provider)}
-                  className={cn(
-                    "w-full text-left p-3 rounded-lg border transition-colors",
+                  className={`w-full text-left p-3 rounded-lg border transition-colors ${
                     selectedProvider === provider.provider
                       ? "border-primary bg-primary/5"
                       : "border-muted hover:border-muted-foreground/50"
-                  )}
+                  }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-medium">{provider.provider}</span>

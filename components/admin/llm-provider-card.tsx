@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   X, 
-  Clock, 
   Activity,
   AlertTriangle,
   CheckCircle,
@@ -45,10 +44,6 @@ export function LLMProviderCard({ provider, onClose }: LLMProviderCardProps) {
   const [models, setModels] = useState<ModelHealth[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    fetchProviderModels();
-  }, [provider]);
-
   const fetchProviderModels = async () => {
     try {
       const response = await fetch(`/api/admin/llm-health/models?provider=${provider}`);
@@ -62,6 +57,11 @@ export function LLMProviderCard({ provider, onClose }: LLMProviderCardProps) {
       setIsLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProviderModels();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [provider]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -79,7 +79,7 @@ export function LLMProviderCard({ provider, onClose }: LLMProviderCardProps) {
   };
 
   const getStatusBadge = (status: string) => {
-    const variants: Record<string, any> = {
+    const variants: Record<string, 'default' | 'secondary' | 'destructive' | 'outline'> = {
       healthy: 'default',
       degraded: 'secondary',
       deprecated: 'destructive',

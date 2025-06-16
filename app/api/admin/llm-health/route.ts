@@ -1,8 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
 import LLMHealthService from '@/lib/services/llm-health-service';
-
-const prisma = new PrismaClient();
 
 export async function GET() {
   try {

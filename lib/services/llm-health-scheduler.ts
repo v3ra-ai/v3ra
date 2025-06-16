@@ -96,7 +96,22 @@ export class LLMHealthScheduler {
  */
 export async function handleCronHealthCheck(): Promise<{
   success: boolean;
-  summary?: any;
+  summary?: {
+    timestamp: string;
+    total: number;
+    healthy: number;
+    degraded: number;
+    deprecated: number;
+    offline: number;
+    issues: Array<{
+      provider: string;
+      model: string;
+      status: string;
+      latency?: number;
+      error?: string;
+      httpStatus?: number;
+    }>;
+  };
   error?: string;
 }> {
   try {

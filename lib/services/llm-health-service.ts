@@ -1,5 +1,5 @@
 import { PrismaClient, LLMHealthStatus, Prisma } from '@prisma/client';
-import { ValidatorProvider } from '../validators/base';
+import { AIValidator } from '../validators/types';
 import { OpenAIValidator } from '../validators/providers/openai';
 import { AnthropicValidator } from '../validators/providers/anthropic';
 import { GeminiValidator } from '../validators/providers/gemini';
@@ -71,7 +71,6 @@ export class LLMHealthService {
     // Group by provider and model
     const modelGroups = new Map<string, Set<string>>();
     activeValidators.forEach(validator => {
-      const key = `${validator.provider}:${validator.modelName}`;
       if (!modelGroups.has(validator.provider)) {
         modelGroups.set(validator.provider, new Set());
       }
@@ -184,7 +183,7 @@ export class LLMHealthService {
   /**
    * Get a validator instance for testing
    */
-  private async getValidatorInstance(provider: string, modelName: string): Promise<ValidatorProvider | null> {
+  private async getValidatorInstance(provider: string, modelName: string): Promise<AIValidator | null> {
     // Get the first active validator for this provider/model
     const validator = await prisma.validator.findFirst({
       where: {
@@ -205,27 +204,30 @@ export class LLMHealthService {
     const apiKeyRelation = validator.apiKeys.find(k => k.apiKey.isActive);
     if (!apiKeyRelation) return null;
 
-    const dbValidator = {
-      ...validator,
-      apiKeyId: apiKeyRelation.apiKeyId
+    const validatorOptions = {
+      id: validator.id,
+      name: validator.profileName,
+      modelName: validator.modelName,
+      active: validator.active,
+      keyId: apiKeyRelation.apiKeyId
     };
 
     // Create validator instance based on provider
     switch (provider.toLowerCase()) {
       case 'openai':
-        return new OpenAIValidator(dbValidator);
+        return new OpenAIValidator(validatorOptions);
       case 'anthropic':
-        return new AnthropicValidator(dbValidator);
+        return new AnthropicValidator(validatorOptions);
       case 'gemini':
       case 'google':
-        return new GeminiValidator(dbValidator);
+        return new GeminiValidator(validatorOptions);
       case 'openrouter':
-        return new OpenRouterValidator(dbValidator);
+        return new OpenRouterValidator(validatorOptions);
       case 'huggingface':
-        return new HuggingFaceValidator(dbValidator);
+        return new HuggingFaceValidator(validatorOptions);
       case 'grok':
       case 'xai':
-        return new GrokValidator(dbValidator);
+        return new GrokValidator(validatorOptions);
       default:
         return null;
     }

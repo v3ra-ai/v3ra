@@ -76,7 +76,7 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
       init(mapped);
       initializedRef.current = true;
     }
-  }, [initial, init]);
+  }, [initial, init, llms]);
 
   useEffect(() => {
     console.log("[ManageLLMs] Store llms after init:", llms);

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, LLMHealthStatus } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -12,9 +12,12 @@ export async function GET(request: NextRequest) {
     console.log('[API] Getting model-specific health data', { provider, status });
     
     // Build where clause
-    const where: any = {};
+    const where: {
+      providerName?: string;
+      status?: LLMHealthStatus;
+    } = {};
     if (provider) where.providerName = provider;
-    if (status) where.status = status;
+    if (status) where.status = status as LLMHealthStatus;
     
     // Get model health metrics with detailed info
     const models = await prisma.lLMHealthMetric.findMany({
