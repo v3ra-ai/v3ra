@@ -50,14 +50,18 @@ export function ValidatorHealthCheck({
 
     try {
       console.log("[ValidatorHealthCheck] Fetching /api/admin/health-check");
-      const response = await fetch("/api/admin/health-check");
-      const data = await response.json();
+      const response = await fetch("/api/admin/health-check", {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
       if (!response.ok) {
-        console.error("[ValidatorHealthCheck] Health check failed:", data);
-        throw new Error(data.message || `HTTP error: ${response.status}`);
+        throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
       }
-
+      
+      const data = await response.json();
       console.log("[ValidatorHealthCheck] Health check successful:", data);
       setHealth(data);
 
@@ -68,23 +72,12 @@ export function ValidatorHealthCheck({
     } catch (err) {
       console.error("[ValidatorHealthCheck] Failed to check validator health:", err);
       
-      // Type guard to check if error is an instance of Error
-      const error = err as Error & {
-        response?: {
-          data?: {
-            error?: Record<string, unknown>;
-          };
-        };
-      };
-      
-      const errorMessage = error.message || 'Unknown error';
-      const errorDetails = error?.response?.data?.error || {};
+      const errorMessage = err instanceof Error ? err.message : 'Network error occurred';
       
       setHealth({
         status: "error",
         message: errorMessage,
         details: {
-          ...errorDetails,
           apiKeysCount: 0,
           activeValidatorsCount: 0,
           validatorsWithKeysCount: 0,

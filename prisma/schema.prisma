@@ -234,3 +234,66 @@ model Favorite {
   @@unique([user_id, vote_session_id])
   @@index([user_id])
 }
+
+enum LLMHealthStatus {
+  healthy
+  degraded
+  deprecated
+  offline
+}
+
+model LLMHealthMetric {
+  id               String          @id @default(uuid())
+  providerName     String          @db.VarChar(50)
+  modelName        String          @db.VarChar(100)
+  status           LLMHealthStatus @default(healthy)
+  errorRate        Decimal?        @db.Decimal(5, 2)
+  avgLatency       Int?
+  successRate      Decimal?        @db.Decimal(5, 2)
+  lastSuccessAt    DateTime?
+  lastErrorAt      DateTime?
+  lastErrorMessage String?
+  totalRequests    Int             @default(0)
+  failedRequests   Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+
+  @@unique([providerName, modelName])
+  @@index([providerName, modelName])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model ModelDeprecationAlert {
+  id                 String    @id @default(uuid())
+  modelName          String    @db.VarChar(100)
+  providerName       String    @db.VarChar(50)
+  deprecatedAt       DateTime
+  replacementModel   String?   @db.VarChar(100)
+  alertSent          Boolean   @default(false)
+  resolvedAt         DateTime?
+  errorSample        String?
+  affectedValidators Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  @@index([alertSent])
+  @@index([resolvedAt])
+  @@index([providerName, modelName])
+}
+
+model LLMHealthProbe {
+  id             String   @id @default(uuid())
+  providerName   String   @db.VarChar(50)
+  modelName      String   @db.VarChar(100)
+  probeType      String   @db.VarChar(50)
+  success        Boolean
+  responseTimeMs Int?
+  errorMessage   String?
+  httpStatus     Int?
+  testedAt       DateTime @default(now())
+
+  @@index([providerName, modelName])
+  @@index([testedAt])
+  @@index([success])
+}

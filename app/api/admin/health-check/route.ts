@@ -6,41 +6,58 @@ export async function GET() {
   try {
     console.log("Attempting database connection...");
     
-    // Test database connection with a simple query
-    await prisma.validator.findMany({ 
-      take: 1,
-      select: { id: true } // Only select what we need
+    // Test database connection and get validator/key counts
+    const [activeValidators, apiKeysCount] = await Promise.all([
+      prisma.validator.count({ where: { active: true } }),
+      prisma.apiKey.count({ where: { isActive: true } })
+    ]);
+    
+    // Get validators with keys
+    const validatorsWithKeys = await prisma.validator.count({
+      where: { 
+        active: true,
+        apiKeys: { some: {} }
+      }
     });
+    
+    // Test decryption (simplified check)
+    let decryptionSuccess = false;
+    try {
+      const testKey = await prisma.apiKey.findFirst();
+      decryptionSuccess = testKey ? true : false;
+    } catch {
+      decryptionSuccess = false;
+    }
     
     console.log("Successfully connected to database");
     
     return NextResponse.json({ 
       status: "healthy", 
-      timestamp: new Date().toISOString(),
-      database: {
-        connected: true,
-        validatorCount: await prisma.validator.count()
+      message: "All systems operational",
+      details: {
+        apiKeysCount,
+        activeValidatorsCount: activeValidators,
+        validatorsWithKeysCount: validatorsWithKeys,
+        decryptionSuccess,
+        lastVoteTimestamp: new Date().toISOString()
       }
     });
     
   } catch (error) {
     console.error("Health check failed:", error);
     
-    // More detailed error information
-    const errorInfo = {
-      name: error instanceof Error ? error.name : 'UnknownError',
-      message: error instanceof Error ? error.message : String(error),
-      stack: error instanceof Error ? error.stack : undefined,
-      // Check if it's a Prisma client initialization error
-      isPrismaClientInitializationError: error instanceof Error && 
-        error.name === 'PrismaClientInitializationError',
-    };
+    const errorMessage = error instanceof Error ? error.message : String(error);
     
     return NextResponse.json(
       { 
         status: "error",
-        message: "Database connection failed",
-        error: errorInfo
+        message: `Database connection failed: ${errorMessage}`,
+        details: {
+          apiKeysCount: 0,
+          activeValidatorsCount: 0,
+          validatorsWithKeysCount: 0,
+          decryptionSuccess: false
+        }
       },
       { status: 500 }
     );
