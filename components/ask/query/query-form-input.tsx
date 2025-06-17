@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dispatch, ReactNode, SetStateAction } from "react";
@@ -111,17 +111,17 @@ interface QueryFormInputProps {
   allowedAmountQueries: number;
 }
 
-export function QueryFormInput({
+const QueryFormInputComponent = function QueryFormInput({
   queryText,
   setQueryText,
   placeholderText,
   handleSubmit,
   isSubmitting,
   payWithWallet: _payWithWallet,
-  queriesUnpaid,
+  queriesUnpaid: _queriesUnpaid,
   queriesCostTotal,
-  userFreeCredits,
-  userPaidCredits,
+  userFreeCredits: _userFreeCredits,
+  userPaidCredits: _userPaidCredits,
   userCreditsTotal: _userCreditsTotal,
   isSubmitInteracted,
   setIsSubmitInteracted,
@@ -147,10 +147,10 @@ export function QueryFormInput({
   // Sync queriesRequested with selectedLLMCount on mount
   useEffect(() => {
     if (hasSelectedLLMs && queriesRequested !== selectedLLMCount) {
-      console.log("[QueryFormInput] Syncing queriesRequested with selectedLLMCount on mount:", {
-        selectedLLMCount,
-        queriesRequested,
-      });
+      // console.log("[QueryFormInput] Syncing queriesRequested with selectedLLMCount on mount:", {
+      //   selectedLLMCount,
+      //   queriesRequested,
+      // });
       setQueriesRequested(selectedLLMCount, totalCredits);
     }
   }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested, totalCredits]);
@@ -210,20 +210,20 @@ export function QueryFormInput({
   };
 
   const onSubmit = () => {
-    console.log("[QueryFormInput] onSubmit called:", {
-      queryText,
-      displayUnpaid,
-      isSubmitting,
-      queriesUnpaid,
-      queriesCostTotal,
-      totalCredits,
-      userPaidCredits,
-      userFreeCredits,
-      queriesRequested,
-      queryMode,
-      creditsLeft: Math.max(0, totalCredits - queriesRequested),
-      selectedLLMCount,
-    });
+    // console.log("[QueryFormInput] onSubmit called:", {
+    //   queryText,
+    //   displayUnpaid,
+    //   isSubmitting,
+    //   queriesUnpaid,
+    //   queriesCostTotal,
+    //   totalCredits,
+    //   userPaidCredits,
+    //   userFreeCredits,
+    //   queriesRequested,
+    //   queryMode,
+    //   creditsLeft: Math.max(0, totalCredits - queriesRequested),
+    //   selectedLLMCount,
+    // });
 
     const creditsLeft = Math.max(0, totalCredits - queriesRequested);
     if (creditsLeft < queriesCostTotal) {
@@ -268,33 +268,42 @@ export function QueryFormInput({
     }
   }, [isSubmitting, queryMode, cancelTimer]);
 
-  const creditsLeft = Math.max(0, totalCredits - queriesRequested);
-  const isSubmitDisabled = isSubmitting || creditsLeft < queriesCostTotal || (hasSelectedLLMs && queriesRequested > selectedLLMCount);
+  const creditsLeft = useMemo(
+    () => Math.max(0, totalCredits - queriesRequested),
+    [totalCredits, queriesRequested]
+  );
+  
+  const isSubmitDisabled = useMemo(
+    () => isSubmitting || creditsLeft < queriesCostTotal || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
+    [isSubmitting, creditsLeft, queriesCostTotal, hasSelectedLLMs, queriesRequested, selectedLLMCount]
+  );
 
-  const displayedQueryCost = Math.max(0, queriesRequested - userFreeCredits);
+  // Note: displayedQueryCost was previously calculated but not used
+  // Removed to fix unused variable warning
 
-  console.log("[QueryFormInput] render:", {
-    isSubmitting,
-    displayUnpaid,
-    totalCredits,
-    queriesCostTotal,
-    displayedQueryCost,
-    queriesRequested,
-    creditsLeft,
-    isSubmitDisabled,
-    userPaidCredits,
-    userFreeCredits,
-    queryMode,
-    buttonText,
-    selectedLLMCount,
-    disableReason: isSubmitDisabled
-      ? {
-          isSubmitting,
-          insufficientCreditsLeft: creditsLeft < queriesCostTotal,
-          queriesExceedSelected: hasSelectedLLMs && queriesRequested > selectedLLMCount,
-        }
-      : "none",
-  });
+  // Commenting out render logging for performance
+  // console.log("[QueryFormInput] render:", {
+  //   isSubmitting,
+  //   displayUnpaid,
+  //   totalCredits,
+  //   queriesCostTotal,
+  //   displayedQueryCost,
+  //   queriesRequested,
+  //   creditsLeft,
+  //   isSubmitDisabled,
+  //   userPaidCredits,
+  //   userFreeCredits,
+  //   queryMode,
+  //   buttonText,
+  //   selectedLLMCount,
+  //   disableReason: isSubmitDisabled
+  //     ? {
+  //         isSubmitting,
+  //         insufficientCreditsLeft: creditsLeft < queriesCostTotal,
+  //         queriesExceedSelected: hasSelectedLLMs && queriesRequested > selectedLLMCount,
+  //       }
+  //     : "none",
+  // });
 
   return (
     <div>
@@ -370,4 +379,6 @@ export function QueryFormInput({
       </ManageLLMsDialog>
     </div>
   );
-}
+};
+
+export { QueryFormInputComponent as QueryFormInput };

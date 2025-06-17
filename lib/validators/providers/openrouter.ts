@@ -3,6 +3,7 @@ import type { QueryMode } from "@/lib/types";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
 import { getAdapter } from "../modeAdapters";
+import { keyService } from "../../services/keyService";
 
 export class OpenRouterValidator implements AIValidator {
   id: string;
@@ -10,7 +11,7 @@ export class OpenRouterValidator implements AIValidator {
   provider = "OpenRouter"; // Ensure this matches the string used in the database and registry
   modelName: string;
   active: boolean;
-  private apiKey: string;
+  keyId?: string;
   queryMode: QueryMode; // Keep as QueryMode for type safety
 
   constructor(opts: {
@@ -19,29 +20,42 @@ export class OpenRouterValidator implements AIValidator {
     modelName: string;
     active: boolean;
     queryMode?: QueryMode;
+    keyId?: string;
   }) {
     this.id = opts.id;
     this.name = opts.name;
     this.modelName = opts.modelName;
     this.active = opts.active;
     this.queryMode = opts.queryMode || "fact-check"; // Default to factCheck
+    this.keyId = opts.keyId;
+  }
 
-    const envApiKey = process.env.OPENROUTER_API_KEY;
-    if (!envApiKey) {
-      console.error(
-        "CRITICAL: OPENROUTER_API_KEY is not set in environment variables."
-      );
-      throw new Error(
-        "OPENROUTER_API_KEY is not set in environment variables."
-      );
+  /**
+   * Get an API key for this validator
+   */
+  private async getApiKey(): Promise<string | null> {
+    // Use environment variable directly instead of key service
+    const envKey = process.env.OPENROUTER_API_KEY;
+    if (envKey) {
+      console.log("Using OpenRouter API key from environment variable");
+      return envKey;
     }
-    this.apiKey = envApiKey;
+
+    console.log("Environment variable not found, falling back to key service");
+
+    // Fall back to key service only if env variable isn't available
+    if (this.keyId) {
+      const key = await keyService.getKeyValue(this.keyId);
+      if (key) return key;
+    }
+
+    return keyService.getFirstActiveKeyForProvider("OpenRouter");
   }
 
   async validate(req: ValidationRequest): Promise<AIValidationResponse> {
-    if (!this.apiKey) {
-      // This case should ideally be prevented by the constructor check,
-      // but as a safeguard:
+    // Get API key dynamically
+    const apiKey = await this.getApiKey();
+    if (!apiKey) {
       console.error(
         "OpenRouterValidator: API key is missing. Cannot validate."
       );
@@ -78,7 +92,7 @@ export class OpenRouterValidator implements AIValidator {
         {
           method: "POST",
           headers: {
-            Authorization: `Bearer ${this.apiKey}`,
+            Authorization: `Bearer ${apiKey}`,
             "Content-Type": "application/json",
             // Optional: Add other headers OpenRouter might recommend
             // "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL, // Your site URL

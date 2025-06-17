@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getValidatorVoteStats } from "@/lib/db/validators";
 import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "@/lib/constants";
 import { validate as uuidValidate } from "uuid";
+import { voteStatsCache } from "@/lib/cache/internal-cache";
 
 function sanitizeInput(input: string | undefined | null): string {
   if (!input) return "";
@@ -57,7 +58,22 @@ export async function GET(request: NextRequest) {
         );
       }
 
+      // Check cache first
+      const cacheKey = `vote-stats:${sanitizedValidatorId}:${effectiveLimit}`;
+      const cachedStats = voteStatsCache.get(cacheKey);
+      
+      if (cachedStats) {
+        if (process.env.NODE_ENV === "development") {
+          console.log(`Returning cached stats for validator ${sanitizedValidatorId}`);
+        }
+        return NextResponse.json(cachedStats);
+      }
+      
       const stats = await getValidatorVoteStats(sanitizedValidatorId, effectiveLimit);
+      
+      // Cache for 60 seconds
+      voteStatsCache.set(cacheKey, stats, 60);
+      
       return NextResponse.json(stats);
     }
 
@@ -79,9 +95,36 @@ export async function GET(request: NextRequest) {
         return NextResponse.json([]);
       }
 
+      // Check if we have all stats in cache
+      const batchCacheKey = `vote-stats-batch:${sanitizedIds}:${effectiveLimit}`;
+      const cachedBatch = voteStatsCache.get(batchCacheKey);
+      
+      if (cachedBatch) {
+        if (process.env.NODE_ENV === "development") {
+          console.log("Returning cached batch stats");
+        }
+        return NextResponse.json(cachedBatch);
+      }
+      
       const statsPromises = validatorIdArray.map(async (id) => {
         try {
+          // Check individual cache first
+          const cacheKey = `vote-stats:${id}:${effectiveLimit}`;
+          const cachedStats = voteStatsCache.get(cacheKey);
+          
+          if (cachedStats && !Array.isArray(cachedStats)) {
+            return {
+              validatorId: id,
+              totalVotes: cachedStats.totalVotes || 0,
+              consensusMatchPercentage: cachedStats.consensusMatchPercentage || 0,
+            };
+          }
+          
           const stats = await getValidatorVoteStats(id, effectiveLimit);
+          
+          // Cache individual stats
+          voteStatsCache.set(cacheKey, stats, 60);
+          
           return {
             validatorId: id,
             totalVotes: stats.totalVotes || 0,
@@ -100,6 +143,10 @@ export async function GET(request: NextRequest) {
       });
 
       const stats = await Promise.all(statsPromises);
+      
+      // Cache batch result
+      voteStatsCache.set(batchCacheKey, stats, 60);
+      
       return NextResponse.json(stats);
     }
 
