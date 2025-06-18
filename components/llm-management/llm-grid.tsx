@@ -21,9 +21,6 @@ export default function LLMGrid() {
   const { llms, activeProvider, search, sort, showPinned, activeCategory, categories } = useLLMStore();
 
   const filtered = useMemo(() => {
-    console.log("[LLMGrid] All LLM IDs:", llms.map((l) => ({ id: l.id, name: l.name, enabled: l.enabled })));
-    console.log("[LLMGrid] Active provider:", activeProvider);
-
     let list = [...llms];
 
     if (activeCategory) {

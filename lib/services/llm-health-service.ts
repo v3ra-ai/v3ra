@@ -96,6 +96,9 @@ export class LLMHealthService {
     // Check for deprecations
     await this.detectDeprecatedModels(results);
 
+    // Clean up orphaned health metrics
+    await this.cleanupOrphanedMetrics();
+
     return results;
   }
 
@@ -130,16 +133,19 @@ export class LLMHealthService {
       if (response.error) {
         // Check if it's a deprecation error
         const errorMessage = response.error.toLowerCase();
+        const httpStatus = this.extractHttpStatus(response.error);
+        
         if (errorMessage.includes('deprecated') || 
             errorMessage.includes('not a valid model') ||
-            errorMessage.includes('model not found')) {
+            errorMessage.includes('model not found') ||
+            httpStatus === 400) {
           return {
             provider,
             model: modelName,
             status: 'deprecated',
             error: response.error,
             latency,
-            httpStatus: this.extractHttpStatus(response.error)
+            httpStatus
           };
         }
 
@@ -148,7 +154,8 @@ export class LLMHealthService {
           model: modelName,
           status: 'offline',
           error: response.error,
-          latency
+          latency,
+          httpStatus
         };
       }
 
@@ -381,9 +388,26 @@ export class LLMHealthService {
    * Get system health report
    */
   async getSystemHealthReport(): Promise<SystemHealthReport> {
+    // Get all active validators to filter metrics
+    const activeValidators = await prisma.validator.findMany({
+      where: { active: true },
+      select: { provider: true, modelName: true }
+    });
+    
+    // Create a set of active provider:model combinations
+    const activeModels = new Set(
+      activeValidators.map(v => `${v.provider}:${v.modelName}`)
+    );
+    
     // Get all health metrics
-    const metrics = await prisma.lLMHealthMetric.findMany({
+    const allMetrics = await prisma.lLMHealthMetric.findMany({
       orderBy: { updatedAt: 'desc' }
+    });
+    
+    // Filter to only show metrics for active validators
+    const metrics = allMetrics.filter(metric => {
+      const key = `${metric.providerName}:${metric.modelName}`;
+      return activeModels.has(key);
     });
 
     // Get active alerts
@@ -540,6 +564,60 @@ export class LLMHealthService {
     };
 
     return fasterAlternatives[provider.toLowerCase()]?.[modelName] || 'Consider using a smaller model variant';
+  }
+
+  /**
+   * Clean up orphaned health metrics
+   */
+  private async cleanupOrphanedMetrics(): Promise<void> {
+    console.log('[LLM Health] Cleaning up orphaned health metrics...');
+    
+    try {
+      // Get all active validators
+      const activeValidators = await prisma.validator.findMany({
+        where: { active: true },
+        select: { provider: true, modelName: true }
+      });
+
+      // Create a set of active provider:model combinations
+      const activeModels = new Set(
+        activeValidators.map(v => `${v.provider}:${v.modelName}`)
+      );
+
+      // Get all health metrics
+      const allMetrics = await prisma.lLMHealthMetric.findMany();
+      
+      // Identify orphaned metrics
+      const orphanedMetrics = allMetrics.filter(metric => {
+        const key = `${metric.providerName}:${metric.modelName}`;
+        return !activeModels.has(key);
+      });
+
+      if (orphanedMetrics.length > 0) {
+        console.log(`[LLM Health] Found ${orphanedMetrics.length} orphaned metrics to clean up`);
+        
+        // Delete orphaned metrics
+        for (const metric of orphanedMetrics) {
+          await prisma.lLMHealthMetric.delete({
+            where: { id: metric.id }
+          });
+          console.log(`[LLM Health] Cleaned up orphaned metric: ${metric.providerName}/${metric.modelName}`);
+        }
+        
+        // Also clean up related probes
+        for (const metric of orphanedMetrics) {
+          await prisma.lLMHealthProbe.deleteMany({
+            where: {
+              providerName: metric.providerName,
+              modelName: metric.modelName
+            }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('[LLM Health] Error cleaning up orphaned metrics:', error);
+      // Don't throw - we don't want cleanup failures to break health checks
+    }
   }
 }
 

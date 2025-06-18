@@ -35,15 +35,15 @@ export default function QueryInterface() {
     handleQueryAmountChange,
   } = useQueryLogic({ payWithWallet, setPayWithWallet });
 
-  console.log("QueryInterface render:", {
-    payWithWallet,
-    queriesUnpaid,
-    userPaidCredits,
-    queriesCostTotal,
-    error,
-    viewMode,
-    timestamp: new Date().toISOString(),
-  });
+  // console.log("QueryInterface render:", {
+  //   payWithWallet,
+  //   queriesUnpaid,
+  //   userPaidCredits,
+  //   queriesCostTotal,
+  //   error,
+  //   viewMode,
+  //   timestamp: new Date().toISOString(),
+  // });
 
   return (
     <div className="container mx-auto px-4 py-1 min-h-screen">

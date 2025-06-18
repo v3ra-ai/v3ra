@@ -42,10 +42,22 @@ export async function GET(request: NextRequest) {
         });
 
         return {
-          ...model,
+          id: model.id,
+          providerName: model.providerName,
+          modelName: model.modelName,
+          status: model.status,
+          // Convert Decimal types to numbers
+          errorRate: model.errorRate ? Number(model.errorRate) : null,
+          avgLatency: model.avgLatency ? Number(model.avgLatency) : null,
+          successRate: model.successRate ? Number(model.successRate) : null,
+          lastSuccessAt: model.lastSuccessAt,
+          lastErrorAt: model.lastErrorAt,
+          lastErrorMessage: model.lastErrorMessage,
+          totalRequests: model.totalRequests,
+          failedRequests: model.failedRequests,
           recentProbes: recentProbes.map(probe => ({
             success: probe.success,
-            responseTimeMs: probe.responseTimeMs,
+            responseTimeMs: probe.responseTimeMs ? Number(probe.responseTimeMs) : null,
             testedAt: probe.testedAt,
             error: probe.errorMessage
           }))

@@ -4,7 +4,7 @@
  * Usage: npm run ts-node scripts/test-admin-flow.ts
  */
 
-import { config } from 'dotenv';
+const { config } = require('dotenv');
 config();
 
 console.log('Testing Admin Authentication Flow');

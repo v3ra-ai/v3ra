@@ -94,15 +94,21 @@ export function LLMProviderCard({ provider, onClose }: LLMProviderCardProps) {
     );
   };
 
-  const formatLatency = (ms: number | null) => {
-    if (!ms) return 'N/A';
-    if (ms < 1000) return `${ms}ms`;
-    return `${(ms / 1000).toFixed(1)}s`;
+  const formatLatency = (ms: number | null | string) => {
+    if (ms === null || ms === undefined) return 'N/A';
+    // Convert string to number if needed
+    const numValue = typeof ms === 'string' ? parseFloat(ms) : ms;
+    if (isNaN(numValue) || numValue === 0) return 'N/A';
+    if (numValue < 1000) return `${Math.round(numValue)}ms`;
+    return `${(numValue / 1000).toFixed(1)}s`;
   };
 
-  const formatPercentage = (value: number | null) => {
-    if (value === null) return 'N/A';
-    return `${value.toFixed(1)}%`;
+  const formatPercentage = (value: number | null | string) => {
+    if (value === null || value === undefined) return 'N/A';
+    // Convert string to number if needed
+    const numValue = typeof value === 'string' ? parseFloat(value) : value;
+    if (isNaN(numValue)) return 'N/A';
+    return `${numValue.toFixed(1)}%`;
   };
 
   return (

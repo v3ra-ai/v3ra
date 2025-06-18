@@ -72,24 +72,35 @@ export const anthropicModels: ValidatorModel[] = [
 // Google Models
 export const googleModels: ValidatorModel[] = [
   {
-    name: "Gemini Pro",
+    name: "Gemini 1.5 Flash",
     provider: "Google",
-    model_id: "gemini-pro",
+    model_id: "gemini-1.5-flash",
   },
   {
-    name: "Gemini Pro Vision",
+    name: "Gemini 1.5 Pro",
     provider: "Google",
-    model_id: "gemini-pro-vision",
+    model_id: "gemini-1.5-pro",
   },
   {
-    name: "PaLM 2 Chat",
+    name: "Gemini 1.0 Pro",
     provider: "Google",
-    model_id: "chat-bison-001",
+    model_id: "gemini-1.0-pro",
   },
 ];
 
 // OpenRouter Models - Extended List
 export const openRouterModels: ValidatorModel[] = [
+  // Google Models via OpenRouter
+  {
+    name: "Gemini 2.0 Flash (Free)",
+    provider: "OpenRouter",
+    model_id: "google/gemini-2.0-flash-exp:free",
+  },
+  {
+    name: "Gemini 2.0 Flash Thinking (Free)",
+    provider: "OpenRouter",
+    model_id: "google/gemini-2.0-flash-thinking-exp:free",
+  },
   // Mistral Models
   {
     name: "Mistral 7B",

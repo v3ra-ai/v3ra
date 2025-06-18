@@ -2,6 +2,7 @@
 
 import { useValidatorManagementStore } from "@/store/validator-management-store";
 import { useEffect, useMemo, useState } from "react";
+import { useDebouncedValue } from "@/hooks/use-debounced-value";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import ValidatorTile from "./validator-tile";
@@ -30,10 +31,13 @@ export default function ValidatorList({ initial, onDone }: ValidatorListProps) {
 
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("selected"); // selected | name
+  
+  // Debounce the search value
+  const debouncedSearch = useDebouncedValue(search, 300);
 
   const displayed = useMemo(() => {
     const list = validators.filter((v) =>
-      v.profileName.toLowerCase().includes(search.toLowerCase())
+      v.profileName.toLowerCase().includes(debouncedSearch.toLowerCase())
     );
 
     // Create a sorted copy based on the sort criteria
@@ -48,8 +52,8 @@ export default function ValidatorList({ initial, onDone }: ValidatorListProps) {
         return a.profileName.localeCompare(b.profileName);
       });
     }
-    return list;
-  }, [validators, search, sort, selectedIds]);
+    return sortedList;
+  }, [validators, debouncedSearch, sort, selectedIds]);
 
   return (
     <div className="w-full max-w-xl mx-auto flex flex-col gap-4">

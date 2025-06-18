@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect, useRef } from "react";
+import { useCallback, useState, useEffect, useRef, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
@@ -24,7 +24,10 @@ export default function useQueryLogic({
   payWithWallet,
   setPayWithWallet,
 }: UseQueryLogicProps) {
-  const [queryText, setQueryText] = useState<string>("");
+  const [queryText, setQueryTextRaw] = useState<string>("");
+  const setQueryText = useCallback((value: string | ((prev: string) => string)) => {
+    setQueryTextRaw(value);
+  }, []);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState<string | undefined>(undefined);
@@ -55,7 +58,7 @@ export default function useQueryLogic({
 
   const placeholderText = getPlaceholderText(queryMode);
 
-  console.log("[useQueryLogic] Initial queryMode:", queryMode);
+  // console.log("[useQueryLogic] Initial queryMode:", queryMode);
 
   const fetchCsrfToken = useCallback(async (): Promise<string> => {
     console.log("[useQueryLogic] Starting CSRF token fetch");
@@ -129,9 +132,9 @@ export default function useQueryLogic({
         }
 
         setEmail(session.user.email);
-        console.log("[useQueryLogic] Fetched email:", session.user.email, {
-          timestamp: new Date().toISOString(),
-        });
+        // console.log("[useQueryLogic] Fetched email:", session.user.email, {
+        //   timestamp: new Date().toISOString(),
+        // });
       } catch {
         console.error("[useQueryLogic] Error fetching email", {
           timestamp: new Date().toISOString(),
@@ -148,11 +151,11 @@ export default function useQueryLogic({
   // Fetch saved credits only on initial mount
   useEffect(() => {
     if (!hasFetchedCredits.current && email) {
-      console.log("[useQueryLogic] Initial fetchAllCredits:", {
-        publicKey: publicKey?.toBase58() || "none",
-        email,
-        timestamp: new Date().toISOString(),
-      });
+      // console.log("[useQueryLogic] Initial fetchAllCredits:", {
+      //   publicKey: publicKey?.toBase58() || "none",
+      //   email,
+      //   timestamp: new Date().toISOString(),
+      // });
       fetchAllCredits(publicKey, email);
       hasFetchedCredits.current = true;
     }
@@ -179,11 +182,11 @@ export default function useQueryLogic({
   }, [queryMode]);
 
   useEffect(() => {
-    console.log("[useQueryLogic] payWithWallet effect running:", {
-      queriesUnpaid,
-      currentPayWithWallet: payWithWallet,
-      timestamp: new Date().toISOString(),
-    });
+    // console.log("[useQueryLogic] payWithWallet effect running:", {
+    //   queriesUnpaid,
+    //   currentPayWithWallet: payWithWallet,
+    //   timestamp: new Date().toISOString(),
+    // });
     const shouldPayWithWallet = queriesUnpaid > 0;
     if (payWithWallet !== shouldPayWithWallet) {
       console.log(
