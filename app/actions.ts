@@ -13,6 +13,7 @@ import { AnthropicValidator } from "@/lib/validators/providers/anthropic";
 import { GrokValidator } from "@/lib/validators/providers/grok";
 import { GeminiValidator } from "@/lib/validators/providers/gemini";
 import { OpenRouterValidator } from "@/lib/validators/providers/openrouter";
+import { HuggingFaceValidator } from "@/lib/validators/providers/huggingface";
 import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
@@ -129,6 +130,14 @@ export async function broadcastCustomQuery(
           active: dbValidator.active,
           queryMode,
         });
+      } else if (dbValidator.provider === "HuggingFace") {
+        validator = new HuggingFaceValidator({
+          id: dbValidator.id,
+          name: dbValidator.profileName,
+          modelName: dbValidator.modelName,
+          active: dbValidator.active,
+          queryMode,
+        });
       } else {
         console.warn(
           `[actions] Validator provider ${dbValidator.provider} not supported, skipping`
@@ -138,6 +147,7 @@ export async function broadcastCustomQuery(
 
       if (
         dbValidator.provider !== "OpenRouter" &&
+        dbValidator.provider !== "HuggingFace" &&
         !dbValidator.apiKeys[0]?.apiKeyId
       ) {
         console.warn(
