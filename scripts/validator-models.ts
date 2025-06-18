@@ -288,151 +288,81 @@ export const openRouterModels: ValidatorModel[] = [
     provider: "Gryphe",
     model_id: "gryphe/mythomax-l2-13b",
   },
+  // DeepSeek Models
+  {
+    name: "DeepSeek Chat",
+    provider: "DeepSeek",
+    model_id: "deepseek/deepseek-chat",
+  },
+  {
+    name: "DeepSeek Coder",
+    provider: "DeepSeek",
+    model_id: "deepseek/deepseek-coder",
+  },
+  // Llama 3.1 Models
+  {
+    name: "Llama 3.1 405B",
+    provider: "Meta",
+    model_id: "meta-llama/llama-3.1-405b-instruct",
+  },
+  {
+    name: "Llama 3.1 70B",
+    provider: "Meta",
+    model_id: "meta-llama/llama-3.1-70b-instruct",
+  },
+  {
+    name: "Llama 3.1 8B",
+    provider: "Meta",
+    model_id: "meta-llama/llama-3.1-8b-instruct",
+  },
+  // Mixtral Models
+  {
+    name: "Mixtral 8x22B",
+    provider: "Mistral",
+    model_id: "mistralai/mixtral-8x22b-instruct",
+  },
+  {
+    name: "Mixtral 8x7B",
+    provider: "Mistral",
+    model_id: "mistralai/mixtral-8x7b-instruct",
+  },
+  // Claude Models via OpenRouter
+  {
+    name: "Claude 3 Opus",
+    provider: "Anthropic",
+    model_id: "anthropic/claude-3-opus",
+  },
+  {
+    name: "Claude 3.5 Sonnet",
+    provider: "Anthropic",
+    model_id: "anthropic/claude-3.5-sonnet",
+  },
+  // GPT Models via OpenRouter
+  {
+    name: "GPT-4o",
+    provider: "OpenAI",
+    model_id: "openai/gpt-4o",
+  },
+  {
+    name: "GPT-4o Mini",
+    provider: "OpenAI",
+    model_id: "openai/gpt-4o-mini",
+  },
 ];
 
-// HuggingFace Models - Extended List
+// HuggingFace Models - Updated List with Working Models
+// Note: Many HF models no longer work with free Inference API as of 2024
+// Keeping a minimal list of models that might still work or can be accessed via other providers
 export const huggingfaceModels: ValidatorModel[] = [
-  // Falcon Models
-  {
-    name: "Falcon 180B Chat",
-    provider: "Hugging Face",
-    model_id: "tiiuae/falcon-180B-chat",
-    url: "https://api-inference.huggingface.co/models/tiiuae/falcon-180B-chat",
-  },
-  {
-    name: "Falcon 40B Instruct",
-    provider: "Hugging Face",
-    model_id: "tiiuae/falcon-40b-instruct",
-    url: "https://api-inference.huggingface.co/models/tiiuae/falcon-40b-instruct",
-  },
-  {
-    name: "Falcon 7B Instruct",
-    provider: "Hugging Face",
-    model_id: "tiiuae/falcon-7b-instruct",
-    url: "https://api-inference.huggingface.co/models/tiiuae/falcon-7b-instruct",
-  },
-  // StarCoder Models
-  {
-    name: "StarCoder",
-    provider: "Hugging Face",
-    model_id: "bigcode/starcoder",
-    url: "https://api-inference.huggingface.co/models/bigcode/starcoder",
-  },
-  {
-    name: "StarCoderBase",
-    provider: "Hugging Face",
-    model_id: "bigcode/starcoderbase",
-    url: "https://api-inference.huggingface.co/models/bigcode/starcoderbase",
-  },
-  {
-    name: "StarCoder2 15B",
-    provider: "Hugging Face",
-    model_id: "bigcode/starcoder2-15b",
-    url: "https://api-inference.huggingface.co/models/bigcode/starcoder2-15b",
-  },
-  // BLOOM Models
-  {
-    name: "BLOOM 176B",
-    provider: "Hugging Face",
-    model_id: "bigscience/bloom",
-    url: "https://api-inference.huggingface.co/models/bigscience/bloom",
-  },
-  {
-    name: "BLOOMZ 7B",
-    provider: "Hugging Face",
-    model_id: "bigscience/bloomz-7b1",
-    url: "https://api-inference.huggingface.co/models/bigscience/bloomz-7b1",
-  },
-  // Stable Models
-  {
-    name: "StableCode 3B",
-    provider: "Stability AI",
-    model_id: "stabilityai/stablecode-instruct-alpha-3b",
-    url: "https://api-inference.huggingface.co/models/stabilityai/stablecode-instruct-alpha-3b",
-  },
-  {
-    name: "StableLM 2 1.6B",
-    provider: "Stability AI",
-    model_id: "stabilityai/stablelm-2-1_6b-chat",
-    url: "https://api-inference.huggingface.co/models/stabilityai/stablelm-2-1_6b-chat",
-  },
-  // EleutherAI Models
-  {
-    name: "GPT-J 6B",
-    provider: "EleutherAI",
-    model_id: "EleutherAI/gpt-j-6b",
-    url: "https://api-inference.huggingface.co/models/EleutherAI/gpt-j-6b",
-  },
-  {
-    name: "GPT-NeoX 20B",
-    provider: "EleutherAI",
-    model_id: "EleutherAI/gpt-neox-20b",
-    url: "https://api-inference.huggingface.co/models/EleutherAI/gpt-neox-20b",
-  },
-  // Microsoft Models
-  {
-    name: "Phi-2",
-    provider: "Microsoft",
-    model_id: "microsoft/phi-2",
-    url: "https://api-inference.huggingface.co/models/microsoft/phi-2",
-  },
-  {
-    name: "DialoGPT Large",
-    provider: "Microsoft",
-    model_id: "microsoft/DialoGPT-large",
-    url: "https://api-inference.huggingface.co/models/microsoft/DialoGPT-large",
-  },
-  // Databricks Models
-  {
-    name: "Dolly v2 12B",
-    provider: "Databricks",
-    model_id: "databricks/dolly-v2-12b",
-    url: "https://api-inference.huggingface.co/models/databricks/dolly-v2-12b",
-  },
-  {
-    name: "Dolly v2 7B",
-    provider: "Databricks",
-    model_id: "databricks/dolly-v2-7b",
-    url: "https://api-inference.huggingface.co/models/databricks/dolly-v2-7b",
-  },
-  // MPT Models
-  {
-    name: "MPT 30B Chat",
-    provider: "MosaicML",
-    model_id: "mosaicml/mpt-30b-chat",
-    url: "https://api-inference.huggingface.co/models/mosaicml/mpt-30b-chat",
-  },
-  {
-    name: "MPT 7B Chat",
-    provider: "MosaicML",
-    model_id: "mosaicml/mpt-7b-chat",
-    url: "https://api-inference.huggingface.co/models/mosaicml/mpt-7b-chat",
-  },
-  // Other Notable Models
-  {
-    name: "Vicuna 13B v1.5",
-    provider: "LMSys",
-    model_id: "lmsys/vicuna-13b-v1.5",
-    url: "https://api-inference.huggingface.co/models/lmsys/vicuna-13b-v1.5",
-  },
-  {
-    name: "Alpaca 7B",
-    provider: "Chavinlo",
-    model_id: "chavinlo/alpaca-native",
-    url: "https://api-inference.huggingface.co/models/chavinlo/alpaca-native",
-  },
-  {
-    name: "OpenAssistant Pythia 12B",
-    provider: "OpenAssistant",
-    model_id: "OpenAssistant/oasst-sft-4-pythia-12b-epoch-3.5",
-    url: "https://api-inference.huggingface.co/models/OpenAssistant/oasst-sft-4-pythia-12b-epoch-3.5",
-  },
-  {
-    name: "RedPajama 7B Chat",
-    provider: "TogetherComputer",
-    model_id: "togethercomputer/RedPajama-INCITE-7B-Chat",
-    url: "https://api-inference.huggingface.co/models/togethercomputer/RedPajama-INCITE-7B-Chat",
-  },
+  // Note: HuggingFace free Inference API has limited model availability
+  // Most models now require paid inference endpoints or are available through other providers
+  // Consider using these models through OpenRouter or other providers instead
+  
+  // Commenting out non-working models for now
+  // These models are returning 404 errors from the HF Inference API
+  
+  // Alternative approach: Use these models through OpenRouter which has better availability
+  // Example: OpenRouter supports many of these same models with better reliability
 ];
 
 // Combine all models
