@@ -34,15 +34,15 @@ export function OgImage({ card }: { card: VoteResult }) {
       <div style={{ position: 'absolute', bottom: '40px', display: 'flex', alignItems: 'center', gap: '8px' }}>
         <div style={{ position: 'relative', width: '100px', height: '40px' }}>
           <Image
-            src={`https://${CURRENT_DOMAIN}/verafy_logo_black.svg`}
-            alt="Verafy Logo"
+            src={`https://${CURRENT_DOMAIN}/v3ra_logo_black.svg`}
+            alt="v3ra Logo"
             fill
             style={{ objectFit: 'contain' }}
             sizes="100px"
             priority={false}
           />
         </div>
-        <p style={{ fontSize: '14px', color: '#71717a' }}>Powered by Verafy</p>
+        <p style={{ fontSize: '14px', color: '#71717a' }}>Powered by v3ra</p>
       </div>
     </div>
   );

@@ -33,12 +33,19 @@ export default function ValidatorsClient({ validators }: ValidatorsClientProps) 
     <div className="container mx-auto py-8">
       <Card className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-700">
         <CardHeader>
-          <CardTitle className="text-2xl font-semibold text-zinc-800 dark:text-zinc-200">
-            Validators
-          </CardTitle>
-          <Button asChild>
-            <Link href="/llms/manage">Manage LLMs</Link>
-          </Button>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-semibold text-zinc-800 dark:text-zinc-200">
+              Validators
+            </CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" asChild>
+                <Link href="/ask">← Back to Ask</Link>
+              </Button>
+              <Button asChild>
+                <Link href="/llms/manage">Manage LLMs</Link>
+              </Button>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {validators.length > 0 ? (

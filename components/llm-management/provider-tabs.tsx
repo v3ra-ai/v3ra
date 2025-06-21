@@ -13,6 +13,8 @@ export default function ProviderTabs() {
   // Combine static providers with profile names
   const staticProviders: ProviderTab[] = [
     "All",
+    "Free Models",
+    "Popular",
     "OpenAI",
     "Anthropic",
     "OpenRouter",

@@ -8,6 +8,8 @@ export type Provider =
   | "OpenRouter"
   | "HuggingFace"
   | "Custom"
+  | "Free Models"
+  | "Popular"
   | string;
 
 export interface LLM {
@@ -87,48 +89,7 @@ export const useLLMStore = create<LLMState>()(
       hasMore: false,
       showPinned: false,
       profiles: [],
-      categories: [
-        {
-          name: "Legal",
-          models: [
-            { validatorId: "4da9dcd2-d5ea-4150-855a-898f274c597f", name: "Claude 3 Opus" },
-            { validatorId: "65462fc9-04f8-4a31-9d97-181812e3dcac", name: "Claude 3 Sonnet" },
-            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
-            { validatorId: "1696ebf0-5b22-4e46-bf63-517f286a1a8a", name: "Llama 3.1 70B" },
-            { validatorId: "8d501469-9f7f-4c55-ba44-45c26cc0f87e", name: "Cohere Command-R" },
-          ],
-        },
-        {
-          name: "Health",
-          models: [
-            { validatorId: "2506da74-07fb-4b12-9cdd-5d34ffc66893", name: "Gemini 1.5 Pro" },
-            { validatorId: "4da9dcd2-d5ea-4150-855a-898f274c597f", name: "Claude 3 Opus" },
-            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
-            { validatorId: "228db12f-5d5b-4e34-af58-1c0972b9164e", name: "DeepSeek V3" },
-            { validatorId: "9eaf26f1-08e3-4b1e-ae2f-c7a7fcfcdf90", name: "Qwen 2.5 7B" },
-          ],
-        },
-        {
-          name: "Business",
-          models: [
-            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
-            { validatorId: "65462fc9-04f8-4a31-9d97-181812e3dcac", name: "Claude 3 Sonnet" },
-            { validatorId: "1696ebf0-5b22-4e46-bf63-517f286a1a8a", name: "Llama 3.1 70B" },
-            { validatorId: "273c8adb-9235-465e-9397-0dbdda4f936f", name: "Mistral Large" },
-            { validatorId: "2506da74-07fb-4b12-9cdd-5d34ffc66893", name: "Gemini 1.5 Pro" },
-          ],
-        },
-        {
-          name: "Economics",
-          models: [
-            { validatorId: "c773eebd-85dc-4e8d-92f9-93f0efb2fba1", name: "GPT-4o" },
-            { validatorId: "4da9dcd2-d5ea-4150-855a-898f274c597f", name: "Claude 3 Opus" },
-            { validatorId: "1696ebf0-5b22-4e46-bf63-517f286a1a8a", name: "Llama 3.1 70B" },
-            { validatorId: "228db12f-5d5b-4e34-af58-1c0972b9164e", name: "DeepSeek V3" },
-            { validatorId: "2506da74-07fb-4b12-9cdd-5d34ffc66893", name: "Gemini 1.5 Pro" },
-          ],
-        },
-      ],
+      categories: [],
       activeCategory: null,
 
       fetchBatch: () => {

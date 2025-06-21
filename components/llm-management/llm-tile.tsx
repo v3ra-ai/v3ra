@@ -1,10 +1,11 @@
 "use client";
 
 import { LLM, useLLMStore } from "@/store/llm-store";
-import { StarIcon } from "lucide-react";
+import { StarIcon, Info } from "lucide-react";
 import clsx from "clsx";
 import Image from "next/image";
 import { getModelIconPath } from "@/lib/utils/icon-mapping";
+import Link from "next/link";
 
 interface Props {
   llm: LLM;
@@ -24,22 +25,35 @@ export default function LLMTile({ llm }: Props) {
       )}
       onClick={() => toggleLLM(llm.id)}
     >
-      {/* Pin star */}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          if (llm.pinned) {
-            unpinLLM(llm.id);
-          } else {
-            pinLLM(llm.id);
-          }
-        }}
-        className="absolute top-2 right-2 text-amber-400 hover:scale-110 transition-transform"
-      >
-        <StarIcon
-          className={clsx("size-4", { "fill-amber-400": llm.pinned, "stroke-amber-400": !llm.pinned })}
-        />
-      </button>
+      {/* Top actions */}
+      <div className="absolute top-2 right-2 flex gap-1">
+        {/* Profile info */}
+        <Link
+          href={`/validators/${llm.id}/profile`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-zinc-400 hover:text-zinc-200 hover:scale-110 transition-transform"
+          title="View profile"
+        >
+          <Info className="size-4" />
+        </Link>
+        
+        {/* Pin star */}
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (llm.pinned) {
+              unpinLLM(llm.id);
+            } else {
+              pinLLM(llm.id);
+            }
+          }}
+          className="text-amber-400 hover:scale-110 transition-transform"
+        >
+          <StarIcon
+            className={clsx("size-4", { "fill-amber-400": llm.pinned, "stroke-amber-400": !llm.pinned })}
+          />
+        </button>
+      </div>
 
       {/* Model name */}
       <p className="text-center text-sm font-medium mb-1 text-zinc-200">{llm.name}</p>

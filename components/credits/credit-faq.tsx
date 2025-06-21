@@ -47,30 +47,6 @@ const faqData: FAQItem[] = [
     ),
   },
   {
-    question: "What is staking, and how does it work?",
-    answer: (
-      <>
-        <ul className="list-disc pl-5 mt-2">
-          <li>
-            <strong>Staking for Rewards</strong>: You can stake SOL with our validator node via{" "}
-            <Link
-              href="https://stakewiz.com/validator/TrutHUEykD2UsmAq7W3hA4r3XiQxGLqhENAwo9522xa"
-              className="text-blue-500 dark:text-blue-400 hover:underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Stakewiz
-            </Link>
-            . Staked SOL may qualify for rewards, such as additional credits or other promotions, depending on current offers.
-          </li>
-          <li>
-            To stake, click &quot;Stake Now,&quot; follow the link, and stake SOL with the provided validator address. Check the staking section for current staked SOL and reward details.
-          </li>
-        </ul>
-      </>
-    ),
-  },
-  {
     question: "Do I need a specific wallet?",
     answer:
       "You need a Solana-compatible wallet (e.g., Phantom, Solflare) that supports SOL and $truth tokens. Ensure your wallet is set to the Solana Mainnet and has sufficient SOL for transaction fees (approximately 0.01 SOL per transaction).",

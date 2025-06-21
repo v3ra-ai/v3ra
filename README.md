@@ -1,6 +1,6 @@
-# testnet-demo
+# v3ra AI Consensus Network
 
-Testnet Vercel/Supabase migration
+Distributed AI validation and consensus network
 
 ## Quick Start
 
@@ -110,6 +110,8 @@ OPENAI_API_KEY=your-key
 ANTHROPIC_API_KEY=your-key
 GROK_API_KEY=your-key
 GEMINI_API_KEY=your-key
+HUGGING_FACE_API_KEY=your-key  # Get from https://huggingface.co/settings/tokens - MUST have "Make calls to Inference Providers" scope
+OPENROUTER_API_KEY=your-key    # Get from https://openrouter.ai/keys
 ```
 
 #### 8. **Connect to Remote Supabase (Recommended)**:
@@ -499,6 +501,8 @@ OPENAI_API_KEY=your-key
 ANTHROPIC_API_KEY=your-key
 GROK_API_KEY=your-key
 GEMINI_API_KEY=your-key
+HUGGING_FACE_API_KEY=your-key  # Get from https://huggingface.co/settings/tokens - MUST have "Make calls to Inference Providers" scope
+OPENROUTER_API_KEY=your-key    # Get from https://openrouter.ai/keys
 ```
 
 ## API Endpoints

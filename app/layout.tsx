@@ -12,15 +12,14 @@ import Script from "next/script";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Verafy v0 Testnet",
-  description: "Verafy Testnet interface and explorer",
+  title: "v3ra AI Consensus Network",
+  description: "v3ra - Distributed AI validation and consensus network",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <link rel="preload" as="image" href="/bg_home_black.jpg" />
         <script
           dangerouslySetInnerHTML={{
             __html: `
@@ -34,6 +33,16 @@ export default function RootLayout({ children }: { children: ReactNode }) {
                     document.documentElement.classList.remove('dark');
                   }
                   document.documentElement.setAttribute('data-theme', theme);
+                  
+                  // Preload the appropriate background image based on theme
+                  const bgImage = (theme === 'dark' || (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)) 
+                    ? '/bg_home_black.jpg' 
+                    : '/bg_home_white.jpg';
+                  const link = document.createElement('link');
+                  link.rel = 'preload';
+                  link.as = 'image';
+                  link.href = bgImage;
+                  document.head.appendChild(link);
                 } catch (e) {
                   console.error('Theme script error:', e);
                 }

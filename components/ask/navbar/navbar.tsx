@@ -71,7 +71,7 @@ export default function Navbar() {
 
   // Add padding to body to prevent content overlap with fixed navbar
   useEffect(() => {
-    document.body.style.paddingTop = "80px"; // Adjust based on navbar height
+    document.body.style.paddingTop = "90px"; // Adjust based on navbar height
     return () => {
       document.body.style.paddingTop = "0";
     };
@@ -87,7 +87,7 @@ export default function Navbar() {
   const isCreditsPage = false; // Placeholder until pathname is used
 
   // Select logo based on theme, default to dark logo before mounting
-  const logoSrc = !mounted || theme === "dark" ? "/verafy_swarmexplorer_white_beta.svg" : "/verafy_swarmexplorer_black_beta.svg";
+  const logoSrc = !mounted || theme === "dark" ? "/v3ra_logo_white.svg" : "/v3ra_logo_black.svg";
 
   // Toggle hamburger menu
   const toggleMenu = () => {
@@ -106,17 +106,22 @@ export default function Navbar() {
   }, []);
 
   return (
-    <div className="fixed top-0 w-full bg-background z-50 h-[80px]">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+    <div className="fixed top-0 w-full bg-background z-50 h-[90px]">
+      <div className="container mx-auto px-4 py-3 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/ask" className="flex items-center cursor-pointer">
-            <Image
-              src={logoSrc}
-              alt="Logo"
-              width={145}
-              height={50}
-            />
+          <Link href="/ask" className="flex items-center cursor-pointer group">
+            <div className="relative transition-all duration-300 hover:scale-105">
+              <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-cyan-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300 rounded-lg"></div>
+              <Image
+                src={logoSrc}
+                alt="Logo"
+                width={200}
+                height={70}
+                className="relative z-10 drop-shadow-[0_0_15px_rgba(117,251,241,0.5)]"
+                priority
+              />
+            </div>
           </Link>
         </div>
 

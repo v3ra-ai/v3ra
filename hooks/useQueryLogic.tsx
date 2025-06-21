@@ -123,7 +123,7 @@ export default function useQueryLogic({
           console.warn(
             "[useQueryLogic] No active session found during email fetch"
           );
-          toast.error("Closed beta: Please log in to get free credits.", {
+          toast.error("Please log in to get free credits.", {
             className:
               "bg-red-600 text-red-100 border border-red-800 p-4 rounded-lg text-2xl font-medium",
             duration: 10000,

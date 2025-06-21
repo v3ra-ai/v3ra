@@ -16,18 +16,13 @@ export default function LoginClient() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
-  const betaSignupUrl = "https://docs.google.com/forms/d/e/1FAIpQLSdIf4VDxZkQYJChBia-_kS7f0kxm-slwLozUVp0AzmFbT1JOg/viewform?usp=header";
   const returnTo = searchParams.get("returnTo") || null;
 
   useEffect(() => {
-    if (searchParams.get("reason") === "beta_access_denied") {
-      toast.error("Access restricted to beta testers", {
-        description: "Join the waitlist to get early access to our platform.",
+    if (searchParams.get("reason") === "auth_required") {
+      toast.error("Please log in to continue", {
+        description: "Authentication is required to access this page.",
         duration: 5000,
-        action: {
-          label: "Join Waitlist",
-          onClick: () => window.open(betaSignupUrl, "_blank"),
-        },
       });
     }
   }, [searchParams]);
@@ -174,18 +169,6 @@ export default function LoginClient() {
             {loading ? "Sending..." : "Log In with Email"}
           </Button>
         </form>
-        <div className="mt-6 space-y-4">
-          <Button
-            asChild
-            variant="outline"
-            className="w-full border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200 cursor-pointer"
-          >
-            <a href={betaSignupUrl} target="_blank" rel="noopener noreferrer">
-              Request Beta Access
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </a>
-          </Button>
-        </div>
       </div>
     </div>
   );

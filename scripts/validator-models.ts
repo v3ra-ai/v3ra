@@ -350,19 +350,24 @@ export const openRouterModels: ValidatorModel[] = [
   },
 ];
 
-// HuggingFace Models - Updated List with Working Models
-// Note: Many HF models no longer work with free Inference API as of 2024
-// Keeping a minimal list of models that might still work or can be accessed via other providers
+// HuggingFace Models - VERIFIED WORKING MODELS (2025)
+// Note: HuggingFace now requires tokens with "Make calls to Inference Providers" scope
+// These models work with the legacy api-inference.huggingface.co endpoint
 export const huggingfaceModels: ValidatorModel[] = [
-  // Note: HuggingFace free Inference API has limited model availability
-  // Most models now require paid inference endpoints or are available through other providers
-  // Consider using these models through OpenRouter or other providers instead
-  
-  // Commenting out non-working models for now
-  // These models are returning 404 errors from the HF Inference API
-  
-  // Alternative approach: Use these models through OpenRouter which has better availability
-  // Example: OpenRouter supports many of these same models with better reliability
+  // Working models - tested and confirmed with legacy endpoint
+  {
+    name: "Phi-3 Mini 4K Instruct",
+    provider: "HuggingFace",
+    model_id: "microsoft/Phi-3-mini-4k-instruct",
+  },
+  {
+    name: "Zephyr 7B Beta",
+    provider: "HuggingFace",
+    model_id: "HuggingFaceH4/zephyr-7b-beta",
+  },
+  // Note: Most models including Llama, Mistral, GPT-2 are NOT available on the free tier
+  // The router.huggingface.co endpoint returns 404 for all tested models
+  // For better model availability, consider using OpenRouter or dedicated Inference Endpoints
 ];
 
 // Combine all models

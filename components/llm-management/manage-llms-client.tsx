@@ -5,7 +5,7 @@ import { useLLMStore, LLM, Provider } from "@/store/llm-store";
 import ProviderTabs from "./provider-tabs";
 import LLMGrid from "./llm-grid";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Star } from "lucide-react";
+import { X, Star, Info } from "lucide-react";
 import { useQueryStore } from "@/store/query-store";
 import { useCreditsStore } from "@/store/credit-store";
 import { Validator } from "@/lib/types";
@@ -121,8 +121,24 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
   return (
     <main className="h-[100dvh] flex flex-col p-4 gap-4">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-semibold">Manage LLMs</h1>
+        <h1 className="text-2xl font-semibold">AI Validators</h1>
+        <a
+          href="/ask"
+          className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md transition-colors"
+        >
+          ← Back to Ask
+        </a>
       </div>
+      
+      {/* Helper text for new users */}
+      <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+        <p className="text-sm text-blue-800 dark:text-blue-200">
+          <strong>Quick Start:</strong> Click "Free Models" to see models you can test without API keys, 
+          or "Popular" to see the top 5 most-used AI models. Select validators by clicking on them, 
+          then click "Choose X AIs Selected" at the bottom. Click the <Info className="inline-block size-3" /> icon to view validator profiles.
+        </p>
+      </div>
+      
       <ProviderTabs />
       <input
         type="text"
@@ -145,21 +161,6 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
           <Star className="size-4" />
           Show Pinned
         </motion.button>
-        {categories.map((category) => (
-          <motion.button
-            key={category.name}
-            onClick={() => setCategory(category.name)}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              activeCategory === category.name
-                ? "bg-amber-600 text-white"
-                : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 hover:bg-zinc-300 dark:hover:bg-zinc-600"
-            }`}
-            animate={{ scale: activeCategory === category.name ? 1.05 : 1 }}
-            transition={{ duration: 0.2 }}
-          >
-            {category.name}
-          </motion.button>
-        ))}
       </div>
       <div className="flex flex-wrap gap-2 items-center">
         <AnimatePresence>

@@ -113,7 +113,7 @@ export function FeedbackModal() {
               />
               <Label htmlFor="includeBrowserInfo">Include browser information</Label>
             </div>
-            <div className="my-2">If submit error, contact: support@verafy.</div>
+            <div className="my-2">If submit error, contact: support@v3ra.ai</div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setModalOpen(false)}>

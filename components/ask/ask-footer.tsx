@@ -45,23 +45,23 @@ export default function AskFooter() {
         <footer className="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 mt-auto">
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Verafy Links */}
+              {/* v3ra Links */}
               <div>
                 <h3 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
-                  Verafy
+                  v3ra
                 </h3>
                 <ul className="space-y-2">
                   <li>
                     <Link
-                      href="https://www.verafy.ai/mission"
+                      href="#"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
-                      About Verafy
+                      About v3ra
                     </Link>
                   </li>
                   <li>
                     <Link
-                      href="https://www.verafy.ai/roadmap"
+                      href="#"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       Roadmap
@@ -69,7 +69,7 @@ export default function AskFooter() {
                   </li>
                   <li>
                     <Link
-                      href="https://www.verafy.ai/tokenomics"
+                      href="#"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       Tokenomics
@@ -83,7 +83,7 @@ export default function AskFooter() {
 
                   <li>
                     <Link
-                      href="https://t.me/truth_chain"
+                      href="https://t.me/v3ra_ai"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       Contact Us
@@ -149,7 +149,7 @@ export default function AskFooter() {
                 <ul className="space-y-2">
                   <li>
                     <Link
-                      href="https://x.com/verafyfoundtn"
+                      href="https://x.com/v3ra_ai"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       Twitter
@@ -157,25 +157,17 @@ export default function AskFooter() {
                   </li>
                   <li>
                     <Link
-                      href="https://t.me/truth_chain"
+                      href="https://t.me/v3ra_ai"
                       className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
                     >
                       Telegram
-                    </Link>
-                  </li>
-                  <li>
-                    <Link
-                      href="https://discord.gg/TBvndJPVkr"
-                      className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
-                    >
-                      Discord
                     </Link>
                   </li>
                 </ul>
               </div>
             </div>
             <div className="mt-8 text-center text-sm">
-              <p>© {new Date().getFullYear()} Verafy. All rights reserved.</p>
+              <p>© {new Date().getFullYear()} v3ra. All rights reserved.</p>
             </div>
           </div>
         </footer>

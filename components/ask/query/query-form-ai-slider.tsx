@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { useLLMStore } from "@/store/llm-store";
+import { useEffect, useState } from "react";
 
 interface QueryFormAISliderProps {
   queriesRequested: number;
@@ -18,18 +19,28 @@ export function QueryFormAISlider({
   hideButtons = false,
 }: QueryFormAISliderProps) {
   const { llms } = useLLMStore();
-  const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
+  const [isClient, setIsClient] = useState(false);
+  const [displayValue, setDisplayValue] = useState(allowedAmountQueries);
+  
+  useEffect(() => {
+    setIsClient(true);
+    // Update display value once client-side
+    setDisplayValue(queriesRequested);
+  }, [queriesRequested]);
+  
+  // During SSR, use allowedAmountQueries to avoid hydration mismatch
+  const selectedLLMCount = isClient ? llms.filter((llm) => llm.enabled).length : 0;
   const maxQueries = selectedLLMCount > 0 ? selectedLLMCount : allowedAmountQueries;
 
   return (
     <div className="flex items-center gap-2 bg-white dark:bg-zinc-900 rounded-md px-0 py-0">
       <div className="border border-zinc-300 dark:border-zinc-600 bg-white dark:bg-zinc-700 text-zinc-700 dark:text-zinc-200 px-0 py-1 rounded-md min-w-[120px] text-center">
         <span className="text-gray-500 dark:text-gray-200 ml-1 whitespace-nowrap">
-          Query {queriesRequested} AIs:
+          Query {isClient ? displayValue : allowedAmountQueries} AIs:
         </span>
       </div>
       <Slider
-        value={[queriesRequested]}
+        value={[isClient ? displayValue : allowedAmountQueries]}
         onValueChange={(value) => handleQueryAmountChange(value[0])}
         min={1}
         max={maxQueries}

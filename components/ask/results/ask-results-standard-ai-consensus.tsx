@@ -15,8 +15,8 @@ export function AskResultsStandardAiConsensus({
   return (
     <div className="flex items-center space-x-2 border-0 mt-5 mb-5">
       <Image
-        src="/Verafy-Logo@0.5x.png"
-        alt="Verafy Logo"
+        src="/v3ra_logo_black.svg"
+        alt="v3ra Logo"
         width={50}
         height={20}
         className="object-contain w-8 md:w-10"

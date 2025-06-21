@@ -1,0 +1,31 @@
+"use client";
+import AskFooter from "@/components/ask/ask-footer";
+import Navbar from "@/components/ask/navbar/navbar";
+import { useBackgroundImage } from "@/hooks/useBackgroundImage";
+
+export default function LLMsLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const backgroundImage = useBackgroundImage();
+
+  return (
+    <div
+      className="flex flex-col min-h-screen bg-zinc-50 dark:bg-zinc-950"
+      style={{
+        backgroundImage,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        backgroundRepeat: "no-repeat",
+        width: "100vw",
+        height: "100vh",
+      }}
+    >
+      <Navbar />
+      <main className="flex-1">{children}</main>
+      <AskFooter />
+    </div>
+  );
+}

@@ -31,7 +31,7 @@ export function AskResultsStandardSocialIcons({
       return encodeURIComponent("Check this truth report card!");
     }
     return encodeURIComponent(
-      `Check this VERAFY truth report card: ${query.queryText} - ${
+      `Check this v3ra truth report card: ${query.queryText} - ${
         query.isConsensusReached
           ? query.consensusValue
             ? "True"

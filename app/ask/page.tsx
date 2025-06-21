@@ -1,21 +1,11 @@
-import { redirect } from "next/navigation";
 import Navbar from "@/components/ask/navbar/navbar";
 import QueryInterface from "@/components/ask/query/query-interface";
 import { SolanaProvider } from "@/components/solana-provider";
 import AskFooter from "@/components/ask/ask-footer";
 import { FeedbackWidget } from "@/components/feedback-widget";
 import { FeedbackModal } from "@/components/feedback-modal";
-import { checkBetaAccess } from "@/lib/beta-access";
 
 export default async function AskPage() {
-  const { isAllowed } = await checkBetaAccess();
-  console.log("[ask/page] Beta access check:", { isAllowed });
-
-  if (!isAllowed) {
-    console.log("[ask/page] Redirecting to beta-info");
-    redirect("/beta-info?reason=beta_access_denied");
-  }
-
   return (
     <SolanaProvider>
       <main

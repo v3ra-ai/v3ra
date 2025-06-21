@@ -41,7 +41,7 @@ export function NavbarSitelinks() {
         Explorer
       </Link> */}
       <Link
-        href="/validators/"
+        href="/llms/manage"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
         Validators
@@ -50,7 +50,7 @@ export function NavbarSitelinks() {
         href="/credits-all"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
-        Stake
+        Credits
       </Link>
       <NavbarCredits />
     </div>

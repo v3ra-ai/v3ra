@@ -45,11 +45,43 @@ export default function LLMGrid() {
         console.log("[LLMGrid] Pinned filter matches:", list.map((l) => ({ id: l.id, name: l.name })));
       }
       if (activeProvider !== "All") {
-        list = list.filter((l) => l.provider === activeProvider);
-        console.log(
-          "[LLMGrid] Provider filter matches (activeProvider: " + activeProvider + "):",
-          list.map((l) => ({ id: l.id, name: l.name })),
-        );
+        if (activeProvider === "Free Models") {
+          // Define free models - typically HuggingFace and some OpenRouter models
+          const freeModelNames = [
+            "Llama", "Mistral", "Qwen", "DeepSeek", "Phi", "Gemma", "Yi", 
+            "Zephyr", "Neural", "Vicuna", "WizardLM", "OpenChat"
+          ];
+          list = list.filter((l) => 
+            l.provider === "HuggingFace" || 
+            freeModelNames.some(name => l.name.toLowerCase().includes(name.toLowerCase()))
+          );
+          console.log("[LLMGrid] Free models filter matches:", list.map((l) => ({ id: l.id, name: l.name })));
+        } else if (activeProvider === "Popular") {
+          // Top 5 popular models for testing
+          const popularModels = [
+            "GPT-4o", 
+            "Claude 3.5 Sonnet", 
+            "Gemini 1.5 Pro", 
+            "Llama 3.1 70B", 
+            "Mistral Large"
+          ];
+          list = list.filter((l) => 
+            popularModels.some(model => l.name.toLowerCase().includes(model.toLowerCase()))
+          );
+          // Sort by the order in popularModels array
+          list.sort((a, b) => {
+            const aIndex = popularModels.findIndex(m => a.name.toLowerCase().includes(m.toLowerCase()));
+            const bIndex = popularModels.findIndex(m => b.name.toLowerCase().includes(m.toLowerCase()));
+            return aIndex - bIndex;
+          });
+          console.log("[LLMGrid] Popular models filter matches:", list.map((l) => ({ id: l.id, name: l.name })));
+        } else {
+          list = list.filter((l) => l.provider === activeProvider);
+          console.log(
+            "[LLMGrid] Provider filter matches (activeProvider: " + activeProvider + "):",
+            list.map((l) => ({ id: l.id, name: l.name })),
+          );
+        }
       }
     }
 
