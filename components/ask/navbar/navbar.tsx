@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase-client";
@@ -10,6 +9,7 @@ import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
 import { NavbarScrollbar } from "@/components/ask/navbar/navbar-scrollbar";
 import { NavbarSettings } from "@/components/ask/navbar/navbar-settings";
+import { V3raLogo } from "@/components/v3ra-logo";
 
 // Debounce utility with proper typing
 const debounce = <T extends unknown[]>(
@@ -86,9 +86,6 @@ export default function Navbar() {
   // Disable toggle on /credits due to forced light theme
   const isCreditsPage = false; // Placeholder until pathname is used
 
-  // Select logo based on theme, default to dark logo before mounting
-  const logoSrc = !mounted || theme === "dark" ? "/v3ra_logo_white.svg" : "/v3ra_logo_black.svg";
-
   // Toggle hamburger menu
   const toggleMenu = () => {
     setIsMenuOpen((prev) => !prev);
@@ -110,18 +107,8 @@ export default function Navbar() {
       <div className="container mx-auto px-4 py-3 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/ask" className="flex items-center cursor-pointer group">
-            <div className="relative transition-all duration-300 hover:scale-105">
-              <div className="absolute inset-0 bg-gradient-to-r from-teal-500 to-cyan-400 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300 rounded-lg"></div>
-              <Image
-                src={logoSrc}
-                alt="Logo"
-                width={200}
-                height={70}
-                className="relative z-10 drop-shadow-[0_0_15px_rgba(117,251,241,0.5)]"
-                priority
-              />
-            </div>
+          <Link href="/ask" className="flex items-center cursor-pointer">
+            <V3raLogo size="md" className="transition-all duration-300 hover:scale-105" />
           </Link>
         </div>
 

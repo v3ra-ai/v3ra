@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ValidatorInitializer } from "@/components/validator-initializer";
 import { ValidatorHealthCheck } from "@/components/validator-health-check";
@@ -10,6 +10,15 @@ import { Toaster } from "sonner";
 import Script from "next/script";
 
 const inter = Inter({ subsets: ["latin"] });
+const orbitron = Orbitron({ 
+  subsets: ["latin"],
+  variable: "--font-orbitron"
+});
+const rajdhani = Rajdhani({ 
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"],
+  variable: "--font-rajdhani"
+});
 
 export const metadata: Metadata = {
   title: "v3ra AI Consensus Network",
@@ -56,7 +65,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           type="text/javascript"
         />
       </head>
-      <body className={inter.className} suppressHydrationWarning>
+      <body className={`${inter.className} ${orbitron.variable} ${rajdhani.variable}`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
