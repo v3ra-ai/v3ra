@@ -47,6 +47,12 @@ export function NavbarSitelinks() {
         Validators
       </Link>
       <Link
+        href="/ai-hub"
+        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
+      >
+        A.I. Hub
+      </Link>
+      <Link
         href="/credits-all"
         className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
       >
