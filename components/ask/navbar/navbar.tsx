@@ -71,7 +71,7 @@ export default function Navbar() {
 
   // Add padding to body to prevent content overlap with fixed navbar
   useEffect(() => {
-    document.body.style.paddingTop = "90px"; // Adjust based on navbar height
+    document.body.style.paddingTop = "72px"; // Adjust based on navbar height
     return () => {
       document.body.style.paddingTop = "0";
     };
@@ -103,12 +103,12 @@ export default function Navbar() {
   }, []);
 
   return (
-    <div className="fixed top-0 w-full bg-background z-50 h-[90px]">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-between h-full">
+    <div className="fixed top-0 w-full glass-morphism z-50 h-[72px] border-b border-border/50 dark:border-border/20">
+      <div className="container mx-auto px-6 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-            <V3raLogo size="md" className="transition-all duration-300 hover:scale-105" />
+            <V3raLogo size="md" className="transition-all duration-300 hover:scale-105 dark:neon-glow-cyan" />
           </Link>
         </div>
 

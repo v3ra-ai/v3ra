@@ -19,8 +19,16 @@ export function capitalizeWords(text: string): string {
 }
 
 export function formatQueryMode(mode: string): string {
-  if (mode === "fact-check") {
-    return "Fact Check";
+  switch (mode) {
+    case "fact-check":
+      return "Ask";
+    case "predict":
+      return "Predict";
+    case "create":
+      return "Create";
+    case "shop":
+      return "Shop";
+    default:
+      return capitalizeWords(mode);
   }
-  return capitalizeWords(mode);
 }

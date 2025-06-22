@@ -34,9 +34,9 @@ export function AskResultsStandardFooter({
             open={isOpen}
             onOpenChange={() => toggleItem(sanitizedQuery.id)}
           >
-            <CollapsibleTrigger className="flex px-4 items-center text-sm font-semibold text-zinc-600 dark:text-zinc-300 cursor-pointer">
+            <CollapsibleTrigger className="flex px-4 items-center text-sm font-semibold text-zinc-300 dark:text-zinc-200 cursor-pointer hover:text-cyan-400 transition-colors">
               <span className="">
-                Validator Responses (
+                A.I. Responses (
                 {sanitizedQuery.validatorResponses?.length ?? 0})
               </span>
               {isOpen ? (
@@ -50,24 +50,42 @@ export function AskResultsStandardFooter({
                 sanitizedQuery.validatorResponses.map((response) => (
                   <div
                     key={response.id}
-                    className="p-2 bg-zinc-100 dark:bg-zinc-700 rounded-md"
+                    className="mx-4 p-4 bg-gradient-to-br from-zinc-900/60 via-black/60 to-zinc-950/60 backdrop-blur-sm rounded-lg border border-zinc-700/40 hover:border-cyan-500/30 transition-all duration-300 group"
                   >
-                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                      <span className="font-semibold">Provider: </span>
-                      {response.provider}
-                    </p>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                      <span className="font-semibold">Profile: </span>
-                      {response.profileName}
-                    </p>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                      <span className="font-semibold">Vote: </span>
-                      {response.vote}
-                    </p>
-                    <p className="text-sm text-zinc-600 dark:text-zinc-300">
-                      <span className="font-semibold">Rationale: </span>
-                      {parseRationale(response.rationale)}
-                    </p>
+                    <div className="flex justify-between items-start mb-3">
+                      <div className="space-y-1">
+                        <p className="text-sm">
+                          <span className="text-cyan-400/80 font-medium">Provider:</span>{" "}
+                          <span className="text-zinc-300">{response.provider}</span>
+                        </p>
+                        <p className="text-sm">
+                          <span className="text-cyan-400/80 font-medium">Profile:</span>{" "}
+                          <span className="text-zinc-100 font-semibold group-hover:text-cyan-300 transition-colors">
+                            {response.profileName}
+                          </span>
+                        </p>
+                      </div>
+                      <span
+                        className={`
+                          px-3 py-1 rounded-md text-sm font-bold
+                          ${
+                            response.vote === "YES"
+                              ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
+                              : response.vote === "NO"
+                              ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                              : "bg-zinc-700/50 text-zinc-400 border border-zinc-600/50"
+                          }
+                        `}
+                      >
+                        {response.vote}
+                      </span>
+                    </div>
+                    <div className="mt-3 p-3 bg-zinc-800/30 rounded-md border border-zinc-700/20">
+                      <p className="text-sm text-cyan-400/80 font-medium mb-1">Rationale:</p>
+                      <p className="text-sm text-zinc-300 leading-relaxed">
+                        {parseRationale(response.rationale)}
+                      </p>
+                    </div>
                   </div>
                 ))
               ) : (

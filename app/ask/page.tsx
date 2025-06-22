@@ -8,17 +8,9 @@ import { FeedbackModal } from "@/components/feedback-modal";
 export default async function AskPage() {
   return (
     <SolanaProvider>
-      <main
-        className="min-h-screen bg-background"
-        style={{
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundAttachment: "fixed",
-          backgroundRepeat: "no-repeat",
-          width: "100vw",
-          height: "100vh",
-        }}
-      >
+      <main className="min-h-screen bg-background dark:bg-gradient-to-b dark:from-zinc-900 dark:to-black relative">
+        {/* Subtle gradient overlay for depth */}
+        <div className="absolute inset-0 bg-gradient-to-t from-transparent via-transparent to-black/5 dark:to-black/20 pointer-events-none" />
         <Navbar />
         <QueryInterface />
         <AskFooter />

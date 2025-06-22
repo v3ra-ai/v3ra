@@ -2,62 +2,65 @@
 
 import Link from "next/link";
 import NavbarCredits from "./navbar-credits";
+import * as HoverCard from "@radix-ui/react-hover-card";
+
+interface NavLinkProps {
+  href: string;
+  label: string;
+  description: string;
+}
+
+function NavLink({ href, label, description }: NavLinkProps) {
+  return (
+    <HoverCard.Root openDelay={200} closeDelay={100}>
+      <HoverCard.Trigger asChild>
+        <Link
+          href={href}
+          className="text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium text-base hover:-translate-y-0.5"
+        >
+          {label}
+        </Link>
+      </HoverCard.Trigger>
+      <HoverCard.Portal>
+        <HoverCard.Content
+          className="z-50 glass-morphism rounded-lg px-4 py-3 max-w-xs shadow-xl animate-in fade-in-0 zoom-in-95 dark:border dark:border-cyan-500/30 dark:shadow-[0_0_20px_rgba(0,255,255,0.3)]"
+          sideOffset={8}
+        >
+          <p className="text-sm text-foreground/90 dark:text-cyan-50">{description}</p>
+          <HoverCard.Arrow className="fill-white/10 dark:fill-cyan-500/20" />
+        </HoverCard.Content>
+      </HoverCard.Portal>
+    </HoverCard.Root>
+  );
+}
 
 /**
  * Renders navigation links for the site, hidden on mobile and displayed horizontally on desktop.
- * Includes links to Home, Ask, Predict, Shop, Validators, and Stake.
+ * Includes links with hover tooltips for better UX.
  */
 export function NavbarSitelinks() {
   return (
     <div className="hidden md:flex items-center space-x-8">
-      {/* <Link
-        href="/"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Home
-      </Link> */}
-      <Link
-        href="/ask/fact-check"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Facts
-      </Link>
-      {/* <Link
-        href="/ask/predict"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Predict
-      </Link> */}
-      {/* <Link
-        href="/ask/shop"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Shop
-      </Link> */}
-      {/* <Link
-        href="/explorer"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Explorer
-      </Link> */}
-      <Link
+      <NavLink
+        href="/ask"
+        label="Ask V3ra"
+        description="Ask AI models yes/no questions and explore consensus"
+      />
+      <NavLink
         href="/llms/manage"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Validators
-      </Link>
-      <Link
+        label="AI Models"
+        description="Select and manage AI validators"
+      />
+      <NavLink
         href="/ai-hub"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        A.I. Hub
-      </Link>
-      <Link
+        label="AI Hub"
+        description="Explore AI model profiles and performance"
+      />
+      <NavLink
         href="/credits-all"
-        className="text-gray-700 hover:text-teal-500 dark:text-gray-300 dark:hover:text-teal-400"
-      >
-        Credits
-      </Link>
+        label="Credits"
+        description="Manage your query credits"
+      />
       <NavbarCredits />
     </div>
   );

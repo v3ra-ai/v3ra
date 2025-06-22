@@ -15,16 +15,16 @@ export function AskResultsStandardTitle({
       href={`/ask/${sanitizedQuery.id}`}
       className="text-zinc-900 dark:text-zinc-100"
     >
-      <CardHeader className="dark:bg-zinc-800">
+      <CardHeader className="bg-transparent hover:bg-zinc-800/20 dark:hover:bg-zinc-800/10 transition-colors rounded-lg">
         <CardDescription className="flex font-light text-xs dark:text-zinc-500 text-zinc-500"></CardDescription>
-        <CardTitle className="text-xl font-medium flex">
+        <CardTitle className="text-xl font-medium flex items-center text-zinc-100 dark:text-zinc-50">
           <div className="">
             {sanitizedQuery.isConsensusReached &&
             sanitizedQuery.consensusValue ? (
-              <CircleCheck className="mr-2 h-7 w-7 text-green-700 dark:text-green-300" />
+              <CircleCheck className="mr-2 h-7 w-7 text-emerald-500 dark:text-emerald-400 drop-shadow-[0_0_8px_rgba(52,211,153,0.4)]" />
             ) : sanitizedQuery.isConsensusReached &&
               !sanitizedQuery.consensusValue ? (
-              <X className="mr-2 h-7 w-7 text-red-700 dark:text-red-300" />
+              <X className="mr-2 h-7 w-7 text-rose-500 dark:text-rose-400 drop-shadow-[0_0_8px_rgba(251,113,133,0.4)]" />
             ) : null}
           </div>
 

@@ -40,13 +40,13 @@ export default function ModeToggle({ viewMode, variant = "buttons" }: Props) {
 
   return (
     <div className="container mx-auto px-2 flex justify-center mt-1 mb-2">
-      <div className="flex rounded-full bg-zinc-200 dark:bg-zinc-700 p-1">
+      <div className="flex rounded-lg bg-card dark:bg-white/5 border border-border dark:border-white/10 p-1">
         <button
           onClick={() => setViewMode("viewStandard")}
-          className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
+          className={`px-4 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 ${
             viewMode === "viewStandard"
-              ? "bg-teal-500 text-white"
-              : "bg-transparent text-zinc-500 dark:text-zinc-400"
+              ? "bg-primary text-primary-foreground dark:bg-cyan-500 dark:text-black shadow-sm"
+              : "text-muted-foreground hover:text-foreground dark:hover:text-cyan-400"
           }`}
           aria-label="Standard mode"
         >
@@ -54,10 +54,10 @@ export default function ModeToggle({ viewMode, variant = "buttons" }: Props) {
         </button>
         <button
           onClick={() => setViewMode("viewExpert")}
-          className={`px-4 py-2 rounded-full text-sm font-medium cursor-pointer ${
+          className={`px-4 py-1.5 rounded-md text-sm font-medium cursor-pointer transition-all duration-200 ${
             viewMode === "viewExpert"
-              ? "bg-teal-500 text-white"
-              : "bg-transparent text-zinc-500 dark:text-zinc-400"
+              ? "bg-primary text-primary-foreground dark:bg-cyan-500 dark:text-black shadow-sm"
+              : "text-muted-foreground hover:text-foreground dark:hover:text-cyan-400"
           }`}
           aria-label="Expert mode"
         >

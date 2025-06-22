@@ -1,14 +1,14 @@
 export function getPlaceholderText(queryMode: string): string {
   switch (queryMode) {
     case "fact-check":
-      return "Ask the validator network a yes/no question";
+      return "Example: Covid-19 was leaked from a lab in Wuhan, China";
     case "shop":
-      return "Find me the best deals on sneakers";
+      return "Find the best deals on sustainable products";
     case "predict":
-      return "What will the weather be like tomorrow?";
+      return "Will AI surpass human intelligence by 2030?";
     case "create":
-      return "Generate a short story about a robot";
+      return "Write a story about the future of technology";
     default:
-      return "Ask the validator network a yes/no question";
+      return "Ask a question to reach AI consensus";
   }
 }

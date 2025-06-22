@@ -11,7 +11,7 @@ import {
 } from "@solana/web3.js";
 
 const connection = new Connection(CURRENT_SOLANA_NETWORK_RPC, "confirmed");
-const VERAFY_WALLET = "GFY1U36t5HjVv8Gtq33bCdepUnPURtX46mPQXdAPaM4d";
+const V3RA_WALLET = "GFY1U36t5HjVv8Gtq33bCdepUnPURtX46mPQXdAPaM4d"; // Replace with your actual V3RA wallet address
 const LAMPORTS_TO_AIRDROP = 1_000_000_000; // 1 SOL
 const LAMPORTS_TO_TRANSFER = 10_000_000; // 0.01 SOL
 
@@ -57,7 +57,7 @@ async function requestAirdropWithRetry(publicKey, lamports, maxAttempts = 3, del
       ComputeBudgetProgram.setComputeUnitLimit({ units: 200_000 }),
       SystemProgram.transfer({
         fromPubkey: from.publicKey,
-        toPubkey: new PublicKey(VERAFY_WALLET),
+        toPubkey: new PublicKey(V3RA_WALLET),
         lamports: LAMPORTS_TO_TRANSFER,
       }),
     );

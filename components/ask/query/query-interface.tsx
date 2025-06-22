@@ -51,21 +51,21 @@ export default function QueryInterface() {
         <div className="inline-flex">
           <ModeToggle viewMode={viewMode} />
         </div>
-        <h1 className="text-zinc-900 dark:text-zinc-200 text-lg md:text-2xl font-bold text-center">
-          How can we help you{" "}
+        <h1 className="text-foreground text-2xl md:text-3xl font-light tracking-tight text-center">
+          Ask AI models a{" "}
           <Popover.Root>
             <Popover.Trigger asChild>
               <button
-                className="text-teal-600 dark:text-teal-300 border-b border-dashed border-teal-600 dark:border-teal-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 px-1 py-0.5 rounded transition-colors cursor-pointer"
+                className="text-primary dark:text-cyan-400 font-medium hover:text-primary/80 dark:hover:text-cyan-300 transition-colors cursor-pointer border-b-2 border-dashed border-primary/50 dark:border-cyan-400/50"
                 aria-label={`Change query mode, current mode: ${formatQueryMode(queryMode)}`}
               >
-                {formatQueryMode(queryMode)}
+                {queryMode === "fact-check" ? "yes/no" : formatQueryMode(queryMode).toLowerCase()}
               </button>
             </Popover.Trigger>
             <Popover.Portal>
               <Popover.Content
-                className="bg-zinc-200 dark:bg-zinc-900 rounded-lg p-1 shadow-lg max-w-[160px] w-full z-50"
-                sideOffset={5}
+                className="glass-morphism rounded-xl p-2 shadow-2xl max-w-[180px] w-full z-50"
+                sideOffset={8}
                 align="center"
               >
                 {(["fact-check", "predict", "create", "shop"] as QueryMode[]).map(
@@ -73,25 +73,25 @@ export default function QueryInterface() {
                     <Link
                       key={mode}
                       href={`/ask/${mode}`}
-                      className={`block w-full px-4 py-2 text-sm font-medium rounded-md text-left cursor-pointer transition-colors dark:border-b dark:border-zinc-700 dark:last:border-none ${
+                      className={`block w-full px-4 py-2.5 text-sm rounded-lg text-left cursor-pointer transition-all duration-200 ${
                         queryMode === mode
-                          ? "bg-teal-500 text-white"
-                          : "bg-transparent text-zinc-500 dark:text-zinc-400 hover:bg-zinc-300 dark:hover:bg-zinc-600"
+                          ? "bg-primary text-primary-foreground dark:bg-cyan-500 dark:text-black"
+                          : "text-foreground/70 hover:bg-accent hover:text-foreground dark:hover:bg-white/10"
                       }`}
                       role="menuitem"
                     >
-                      {capitalizeWords(formatQueryMode(mode))}
+                      {mode === "fact-check" ? "Yes/No Questions" : capitalizeWords(formatQueryMode(mode))}
                     </Link>
                   )
                 )}
-                <Popover.Arrow className="fill-zinc-200 dark:fill-zinc-900" />
+                <Popover.Arrow className="fill-card dark:fill-zinc-900" />
               </Popover.Content>
             </Popover.Portal>
           </Popover.Root>
-          ?
+          {" "}question
         </h1>
       </div>
-      <div className="bg-white dark:bg-zinc-900 rounded-3xl shadow-lg/20 p-4 max-w-4xl mx-auto">
+      <div className="glass-morphism rounded-2xl shadow-xl dark:shadow-none p-6 max-w-4xl mx-auto">
         {error && (
           <p className="text-red-500 text-sm mb-2" role="alert">
             {error}

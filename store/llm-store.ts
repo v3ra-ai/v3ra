@@ -5,6 +5,7 @@ import { useQueryStore } from "./query-store";
 export type Provider =
   | "OpenAI"
   | "Anthropic"
+  | "Google"
   | "OpenRouter"
   | "HuggingFace"
   | "Custom"

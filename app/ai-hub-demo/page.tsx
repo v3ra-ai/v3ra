@@ -1,5 +1,5 @@
-import AIHubDemoWrapper from "@/components/ai-hub/ai-hub-demo-wrapper";
+import { redirect } from "next/navigation";
 
 export default function AIHubDemoPage() {
-  return <AIHubDemoWrapper />;
+  redirect("/ai-hub");
 }

@@ -315,11 +315,14 @@ const QueryFormInputComponent = function QueryFormInput({
     <div>
       <div className="flex flex-col mb-2">
         <textarea
-          className={`w-full p-4 border rounded-lg h-24 focus:outline-none focus:ring-2 focus:ring-teal-500 text-gray-700 dark:text-gray-300 placeholder-gray-500 dark:placeholder-gray-400 text-lg ${
-            isSubmitInteracted && !queryText.trim()
-              ? "border-teal-400 ring-2 ring-teal-500"
-              : "border-gray-200"
-          }`}
+          className={`w-full p-4 rounded-lg h-24 focus:outline-none text-foreground placeholder-muted-foreground text-lg
+            bg-card dark:bg-card/50 border transition-all duration-200
+            ${
+              isSubmitInteracted && !queryText.trim()
+                ? "border-primary ring-2 ring-primary/50 dark:border-neon-cyan dark:ring-cyan-500/30"
+                : "border-border hover:border-primary/50 focus:border-primary dark:hover:border-cyan-500/30 dark:focus:border-cyan-500/50"
+            }
+          `}
           placeholder={placeholderText}
           value={queryText}
           onChange={(e) => setQueryText(e.target.value)}
@@ -335,7 +338,7 @@ const QueryFormInputComponent = function QueryFormInput({
               allowedAmountQueries={allowedAmountQueries}
             />
             <Button
-              className="bg-teal-500 hover:bg-teal-600 text-white rounded-md px-4 py-2 z-10 cursor-pointer"
+              className="bg-primary text-primary-foreground dark:bg-cyan-600 dark:hover:bg-cyan-500 dark:text-black rounded-md px-4 py-2 z-10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 dark:neon-glow-cyan"
               onClick={handleOpenModal}
             >
               {chooseButtonText}
@@ -344,8 +347,8 @@ const QueryFormInputComponent = function QueryFormInput({
         </div>
         <div className="flex items-center justify-end w-full sm:w-1/2">
           <Button
-            className={`bg-gradient-to-r from-teal-500 to-blue-500 hover:from-teal-600 hover:to-blue-600 text-white rounded-full px-8 py-2 w-full sm:w-auto ${
-              isSubmitInteracted && displayUnpaid > 0 ? "ring-2 ring-teal-500" : ""
+            className={`bg-primary text-primary-foreground dark:bg-gradient-to-r dark:from-cyan-500 dark:to-pink-500 dark:hover:from-cyan-400 dark:hover:to-pink-400 rounded-full px-8 py-2 w-full sm:w-auto transition-all duration-300 hover:-translate-y-0.5 dark:animate-pulse-neon ${
+              isSubmitInteracted && displayUnpaid > 0 ? "ring-2 ring-primary dark:ring-cyan-500/50" : ""
             }`}
             onClick={onSubmit}
             disabled={isSubmitDisabled}

@@ -18,17 +18,17 @@ export const connection = new Connection(
 
 export const CREDIT_PRICE_SOL = QUERY_COST;
 
-const VERAFY_WALLET_PUBLIC_KEY = process.env.NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY;
-let VERAFY_WALLET: PublicKey;
+const V3RA_WALLET_PUBLIC_KEY = process.env.NEXT_PUBLIC_V3RA_WALLET_PUBLIC_KEY;
+let V3RA_WALLET: PublicKey;
 
 try {
-  if (!VERAFY_WALLET_PUBLIC_KEY) {
-    throw new Error("NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY is not defined");
+  if (!V3RA_WALLET_PUBLIC_KEY) {
+    throw new Error("NEXT_PUBLIC_V3RA_WALLET_PUBLIC_KEY is not defined");
   }
-  VERAFY_WALLET = new PublicKey(VERAFY_WALLET_PUBLIC_KEY);
+  V3RA_WALLET = new PublicKey(V3RA_WALLET_PUBLIC_KEY);
 } catch (error) {
-  console.error("Invalid NEXT_PUBLIC_VERAFY_WALLET_PUBLIC_KEY:", error);
+  console.error("Invalid NEXT_PUBLIC_V3RA_WALLET_PUBLIC_KEY:", error);
   throw error;
 }
 
-export { VERAFY_WALLET };
+export { V3RA_WALLET };

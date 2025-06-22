@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect, Dispatch, SetStateAction } f
 import { toast } from "sonner";
 import TruthSliderUI from "@/components/credits/truth-slider-ui";
 import { useTruthTransaction } from "@/hooks/useTruthTransaction";
-import { VERAFY_WALLET, connection, TRUTH_TOKEN_MINT, TRUTH_TOKEN_DECIMALS } from "@/lib/solana-constants";
+import { V3RA_WALLET, connection, TRUTH_TOKEN_MINT, TRUTH_TOKEN_DECIMALS } from "@/lib/solana-constants";
 import { TRUTH_QUERY_COST } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -203,7 +203,7 @@ export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSl
     const attemptTransaction = async (): Promise<boolean> => {
       console.log("[TruthSlider] Initiating $truth transaction for", {
         creditAmount,
-        recipient: VERAFY_WALLET.toBase58(),
+        recipient: V3RA_WALLET.toBase58(),
         requiredTruth,
         walletPublicKey: publicKey.toBase58(),
         truthBalance,
@@ -212,7 +212,7 @@ export default function TruthSlider({ creditBalance, setCreditBalance }: TruthSl
       });
 
       try {
-        const result = await sendTransaction(creditAmount, new PublicKey(VERAFY_WALLET));
+        const result = await sendTransaction(creditAmount, new PublicKey(V3RA_WALLET));
         if (result.signature && result.signedTx && publicKey) {
           const newBalance = await assignCredits(
             result.signature,

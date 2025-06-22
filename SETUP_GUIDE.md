@@ -73,7 +73,8 @@ ENCRYPTION_KEY=your_generated_32_char_key
 ENCRYPTION_IV=your_generated_16_char_iv
 
 # Payments (optional)
-NEXT_PUBLIC_PAYMENT_RECEIVER_ADDRESS=your_solana_wallet_address
+NEXT_PUBLIC_V3RA_WALLET_PUBLIC_KEY=your_solana_wallet_address
+V3RA_WALLET_PUBLIC_KEY=your_solana_wallet_address
 CURRENT_SOLANA_NETWORK=Devnet
 ```
 

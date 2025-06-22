@@ -13,19 +13,19 @@ import { v4 as uuidv4 } from "uuid";
 import { verifyCsrfToken } from "@/utils/csrf-utils";
 import { CURRENT_SOLANA_NETWORK_RPC, QUERY_COST } from "@/lib/constants";
 
-// Load Verafy wallet public key from .env
-const VERAFY_WALLET_PUBLIC_KEY = process.env.VERAFY_WALLET_PUBLIC_KEY;
+// Load V3RA wallet public key from .env
+const V3RA_WALLET_PUBLIC_KEY = process.env.V3RA_WALLET_PUBLIC_KEY;
 
-if (!VERAFY_WALLET_PUBLIC_KEY) {
-  throw new Error("VERAFY_WALLET_PUBLIC_KEY is not defined in .env");
+if (!V3RA_WALLET_PUBLIC_KEY) {
+  throw new Error("V3RA_WALLET_PUBLIC_KEY is not defined in .env");
 }
 
-let VERAFY_WALLET: PublicKey;
+let V3RA_WALLET: PublicKey;
 try {
-  VERAFY_WALLET = new PublicKey(VERAFY_WALLET_PUBLIC_KEY);
+  V3RA_WALLET = new PublicKey(V3RA_WALLET_PUBLIC_KEY);
 } catch {
   throw new Error(
-    "Invalid VERAFY_WALLET_PUBLIC_KEY: must be a valid base58 Solana public key",
+    "Invalid V3RA_WALLET_PUBLIC_KEY: must be a valid base58 Solana public key",
   );
 }
 
@@ -196,7 +196,7 @@ export async function POST(req: NextRequest) {
           programId: instr.programId.toBase58(),
           keys: instr.keys.map((k) => k.pubkey.toBase58()),
         })),
-        expectedRecipient: VERAFY_WALLET.toBase58(),
+        expectedRecipient: V3RA_WALLET.toBase58(),
       });
       await prisma.paymentLog.create({
         data: {
@@ -217,15 +217,15 @@ export async function POST(req: NextRequest) {
     if (instruction.keys.length < 2) {
       errorMessage =
         "Invalid transaction: insufficient keys, expected at least 2";
-    } else if (!instruction.keys[1].pubkey.equals(VERAFY_WALLET)) {
-      errorMessage = `Invalid transaction: incorrect recipient, expected ${VERAFY_WALLET.toBase58()}, got ${instruction.keys[1].pubkey.toBase58()}`;
+    } else if (!instruction.keys[1].pubkey.equals(V3RA_WALLET)) {
+      errorMessage = `Invalid transaction: incorrect recipient, expected ${V3RA_WALLET.toBase58()}, got ${instruction.keys[1].pubkey.toBase58()}`;
     }
 
     if (errorMessage) {
       console.log("[Payment] Transfer instruction validation failed:", {
         programId: instruction.programId.toBase58(),
         keys: instruction.keys.map((k) => k.pubkey.toBase58()),
-        expectedRecipient: VERAFY_WALLET.toBase58(),
+        expectedRecipient: V3RA_WALLET.toBase58(),
       });
       await prisma.paymentLog.create({
         data: {

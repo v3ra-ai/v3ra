@@ -9,7 +9,7 @@ import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { verifyCsrfToken } from "@/utils/csrf-utils";
 import { TRUTH_QUERY_COST, TRUTH_TOKEN_MINT_ADDRESS, TRUTH_TOKEN_DECIMALS } from "@/lib/constants";
-import { connection, VERAFY_WALLET } from "@/lib/solana-constants";
+import { connection, V3RA_WALLET } from "@/lib/solana-constants";
 import { getAssociatedTokenAddress, getAccount } from "@solana/spl-token";
 
 interface RequestBody {
@@ -185,7 +185,7 @@ export async function POST(req: NextRequest) {
           programId: instr.programId.toBase58(),
           keys: instr.keys.map((k) => k.pubkey.toBase58()),
         })),
-        expectedRecipient: VERAFY_WALLET.toBase58(),
+        expectedRecipient: V3RA_WALLET.toBase58(),
       });
       await prisma.paymentLog.create({
         data: {
@@ -204,7 +204,7 @@ export async function POST(req: NextRequest) {
 
     // Validate transfer instruction
     const instruction = transferInstruction;
-    const recipientATA = await getAssociatedTokenAddress(new PublicKey(TRUTH_TOKEN_MINT_ADDRESS), VERAFY_WALLET);
+    const recipientATA = await getAssociatedTokenAddress(new PublicKey(TRUTH_TOKEN_MINT_ADDRESS), V3RA_WALLET);
     if (instruction.keys.length < 2) {
       errorMessage = "Invalid transaction: insufficient keys, expected at least 2";
     } else if (!instruction.keys[1].pubkey.equals(recipientATA)) {

@@ -17,6 +17,7 @@ export default function ProviderTabs() {
     "Popular",
     "OpenAI",
     "Anthropic",
+    "Google",
     "OpenRouter",
     "HuggingFace",
     "Custom",

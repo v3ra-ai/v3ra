@@ -13,33 +13,40 @@ const ValidatorResponseCard = ({
 }) => {
   const sanitizedResponse = sanitizeValidatorResponse(response);
   return (
-    <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl p-4">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2">
+    <div className="bg-gradient-to-br from-zinc-900/80 via-black/80 to-zinc-950/80 backdrop-blur-xl rounded-xl p-5 border border-zinc-700/50 hover:border-cyan-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(0,255,255,0.1)] group">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3">
         <div className="flex flex-col">
-          <span className="text-2xl font-medium text-gray-800 dark:text-zinc-200">
-            {sanitizedResponse.profileName} ({sanitizedResponse.provider})
-          </span>
-          <span className="text-xs text-gray-500 dark:text-gray-400">
-            ID: {sanitizedResponse.id}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-cyan-400/80 font-medium">Provider:</span>
+            <span className="text-sm text-zinc-300">{sanitizedResponse.provider}</span>
+          </div>
+          <div className="flex items-center gap-2 mt-1">
+            <span className="text-sm text-cyan-400/80 font-medium">Profile:</span>
+            <span className="text-lg font-semibold text-zinc-100 group-hover:text-cyan-300 transition-colors">
+              {sanitizedResponse.profileName}
+            </span>
+          </div>
+        </div>
+        <div className="flex flex-col items-end mt-2 sm:mt-0">
+          <span className="text-sm text-zinc-400 mb-1">Vote:</span>
+          <span
+            className={`
+              px-4 py-2
+              rounded-lg
+              text-xl font-bold
+              transition-all duration-300
+              ${
+                sanitizedResponse.vote === "YES"
+                  ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.3)]"
+                  : sanitizedResponse.vote === "NO"
+                    ? "bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-[0_0_15px_rgba(251,113,133,0.3)]"
+                    : "bg-zinc-700/50 text-zinc-400 border border-zinc-600/50"
+              }
+            `}
+          >
+            {sanitizedResponse.vote || "N/A"}
           </span>
         </div>
-        <span
-          className={`
-            px-2 py-1
-            rounded-full
-            text-xl font-medium
-            mt-2 sm:mt-0
-            ${
-              sanitizedResponse.vote === "YES"
-                ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400"
-                : sanitizedResponse.vote === "NO"
-                  ? "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
-                  : "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300"
-            }
-          `}
-        >
-          {sanitizedResponse.vote || "N/A"}
-        </span>
       </div>
       {(() => {
   const { rationale, answer } = parseRationaleDetailed(sanitizedResponse.rationale);
@@ -54,10 +61,12 @@ const ValidatorResponseCard = ({
   }
   return (
     <>
-      {/* Truncate overly long rationale to avoid huge cards */}
-      <span className="text-sm block whitespace-pre-wrap line-clamp-6">
-        {rationale.length > 600 ? `${rationale.slice(0, 600)}...` : rationale}
-      </span>
+      <div className="mt-4 p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/30">
+        <span className="text-sm text-cyan-400/80 font-medium block mb-2">Rationale:</span>
+        <span className="text-sm text-zinc-300 block whitespace-pre-wrap leading-relaxed">
+          {rationale.length > 600 ? `${rationale.slice(0, 600)}...` : rationale}
+        </span>
+      </div>
       {warning}
     </>
   );
@@ -72,13 +81,13 @@ export default function ValidatorResults() {
   const validatorResponses = voteResult?.validatorResponses ?? [];
 
   return (
-    <Card className="bg-white dark:bg-zinc-900 rounded-xl shadow-md px-6 w-full">
-      <CardHeader className="p-0 mb-4">
-        <CardTitle className="text-xl font-medium text-gray-800 dark:text-zinc-200">
-          Validator Results
+    <Card className="bg-gradient-to-b from-zinc-900/95 to-black/95 backdrop-blur-xl rounded-xl shadow-2xl px-6 py-6 w-full border border-zinc-700/30">
+      <CardHeader className="p-0 mb-6">
+        <CardTitle className="text-2xl font-bold text-zinc-100 dark:text-zinc-50 flex items-center gap-2">
+          <span className="text-cyan-400">A.I.</span> Responses
         </CardTitle>
-        <div className="text-md text-zinc-700 dark:text-zinc-400">
-          Most recent query Validator results{" "}
+        <div className="text-sm text-zinc-400 dark:text-zinc-500 mt-1">
+          Analysis from multiple AI models
         </div>
       </CardHeader>
       <CardContent className="p-0">

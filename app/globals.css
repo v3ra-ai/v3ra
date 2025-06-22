@@ -44,25 +44,25 @@
 }
 
 :root {
-  --radius: 0.625rem;
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
+  --radius: 0.375rem; /* More subtle, Apple-like radius */
+  --background: oklch(0.98 0 0);
+  --foreground: oklch(0.15 0 0);
+  --card: oklch(0.98 0 0);
+  --card-foreground: oklch(0.15 0 0);
+  --popover: oklch(0.98 0 0);
+  --popover-foreground: oklch(0.15 0 0);
+  --primary: oklch(0.15 0 0);
+  --primary-foreground: oklch(0.98 0 0);
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.15 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.5 0 0);
+  --accent: oklch(0.96 0 0);
+  --accent-foreground: oklch(0.15 0 0);
   --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.9 0 0);
+  --ring: oklch(0.7 0 0);
   --chart-1: oklch(0.646 0.222 41.116);
   --chart-2: oklch(0.6 0.118 184.704);
   --chart-3: oklch(0.398 0.07 227.392);
@@ -81,37 +81,54 @@
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Pure black background for OLED optimization */
+  --background: oklch(0.05 0 0);
+  --foreground: oklch(0.95 0 0);
+  
+  /* Slightly elevated surfaces */
+  --card: oklch(0.08 0.01 0);
+  --card-foreground: oklch(0.95 0 0);
+  --popover: oklch(0.1 0.01 0);
+  --popover-foreground: oklch(0.95 0 0);
+  
+  /* Cyberpunk neon accent - electric cyan */
+  --primary: oklch(0.75 0.15 195);
+  --primary-foreground: oklch(0.05 0 0);
+  
+  /* Subtle neutral surfaces */
+  --secondary: oklch(0.15 0.01 0);
+  --secondary-foreground: oklch(0.9 0 0);
+  --muted: oklch(0.2 0.01 0);
+  --muted-foreground: oklch(0.65 0 0);
+  
+  /* Neon pink accent for highlights */
+  --accent: oklch(0.65 0.2 345);
+  --accent-foreground: oklch(0.95 0 0);
+  
+  /* Error states */
+  --destructive: oklch(0.65 0.25 25);
+  
+  /* Subtle borders */
+  --border: oklch(0.2 0.01 0);
+  --input: oklch(0.15 0.01 0);
+  --ring: oklch(0.75 0.15 195);
+  
+  /* Chart colors - cyberpunk palette */
+  --chart-1: oklch(0.75 0.15 195); /* Cyan */
+  --chart-2: oklch(0.65 0.2 345); /* Pink */
+  --chart-3: oklch(0.7 0.15 120); /* Green */
+  --chart-4: oklch(0.65 0.2 280); /* Purple */
+  --chart-5: oklch(0.7 0.2 60); /* Yellow */
+  
+  /* Sidebar */
+  --sidebar: oklch(0.06 0.01 0);
+  --sidebar-foreground: oklch(0.9 0 0);
+  --sidebar-primary: oklch(0.75 0.15 195);
+  --sidebar-primary-foreground: oklch(0.05 0 0);
+  --sidebar-accent: oklch(0.15 0.01 0);
+  --sidebar-accent-foreground: oklch(0.9 0 0);
+  --sidebar-border: oklch(0.2 0.01 0);
+  --sidebar-ring: oklch(0.75 0.15 195);
 }
 
 
@@ -263,4 +280,171 @@ body {
 
 .dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: oklch(1 0 0 / 30%);
+}
+
+/* Cyberpunk-inspired utility classes */
+@layer utilities {
+  /* Neon glow effects */
+  .neon-glow-cyan {
+    filter: drop-shadow(0 0 20px oklch(0.75 0.15 195 / 0.5));
+  }
+  
+  .neon-glow-pink {
+    filter: drop-shadow(0 0 20px oklch(0.65 0.2 345 / 0.5));
+  }
+  
+  .neon-text-cyan {
+    color: oklch(0.75 0.15 195);
+    text-shadow: 0 0 10px oklch(0.75 0.15 195 / 0.5);
+  }
+  
+  .neon-text-pink {
+    color: oklch(0.65 0.2 345);
+    text-shadow: 0 0 10px oklch(0.65 0.2 345 / 0.5);
+  }
+  
+  /* Subtle gradient backgrounds */
+  .gradient-radial-subtle {
+    background: radial-gradient(
+      ellipse at top,
+      oklch(0.1 0.01 0),
+      oklch(0.05 0 0)
+    );
+  }
+  
+  /* Cyberpunk borders */
+  .border-neon-cyan {
+    border-color: oklch(0.75 0.15 195 / 0.5);
+  }
+  
+  .border-neon-pink {
+    border-color: oklch(0.65 0.2 345 / 0.5);
+  }
+}
+
+/* Glass morphism effect */
+.glass-morphism {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Hover animations */
+.hover-lift {
+  transition: all 300ms ease-out;
+}
+
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Cyberpunk animations */
+@keyframes pulse-neon {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes scan-line {
+  0% {
+    transform: translateY(-100%);
+  }
+  100% {
+    transform: translateY(100vh);
+  }
+}
+
+.animate-pulse-neon {
+  animation: pulse-neon 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Typography adjustments for Apple-like minimalism */
+@layer base {
+  h1, h2, h3, h4, h5, h6 {
+    @apply tracking-tight;
+  }
+  
+  /* Use SF Pro Display-like system font stack */
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Helvetica Neue", "Helvetica", "Arial", sans-serif;
+    @apply antialiased;
+  }
+  
+  /* Monospace for code */
+  code, pre {
+    font-family: "SF Mono", "Monaco", "Inconsolata", "Fira Code", monospace;
+  }
+}
+
+/* Wallet Adapter Button Overrides */
+.wallet-adapter-button {
+  background-color: var(--primary);
+  color: var(--primary-foreground);
+  border-radius: 0.5rem;
+  padding: 0.5rem 1rem;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 200ms;
+}
+
+.dark .wallet-adapter-button {
+  background: linear-gradient(to right, oklch(0.75 0.15 195), oklch(0.65 0.2 345));
+}
+
+.wallet-adapter-button:hover:not(:disabled) {
+  transform: translateY(-0.125rem);
+  opacity: 0.9;
+}
+
+.dark .wallet-adapter-button:hover:not(:disabled) {
+  background: linear-gradient(to right, oklch(0.7 0.15 195), oklch(0.6 0.2 345));
+}
+
+.wallet-adapter-button-trigger {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+}
+
+.dark .wallet-adapter-button-trigger {
+  background-color: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.wallet-adapter-button-trigger:hover {
+  border-color: oklch(0.75 0.15 195 / 0.3);
+}
+
+/* Wallet dropdown */
+.wallet-adapter-dropdown {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.dark .wallet-adapter-dropdown {
+  background-color: rgba(24, 24, 27, 0.95);
+  backdrop-filter: blur(12px);
+  border-color: rgba(255, 255, 255, 0.1);
+}
+
+.wallet-adapter-dropdown-list {
+  padding: 0.5rem;
+}
+
+.wallet-adapter-dropdown-list-item {
+  border-radius: 0.5rem;
+  transition: colors 200ms;
+}
+
+.wallet-adapter-dropdown-list-item:hover {
+  background-color: var(--accent);
+}
+
+.dark .wallet-adapter-dropdown-list-item:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }

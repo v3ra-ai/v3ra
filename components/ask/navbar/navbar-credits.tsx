@@ -118,11 +118,12 @@ function NavbarCredits() {
   });
 
   return (
-    <div className="flex items-center text-md text-zinc-600 dark:text-zinc-300">
-      <Link href="/credits-all/">
-        <div className="flex items-center">
-          <Wallet size={16} /> <span className="mx-2">Credits:</span>
-          <span className="text-sky-700 dark:text-sky-300 bg-zinc-200 dark:bg-zinc-700 ml-1 px-2 py-1 rounded-md">
+    <div className="flex items-center text-sm font-medium">
+      <Link href="/credits-all/" className="group">
+        <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-card dark:bg-white/5 border border-border dark:border-white/10 hover:border-primary/50 dark:hover:border-cyan-500/30 transition-all duration-200">
+          <Wallet className="w-4 h-4 text-muted-foreground group-hover:text-foreground dark:group-hover:text-cyan-400" />
+          <span className="text-muted-foreground group-hover:text-foreground dark:group-hover:text-cyan-400">Credits</span>
+          <span className="font-semibold text-foreground dark:text-cyan-400 min-w-[2rem] text-center">
             {isLoading ? (
               <>
                 {console.log("[NavbarCredits] Rendering LoadingSpinner for credits fetch", {
@@ -131,8 +132,8 @@ function NavbarCredits() {
                 <LoadingSpinner
                   noWrapper
                   type="pulse"
-                  color="#d946ef"
-                  size={5}
+                  color="currentColor"
+                  size={4}
                   message=""
                 />
               </>

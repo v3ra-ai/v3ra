@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import CreditSliderUI from "./credit-slider-ui";
 import { useSolanaTransaction } from "@/hooks/useSolanaTransaction";
 import { useCreditAssignment } from "@/hooks/useCreditAssignment";
-import { VERAFY_WALLET, connection } from "@/lib/solana-constants";
+import { V3RA_WALLET, connection } from "@/lib/solana-constants";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWalletModal } from "@solana/wallet-adapter-react-ui";
 import { useWallet } from "@solana/wallet-adapter-react";
@@ -88,28 +88,28 @@ export default function CreditSlider({ creditBalance, setCreditBalance }: Credit
     }
 
     const attemptTransaction = async (): Promise<boolean> => {
-      console.log(`Initiating transaction for ${creditAmount} credits to ${VERAFY_WALLET}`, {
+      console.log(`Initiating transaction for ${creditAmount} credits to ${V3RA_WALLET}`, {
         creditAmount,
-        recipient: VERAFY_WALLET,
+        recipient: V3RA_WALLET,
         requiredSol,
         walletPublicKey: publicKey.toBase58(),
       });
 
       try {
-        const verafyBalance = await connection.getBalance(new PublicKey(VERAFY_WALLET));
-        if (verafyBalance === 0) {
+        const v3raBalance = await connection.getBalance(new PublicKey(V3RA_WALLET));
+        if (v3raBalance === 0) {
           toast.error("Recipient wallet is not initialized. Contact support.");
           return false;
         }
       } catch (error: unknown) {
         const errorMessage = error instanceof Error ? error.message : "Unknown error";
-        console.error("Error checking VERAFY_WALLET:", errorMessage);
+        console.error("Error checking V3RA_WALLET:", errorMessage);
         toast.error("Failed to verify recipient wallet. Please try again.");
         return false;
       }
 
       try {
-        const result = await sendTransaction(creditAmount, new PublicKey(VERAFY_WALLET));
+        const result = await sendTransaction(creditAmount, new PublicKey(V3RA_WALLET));
         if (result.signature && result.signedTx && publicKey) {
           const newBalance = await assignCredits(
             result.signature,

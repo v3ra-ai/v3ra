@@ -19,7 +19,7 @@ export default function AIModelCard({ model, viewMode }: AIModelCardProps) {
     return (
       <Link
         href={`/ai-hub/${model.id}/profile`}
-        className="group flex items-center gap-4 p-4 rounded-lg bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900 transition-all"
+        className="group flex items-center gap-4 p-4 rounded-lg bg-gradient-to-r from-zinc-900/80 to-black/80 backdrop-blur-xl border border-zinc-700/50 hover:border-cyan-500/30 hover:from-zinc-900/90 hover:to-black/90 transition-all duration-300 hover:shadow-[0_0_20px_rgba(0,255,255,0.1)]"
       >
         {/* Icon */}
         <div className="flex-shrink-0">
@@ -37,10 +37,10 @@ export default function AIModelCard({ model, viewMode }: AIModelCardProps) {
         {/* Main content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="font-semibold text-zinc-100 truncate">{model.name}</h3>
-            <span className="text-xs text-zinc-500">by {model.provider}</span>
+            <h3 className="font-semibold text-zinc-50 group-hover:text-cyan-300 transition-colors truncate">{model.name}</h3>
+            <span className="text-xs text-zinc-400">by {model.provider}</span>
           </div>
-          <p className="text-sm text-zinc-400 mt-1 line-clamp-1">
+          <p className="text-sm text-zinc-300 mt-1 line-clamp-1">
             {specialization.description}
           </p>
           <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
@@ -66,10 +66,10 @@ export default function AIModelCard({ model, viewMode }: AIModelCardProps) {
   return (
     <Link
       href={`/ai-hub/${model.id}/profile`}
-      className="group relative rounded-xl bg-zinc-900/50 border border-zinc-800 hover:border-zinc-700 hover:bg-zinc-900 transition-all overflow-hidden"
+      className="group relative rounded-xl bg-gradient-to-br from-zinc-900/80 via-black/80 to-zinc-950/80 backdrop-blur-xl border border-zinc-700/50 hover:border-cyan-500/30 hover:from-zinc-900/90 hover:via-black/90 hover:to-zinc-950/90 transition-all duration-300 hover:shadow-[0_0_30px_rgba(0,255,255,0.1)] hover:-translate-y-1 overflow-hidden"
     >
       {/* Header with gradient */}
-      <div className="relative h-32 bg-gradient-to-br from-zinc-800 to-zinc-900">
+      <div className="relative h-32 bg-gradient-to-br from-cyan-900/20 via-zinc-900/50 to-pink-900/20">
         <div className="absolute inset-0 flex items-center justify-center">
           <div className="relative w-16 h-16 rounded-xl overflow-hidden bg-zinc-800/50 backdrop-blur-sm flex items-center justify-center">
             <Image

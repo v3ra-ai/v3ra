@@ -20,39 +20,39 @@ export function QueryFormModeSelector({ queryMode }: QueryFormModeSelectorProps)
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button className="text-zinc-900 dark:text-white bg-zinc-200 dark:bg-zinc-700 hover:bg-zinc-600 min-w-[100px] cursor-pointer text-sm px-4 py-2">
+        <Button className="bg-card dark:bg-white/5 border border-border dark:border-white/10 hover:border-primary/50 dark:hover:border-cyan-500/30 min-w-[100px] cursor-pointer text-sm px-4 py-2 text-foreground transition-all duration-200">
           {queryMode === "predict"
             ? "Predict"
             // : queryMode === "create"
             // ? "Create"
             : queryMode === "shop"
             ? "Shop"
-            : "Fact Check"}
+            : "Yes/No"}
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent className="bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-700 w-[160px]">
+      <DropdownMenuContent className="glass-morphism border border-border dark:border-white/10 w-[160px] rounded-lg p-1">
         <DropdownMenuItem asChild>
           <Link
             href="/ask/fact-check"
-            className="w-full text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer px-4 py-2 text-sm"
+            className="w-full text-foreground hover:bg-accent dark:hover:bg-white/10 focus:bg-accent dark:focus:bg-white/10 cursor-pointer px-3 py-2 text-sm rounded-md transition-colors duration-200"
           >
-            Fact Check
+            Yes/No Questions
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
             href="/ask/predict"
-            className="w-full text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer px-4 py-2 text-sm"
+            className="w-full text-foreground hover:bg-accent dark:hover:bg-white/10 focus:bg-accent dark:focus:bg-white/10 cursor-pointer px-3 py-2 text-sm rounded-md transition-colors duration-200"
           >
-            Predict
+            Predictions
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link
             href="/ask/shop"
-            className="w-full text-zinc-900 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:bg-zinc-100 dark:focus:bg-zinc-800 cursor-pointer px-4 py-2 text-sm"
+            className="w-full text-foreground hover:bg-accent dark:hover:bg-white/10 focus:bg-accent dark:focus:bg-white/10 cursor-pointer px-3 py-2 text-sm rounded-md transition-colors duration-200"
           >
-            Shop
+            Shopping
           </Link>
         </DropdownMenuItem>
         {/* <DropdownMenuItem asChild>

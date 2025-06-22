@@ -4,7 +4,7 @@ import * as React from "react";
 
 // Health check status interface
 interface ValidatorHealth {
-  status: "healthy" | "warning" | "error";
+  status: "healthy" | "warning" | "error" | "unknown";
   message: string;
   details?: {
     apiKeysCount: number;
@@ -49,20 +49,26 @@ export function ValidatorHealthCheck({
     setLoading(true);
 
     try {
-      console.log("[ValidatorHealthCheck] Fetching /api/admin/health-check");
+      // Skip health check if endpoint doesn't exist
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+      
       const response = await fetch("/api/admin/health-check", {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      });
+        signal: controller.signal,
+      }).catch(() => null);
       
-      if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+      clearTimeout(timeoutId);
+      
+      if (!response || !response.ok) {
+        // Silently fail if endpoint doesn't exist
+        return;
       }
       
       const data = await response.json();
-      console.log("[ValidatorHealthCheck] Health check successful:", data);
       setHealth(data);
 
       // If there's an issue, call the onHealthIssue callback
@@ -70,13 +76,14 @@ export function ValidatorHealthCheck({
         onHealthIssue(data.message);
       }
     } catch (err) {
-      console.error("[ValidatorHealthCheck] Failed to check validator health:", err);
-      
-      const errorMessage = err instanceof Error ? err.message : 'Network error occurred';
+      // Silently handle errors to avoid console spam
+      if (err instanceof Error && err.name !== 'AbortError') {
+        console.debug("[ValidatorHealthCheck] Health check skipped:", err.message);
+      }
       
       setHealth({
-        status: "error",
-        message: errorMessage,
+        status: "unknown",
+        message: "Health check unavailable",
         details: {
           apiKeysCount: 0,
           activeValidatorsCount: 0,
@@ -86,7 +93,7 @@ export function ValidatorHealthCheck({
       });
 
       if (onHealthIssue) {
-        onHealthIssue(`Health check failed: ${errorMessage}`);
+        onHealthIssue("Health check unavailable");
       }
     } finally {
       setLoading(false);
@@ -144,6 +151,8 @@ export function ValidatorHealthCheck({
         return "bg-yellow-500";
       case "error":
         return "bg-red-500";
+      case "unknown":
+        return "bg-gray-500";
       default:
         return "bg-gray-500";
     }

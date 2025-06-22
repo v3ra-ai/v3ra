@@ -117,12 +117,16 @@ export default function AskResultsStandardCard({
   return (
     <Card
       className={`
-        bg-zinc-50 dark:bg-zinc-800
+        bg-gradient-to-br from-zinc-900/90 via-zinc-900/95 to-black/90
+        dark:from-zinc-900/50 dark:via-black/60 dark:to-zinc-950/70
+        backdrop-blur-2xl
         pt-4 gap-2
-        border border-zinc-200 dark:border-zinc-700
-        hover:border-zinc-400 active:border-zinc-400
-        dark:hover:border-zinc-500 dark:active:border-zinc-500
-        transition-colors
+        border border-zinc-700/50 dark:border-cyan-500/20
+        hover:border-cyan-400/40 active:border-cyan-400/60
+        dark:hover:border-cyan-400/40 dark:active:border-cyan-400/60
+        transition-all duration-300 hover:-translate-y-1
+        hover:shadow-2xl dark:hover:shadow-[0_0_40px_rgba(0,255,255,0.15)]
+        dark:shadow-[0_4px_20px_rgba(0,0,0,0.5)]
         ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
       `}
     >
