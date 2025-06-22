@@ -268,14 +268,20 @@ const QueryFormInputComponent = function QueryFormInput({
     }
   }, [isSubmitting, queryMode, cancelTimer]);
 
+  // Ensure button text updates when queryMode changes
+  useEffect(() => {
+    setButtonText(formatQueryMode(queryMode));
+    console.log("[QueryFormInput] Query mode changed, updating button text to:", formatQueryMode(queryMode));
+  }, [queryMode]);
+
   const creditsLeft = useMemo(
     () => Math.max(0, totalCredits - queriesRequested),
     [totalCredits, queriesRequested]
   );
   
   const isSubmitDisabled = useMemo(
-    () => isSubmitting || creditsLeft < queriesCostTotal || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
-    [isSubmitting, creditsLeft, queriesCostTotal, hasSelectedLLMs, queriesRequested, selectedLLMCount]
+    () => isSubmitting || !queryText.trim() || creditsLeft < queriesCostTotal || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
+    [isSubmitting, queryText, creditsLeft, queriesCostTotal, hasSelectedLLMs, queriesRequested, selectedLLMCount]
   );
 
   // Note: displayedQueryCost was previously calculated but not used

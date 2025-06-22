@@ -3,7 +3,6 @@
 import * as Accordion from "@radix-ui/react-accordion";
 import { ChevronDownIcon } from "lucide-react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { cn } from "@/lib/utils"; // Assuming a utility for className concatenation
 import { JSX } from "react";
 
@@ -19,27 +18,19 @@ const faqData: FAQItem[] = [
     question: "What payment methods are available?",
     answer: (
       <>
-        You can purchase credits using two cryptocurrencies:
-        <ul className="list-disc pl-5 mt-2">
-          <li>
-            <strong>SOL</strong>: The native cryptocurrency of the Solana blockchain. Use the &quot;Buy Credits with SOL&quot; option to select the number of credits you want and pay with SOL from your connected Solana wallet.
-          </li>
-          <li>
-            <strong>$truth</strong>: A token on the Solana blockchain. Use the &quot;Buy Credits with $truth&quot; option to select credits and pay with $truth tokens from your wallet.
-          </li>
-        </ul>
+        You can purchase additional credits using SOL, the native cryptocurrency of the Solana blockchain. Use the &quot;Buy Credits with SOL&quot; option to select the number of credits you want and pay with SOL from your connected Solana wallet.
       </>
     ),
   },
   {
-    question: "How do I buy credits with SOL or $truth?",
+    question: "How do I buy credits with SOL?",
     answer: (
       <>
         <ol className="list-decimal pl-5 mt-2">
           <li>Connect your Solana wallet by clicking &quot;Connect Wallet&quot; if not already connected.</li>
-          <li>Choose either &quot;Buy Credits with SOL&quot; or &quot;Buy Credits with $truth.&quot;</li>
+          <li>Choose &quot;Buy Credits with SOL.&quot;</li>
           <li>Use the slider to select the number of credits (1 to 100).</li>
-          <li>Check the cost in SOL or $truth and your wallet balance.</li>
+          <li>Check the cost in SOL and your wallet balance.</li>
           <li>Click &quot;Pay Now&quot; to initiate the transaction. Approve the transaction in your wallet.</li>
           <li>Once confirmed, credits will be added to your account.</li>
         </ol>
@@ -49,7 +40,7 @@ const faqData: FAQItem[] = [
   {
     question: "Do I need a specific wallet?",
     answer:
-      "You need a Solana-compatible wallet (e.g., Phantom, Solflare) that supports SOL and $truth tokens. Ensure your wallet is set to the Solana Mainnet and has sufficient SOL for transaction fees (approximately 0.01 SOL per transaction).",
+      "You need a Solana-compatible wallet (e.g., Phantom, Solflare) that supports SOL. Ensure your wallet is set to the Solana Mainnet and has sufficient SOL for transaction fees (approximately 0.01 SOL per transaction).",
   },
   {
     question: "What are the costs?",
@@ -59,10 +50,7 @@ const faqData: FAQItem[] = [
           <li>
             <strong>SOL</strong>: The cost is calculated as credits × a fixed SOL rate (displayed during purchase). For example, 10 credits might cost 0.1 SOL.
           </li>
-          <li>
-            <strong>$truth</strong>: The cost is 1 $truth per credit (e.g., 10 credits = 10 $truth).
-          </li>
-          <li>Transaction fees in SOL apply for both payment types.</li>
+          <li>Transaction fees in SOL apply to all purchases.</li>
         </ul>
       </>
     ),
@@ -70,7 +58,7 @@ const faqData: FAQItem[] = [
   {
     question: "Can I get free credits?",
     answer:
-      "Yes, free credits may be awarded upon signup or through promotions. Check the &quot;Free Credits&quot; section in the Credits page to see your current free credit balance.",
+      "Yes! You automatically receive 10 free credits every day. Simply log in to reset your daily free credits. Check the &quot;Free Credits&quot; section in the Credits page to see your current free credit balance.",
   },
   {
     question: "What are credits, and how do I use them?",
@@ -87,7 +75,7 @@ const faqData: FAQItem[] = [
             <strong>Free Credits</strong>: Credits awarded for free (e.g., signup bonuses).
           </li>
           <li>
-            <strong>Paid Credits</strong>: Credits purchased with SOL or $truth.
+            <strong>Paid Credits</strong>: Credits purchased with SOL.
           </li>
           <li>
             <strong>Total Credits</strong>: The sum of free and paid credits available for use.
@@ -97,9 +85,9 @@ const faqData: FAQItem[] = [
     ),
   },
   {
-    question: "What happens if I don’t have enough SOL or $truth?",
+    question: "What happens if I don’t have enough SOL?",
     answer:
-      "If your wallet lacks sufficient SOL or $truth, the &quot;Pay Now&quot; button will be disabled, and you’ll see an error message. Add funds to your wallet and ensure you have enough SOL for transaction fees.",
+      "If your wallet lacks sufficient SOL, the &quot;Pay Now&quot; button will be disabled, and you’ll see an error message. Add funds to your wallet and ensure you have enough SOL for transaction fees.",
   },
   {
     question: "How do I connect or change my wallet?",
@@ -122,7 +110,7 @@ const faqData: FAQItem[] = [
       <>
         <ul className="list-disc pl-5 mt-2">
           <li>Ensure your wallet is on the Solana Mainnet.</li>
-          <li>Verify you have enough SOL for fees and SOL or $truth for the purchase.</li>
+          <li>Verify you have enough SOL for fees and SOL for the purchase.</li>
           <li>Check your internet connection and wallet status.</li>
           <li>If issues persist, contact support via the feedback form on the platform.</li>
         </ul>

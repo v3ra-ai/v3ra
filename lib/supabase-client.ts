@@ -43,7 +43,7 @@ const cookieStorage = {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: cookieStorage,
-    storageKey: 'sb-quuuhdbozcmhkwzhamuh-auth-token',
+    storageKey: 'sb-rccfhomdmfbcywrlvgly-auth-token',
   },
 });
 

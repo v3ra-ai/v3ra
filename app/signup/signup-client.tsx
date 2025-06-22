@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import SignupError from "@/components/signup-error";
 import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 
 interface SignupClientProps {

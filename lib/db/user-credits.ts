@@ -18,24 +18,17 @@ export async function resetFreeCredits(userId: string) {
 
   if (isAfter(now, nextReset)) {
     try {
-      // Use secure function to reset credits
-      const result = await prisma.$queryRaw<{ reset_free_credits: boolean }[]>`
-        SELECT security.reset_free_credits(
-          ${userId},
-          10::integer,
-          'Daily reset'
-        ) as reset_free_credits;
-      `;
+      // Reset credits directly
+      const updatedUser = await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          freeCredits: 10,
+          lastResetDate: now 
+        },
+        select: { freeCredits: true }
+      });
       
-      if (result[0].reset_free_credits) {
-        // Also update the lastResetDate
-        await prisma.user.update({
-          where: { id: userId },
-          data: { lastResetDate: now },
-        });
-        
-        return { freeCredits: 10, reset: true };
-      }
+      return { freeCredits: updatedUser.freeCredits, reset: true };
     } catch (error) {
       console.error('Error resetting free credits:', error);
       throw error;

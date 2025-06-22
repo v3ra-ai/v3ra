@@ -7,6 +7,7 @@ import FavoritesTable from "@/components/profile/favorites-table";
 import FeedbackTable from "@/components/profile/feedback-table";
 import { Favorite, Feedback } from "@/lib/types";
 import { User } from "lucide-react";
+import { prisma } from "@/lib/db/client";
 
 export default async function UserProfilePage({ params }: { params: Promise<{ user: string }> }) {
   // Get Supabase session server-side
@@ -24,7 +25,7 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
     console.log("No session found. Expected cookies:", [
       'sb-access-token',
       'sb-refresh-token',
-      'sb-quuuhdbozcmhkwzhamuh-auth-token',
+      'sb-rccfhomdmfbcywrlvgly-auth-token',
     ]);
     redirect("/login?error=Please log in to view your profile");
   }
@@ -48,25 +49,26 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   // Fetch favorites
   let favorites: Array<Favorite & { queryText?: string }> = [];
   try {
-    const { data, error } = await supabase
-      .from('Favorite')
-      .select('id, user_id, vote_session_id, created_at')
-      .eq('user_id', user.id)
-      .limit(20);
+    const favoritesData = await prisma.favorite.findMany({
+      where: { user_id: user.id },
+      include: {
+        vote_session: {
+          select: {
+            queryText: true
+          }
+        }
+      },
+      take: 20,
+      orderBy: { created_at: 'desc' }
+    });
 
-    if (error) {
-      console.error("Error fetching favorites:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        table: 'Favorite',
-        userId: user.id,
-      });
-      throw error;
-    }
-
-    favorites = (data || []).map(f => ({ ...f, queryText: f.vote_session_id }));
+    favorites = favoritesData.map(f => ({
+      id: f.id,
+      user_id: f.user_id,
+      vote_session_id: f.vote_session_id,
+      created_at: f.created_at.toISOString(),
+      queryText: f.vote_session.queryText
+    }));
     console.log("Fetched favorites:", favorites);
   } catch (error) {
     console.error("Favorites query failed:", error);
@@ -76,29 +78,29 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
   // Fetch feedback
   let feedback: Feedback[] = [];
   try {
-    const { data, error } = await supabase
-      .from('Feedback')
-      .select('id, userId, rating, username, email, url, component, action, explanation, options, createdAt')
-      .eq('userId', user.id)
-      .limit(20);
+    const feedbackData = await prisma.feedback.findMany({
+      where: { userId: user.id },
+      take: 20,
+      orderBy: { createdAt: 'desc' }
+    });
 
-    if (error) {
-      console.error("Error fetching feedback:", {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        table: 'Feedback',
-        userId: user.id,
-      });
-      throw error;
-    }
-
+    feedback = feedbackData.map(f => ({
+      id: f.id,
+      userId: f.userId,
+      rating: f.rating as "thumbs_up" | "thumbs_down",
+      username: f.username,
+      email: f.email,
+      url: f.url,
+      component: f.component,
+      action: f.action,
+      explanation: f.explanation || undefined,
+      options: f.options,
+      createdAt: f.createdAt.toISOString()
+    }));
+    
     console.log("Feedback query result:", {
-      rowCount: data?.length || 0,
-      rawData: data,
-      createdAtSamples: data?.map(item => item.createdAt).slice(0, 5),
-      feedbackData: data?.map(item => ({
+      rowCount: feedback.length,
+      feedbackData: feedback.map(item => ({
         id: item.id,
         action: item.action,
         url: item.url,
@@ -109,7 +111,6 @@ export default async function UserProfilePage({ params }: { params: Promise<{ us
         rating: item.rating,
       })),
     });
-    feedback = data || [];
   } catch (error) {
     console.error("Feedback query failed:", error);
     feedback = [];

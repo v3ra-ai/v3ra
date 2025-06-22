@@ -6,9 +6,6 @@ import { motion } from "framer-motion";
 import { Coins, Gift } from "lucide-react";
 import { useCreditsStore } from "@/store/credit-store";
 import CreditSlider from "@/components/credits/credit-slider";
-import TruthSlider from "@/components/credits/truth-slider";
-import Image from "next/image";
-import Link from "next/link";
 import { supabase } from "@/lib/supabase-client";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import CreditFAQ from "./credit-faq";
@@ -123,6 +120,17 @@ export function CreditsAllLayout() {
       <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-4">
         Get Credits
       </h1>
+      <div className="mb-6 p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+        <div className="flex items-center justify-center gap-2 mb-2">
+          <Gift className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+          <h2 className="text-lg font-semibold text-emerald-800 dark:text-emerald-200">
+            Daily Free Credits
+          </h2>
+        </div>
+        <p className="text-center text-emerald-700 dark:text-emerald-300 text-sm">
+          You automatically receive <strong>10 free credits</strong> every day! Simply log in to reset your daily allowance.
+        </p>
+      </div>
       <div className="flex flex-col sm:flex-row gap-4 justify-center text-xl font-semibold text-center text-zinc-700 dark:text-zinc-300 mb-8">
         <div className="flex flex-col items-center w-full sm:w-auto p-2 border-2 border-transparent">
           <div className="flex items-center">
@@ -184,13 +192,7 @@ export function CreditsAllLayout() {
           </div>
         </div>
       </div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
-        <div className="p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-          <TruthSlider
-            creditBalance={totalCredits}
-            setCreditBalance={setCreditBalance}
-          />
-        </div>
+      <div className="grid grid-cols-1 gap-6 max-w-2xl mx-auto">
         <div className="p-4 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
           <CreditSlider
             creditBalance={totalCredits}

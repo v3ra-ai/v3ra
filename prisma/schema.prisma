@@ -7,31 +7,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum QueryMode {
-  factCheck
-  create
-  predict
-  shop
-}
-
-enum QueryStatus {
-  Pending
-  Voting
-  Completed
-  Failed
-}
-
 model User {
-  id           String      @id @default(uuid())
-  email        String      @unique
-  name         String
-  userCredit   UserCredit? @relation(name: "UserToUserCredit")
-  userCreditId String?     @unique
-  freeCredits  Int         @default(10) // Daily free credits
-  lastResetDate DateTime   @default(now()) // Tracks last reset
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-  feedbacks    Feedback[]  @relation("UserToFeedback")
+  id            String      @id @default(uuid())
+  email         String      @unique
+  name          String
+  userCreditId  String?     @unique
+  freeCredits   Int         @default(10)
+  lastResetDate DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  feedbacks     Feedback[]  @relation("UserToFeedback")
+  userCredit    UserCredit? @relation("UserToUserCredit")
 }
 
 model UserCredit {
@@ -41,12 +27,12 @@ model UserCredit {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   userId          String?       @unique
-  user            User?         @relation(name: "UserToUserCredit", fields: [userId], references: [id], onDelete: SetNull)
+  user            User?         @relation("UserToUserCredit", fields: [userId], references: [id])
   voteSessions    VoteSession[]
 }
 
 model PaymentLog {
-  id              String    @id
+  id              String   @id
   walletPublicKey String
   credits         Int
   solAmount       Float?
@@ -54,7 +40,7 @@ model PaymentLog {
   otherPayType    String?
   status          String
   error           String?
-  createdAt       DateTime  @default(now())
+  createdAt       DateTime @default(now())
 }
 
 model ApiKey {
@@ -121,18 +107,18 @@ model VoteSession {
   blockchainNetwork  String?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
+  mode               QueryMode?
+  queryAiCountReq    Int?
+  queryCost          Float?
+  responseLatency    Int?
+  statusProcessing   QueryStatus?
+  userId             String?
+  walletPublicKey    String?
+  favorites          Favorite[]
   graphEdges         GraphEdge[]         @relation("VoteSessionEdges")
   threads            Thread[]
   validatorResponses ValidatorResponse[]
-  mode               QueryMode? // Nullable for legacy compatibility
-  queryAiCountReq    Int? // Nullable, number of AIs requested
-  walletPublicKey    String? // Nullable, wallet key for user
-  userId             String? // Nullable, foreign key to UserCredit
-  statusProcessing   QueryStatus? // Nullable, query status
-  queryCost          Float? // Nullable, cost in credits
-  responseLatency    Int? // Nullable, latency in milliseconds
-  user               UserCredit?         @relation(fields: [userId], references: [id], onDelete: SetNull)
-  favorites          Favorite[]          @relation // Added opposite relation
+  user               UserCredit?         @relation(fields: [userId], references: [id])
 
   @@index([timestamp])
   @@index([consensusValue])
@@ -173,8 +159,8 @@ model GraphEdge {
   createdAt     DateTime     @default(now())
   validatorId   String?
   voteSessionId String?
-  voteSession   VoteSession? @relation("VoteSessionEdges", fields: [voteSessionId], references: [id])
   validator     Validator?   @relation("ValidatorEdges", fields: [validatorId], references: [id], onDelete: Cascade)
+  voteSession   VoteSession? @relation("VoteSessionEdges", fields: [voteSessionId], references: [id])
 
   @@index([sourceType, sourceId])
   @@index([targetType, targetId])
@@ -186,10 +172,10 @@ model Thread {
   title         String
   body          String
   upvotes       Int         @default(0)
-  downvotes     Int         @default(0)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
   voteSessionId String
+  downvotes     Int         @default(0)
   replies       Reply[]
   voteSession   VoteSession @relation(fields: [voteSessionId], references: [id], onDelete: Cascade)
 }
@@ -209,9 +195,9 @@ model Feedback {
   userId             String
   username           String
   email              String
-  rating             String   @default("thumbs_up") // "thumbs_up" or "thumbs_down"
+  rating             String   @default("thumbs_up")
   explanation        String?
-  options            String[] @default([]) // e.g., ["slow_response", "error_response", "bad_ui"]
+  options            String[] @default([])
   includeBrowserInfo Boolean  @default(true)
   browserInfo        Json?
   url                String
@@ -227,22 +213,16 @@ model Feedback {
 }
 
 model Favorite {
-  id              String   @id @default(uuid()) @db.Uuid
-  user_id         String   @db.Uuid // Foreign key to auth.users, no relation
-  vote_session_id String   // Changed to String (TEXT) to match vote_sessions.id
-  created_at      DateTime @default(now()) @db.Timestamptz(3)
+  id              String      @id @default(uuid()) @db.Uuid
+  user_id         String      @db.Uuid
+  vote_session_id String
+  created_at      DateTime    @default(now()) @db.Timestamptz(3)
   favoriteType    String?
   title           String?
   vote_session    VoteSession @relation(fields: [vote_session_id], references: [id], onDelete: Cascade)
+
   @@unique([user_id, vote_session_id])
   @@index([user_id])
-}
-
-enum LLMHealthStatus {
-  healthy
-  degraded
-  deprecated
-  offline
 }
 
 model LLMHealthMetric {
@@ -299,4 +279,48 @@ model LLMHealthProbe {
   @@index([providerName, modelName])
   @@index([testedAt])
   @@index([success])
+}
+
+/// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model credit_audit_log {
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id        String    @db.Uuid
+  operation      String
+  credit_type    String
+  amount         Int
+  balance_before Int
+  balance_after  Int
+  reason         String?
+  metadata       Json?     @default("{}")
+  created_at     DateTime? @default(now()) @db.Timestamptz(6)
+  created_by     String?   @db.Uuid
+  ip_address     String?   @db.Inet
+  user_agent     String?
+
+  @@index([created_at], map: "idx_credit_audit_created_at")
+  @@index([operation], map: "idx_credit_audit_operation")
+  @@index([user_id], map: "idx_credit_audit_user_id")
+}
+
+enum QueryMode {
+  factCheck
+  create
+  predict
+  shop
+}
+
+enum QueryStatus {
+  Pending
+  Voting
+  Completed
+  Failed
+}
+
+enum LLMHealthStatus {
+  healthy
+  degraded
+  deprecated
+  offline
 }

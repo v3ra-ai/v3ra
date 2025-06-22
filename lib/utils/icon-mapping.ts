@@ -126,8 +126,54 @@ export function getModelIconPath(
   }
 
   // Yi models
-  if (modelNameLower.includes("yi-")) {
+  if (modelNameLower.includes("yi ") || modelNameLower.includes("yi-") || modelNameLower.startsWith("yi")) {
     return "/icons/yi.svg";
+  }
+
+  // Phi models (Microsoft)
+  if (modelNameLower.includes("phi-3") || modelNameLower.includes("phi3") || modelNameLower.includes("phi ")) {
+    return "/icons/phi3.svg";
+  }
+
+  // Additional model name patterns
+  // Nous Research models
+  if (modelNameLower.includes("nous") || modelNameLower.includes("hermes") || modelNameLower.includes("capybara")) {
+    return "/icons/huggingface.png"; // Using HF icon as fallback
+  }
+
+  // Intel models
+  if (modelNameLower.includes("neural") && modelNameLower.includes("chat")) {
+    return "/icons/chatgpt.png"; // Using generic chat icon
+  }
+
+  // OpenOrca models
+  if (modelNameLower.includes("orca")) {
+    return "/icons/mistral.png"; // Since it's OpenOrca Mistral
+  }
+
+  // Phind models
+  if (modelNameLower.includes("phind")) {
+    return "/icons/metallama.png"; // Since it's CodeLlama based
+  }
+
+  // Dolphin models
+  if (modelNameLower.includes("dolphin")) {
+    return "/icons/mistral.png"; // Since many are Mixtral based
+  }
+
+  // Toppy models
+  if (modelNameLower.includes("toppy")) {
+    return "/icons/huggingface.png"; // Community model
+  }
+
+  // MythoMax models
+  if (modelNameLower.includes("mytho")) {
+    return "/icons/huggingface.png"; // Community model
+  }
+
+  // Code models (generic)
+  if (modelNameLower.includes("code") && !modelNameLower.includes("llama")) {
+    return "/icons/chatgpt.png"; // Generic code model icon
   }
 
   // Provider-based fallback
@@ -155,6 +201,63 @@ export function getModelIconPath(
   
   if (providerLower.includes("huggingface")) {
     return "/icons/huggingface.png";
+  }
+
+  if (providerLower.includes("meta")) {
+    return "/icons/metallama.png";
+  }
+
+  if (providerLower.includes("deepseek")) {
+    return "/icons/deepseek.png";
+  }
+
+  if (providerLower.includes("qwen")) {
+    return "/icons/qwen.png";
+  }
+
+  if (providerLower.includes("mistral")) {
+    return "/icons/mistral.png";
+  }
+
+  if (providerLower.includes("perplexity")) {
+    return "/icons/perplexity.png";
+  }
+
+  if (providerLower.includes("wizardlm")) {
+    return "/icons/wizard.png";
+  }
+
+  if (providerLower.includes("zephyr")) {
+    return "/icons/zephyr.png";
+  }
+
+  if (providerLower.includes("cohere")) {
+    return "/icons/cohere.svg";
+  }
+
+  // Additional provider mappings
+  if (providerLower.includes("nous")) {
+    return "/icons/huggingface.png";
+  }
+
+  if (providerLower.includes("01-ai") || providerLower.includes("01.ai")) {
+    return "/icons/yi.svg";
+  }
+
+  if (providerLower.includes("cognitive")) {
+    return "/icons/huggingface.png";
+  }
+
+  if (providerLower.includes("intel")) {
+    return "/icons/chatgpt.png";
+  }
+
+  if (providerLower.includes("phind")) {
+    return "/icons/metallama.png";
+  }
+
+  if (providerLower.includes("microsoft")) {
+    return "/icons/phi3.svg";
   }
 
   // Default fallback

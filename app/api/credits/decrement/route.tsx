@@ -1,22 +1,12 @@
 // app/api/credits/decrement/route.ts
 import { NextRequest, NextResponse } from 'next/server';
-import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { createSupabaseServerClient } from '@/lib/supabase-client';
 import { prisma } from '@/lib/db/client';
 import { PublicKey } from '@solana/web3.js';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
 import { verifyCsrfToken } from '@/utils/csrf-utils';
 import { QUERY_COST } from '@/lib/constants';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL ?? '';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? '';
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables: NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  );
-}
 
 const decrementCreditsSchema = z.object({
   type: z.enum(['free', 'paid']),
@@ -55,25 +45,8 @@ export async function POST(req: NextRequest) {
   } = {};
 
   try {
-    // Await the cookie store (typed as Promise in Next 15)
-    const cookieStore = await cookies();
-
-    const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
-      cookies: {
-        getAll() {
-          return cookieStore.getAll();
-        },
-        setAll(cookiesToSet) {
-          try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
-          } catch (error) {
-            console.error('[credits/decrement] Failed to set cookies:', error);
-          }
-        },
-      },
-    });
+    // Use the server client from our lib
+    const supabase = await createSupabaseServerClient();
 
     // Get session
     const {
@@ -162,15 +135,26 @@ export async function POST(req: NextRequest) {
 
       // Use secure function to decrement free credits
       try {
-        const result = await prisma.$queryRaw<{ decrement_free_credits: number }[]>`
-          SELECT security.decrement_free_credits(
+        const result = await prisma.$queryRaw<{ decrement_free_credits: { success: boolean; message?: string; new_balance?: number } }[]>`
+          SELECT decrement_free_credits(
             ${userId},
             ${creditAmount}::integer,
-            'Query execution'
+            ${'Query execution'},
+            ${JSON.stringify({ 
+              email: sessionEmail,
+              ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'),
+              userAgent: req.headers.get('user-agent')
+            })}::jsonb
           ) as decrement_free_credits;
         `;
         
-        const newCredits = result[0].decrement_free_credits;
+        const decrementResult = result[0].decrement_free_credits;
+        
+        if (!decrementResult.success) {
+          throw new Error(decrementResult.message || 'Failed to decrement credits');
+        }
+        
+        const newCredits = decrementResult.new_balance;
 
         await prisma.paymentLog.create({
           data: {
@@ -211,55 +195,54 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userCredit = await prisma.userCredit.findUnique({
-      where: { walletPublicKey },
-      select: { credits: true },
-    });
+    try {
+      const result = await prisma.$queryRaw<{ decrement_paid_credits: { success: boolean; message?: string; new_balance?: number } }[]>`
+        SELECT decrement_paid_credits(
+          ${walletPublicKey},
+          ${creditAmount}::integer,
+          ${'Query execution'},
+          ${JSON.stringify({ 
+            email: sessionEmail,
+            ip: req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip'),
+            userAgent: req.headers.get('user-agent')
+          })}::jsonb
+        ) as decrement_paid_credits;
+      `;
+      
+      const decrementResult = result[0].decrement_paid_credits;
+      
+      if (!decrementResult.success) {
+        throw new Error(decrementResult.message || 'Failed to decrement credits');
+      }
 
-    if (!userCredit || userCredit.credits < creditAmount) {
-      const errorMessage = `Insufficient paid credits: Need ${creditAmount}, have ${
-        userCredit?.credits ?? 0
-      }`;
       await prisma.paymentLog.create({
         data: {
           id: uuidv4(),
           walletPublicKey,
           credits: creditAmount,
           solAmount: creditAmount * QUERY_COST,
-          status: 'FAILED',
-          error: errorMessage,
+          status: 'DECREMENTED',
           createdAt: new Date(),
         },
       });
-      return NextResponse.json({ error: errorMessage }, { status: 400 });
+
+      return NextResponse.json(
+        {
+          success: true,
+          credits: decrementResult.new_balance,
+        },
+        { status: 200 },
+      );
+    } catch (error) {
+      console.error('[credits/decrement] Secure function error:', error);
+      
+      // Handle specific error cases
+      if (error instanceof Error && error.message.includes('Insufficient credits')) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+      
+      throw error; // Re-throw other errors
     }
-
-    const updatedCredit = await prisma.userCredit.update({
-      where: { walletPublicKey },
-      data: {
-        credits: { decrement: creditAmount },
-        updatedAt: new Date(),
-      },
-    });
-
-    await prisma.paymentLog.create({
-      data: {
-        id: uuidv4(),
-        walletPublicKey,
-        credits: creditAmount,
-        solAmount: creditAmount * QUERY_COST,
-        status: 'DECREMENTED',
-        createdAt: new Date(),
-      },
-    });
-
-    return NextResponse.json(
-      {
-        success: true,
-        credits: updatedCredit.credits,
-      },
-      { status: 200 },
-    );
   } catch (error) {
     const errorMessage =
       error instanceof Error ? error.message : 'Failed to decrement credits';

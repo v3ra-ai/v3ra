@@ -8,7 +8,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
-import { ArrowRight } from "lucide-react";
 
 export default function LoginClient() {
   const [email, setEmail] = useState("");

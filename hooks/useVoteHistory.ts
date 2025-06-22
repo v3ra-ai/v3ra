@@ -167,9 +167,10 @@ export function useVoteHistory(initialLimit: number = INITIAL_LOAD_COUNT): VoteH
   }, [isLoadingMore, hasMore, offset, voteHistory.length, voteSessionCount, appendVoteHistory, setIsLoadingMore, setHasMore]);
 
   useEffect(() => {
-    console.log("[useVoteHistory] Initial effect running");
+    // Initial fetch on mount
+    console.log("[useVoteHistory] Initial mount effect");
     refetch();
-  }, [refetch]);
+  }, []); // Empty dependency array for mount-only effect
 
   return { 
     voteHistory, 

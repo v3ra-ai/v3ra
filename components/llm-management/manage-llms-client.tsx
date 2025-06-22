@@ -6,6 +6,7 @@ import ProviderTabs from "./provider-tabs";
 import LLMGrid from "./llm-grid";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star, Info } from "lucide-react";
+import Link from "next/link";
 import { useQueryStore } from "@/store/query-store";
 import { useCreditsStore } from "@/store/credit-store";
 import { Validator } from "@/lib/types";
@@ -25,9 +26,9 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
   const showPinned = useLLMStore((s) => s.showPinned);
   const toggleShowPinned = useLLMStore((s) => s.toggleShowPinned);
   const clearAllEnabled = useLLMStore((s) => s.clearAllEnabled);
-  const categories = useLLMStore((s) => s.categories);
-  const activeCategory = useLLMStore((s) => s.activeCategory);
-  const setCategory = useLLMStore((s) => s.setCategory);
+  // const _categories = useLLMStore((s) => s.categories);
+  // const _activeCategory = useLLMStore((s) => s.activeCategory);
+  // const _setCategory = useLLMStore((s) => s.setCategory);
   const { setQueriesRequested } = useQueryStore();
   const { totalCredits } = useCreditsStore();
 
@@ -44,7 +45,7 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
     console.log("[ManageLLMs] Deduplicated validators:", uniqueValidators.length);
 
     if (uniqueValidators.length > 0) {
-      const mapped: LLM[] = uniqueValidators.map((v) => {
+      const mapped: LLM[] = uniqueValidators.map((v, index) => {
         const modelName = typeof v.modelName === "string" ? v.modelName : "";
         const cleanedModelName = modelName === "gpt-40" ? "gpt-4o" : modelName;
 
@@ -63,11 +64,14 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
           profileName = profileName.replace(" Validator", "");
         }
 
+        // Enable the first 3 validators by default
+        const isDefaultEnabled = index < 3;
+
         return {
           id,
           name: profileName || cleanedModelName || "Unnamed",
           provider: providerName as Provider,
-          enabled: existingLLM?.enabled ?? false,
+          enabled: existingLLM?.enabled ?? isDefaultEnabled,
           avatar: v.avatarUrl ?? null,
         };
       });
@@ -122,20 +126,20 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
     <main className="h-[100dvh] flex flex-col p-4 gap-4">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-semibold">AI Validators</h1>
-        <a
+        <Link
           href="/ask"
           className="px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-200 bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 rounded-md transition-colors"
         >
           ← Back to Ask
-        </a>
+        </Link>
       </div>
       
       {/* Helper text for new users */}
       <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
         <p className="text-sm text-blue-800 dark:text-blue-200">
-          <strong>Quick Start:</strong> Click "Free Models" to see models you can test without API keys, 
-          or "Popular" to see the top 5 most-used AI models. Select validators by clicking on them, 
-          then click "Choose X AIs Selected" at the bottom. Click the <Info className="inline-block size-3" /> icon to view validator profiles.
+          <strong>Quick Start:</strong> Click &quot;Free Models&quot; to see models you can test without API keys, 
+          or &quot;Popular&quot; to see the top 5 most-used AI models. Select validators by clicking on them, 
+          then click &quot;Choose X AIs Selected&quot; at the bottom. Click the <Info className="inline-block size-3" /> icon to view validator profiles.
         </p>
       </div>
       

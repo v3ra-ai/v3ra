@@ -5,7 +5,7 @@ import { useVoteStore } from "@/store/vote-store";
 import { ErrorDisplay } from "@/components/error-display";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { Grid3x3, AlignJustify, Star } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
 import { default as DOMPurify } from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -180,6 +180,8 @@ export default function AskResultsStandard() {
       isLoading,
       "voteHistory:",
       voteHistory,
+      "lastVoteResult:",
+      lastVoteResult,
       "favorites:",
       favorites,
       "hasMore:",
@@ -207,6 +209,15 @@ export default function AskResultsStandard() {
     ? [lastVoteResult, ...sanitizedVoteHistory.filter((v) => v.id !== lastVoteResult.id)]
     : sanitizedVoteHistory;
 
+  // Debug log combined history
+  if (process.env.NODE_ENV === "development") {
+    console.log("AskResultsStandard combinedVoteHistory:", {
+      count: combinedVoteHistory.length,
+      hasLastVoteResult: !!lastVoteResult,
+      firstItem: combinedVoteHistory[0],
+    });
+  }
+
   // Filter to show only favorites if enabled
   const filteredQueries = showFavoritesOnly && isHydrated
     ? combinedVoteHistory.filter((vote) => favorites.some(fav => fav.vote_session_id === vote.id))
@@ -217,11 +228,7 @@ export default function AskResultsStandard() {
   };
 
   // Effect to refetch if the component is loaded but we have no data
-  useEffect(() => {
-    if (!isLoading && voteHistory.length === 0) {
-      refetch();
-    }
-  }, [isLoading, voteHistory.length, refetch]);
+  // Removed to avoid duplicate fetching - useVoteHistory now handles initial fetch
 
   if (error) {
     return <ErrorDisplay message={error.message} onRetry={refetch} />;

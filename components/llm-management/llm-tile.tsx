@@ -29,7 +29,7 @@ export default function LLMTile({ llm }: Props) {
       <div className="absolute top-2 right-2 flex gap-1">
         {/* Profile info */}
         <Link
-          href={`/validators/${llm.id}/profile`}
+          href={`/ai-hub/${llm.id}/profile`}
           onClick={(e) => e.stopPropagation()}
           className="text-zinc-400 hover:text-zinc-200 hover:scale-110 transition-transform"
           title="View profile"

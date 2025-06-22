@@ -45,7 +45,12 @@ export function AskResultsStandardValidatorAvatars({
                 } cursor-pointer hover:opacity-80 transition-opacity`}
               >
                 <Image
-                  src={getValidatorIcon(response.id, response)}
+                  src={getValidatorIcon(response.id, {
+                    modelName: response.profileName,
+                    profileName: response.profileName,
+                    provider: response.provider,
+                    avatarUrl: null
+                  })}
                   alt={response.profileName}
                   width={40}
                   height={38}

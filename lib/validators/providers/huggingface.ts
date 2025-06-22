@@ -72,10 +72,10 @@ export class HuggingFaceValidator implements AIValidator {
       systemMessage = systemMessage + "\n\nIMPORTANT: Respond with ONLY a valid JSON object in the format {\"answer\": \"Yes\" or \"No\", \"confidence\": number from 0-100, \"rationale\": \"your reasoning\"}. Do not include markdown code blocks, prefixes, or any additional text outside the JSON object.";
 
       // Structure the messages in a chat format
-      const messages = [
-        { role: "system", content: systemMessage },
-        { role: "user", content: userMessage }
-      ];
+      // const messages = [
+      //   { role: "system", content: systemMessage },
+      //   { role: "user", content: userMessage }
+      // ];
 
       // For now, use legacy endpoint for all models as router endpoint returns 404
       // The HuggingFace API is in transition and the router endpoint isn't working for our models
@@ -98,7 +98,7 @@ export class HuggingFaceValidator implements AIValidator {
 
       // Implement retry logic for model loading
       const maxRetries = 3;
-      let lastError: any;
+      let lastError: { status: number; statusText: string; body: string } | undefined;
       
       for (let attempt = 0; attempt < maxRetries; attempt++) {
         try {
@@ -226,7 +226,11 @@ export class HuggingFaceValidator implements AIValidator {
             latency: latency,
           };
         } catch (error) {
-          lastError = error;
+          lastError = { 
+            status: 500, 
+            statusText: 'Network Error', 
+            body: error instanceof Error ? error.message : 'Unknown network error' 
+          };
           if (attempt < maxRetries - 1) {
             console.log(`[HuggingFace - ${this.modelName}] Network error (attempt ${attempt + 1}/${maxRetries}), retrying...`);
             await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));

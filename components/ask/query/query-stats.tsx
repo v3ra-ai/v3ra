@@ -8,7 +8,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Coins, Layers } from "lucide-react";
+import { ChevronDown, Coins } from "lucide-react";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCreditsStore } from "@/store/credit-store";

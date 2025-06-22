@@ -29,6 +29,15 @@ export default function AskResultsStandardCard({
   isOpen,
   toggleItem,
 }: AskResultsStandardCardProps) {
+  // Debug log to check incoming query data
+  if (process.env.NODE_ENV === "development") {
+    console.log("AskResultsStandardCard received query:", {
+      query,
+      hasValidatorResponses: !!query?.validatorResponses,
+      responseCount: query?.validatorResponses?.length || 0,
+    });
+  }
+
   // Validate query data
   const isValidQuery = query && query.queryText && query.id;
   if (!isValidQuery) {

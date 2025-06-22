@@ -30,12 +30,18 @@ export const useFavoritesStore = create<FavoritesState>()(
           ),
         })),
       hydrateFavorites: async () => {
+        // Only hydrate on client side
+        if (typeof window === "undefined") {
+          set({ favorites: [], isHydrated: true });
+          return;
+        }
+        
         try {
           const result = await fetchUserFavorites();
           if ("error" in result) {
             // Only log non-authentication errors to reduce console noise
             if (result.error !== "User not authenticated") {
-              console.error("[favorites-store] Hydration error:", result.error);
+              console.warn("[favorites-store] Unable to fetch favorites:", result.error);
             }
             set({ favorites: [], isHydrated: true });
             return;
@@ -43,7 +49,7 @@ export const useFavoritesStore = create<FavoritesState>()(
           set({ favorites: result, isHydrated: true });
         } catch (error) {
           const typedError = error as Error;
-          console.error("[favorites-store] Hydration error:", typedError);
+          console.warn("[favorites-store] Unable to fetch favorites:", typedError.message);
           set({ favorites: [], isHydrated: true });
         }
       },

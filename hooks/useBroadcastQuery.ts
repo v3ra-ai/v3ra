@@ -126,6 +126,14 @@ export function useBroadcastQuery(
       }
 
       const result = voteResult as VoteResult;
+      console.log('[useBroadcastQuery] Setting lastVoteResult with data:', {
+        id: result.id,
+        queryText: result.queryText,
+        validatorResponsesCount: result.validatorResponses?.length || 0,
+        isConsensusReached: result.isConsensusReached,
+        consensusValue: result.consensusValue,
+      });
+      
       setLastVoteResult(result);
       setVoteHistory((prevHistory: VoteResult[]) => {
         const newHistory = [result, ...prevHistory].slice(0, RESULT_QUERIES_CARDS);
