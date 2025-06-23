@@ -59,6 +59,11 @@ export function NavbarSitelinks() {
         label="AI Hub"
         description="Explore AI model profiles and performance"
       />
+      <NavLink
+        href="/truth-arena"
+        label="Refine"
+        description="Swipe through questions to refine truth consensus"
+      />
       <Link
         href="/credits-all"
         className="text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium text-base hover:-translate-y-0.5 flex items-center gap-1"
