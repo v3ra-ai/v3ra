@@ -22,6 +22,7 @@ export interface LLM {
   pinned?: boolean;
   createdByUser?: boolean;
   usage?: number;
+  isWorking?: boolean;
 }
 
 export interface Profile {
@@ -77,6 +78,7 @@ interface LLMState {
   clearAllEnabled: () => void;
   setCategory: (category: string | null) => void;
   getSelectedLLMIds: () => string[];
+  selectLLMsForPreset: (llmIds: string[]) => void;
   resetStore: () => void;
 }
 
@@ -220,6 +222,18 @@ export const useLLMStore = create<LLMState>()(
         })),
 
       getSelectedLLMIds: () => get().llms.filter((l) => l.enabled).map((l) => l.id),
+
+      selectLLMsForPreset: (llmIds: string[]) => {
+        set((state) => {
+          const updatedLLMs = state.llms.map((llm) => ({
+            ...llm,
+            enabled: llmIds.includes(llm.id)
+          }));
+          useQueryStore.getState().setSelectedLLMIds(llmIds);
+          console.log("[llm-store] Selected LLMs for preset:", llmIds);
+          return { llms: updatedLLMs };
+        });
+      },
 
       resetStore: () => {
         console.log("[llm-store] Resetting store");

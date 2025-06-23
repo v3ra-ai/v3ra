@@ -1,4 +1,4 @@
-import { QueryFormInput } from "@/components/ask/query/query-form-input";
+import { QueryFormSimplified } from "@/components/ask/query/query-form-simplified";
 import { Dispatch, SetStateAction } from "react";
 import { QueryMode } from "@/lib/types";
 
@@ -36,21 +36,14 @@ export function QueryForm({
   setIsSubmitInteracted,
 }: QueryFormProps) {
   return (
-    <QueryFormInput
+    <QueryFormSimplified
       queryText={queryText}
       setQueryText={setQueryText}
       placeholderText={placeholderText}
-      queryMode={queryMode}
-      queriesRequested={queriesRequested}
-      userFreeCredits={userFreeCredits}
-      userPaidCredits={userPaidCredits}
-      userCreditsTotal={userCreditsTotal}
-      queriesUnpaid={queriesUnpaid}
-      queriesCostTotal={queriesCostTotal}
       handleSubmit={handleSubmit}
       isSubmitting={isSubmitting}
-      isSubmitInteracted={isSubmitInteracted}
-      setIsSubmitInteracted={setIsSubmitInteracted}
+      queriesCostTotal={queriesCostTotal}
+      userCreditsTotal={userCreditsTotal}
     />
   );
 }

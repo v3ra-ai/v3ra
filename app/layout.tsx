@@ -3,7 +3,6 @@ import type { Metadata } from "next";
 import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ValidatorInitializer } from "@/components/validator-initializer";
-import { ValidatorHealthCheck } from "@/components/validator-health-check";
 import { ThemeInitializer } from "@/components/theme-initializer";
 import type { ReactNode } from "react";
 import { SolanaProvider } from "@/components/solana-provider";
@@ -21,8 +20,8 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "v3ra AI Consensus Network",
-  description: "v3ra - Distributed AI validation and consensus network",
+  title: "V3RA - Truth Refinement",
+  description: "Ask AI models questions. Refine truth through consensus. Earn tokens.",
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
@@ -39,9 +38,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
         >
           <ThemeInitializer />
           <ValidatorInitializer />
-          <div className="fixed bottom-4 right-4 z-50 w-72">
-            <ValidatorHealthCheck />
-          </div>
           <SolanaProvider>
             <main className="w-full max-w-none mx-auto debug-layout">{children}</main>
             <Toaster
