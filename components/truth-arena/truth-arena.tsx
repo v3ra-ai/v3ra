@@ -31,7 +31,7 @@ export function TruthArena({ className = "" }: TruthArenaProps) {
   const [currentQuestion, setCurrentQuestion] = useState<ArenaQuestion | null>(null);
   const [questionQueue, setQuestionQueue] = useState<ArenaQuestion[]>([]);
   const [questionsRefined, setQuestionsRefined] = useState(0);
-  const [streak, setStreak] = useState(0);
+  const [streak] = useState(0);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
@@ -49,7 +49,7 @@ export function TruthArena({ className = "" }: TruthArenaProps) {
     }
     
     initializeArena();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleOnboardingComplete = () => {
     localStorage.setItem("truth-arena-onboarding-seen", "true");

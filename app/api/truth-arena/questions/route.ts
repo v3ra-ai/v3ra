@@ -10,22 +10,24 @@ export async function GET(request: NextRequest) {
     // Fetch vote sessions that have multiple validator responses
     // These are the questions that can be refined
     const { data: questions, error } = await supabase
-      .from("vote_sessions")
+      .from("VoteSession")
       .select(`
         id,
-        query_text,
-        created_at,
-        validator_responses (
+        queryText,
+        createdAt,
+        ValidatorResponse (
           id,
-          profile_name,
-          provider,
+          validatorId,
           vote,
-          rationale
+          rationale,
+          Validator (
+            profileName,
+            provider
+          )
         )
       `)
       .not("id", "in", `(${excludeIds.join(",")})`)
-      .gte("validator_responses.count", 2) // Only questions with multiple responses
-      .order("created_at", { ascending: false })
+      .order("createdAt", { ascending: false })
       .limit(limit);
 
     if (error) {
@@ -35,35 +37,34 @@ export async function GET(request: NextRequest) {
 
     // Filter out questions without enough responses and format for arena
     const arenaQuestions = questions
-      ?.filter(q => q.validator_responses && q.validator_responses.length >= 2)
-      .map(question => ({
+      ?.map(question => ({
         id: question.id,
-        question: question.query_text,
-        responses: question.validator_responses.map(response => ({
-          id: response.id,
-          modelName: response.profile_name,
-          answer: response.vote || "UNKNOWN",
-          rationale: response.rationale || "No rationale provided",
-          provider: response.provider
-        })),
+        question: question.queryText,
+        responses: question.ValidatorResponse
+          .filter(response => {
+            // Filter out API error responses
+            const rationale = response.rationale || "";
+            return !rationale.includes("API request failed") && 
+                   !rationale.includes("not a valid model") &&
+                   rationale.length > 15;
+          })
+          .map((response: {id: string; vote: string; rationale: string; Validator: {profileName: string; provider: string}[]}) => ({
+            id: response.id,
+            modelName: response.Validator?.[0]?.profileName || "Unknown Model",
+            answer: response.vote || "UNKNOWN",
+            rationale: response.rationale || "No rationale provided", 
+            provider: response.Validator?.[0]?.provider || "Unknown Provider"
+          })),
         // Count how many users have already refined this question
         userVotes: 0 // Will be populated by a separate query
-      })) || [];
+      }))
+      ?.filter(question => question.responses.length >= 1) || []; // Keep questions with at least 1 valid response
 
-    // Get refinement counts for these questions
-    if (arenaQuestions.length > 0) {
-      const questionIds = arenaQuestions.map(q => q.id);
-      const { data: refinementCounts } = await supabase
-        .from("question_arena_stats")
-        .select("vote_session_id, total_refinements")
-        .in("vote_session_id", questionIds);
-
-      // Add refinement counts to questions
-      arenaQuestions.forEach(question => {
-        const stats = refinementCounts?.find(stat => stat.vote_session_id === question.id);
-        question.userVotes = stats?.total_refinements || 0;
-      });
-    }
+    // TODO: Get refinement counts for these questions when stats table is available
+    // For now, set userVotes to 0 for all questions
+    arenaQuestions.forEach(question => {
+      question.userVotes = 0;
+    });
 
     return NextResponse.json({
       questions: arenaQuestions,

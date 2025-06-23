@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
       selectedProvider,
       selectedAnswer,
       responseTimeMs,
-      userEmail,
-      userWallet
+      userEmail: _userEmail,
+      userWallet: _userWallet
     } = body;
 
     // Validate required fields

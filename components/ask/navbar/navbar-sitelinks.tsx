@@ -60,7 +60,7 @@ export function NavbarSitelinks() {
         description="Explore AI model profiles and performance"
       />
       <NavLink
-        href="/truth-arena"
+        href="/refine"
         label="Refine"
         description="Swipe through questions to refine truth consensus"
       />
