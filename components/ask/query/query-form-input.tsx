@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { QueryFormModeSelector } from "./query-form-mode-selector";
-import { QueryFormAISlider } from "./query-form-ai-slider";
 import { QueryMode, Validator } from "@/lib/types";
 import { useCreditsStore } from "@/store/credit-store";
 import { useLLMStore } from "@/store/llm-store";
@@ -97,7 +96,6 @@ interface QueryFormInputProps {
   placeholderText: string;
   handleSubmit: () => void;
   isSubmitting: boolean;
-  payWithWallet: boolean;
   queriesUnpaid: number;
   queriesCostTotal: number;
   userFreeCredits: number;
@@ -107,8 +105,6 @@ interface QueryFormInputProps {
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
   queryMode: QueryMode;
   queriesRequested: number;
-  handleQueryAmountChange: (newAmount: number) => void;
-  allowedAmountQueries: number;
 }
 
 const QueryFormInputComponent = function QueryFormInput({
@@ -117,7 +113,6 @@ const QueryFormInputComponent = function QueryFormInput({
   placeholderText,
   handleSubmit,
   isSubmitting,
-  payWithWallet: _payWithWallet,
   queriesUnpaid: _queriesUnpaid,
   queriesCostTotal,
   userFreeCredits: _userFreeCredits,
@@ -127,8 +122,6 @@ const QueryFormInputComponent = function QueryFormInput({
   setIsSubmitInteracted,
   queryMode,
   queriesRequested,
-  handleQueryAmountChange,
-  allowedAmountQueries,
 }: QueryFormInputProps) {
   const { displayUnpaid, totalCredits } = useCreditsStore();
   const { llms } = useLLMStore();
@@ -142,7 +135,7 @@ const QueryFormInputComponent = function QueryFormInput({
 
   const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
   const hasSelectedLLMs = selectedLLMCount > 0;
-  const chooseButtonText = hasSelectedLLMs ? `Selected (${selectedLLMCount})` : "Choose...";
+  const chooseButtonText = hasSelectedLLMs ? `${selectedLLMCount} AIs` : "Choose AIs";
 
   // Sync queriesRequested with selectedLLMCount on mount
   useEffect(() => {
@@ -330,15 +323,10 @@ const QueryFormInputComponent = function QueryFormInput({
       </div>
       <div className="flex flex-col sm:flex-row w-full gap-4">
         <div className="flex items-center justify-start w-full sm:w-1/2">
-          <div className="flex items-center gap-2 w-full">
+          <div className="flex items-center gap-3 w-full">
             <QueryFormModeSelector queryMode={queryMode} />
-            <QueryFormAISlider
-              queriesRequested={queriesRequested}
-              handleQueryAmountChange={handleQueryAmountChange}
-              allowedAmountQueries={allowedAmountQueries}
-            />
             <Button
-              className="bg-primary text-primary-foreground dark:bg-cyan-600 dark:hover:bg-cyan-500 dark:text-black rounded-md px-4 py-2 z-10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 dark:neon-glow-cyan"
+              className="bg-primary text-primary-foreground dark:bg-cyan-600 dark:hover:bg-cyan-500 dark:text-black rounded-lg px-6 py-2 z-10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 dark:neon-glow-cyan font-medium"
               onClick={handleOpenModal}
             >
               {chooseButtonText}

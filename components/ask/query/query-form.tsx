@@ -1,7 +1,6 @@
 import { QueryFormInput } from "@/components/ask/query/query-form-input";
 import { Dispatch, SetStateAction } from "react";
 import { QueryMode } from "@/lib/types";
-import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 
 interface QueryFormProps {
   queryText: string;
@@ -14,10 +13,8 @@ interface QueryFormProps {
   userCreditsTotal: number;
   queriesUnpaid: number;
   queriesCostTotal: number;
-  handleQueryAmountChange: (newAmount: number) => void;
   handleSubmit: () => void;
   isSubmitting: boolean;
-  payWithWallet: boolean;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
 }
@@ -33,10 +30,8 @@ export function QueryForm({
   userCreditsTotal,
   queriesUnpaid,
   queriesCostTotal,
-  handleQueryAmountChange,
   handleSubmit,
   isSubmitting,
-  payWithWallet,
   isSubmitInteracted,
   setIsSubmitInteracted,
 }: QueryFormProps) {
@@ -52,13 +47,10 @@ export function QueryForm({
       userCreditsTotal={userCreditsTotal}
       queriesUnpaid={queriesUnpaid}
       queriesCostTotal={queriesCostTotal}
-      handleQueryAmountChange={handleQueryAmountChange}
       handleSubmit={handleSubmit}
       isSubmitting={isSubmitting}
-      payWithWallet={payWithWallet}
       isSubmitInteracted={isSubmitInteracted}
       setIsSubmitInteracted={setIsSubmitInteracted}
-      allowedAmountQueries={ALLOWED_AMOUNT_QUERIES}
     />
   );
 }

@@ -10,7 +10,7 @@ import AskResultsStandardCard from "@/components/ask/results/ask-results-standar
 import { default as DOMPurify } from "dompurify";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFavorites } from "@/hooks/useFavorites";
-import { InfiniteScrollContainer } from "./infinite-scroll-container";
+import { PaginatedResultsContainer } from "./paginated-results-container";
 
 // Custom CSS for skeleton loading animation (pulse + shimmer)
 <style jsx>{`
@@ -166,7 +166,7 @@ const SkeletonCard = ({ layoutMode }: { layoutMode: "grid" | "row" }) => {
 };
 
 export default function AskResultsStandard() {
-  const { voteHistory, isLoading, isLoadingMore, error, hasMore, refetch, loadMore } = useVoteHistory();
+  const { voteHistory, isLoading, error, refetch } = useVoteHistory();
   const { lastVoteResult } = useVoteStore();
   const { favorites, isHydrated } = useFavorites();
   const [openItems, setOpenItems] = useState<Record<string, boolean>>({});
@@ -183,9 +183,7 @@ export default function AskResultsStandard() {
       "lastVoteResult:",
       lastVoteResult,
       "favorites:",
-      favorites,
-      "hasMore:",
-      hasMore
+      favorites
     );
   }
 
@@ -286,30 +284,25 @@ export default function AskResultsStandard() {
             : "No recent queries found."}
         </p>
       ) : (
-        <InfiniteScrollContainer
-          loadMore={loadMore}
-          hasMore={hasMore && !showFavoritesOnly} // Disable infinite scroll for favorites
-          isLoadingMore={isLoadingMore}
+        <PaginatedResultsContainer
+          itemsPerPage={20}
+          className={`max-w-7xl mx-auto ${
+            layoutMode === "grid"
+              ? "flex flex-wrap justify-center gap-6"
+              : "flex flex-col gap-4 items-center"
+          }`}
         >
-          <div
-            className={`max-w-7xl mx-auto ${
-              layoutMode === "grid"
-                ? "flex flex-wrap justify-center gap-6"
-                : "flex flex-col gap-4 items-center"
-            }`}
-          >
-            {filteredQueries.map((query) => (
-              <div key={query.id} className={`card-entrance ${layoutMode === "row" ? "w-full flex justify-center" : ""}`}>
-                <AskResultsStandardCard
-                  query={query}
-                  layoutMode={layoutMode}
-                  isOpen={openItems[query.id] || false}
-                  toggleItem={toggleItem}
-                />
-              </div>
-            ))}
-          </div>
-        </InfiniteScrollContainer>
+          {filteredQueries.map((query) => (
+            <div key={query.id} className={`card-entrance ${layoutMode === "row" ? "w-full flex justify-center" : ""}`}>
+              <AskResultsStandardCard
+                query={query}
+                layoutMode={layoutMode}
+                isOpen={openItems[query.id] || false}
+                toggleItem={toggleItem}
+              />
+            </div>
+          ))}
+        </PaginatedResultsContainer>
       )}
     </div>
   );

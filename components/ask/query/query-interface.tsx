@@ -3,8 +3,6 @@
 import { useState } from "react";
 import { QueryForm } from "@/components/ask/query/query-form";
 import ModeToggle from "@/components/ask/mode-toggle";
-import dynamic from 'next/dynamic';
-const WalletToggle = dynamic(() => import('@/components/ask/payments/wallet-toggle'), { ssr: false });
 import QueryStats from "@/components/ask/query/query-stats";
 import QueryResults from "@/components/ask/query/query-results";
 import useQueryLogic from "@/hooks/useQueryLogic"; // Correct default import
@@ -14,7 +12,6 @@ import Link from "next/link";
 import { capitalizeWords, formatQueryMode } from "@/utils/text-utils";
 
 export default function QueryInterface() {
-  const [payWithWallet, setPayWithWallet] = useState(false);
   const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
 
   const {
@@ -32,8 +29,7 @@ export default function QueryInterface() {
     queryMode,
     viewMode,
     handleSubmit,
-    handleQueryAmountChange,
-  } = useQueryLogic({ payWithWallet, setPayWithWallet });
+  } = useQueryLogic({ payWithWallet: false, setPayWithWallet: () => {} });
 
   // console.log("QueryInterface render:", {
   //   payWithWallet,
@@ -97,17 +93,6 @@ export default function QueryInterface() {
             {error}
           </p>
         )}
-        <WalletToggle
-          payWithWallet={payWithWallet}
-          setPayWithWallet={setPayWithWallet}
-          queriesCostTotal={queriesCostTotal}
-          userCreditsTotal={userCreditsTotal}
-          userFreeCredits={userFreeCredits}
-          userPaidCredits={userPaidCredits}
-          queriesRequested={queriesRequested}
-          queriesUnpaid={queriesUnpaid}
-          highlightPayButton={isSubmitInteracted && queriesUnpaid > 0}
-        />
         <QueryForm
           queryText={queryText}
           setQueryText={setQueryText}
@@ -119,10 +104,8 @@ export default function QueryInterface() {
           userCreditsTotal={userCreditsTotal}
           queriesUnpaid={queriesUnpaid}
           queriesCostTotal={queriesCostTotal}
-          handleQueryAmountChange={handleQueryAmountChange}
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}
-          payWithWallet={payWithWallet}
           isSubmitInteracted={isSubmitInteracted}
           setIsSubmitInteracted={setIsSubmitInteracted}
         />

@@ -1,14 +1,13 @@
 'use client';
 
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, Coins } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { QUERY_COST, QUERY_COST_FIXED_DECIMALS } from "@/lib/constants";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useCreditsStore } from "@/store/credit-store";
@@ -209,11 +208,6 @@ export default function QueryStats({
                 </span>
               )}
             </div>
-            <Link href="/credits-all">
-              <Button className="rounded-md bg-zinc-100 dark:bg-zinc-600 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer w-full">
-                Buy Credits
-              </Button>
-            </Link>
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -249,13 +243,6 @@ export default function QueryStats({
               SOL)
             </span>
           )}
-        </div>
-        <div className="flex justify-between gap-2">
-          <Link href="/credits-all">
-            <Button className="rounded-md bg-zinc-100 dark:bg-zinc-800 border border-gray-300 dark:border-gray-700 pl-2 py-1 text-gray-700 dark:text-zinc-300 hover:bg-gray-50 dark:hover:bg-zinc-900 cursor-pointer">
-              <Coins /> Buy Credits
-            </Button>
-          </Link>
         </div>
       </div>
     </div>

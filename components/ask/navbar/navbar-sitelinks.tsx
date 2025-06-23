@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import NavbarCredits from "./navbar-credits";
 import * as HoverCard from "@radix-ui/react-hover-card";
+import { useCreditsStore } from "@/store/credit-store";
+import { LoadingSpinner } from "@/components/loading-spinner-new";
 
 interface NavLinkProps {
   href: string;
@@ -39,6 +40,8 @@ function NavLink({ href, label, description }: NavLinkProps) {
  * Includes links with hover tooltips for better UX.
  */
 export function NavbarSitelinks() {
+  const { totalCredits, creditsLoading } = useCreditsStore();
+
   return (
     <div className="hidden md:flex items-center space-x-8">
       <NavLink
@@ -56,12 +59,18 @@ export function NavbarSitelinks() {
         label="AI Hub"
         description="Explore AI model profiles and performance"
       />
-      <NavLink
+      <Link
         href="/credits-all"
-        label="Credits"
-        description="Manage your query credits"
-      />
-      <NavbarCredits />
+        className="text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium text-base hover:-translate-y-0.5 flex items-center gap-1"
+      >
+        <span className="text-cyan-400">$</span>
+        {creditsLoading ? (
+          <LoadingSpinner noWrapper type="pulse" color="#06b6d4" size={4} message="" />
+        ) : (
+          totalCredits
+        )}
+        <span className="text-zinc-400 text-sm">Credits</span>
+      </Link>
     </div>
   );
 }
