@@ -29,6 +29,11 @@ export function NavbarScrollbar({ mounted, showSearch, viewMode }: NavbarScrollb
     handleKeyDown,
   } = useNavbarScrollbar();
 
+  // Disabled scrollbar for simplified UI
+  return null;
+
+  // Original code commented out
+  /*
   if (!mounted || !showSearch) return null;
 
   return (
@@ -51,4 +56,5 @@ export function NavbarScrollbar({ mounted, showSearch, viewMode }: NavbarScrollb
       handleKeyDown={handleKeyDown}
     />
   );
+  */
 }
