@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
-import { getBaseUrl } from "@/lib/constants";
+import { getAuthCallbackURL } from "@/lib/url-utils";
 import { redirect } from "next/navigation";
 import SignupClient from "./signup-client";
 
@@ -16,7 +16,7 @@ export default async function SignupPage() {
       const { error: otpError } = await supabaseServer.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: `${getBaseUrl()}/auth/callback`,
+          emailRedirectTo: getAuthCallbackURL(),
           data: { username },
         },
       });

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { getBaseUrl } from "@/lib/constants";
+import { getAuthCallbackURL } from "@/lib/url-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,7 +34,7 @@ export default function LoginClient() {
     try {
       console.log("[login] Cookies before OTP:", document.cookie.split(";").map((c) => c.trim()));
 
-      const redirectTo = `${getBaseUrl()}/auth/callback`;
+      const redirectTo = getAuthCallbackURL();
       console.log("[login] Email:", email, "RedirectTo:", redirectTo);
 
       // Validate email
