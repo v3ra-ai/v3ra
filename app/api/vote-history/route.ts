@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
 import { getHistoricalVoteSessions } from "@/lib/store";
-import { safeQuery } from "@/lib/db/query-wrapper";
+import { safeQuery, prisma } from "@/lib/db/query-wrapper";
 import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 import sanitizeHtml from "sanitize-html";
 
@@ -126,12 +126,9 @@ export async function GET(request: Request) {
     // Handle countOnly request
     if (countOnly) {
       const count = await safeQuery(
-        async () => {
-          const { prisma } = await import("@/lib/db/query-wrapper");
-          return prisma.voteSession.count({
-            where: sinceDate ? { timestamp: { gte: sinceDate } } : {},
-          });
-        },
+        () => prisma.voteSession.count({
+          where: sinceDate ? { timestamp: { gte: sinceDate } } : {},
+        }),
         0, // fallback value
         6000 // 6 second timeout
       );
