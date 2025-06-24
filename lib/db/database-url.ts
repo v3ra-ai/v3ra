@@ -7,9 +7,6 @@ export function getDatabaseUrl(): string {
               process.env.POSTGRES_URL;
   
   if (!url) {
-    console.error('Available env vars:', Object.keys(process.env).filter(key => 
-      key.includes('POSTGRES') || key.includes('DATABASE') || key.includes('SUPABASE')
-    ));
     throw new Error(
       'No database URL found. Please set DATABASE_URL, POSTGRES_PRISMA_URL, or POSTGRES_URL'
     );

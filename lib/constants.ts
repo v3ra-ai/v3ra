@@ -35,7 +35,7 @@ export const USER_CREDIT_CONVERSION_DEFAULT = 1;
 export const QUERIES_COST_EACH_DEFAULT = 1;
 export const ALLOWED_AMOUNT_QUERIES = 20;
 export const INITIAL_AI_QUERY_AMOUNT_REQUESTED = QUERIES_REQUESTED_DEFAULT;
-export const FREE_CREDITS_COOKIE_NAME = "verafy_free_credits";
+export const FREE_CREDITS_COOKIE_NAME = "v3ra_free_credits";
 
 // Voting Outcomes
 // Constants for representing possible voting results

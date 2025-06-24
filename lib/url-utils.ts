@@ -22,7 +22,7 @@ export function getURL(): string {
   // Default fallback
   return process.env.NODE_ENV === 'development' 
     ? 'http://localhost:3000' 
-    : 'https://swarm.verafy.ai';
+    : 'https://localhost:3000'; // Fallback to localhost to avoid redirect issues
 }
 
 /**

@@ -2,13 +2,20 @@ import { createClient } from '@supabase/supabase-js';
 
 // Client-side Supabase client
 // Support both Vercel's env vars and traditional NEXT_PUBLIC_ prefixed ones
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 
-                    process.env.SUPABASE_URL || 
-                    'https://rccfhomdmfbcywrlvgly.supabase.co';
+let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 
+                  process.env.SUPABASE_URL || 
+                  '';
                     
 let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
                       process.env.SUPABASE_ANON_KEY || 
                       '';
+
+// Check if we have a valid Supabase URL
+if (!supabaseUrl) {
+  console.error('Supabase URL not found in environment variables.');
+  // Use a placeholder URL to prevent build errors
+  supabaseUrl = 'https://placeholder.supabase.co';
+}
 
 // Use a valid placeholder if no key is found to prevent runtime errors
 if (!supabaseAnonKey) {
@@ -21,38 +28,38 @@ if (!supabaseAnonKey) {
 const cookieStorage = {
   getItem(key: string) {
     if (typeof window === 'undefined') {
-      // console.log(`Storage getItem skipped on server: ${key}`);
       return null;
     }
     const value = document.cookie
       .split('; ')
       .find((row) => row.startsWith(`${key}=`))
       ?.split('=')[1];
-    // console.log(`Storage getItem: ${key}=${value || 'null'}`);
     return value || null;
   },
   setItem(key: string, value: string) {
     if (typeof window === 'undefined') {
-      // console.log(`Storage setItem skipped on server: ${key}`);
       return;
     }
-    console.log(`Storage setItem: ${key}=${value}`);
     document.cookie = `${key}=${value}; path=/; max-age=31536000; SameSite=Lax`;
   },
   removeItem(key: string) {
     if (typeof window === 'undefined') {
-      console.log(`Storage removeItem skipped on server: ${key}`);
       return;
     }
-    console.log(`Storage removeItem: ${key}`);
     document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
   },
+};
+
+// Extract project ID from Supabase URL for storage key
+const getProjectId = (url: string): string => {
+  const match = url.match(/https:\/\/([^.]+)\.supabase\.co/);
+  return match ? match[1] : 'default';
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     storage: cookieStorage,
-    storageKey: 'sb-rccfhomdmfbcywrlvgly-auth-token',
+    storageKey: `sb-${getProjectId(supabaseUrl)}-auth-token`,
   },
 });
 

@@ -4,8 +4,8 @@ import * as crypto from "crypto";
 // Encryption key and IV - in production, these would be in environment variables
 // IMPORTANT: In a real production app, use a proper secret management system
 const ENCRYPTION_KEY =
-  process.env.ENCRYPTION_KEY || "verafy-default-encryption-key-32chars";
-const ENCRYPTION_IV = process.env.ENCRYPTION_IV || "verafy-default-iv";
+  process.env.ENCRYPTION_KEY || "v3ra-default-encryption-key-32charsxx";
+const ENCRYPTION_IV = process.env.ENCRYPTION_IV || "v3ra-default-iv-x";
 
 // Define interfaces for better type safety
 export interface ApiKey {
