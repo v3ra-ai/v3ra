@@ -14,6 +14,9 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  env: {
+    DATABASE_URL: process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL,
+  },
   webpack: (config, { isServer }) => {
     config.resolve.alias = {
       ...config.resolve.alias,
