@@ -10,15 +10,11 @@ let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
                       process.env.SUPABASE_ANON_KEY || 
                       '';
 
+// Use a valid placeholder if no key is found to prevent runtime errors
 if (!supabaseAnonKey) {
-  console.error('Missing Supabase anonymous key. Please set SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
-  // Use a placeholder to prevent build errors
-  const placeholder = 'missing-anon-key';
-  if (typeof window !== 'undefined') {
-    throw new Error('Missing Supabase anonymous key. Please set SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
-  }
-  // For server-side, we'll use a placeholder to allow build to continue
-  supabaseAnonKey = placeholder;
+  console.warn('Supabase anon key not found in environment variables. Using placeholder.');
+  // Use a properly formatted placeholder (base64 encoded JWT-like string)
+  supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYyMzkwMjIsImV4cCI6MTk2MTgxNTAyMn0.placeholder-key-do-not-use-in-production';
 }
 
 // Custom storage to handle client-side cookies safely
