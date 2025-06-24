@@ -1,11 +1,10 @@
 "use client";
 
 import { LLM, useLLMStore } from "@/store/llm-store";
-import { StarIcon, Info } from "lucide-react";
+import { StarIcon } from "lucide-react";
 import clsx from "clsx";
 import Image from "next/image";
 import { getModelIconPath } from "@/lib/utils/icon-mapping";
-import Link from "next/link";
 
 interface Props {
   llm: LLM;
@@ -25,19 +24,8 @@ export default function LLMTile({ llm }: Props) {
       )}
       onClick={() => toggleLLM(llm.id)}
     >
-      {/* Top actions */}
-      <div className="absolute top-2 right-2 flex gap-1">
-        {/* Profile info */}
-        <Link
-          href={`/ai-hub/${llm.id}/profile`}
-          onClick={(e) => e.stopPropagation()}
-          className="text-zinc-400 hover:text-zinc-200 hover:scale-110 transition-transform"
-          title="View profile"
-        >
-          <Info className="size-4" />
-        </Link>
-        
-        {/* Pin star */}
+      {/* Pin star only */}
+      <div className="absolute top-2 right-2">
         <button
           onClick={(e) => {
             e.stopPropagation();
@@ -77,9 +65,6 @@ export default function LLMTile({ llm }: Props) {
           />
         </div>
       </div>
-
-      {/* percentage */}
-      <p className="text-xs text-zinc-400 mt-1">0%</p>
     </div>
   );
 }

@@ -7,7 +7,7 @@ console.log("[broadcast-query] File loaded");
 
 const broadcastQuerySchema = z.object({
   queryText: z.string().min(1, "Query text is required"),
-  queryMode: z.enum(["fact-check", "predict", "create", "shop"]).optional(),
+  queryMode: z.enum(["fact-check"]).optional(),
   queriesRequested: z.number().int().min(1).optional(),
   selectedLLMIds: z.array(z.string()).optional(),
 });

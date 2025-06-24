@@ -31,32 +31,7 @@ export const FactCheckAdapter: ModeAdapter = {
   }),
 };
 
-export const PredictAdapter: ModeAdapter = {
-  type: "predict",
-  interpret: (p) => ({
-    // For now treat vote as present; in future we might map numerical outcomes.
-    vote: p.vote,
-    confidence: percentToUnit(p.confidence),
-    rationale: p.rationale,
-  }),
-};
-
-export const ShopAdapter: ModeAdapter = {
-  type: "shop",
-  interpret: (p) => ({
-    vote: p.vote,
-    confidence: percentToUnit(p.confidence),
-    rationale: p.rationale,
-  }),
-};
-
-export function getAdapter(mode?: QueryMode): ModeAdapter {
-  switch (mode) {
-    case "predict":
-      return PredictAdapter;
-    case "shop":
-      return ShopAdapter;
-    default:
-      return FactCheckAdapter;
-  }
+export function getAdapter(_mode?: QueryMode): ModeAdapter {
+  // Always return FactCheckAdapter since it's the only mode now
+  return FactCheckAdapter;
 }

@@ -111,6 +111,9 @@ export default function Navbar() {
           <Link href="/ask" className="flex items-center cursor-pointer">
             <V3raLogo size="md" className="transition-all duration-300 hover:scale-105 dark:neon-glow-cyan" />
           </Link>
+          <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded-full shadow-sm">
+            BETA
+          </span>
         </div>
 
         {/* Navigation Links */}

@@ -1,93 +1,15 @@
 "use client";
 
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dispatch, ReactNode, SetStateAction } from "react";
-import { QueryMode, Validator } from "@/lib/types";
+import { QueryMode } from "@/lib/types";
 import { useCreditsStore } from "@/store/credit-store";
 import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
 import { toast } from "sonner";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { formatQueryMode } from "@/utils/text-utils";
-import ManageLLMsClient from "@/components/llm-management/manage-llms-client";
-import { fetchValidators } from "@/lib/validators/fetch-validators";
-import { cn } from "@/lib/utils";
-import { BeatLoader } from "react-spinners";
-import { X } from "lucide-react";
-
-// Custom ManageLLMsDialog components
-const ManageLLMsDialog = DialogPrimitive.Root;
-const ManageLLMsDialogPortal = DialogPrimitive.Portal;
-const ManageLLMsDialogClose = DialogPrimitive.Close;
-
-const ManageLLMsDialogOverlay = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Overlay>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Overlay>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Overlay
-    ref={ref}
-    className={cn(
-      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
-      className,
-    )}
-    {...props}
-  />
-));
-ManageLLMsDialogOverlay.displayName = DialogPrimitive.Overlay.displayName;
-
-const ManageLLMsDialogContent = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Content>
->(({ className, children, ...props }, ref) => (
-  <ManageLLMsDialogPortal>
-    <ManageLLMsDialogOverlay />
-    <DialogPrimitive.Content
-      ref={ref}
-      className={cn(
-        "fixed left-1/2 top-1/2 z-100 grid gap-4 border bg-background p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 w-full max-w-[calc(100%-2rem)] sm:w-3/4 sm:max-w-7xl sm:rounded-lg transform -translate-x-1/2 -translate-y-[calc(50%-50px)]",
-        className,
-      )}
-      {...props}
-    >
-      {children}
-      <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-        <X />
-      </ManageLLMsDialogClose>
-    </DialogPrimitive.Content>
-  </ManageLLMsDialogPortal>
-));
-ManageLLMsDialogContent.displayName = DialogPrimitive.Content.displayName;
-
-const ManageLLMsDialogHeader = ({
-  className,
-  ...props
-}: React.HTMLAttributes<HTMLDivElement>) => (
-  <div
-    className={cn(
-      "flex flex-col space-y-1.5 text-center sm:text-left",
-      className,
-    )}
-    {...props}
-  />
-);
-ManageLLMsDialogHeader.displayName = "DialogHeader";
-
-const ManageLLMsDialogTitle = React.forwardRef<
-  React.ElementRef<typeof DialogPrimitive.Title>,
-  React.ComponentPropsWithoutRef<typeof DialogPrimitive.Title>
->(({ className, ...props }, ref) => (
-  <DialogPrimitive.Title
-    ref={ref}
-    className={cn(
-      "text-lg font-semibold leading-none tracking-tight",
-      className,
-    )}
-    {...props}
-  />
-));
-ManageLLMsDialogTitle.displayName = DialogPrimitive.Title.displayName;
 
 interface QueryFormInputProps {
   queryText: string;
@@ -127,68 +49,18 @@ const QueryFormInputComponent = function QueryFormInput({
   const { setQueriesRequested } = useQueryStore();
   const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
   const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [validators, setValidators] = useState<Validator[]>([]);
-  const [loading, setLoading] = useState(false);
-  const dialogContentRef = useRef<HTMLDivElement>(null);
 
   const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
   const hasSelectedLLMs = selectedLLMCount > 0;
-  const chooseButtonText = hasSelectedLLMs ? `Choose AIs (${selectedLLMCount})` : "Choose AIs";
 
   // Sync queriesRequested with selectedLLMCount on mount
   useEffect(() => {
     if (hasSelectedLLMs && queriesRequested !== selectedLLMCount) {
-      // console.log("[QueryFormInput] Syncing queriesRequested with selectedLLMCount on mount:", {
-      //   selectedLLMCount,
-      //   queriesRequested,
-      // });
       setQueriesRequested(selectedLLMCount, totalCredits);
     }
   }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested, totalCredits]);
 
-  const handleOpenModal = async () => {
-    setIsModalOpen(true);
-    setLoading(true);
-    setTimeout(async () => {
-      try {
-        const fetchedValidators = await fetchValidators();
-        setValidators(fetchedValidators);
-      } catch {
-        setValidators([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 200);
-  };
-
-  const handleModalOpenChange = (open: boolean) => {
-    if (open && dialogContentRef.current) {
-      // Modal positioning logic removed - unused variables
-    }
-    setIsModalOpen(open);
-  };
-
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
-
   const onSubmit = () => {
-    // console.log("[QueryFormInput] onSubmit called:", {
-    //   queryText,
-    //   displayUnpaid,
-    //   isSubmitting,
-    //   queriesUnpaid,
-    //   queriesCostTotal,
-    //   totalCredits,
-    //   userPaidCredits,
-    //   userFreeCredits,
-    //   queriesRequested,
-    //   queryMode,
-    //   creditsLeft: Math.max(0, totalCredits - queriesRequested),
-    //   selectedLLMCount,
-    // });
-
     // Credits check removed - app is now free to use
 
     if (hasSelectedLLMs && queriesRequested > selectedLLMCount) {
@@ -230,33 +102,6 @@ const QueryFormInputComponent = function QueryFormInput({
     [isSubmitting, queryText, hasSelectedLLMs, queriesRequested, selectedLLMCount]
   );
 
-  // Note: displayedQueryCost was previously calculated but not used
-  // Removed to fix unused variable warning
-
-  // Commenting out render logging for performance
-  // console.log("[QueryFormInput] render:", {
-  //   isSubmitting,
-  //   displayUnpaid,
-  //   totalCredits,
-  //   queriesCostTotal,
-  //   displayedQueryCost,
-  //   queriesRequested,
-  //   creditsLeft,
-  //   isSubmitDisabled,
-  //   userPaidCredits,
-  //   userFreeCredits,
-  //   queryMode,
-  //   buttonText,
-  //   selectedLLMCount,
-  //   disableReason: isSubmitDisabled
-  //     ? {
-  //         isSubmitting,
-  //         insufficientCreditsLeft: creditsLeft < queriesCostTotal,
-  //         queriesExceedSelected: hasSelectedLLMs && queriesRequested > selectedLLMCount,
-  //       }
-  //     : "none",
-  // });
-
   return (
     <div>
       <div className="flex flex-col mb-2">
@@ -274,13 +119,7 @@ const QueryFormInputComponent = function QueryFormInput({
           onChange={(e) => setQueryText(e.target.value)}
         />
       </div>
-      <div className="flex flex-col space-y-3">
-        <Button
-          className="bg-primary text-primary-foreground dark:bg-cyan-600 dark:hover:bg-cyan-500 dark:text-black rounded-lg px-4 py-2.5 min-h-[44px] z-10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 dark:neon-glow-cyan font-medium w-full sm:w-auto"
-          onClick={handleOpenModal}
-        >
-          {chooseButtonText}
-        </Button>
+      <div className="flex justify-center">
         <Button
           className={`bg-primary text-primary-foreground dark:bg-gradient-to-r dark:from-cyan-500 dark:to-pink-500 dark:hover:from-cyan-400 dark:hover:to-pink-400 rounded-full px-6 py-3 min-h-[48px] w-full transition-all duration-300 hover:-translate-y-0.5 dark:animate-pulse-neon text-base sm:text-lg ${
             isSubmitInteracted && displayUnpaid > 0 ? "ring-2 ring-primary dark:ring-cyan-500/50" : ""
@@ -295,31 +134,6 @@ const QueryFormInputComponent = function QueryFormInput({
           {buttonText}
         </Button>
       </div>
-      <ManageLLMsDialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
-        <ManageLLMsDialogContent
-          className="w-full max-w-[calc(100%-2rem)] sm:w-3/4 sm:max-w-7xl"
-          ref={dialogContentRef}
-        >
-          <ManageLLMsDialogHeader className="px-6 py-0">
-            <ManageLLMsDialogTitle className="text-2xl font-semibold">
-              Select AI Validators
-            </ManageLLMsDialogTitle>
-            <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              <X />
-            </ManageLLMsDialogClose>
-          </ManageLLMsDialogHeader>
-          <div className="flex flex-col h-full overflow-hidden">
-            {loading ? (
-              <div className="flex flex-col items-center justify-center h-full gap-4">
-                <BeatLoader color="#2DD4BF" size={15} />
-                <span className="text-lg text-gray-700 dark:text-gray-300">Loading</span>
-              </div>
-            ) : (
-              <ManageLLMsClient initial={validators} onClose={handleModalClose} />
-            )}
-          </div>
-        </ManageLLMsDialogContent>
-      </ManageLLMsDialog>
     </div>
   );
 };

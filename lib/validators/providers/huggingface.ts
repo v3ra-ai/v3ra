@@ -209,13 +209,8 @@ export class HuggingFaceValidator implements AIValidator {
             rationale: rationale.length > 100 ? `${rationale.substring(0, 100)}...` : rationale,
           });
 
-          // Process the vote if needed based on query mode
+          // Process the vote - always use fact-check mode logic
           const finalVote = vote;
-          // For predict mode, we want to keep the raw vote
-          // For other modes, follow standard processing
-          if (req.queryMode !== 'predict') {
-            // Fact check and other modes use standard boolean logic
-          }
 
           return {
             vote: finalVote,
