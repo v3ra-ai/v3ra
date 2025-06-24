@@ -15,6 +15,11 @@ export const prisma =
         url: process.env.DATABASE_URL,
       },
     },
+    // Optimize for serverless
+    errorFormat: 'pretty',
+    transactionOptions: {
+      timeout: 10000, // 10 seconds
+    },
   })
 
 if (process.env.NODE_ENV !== "production") global.prisma = prisma
