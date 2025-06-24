@@ -1,14 +1,20 @@
 import { Validator } from "@/lib/types";
+import { getBaseUrl } from "@/lib/constants";
 
 export async function fetchValidators(): Promise<Validator[]> {
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+  // Use dynamic base URL that works in both development and production
+  const baseUrl = typeof window !== 'undefined' 
+    ? getBaseUrl() 
+    : (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+  
   let apiUrl: string;
 
   try {
     apiUrl = new URL("/api/validators", baseUrl).toString();
   } catch {
     console.error("[fetchValidators] Invalid base URL:", baseUrl);
-    apiUrl = "http://localhost:3000/api/validators";
+    // Fallback to relative URL which will work in production
+    apiUrl = "/api/validators";
   }
 
   let validators: Validator[] = [];
