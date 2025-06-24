@@ -1,11 +1,24 @@
 import { createClient } from '@supabase/supabase-js';
 
 // Client-side Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://quuuhdbozcmhkwzhamuh.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+// Support both Vercel's env vars and traditional NEXT_PUBLIC_ prefixed ones
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 
+                    process.env.SUPABASE_URL || 
+                    'https://quuuhdbozcmhkwzhamuh.supabase.co';
+                    
+let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 
+                      process.env.SUPABASE_ANON_KEY || 
+                      '';
 
 if (!supabaseAnonKey) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
+  console.error('Missing Supabase anonymous key. Please set SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
+  // Use a placeholder to prevent build errors
+  const placeholder = 'missing-anon-key';
+  if (typeof window !== 'undefined') {
+    throw new Error('Missing Supabase anonymous key. Please set SUPABASE_ANON_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable');
+  }
+  // For server-side, we'll use a placeholder to allow build to continue
+  supabaseAnonKey = placeholder;
 }
 
 // Custom storage to handle client-side cookies safely
