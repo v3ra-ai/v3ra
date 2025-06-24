@@ -1,5 +1,4 @@
 import { Validator } from "@/lib/types";
-import { getBaseUrl } from "@/lib/constants";
 
 export async function fetchValidators(): Promise<Validator[]> {
   let apiUrl: string;
