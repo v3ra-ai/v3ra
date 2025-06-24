@@ -12,9 +12,15 @@ let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
 
 // Check if we have a valid Supabase URL
 if (!supabaseUrl) {
-  console.error('Supabase URL not found in environment variables.');
-  // Use a placeholder URL to prevent build errors
-  supabaseUrl = 'https://placeholder.supabase.co';
+  // In development, use the actual Supabase URL as fallback
+  if (process.env.NODE_ENV === 'development') {
+    console.warn('Supabase URL not found in environment variables. Using development fallback.');
+    supabaseUrl = 'https://rccfhomdmfbcywrlvgly.supabase.co';
+  } else {
+    console.error('Supabase URL not found in environment variables.');
+    // Use a placeholder URL to prevent build errors
+    supabaseUrl = 'https://placeholder.supabase.co';
+  }
 }
 
 // Use a valid placeholder if no key is found to prevent runtime errors
