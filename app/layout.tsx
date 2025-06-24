@@ -1,6 +1,6 @@
 import "./globals.css";
 import type { Metadata } from "next";
-import { Inter, Orbitron, Rajdhani } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ValidatorInitializer } from "@/components/validator-initializer";
 import { ThemeInitializer } from "@/components/theme-initializer";
@@ -8,15 +8,18 @@ import type { ReactNode } from "react";
 import { SolanaProvider } from "@/components/solana-provider";
 import { Toaster } from "sonner";
 
-const inter = Inter({ subsets: ["latin"] });
-const orbitron = Orbitron({ 
+// Use Inter for body text (clean, modern, excellent readability)
+const inter = Inter({ 
   subsets: ["latin"],
-  variable: "--font-orbitron"
+  variable: "--font-inter",
+  display: "swap",
 });
-const rajdhani = Rajdhani({ 
+
+// Use Outfit for headings (modern, geometric, premium feel)
+const outfit = Outfit({ 
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-rajdhani"
+  variable: "--font-outfit",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -29,7 +32,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
       </head>
-      <body className={`${inter.className} ${orbitron.variable} ${rajdhani.variable}`} suppressHydrationWarning>
+      <body className={`${inter.variable} ${outfit.variable} font-sans antialiased`} suppressHydrationWarning>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

@@ -38,11 +38,11 @@ export default function QueryInterface() {
 
   return (
     <div className="container mx-auto px-4 py-1 min-h-screen">
-      <div className="text-center mb-6">
-        <h1 className="text-foreground text-3xl md:text-4xl font-light tracking-tight">
+      <div className="text-center mb-8 mt-8">
+        <h1 className="text-foreground text-4xl md:text-5xl font-semibold tracking-tight font-display">
           Ask AI Models
         </h1>
-        <p className="text-muted-foreground mt-2">
+        <p className="text-muted-foreground mt-3 text-lg">
           Choose a preset and ask your question
         </p>
       </div>

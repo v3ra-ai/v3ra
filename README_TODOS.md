@@ -1,23 +1,59 @@
-# Todos
+# V3RA Development TODOs
 
-* qa-testnet.verafy.ai (protected deploy)
-* ~~Add more validators 10 minimum, 20+ ideally.~~
-* ~~Able to delete/edit validators.~~
-* ~~New validators included in query results~~
-* Adjustable LLMs per query it on ask query form but not reflected in the results
-* Changing prompts for Predict.
-* Supabase base upgrade to Pro for automatic backups
-* Icons for new validators. (its not automatic now)
-* Paid Credits reduce for queries over the free credit amount. (due to some issues that was turned off)
-* Footer links I believe need to be updated.
-* Share links on the cards need to be updated.
-* Big card (one card view) maybe should have more info or be different than the grid card view.
-* Change payment to prod (solana or truth)
-* Google/Gitub OAuth needs testing
-* Metrics routes for live data for Experts page, Observability
-* Live speed score. (its hardcoded for demo)
-* Staking for Credits
-* Stake to subscribe.
-* Automated testing for the app. Test Cafe
-* Unit tests for the app.
-* Snapshot tests for the app.
+## Current Sprint - MVP Refinement
+
+### High Priority
+- [ ] Implement swipe gesture animations in Refine mode
+- [ ] Add haptic feedback for mobile swipe interactions
+- [ ] Create onboarding flow explaining Ask/Refine mechanics
+- [ ] Add token balance persistence across sessions
+- [ ] Implement rate limiting for Refine mode earnings
+
+### Medium Priority
+- [ ] Add sound effects for token transactions (optional setting)
+- [ ] Create achievement system for quality refiners
+- [ ] Implement daily streak bonuses
+- [ ] Add keyboard shortcuts for power users
+- [ ] Create minimalist loading states
+
+### Low Priority
+- [ ] Add theme customization (keep it minimal)
+- [ ] Implement token gifting between users
+- [ ] Create referral system for new users
+- [ ] Add export functionality for refined answers
+- [ ] Build Chrome extension for quick access
+
+## Future Phases
+
+### Phase 2 - Enhanced Refinement
+- [ ] Machine learning to detect quality patterns
+- [ ] Reputation system for consistent refiners
+- [ ] Community consensus visualization
+- [ ] Advanced filtering in Refine mode
+
+### Phase 3 - Scale & Monetization
+- [ ] Database-backed token ledger
+- [ ] Solana payment integration
+- [ ] Premium subscription tiers
+- [ ] API access for developers
+
+### Phase 4 - Platform Evolution
+- [ ] Mobile native apps (iOS/Android)
+- [ ] Browser extension marketplace
+- [ ] Enterprise features
+- [ ] Decentralized governance
+
+## Tech Debt
+- [ ] Migrate from localStorage to secure token storage
+- [ ] Optimize bundle size (remove unused dependencies)
+- [ ] Implement proper error boundaries
+- [ ] Add comprehensive logging system
+- [ ] Set up monitoring and analytics
+
+## Completed ✅
+- [x] Strip down to Ask/Refine core features
+- [x] Implement 3-preset system for Ask mode
+- [x] Create token economy system
+- [x] Build swipe interface for Refine mode
+- [x] Remove unnecessary complexity
+- [x] Achieve minimalist UI aesthetic

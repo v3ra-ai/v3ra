@@ -77,12 +77,12 @@ export default function Navbar() {
   }, []);
 
   return (
-    <div className="fixed top-0 w-full glass-morphism z-50 h-[72px] border-b border-border/50 dark:border-border/20">
+    <div className="fixed top-0 w-full navbar-premium z-50 h-[72px]">
       <div className="container mx-auto px-6 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-            <V3raLogo size="md" className="transition-all duration-300 hover:scale-105 dark:neon-glow-cyan" />
+            <V3raLogo size="md" className="transition-all duration-200 hover:scale-105" />
           </Link>
         </div>
 

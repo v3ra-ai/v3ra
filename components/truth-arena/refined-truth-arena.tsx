@@ -260,7 +260,7 @@ export function RefinedTruthArena({ className = "" }: RefinedTruthArenaProps) {
       <div className="flex items-center justify-center min-h-screen bg-gradient-to-b from-black to-zinc-900 p-4">
         <div className="text-center max-w-md">
           <Target className="h-16 w-16 text-cyan-400 mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-zinc-100 mb-2">Refinery Complete!</h2>
+          <h2 className="text-3xl md:text-4xl font-semibold text-zinc-100 mb-4 font-display tracking-tight">Refinery Complete!</h2>
           <p className="text-zinc-400 mb-2">You refined {questionsRefined} truths and earned {earnedThisSession} tokens.</p>
           <p className="text-cyan-400 font-bold mb-6">Total Tokens: {tokens}</p>
           

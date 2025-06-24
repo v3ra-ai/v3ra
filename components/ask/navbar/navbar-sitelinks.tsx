@@ -18,18 +18,18 @@ function NavLink({ href, label, description }: NavLinkProps) {
       <HoverCard.Trigger asChild>
         <Link
           href={href}
-          className="text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium text-base hover:-translate-y-0.5"
+          className="text-foreground/80 hover:text-foreground transition-all duration-200 font-medium text-[15px] tracking-tight hover:opacity-100"
         >
           {label}
         </Link>
       </HoverCard.Trigger>
       <HoverCard.Portal>
         <HoverCard.Content
-          className="z-50 glass-morphism rounded-lg px-4 py-3 max-w-xs shadow-xl animate-in fade-in-0 zoom-in-95 dark:border dark:border-cyan-500/30 dark:shadow-[0_0_20px_rgba(0,255,255,0.3)]"
+          className="z-50 glass-morphism rounded-xl px-4 py-3 max-w-xs shadow-lg animate-in fade-in-0 zoom-in-95"
           sideOffset={8}
         >
-          <p className="text-sm text-foreground/90 dark:text-cyan-50">{description}</p>
-          <HoverCard.Arrow className="fill-white/10 dark:fill-cyan-500/20" />
+          <p className="text-sm text-foreground/80 font-normal">{description}</p>
+          <HoverCard.Arrow className="fill-white/5" />
         </HoverCard.Content>
       </HoverCard.Portal>
     </HoverCard.Root>
@@ -59,14 +59,16 @@ export function NavbarSitelinks() {
         label="Refine"
         description="Earn tokens by selecting the best answers"
       />
-      <div className="flex items-center gap-1 text-foreground/70 font-medium text-base">
-        <span className="text-cyan-400">⚡</span>
-        {isLoading ? (
-          <LoadingSpinner noWrapper type="pulse" color="#06b6d4" size={4} message="" />
-        ) : (
-          tokens
-        )}
-        <span className="text-zinc-400 text-sm">Tokens</span>
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-foreground/5 hover:bg-foreground/10 transition-colors duration-200">
+        <span className="text-lg">⚡</span>
+        <span className="font-medium text-[15px] tracking-tight text-foreground/90">
+          {isLoading ? (
+            <LoadingSpinner noWrapper type="pulse" color="currentColor" size={4} message="" />
+          ) : (
+            tokens
+          )}
+        </span>
+        <span className="text-foreground/60 text-sm font-normal">tokens</span>
       </div>
     </div>
   );
