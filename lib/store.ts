@@ -7,11 +7,11 @@ import {
   simulateValidatorResponse,
 } from "./validators";
 import {
-  prisma,
   initDatabase,
   seedValidators,
   persistVoteSession,
 } from "./database";
+import { prisma } from "./db/client";
 import { VoteSession, ValidatorResponse, Validator } from "@prisma/client";
 
 // Sample queries that will be broadcast to the network
