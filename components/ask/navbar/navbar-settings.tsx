@@ -13,10 +13,10 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const WalletMultiButton = dynamic(
+const MobileWalletButton = dynamic(
   () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (mod) => mod.WalletMultiButton
+    import("@/components/mobile/mobile-wallet-button").then(
+      (mod) => mod.MobileWalletButton
     ),
   { ssr: false }
 );
@@ -149,19 +149,7 @@ export function NavbarSettings({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <WalletMultiButton
-        style={{
-          backgroundColor: "#2dd4bf",
-          color: "#fff",
-          padding: "10px 12px",
-          borderRadius: "0.375rem",
-          fontSize: "0.95rem",
-          fontWeight: "normal",
-          height: "2rem",
-          margin: "0 0rem",
-          border: "1px solid #d1d5db",
-        }}
-      />
+      <MobileWalletButton />
 
       <button
         onClick={onToggleMenu}

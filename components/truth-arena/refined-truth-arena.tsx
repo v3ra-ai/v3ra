@@ -289,11 +289,11 @@ export function RefinedTruthArena({ className = "" }: RefinedTruthArenaProps) {
   }
 
   return (
-    <div className={`min-h-screen bg-gradient-to-b from-black to-zinc-900 p-4 ${className}`}>
+    <div className={`min-h-screen bg-gradient-to-b from-black to-zinc-900 p-4 safe-top safe-bottom ${className}`}>
       {/* Header */}
       <div className="max-w-2xl mx-auto">
         <div className="flex items-center justify-between mb-6">
-          <Link href="/ask" className="text-zinc-400 hover:text-zinc-200 transition-colors">
+          <Link href="/ask" className="text-zinc-400 hover:text-zinc-200 transition-colors p-2 -ml-2">
             <ArrowLeft className="h-6 w-6" />
           </Link>
           

@@ -1,0 +1,26 @@
+{
+  "name": "V3RA Truth Refinement",
+  "short_name": "V3RA",
+  "description": "Ask AI models questions. Refine truth through consensus. Earn tokens.",
+  "theme_color": "#000000",
+  "background_color": "#000000",
+  "display": "standalone",
+  "orientation": "portrait",
+  "scope": "/",
+  "start_url": "/",
+  "icons": [
+    {
+      "src": "/logos/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/logos/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "categories": ["utilities", "productivity"],
+  "prefer_related_applications": false,
+  "related_applications": []
+}
