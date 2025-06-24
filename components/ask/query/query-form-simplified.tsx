@@ -26,13 +26,14 @@ export function QueryFormSimplified({
   placeholderText,
   handleSubmit,
   isSubmitting,
-  queriesCostTotal,
-  userCreditsTotal,
+  queriesCostTotal: _queriesCostTotal,
+  userCreditsTotal: _userCreditsTotal,
   selectedPreset: initialPreset,
 }: QueryFormSimplifiedProps) {
   const [selectedPreset, setSelectedPreset] = useState(initialPreset || "balanced");
   const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
-  const { buttonText, startTimer, cancelTimer } = useButtonTextTimer("Ask");
+  const [buttonText, setButtonText] = useState<React.ReactNode>("Ask");
+  const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
   const { tokens, spendTokens } = useTokenStore();
 
   // Get cost based on preset
@@ -63,6 +64,7 @@ export function QueryFormSimplified({
   useEffect(() => {
     if (!isSubmitting) {
       cancelTimer();
+      setButtonText("Ask");
     }
   }, [isSubmitting, cancelTimer]);
 
