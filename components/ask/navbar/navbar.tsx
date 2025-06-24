@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
+import { X } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
@@ -103,8 +104,8 @@ export default function Navbar() {
   }, []);
 
   return (
-    <div className="fixed top-0 w-full glass-morphism z-50 h-[72px] border-b border-border/50 dark:border-border/20">
-      <div className="container mx-auto px-6 flex items-center justify-between h-full">
+    <div className="fixed top-0 w-full glass-morphism z-50 h-16 sm:h-[72px] border-b border-border/50 dark:border-border/20">
+      <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
@@ -145,7 +146,7 @@ export default function Navbar() {
             />
             {/* Drawer */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-64 bg-background z-50 shadow-lg p-6"
+              className="fixed top-0 right-0 h-full w-[85vw] max-w-xs bg-background z-50 shadow-lg p-4 sm:p-6"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
@@ -153,7 +154,14 @@ export default function Navbar() {
               role="dialog"
               aria-label="Mobile navigation menu"
             >
-              <div className="[&>div]:flex [&>div]:flex-col [&>div]:space-y-4 [&>div]:text-base [&>div_a]:p-2 [&>div_a]:min-h-[44px] [&>div_a]:flex [&>div_a]:items-center">
+              <button
+                onClick={toggleMenu}
+                className="absolute top-4 right-4 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
+                aria-label="Close menu"
+              >
+                <X className="h-6 w-6" />
+              </button>
+              <div className="mt-12 [&>div]:flex [&>div]:flex-col [&>div]:space-y-4 [&>div]:text-base [&>div_a]:p-3 [&>div_a]:min-h-[48px] [&>div_a]:flex [&>div_a]:items-center [&>div_a]:rounded-lg">
                 <NavbarSitelinks />
               </div>
             </motion.div>

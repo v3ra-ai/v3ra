@@ -2,8 +2,6 @@
 
 import Link from "next/link";
 import * as HoverCard from "@radix-ui/react-hover-card";
-import { useCreditsStore } from "@/store/credit-store";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
 
 interface NavLinkProps {
   href: string;
@@ -40,42 +38,18 @@ function NavLink({ href, label, description }: NavLinkProps) {
  * Includes links with hover tooltips for better UX.
  */
 export function NavbarSitelinks() {
-  const { totalCredits, creditsLoading } = useCreditsStore();
-
   return (
     <div className="hidden md:flex items-center space-x-8">
       <NavLink
         href="/ask"
-        label="Ask V3ra"
-        description="Ask AI models yes/no questions and explore consensus"
+        label="Ask"
+        description="Ask AI models questions and explore consensus"
       />
       <NavLink
-        href="/llms/manage"
-        label="AI Models"
-        description="Select and manage AI validators"
+        href="/feedback"
+        label="Feedback"
+        description="Report bugs and share feedback"
       />
-      <NavLink
-        href="/ai-hub"
-        label="AI Hub"
-        description="Explore AI model profiles and performance"
-      />
-      <NavLink
-        href="/refine"
-        label="Refine"
-        description="Swipe through questions to refine truth consensus"
-      />
-      <Link
-        href="/credits-all"
-        className="text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium text-base hover:-translate-y-0.5 flex items-center gap-1"
-      >
-        <span className="text-cyan-400">$</span>
-        {creditsLoading ? (
-          <LoadingSpinner noWrapper type="pulse" color="#06b6d4" size={4} message="" />
-        ) : (
-          totalCredits
-        )}
-        <span className="text-zinc-400 text-sm">Credits</span>
-      </Link>
     </div>
   );
 }

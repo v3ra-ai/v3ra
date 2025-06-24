@@ -1,100 +1,105 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import Navbar from "@/components/ask/navbar/navbar";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
+import { Mail, Loader2 } from "lucide-react";
 
 export default function VerifyCodePage() {
-  const [code, setCode] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+  const [email, setEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const _router = useRouter();
 
-  const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  useEffect(() => {
+    const storedEmail = localStorage.getItem("signupEmail");
+    setEmail(storedEmail);
+  }, []);
 
+  const handleResend = async () => {
+    if (!email) return;
+    
+    setResending(true);
+    setResendSuccess(false);
+    
     try {
-      const email = localStorage.getItem("signupEmail");
-      if (!email) {
-        throw new Error("No email found. Please try signing up again.");
-      }
-
-      // Debug cookies before OTP verification
-      const cookiesBefore = document.cookie.split(";").map((c) => c.trim());
-      console.log("Client-side cookies before OTP verification:", cookiesBefore);
-
-      const { error } = await supabase.auth.verifyOtp({
-        email,
-        token: code,
-        type: "magiclink", // Use 'signup' for OTP if magiclink isn't working
-      });
-
-      if (error) {
-        throw new Error(error.message || "Invalid or expired code. Please try again.");
-      }
-
-      // Refresh session to persist cookies
-      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
-      console.log("Session after OTP verification:", { sessionData, sessionError });
-
-      if (sessionError) {
-        throw new Error(sessionError.message || "Failed to refresh session after verification.");
-      }
-
-      // Debug cookies after OTP verification
-      const cookiesAfter = document.cookie.split(";").map((c) => c.trim());
-      console.log("Client-side cookies after OTP verification:", cookiesAfter);
-
-      router.push("/auth/callback");
-    } catch (err: unknown) {
-      const error = err as Error;
-      console.error("Verification error:", error.message, error.stack); // Debug log
-      setError(error.message || "Invalid or expired code. Please try again.");
-      setLoading(false);
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) throw error;
+      
+      setResendSuccess(true);
+      setTimeout(() => setResendSuccess(false), 5000);
+    } catch (error) {
+      console.error("Failed to resend:", error);
+    } finally {
+      setResending(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
       <Navbar />
-      <div className="w-full max-w-md mx-auto p-6">
-        <div className="p-12 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-          <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-8">
-            Verify Email
-          </h1>
-          <p className="mb-4 text-center text-zinc-600 dark:text-zinc-400">
-            Enter the code sent to your email or click the magic link.
-          </p>
-          {error && <p className="text-red-500 mb-4 text-center text-sm sm:text-base">{error}</p>}
-          <form onSubmit={handleVerify} className="space-y-6">
-            <div>
-              <Label htmlFor="code" className="text-zinc-800 dark:text-zinc-200 mb-2">
-                Verification Code
-              </Label>
-              <Input
-                id="code"
-                type="text"
-                value={code}
-                onChange={(e) => setCode(e.target.value)}
-                required
-                disabled={loading}
-                className="mt-1 bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200"
-              />
+      <div className="w-full max-w-md mx-auto p-4 sm:p-6">
+        <div className="p-8 sm:p-12 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
+          <div className="flex justify-center mb-6">
+            <div className="p-4 rounded-full bg-teal-100 dark:bg-teal-900/30">
+              <Mail className="h-8 w-8 text-teal-600 dark:text-teal-400" />
             </div>
+          </div>
+          
+          <h1 className="text-2xl sm:text-3xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-4">
+            Check your email
+          </h1>
+          
+          <p className="mb-6 text-center text-zinc-600 dark:text-zinc-400">
+            We sent a magic link to
+            <br />
+            <span className="font-medium text-zinc-800 dark:text-zinc-200">
+              {email || "your email"}
+            </span>
+          </p>
+          
+          <div className="space-y-4">
+            <div className="p-4 bg-teal-50 dark:bg-teal-900/20 rounded-lg border border-teal-200 dark:border-teal-800">
+              <p className="text-sm text-teal-800 dark:text-teal-200 text-center">
+                Click the link in your email to sign in instantly
+              </p>
+            </div>
+            
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-zinc-200 dark:border-zinc-700"></div>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-white dark:bg-zinc-800 px-2 text-zinc-500">
+                  Didn&apos;t receive it?
+                </span>
+              </div>
+            </div>
+            
             <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 cursor-pointer"
+              onClick={handleResend}
+              disabled={resending || !email}
+              variant="outline"
+              className="w-full"
             >
-              {loading ? "Verifying..." : "Verify Code"}
+              {resending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : resendSuccess ? (
+                "Email sent! Check your inbox"
+              ) : (
+                "Resend magic link"
+              )}
             </Button>
-          </form>
+            
+            <p className="text-xs text-center text-zinc-500 dark:text-zinc-400">
+              Magic links expire after 1 hour
+            </p>
+          </div>
         </div>
       </div>
     </div>

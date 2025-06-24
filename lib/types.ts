@@ -125,7 +125,7 @@ export interface ExtendedApiKey extends ApiKey {
 }
 
 // Query-related types
-export type QueryMode = "fact-check" | "predict" | "create" | "shop";
+export type QueryMode = "fact-check";
 export type ViewMode = "viewStandard" | "viewExpert";
 
 // Cookie-related types

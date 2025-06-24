@@ -55,7 +55,7 @@ const LayoutToggle = ({
   showFavoritesOnly: boolean;
   setShowFavoritesOnly: (show: boolean) => void;
 }) => (
-  <div className="flex items-center gap-2 ml-2 opacity-70 transition-opacity duration-200 hover:opacity-100">
+  <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2 opacity-70 transition-opacity duration-200 hover:opacity-100">
     <button
       onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
       className={`p-1.5 rounded-md transition-all duration-200 cursor-pointer ${
@@ -237,7 +237,7 @@ export default function AskResultsStandard() {
       className={`
         container
         rounded-2xl shadow-md
-        mx-auto px-4 py-4
+        mx-auto px-2 sm:px-4 py-4
         max-w-6xl
         bg-transparent
         border-0

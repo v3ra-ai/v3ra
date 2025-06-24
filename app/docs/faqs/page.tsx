@@ -1,7 +1,7 @@
 import AskFooter from "@/components/ask/ask-footer";
 import Navbar from "@/components/ask/navbar/navbar";
 import QueryFAQ from "@/components/ask/results/ask-results-faq";
-import CreditFAQ from "@/components/credits/credit-faq";
+// import CreditFAQ from "@/components/credits/credit-faq";
 import { FeedbackModal } from "@/components/feedback-modal";
 import { FeedbackWidget } from "@/components/feedback-widget";
 import { SolanaProvider } from "@/components/solana-provider";
@@ -57,7 +57,7 @@ export default function FAQsPage() {
               </p> */}
               {/* Placeholder for FAQ components */}
 
-              <CreditFAQ />
+              {/* <CreditFAQ /> */}
               <QueryFAQ />
 
             </section>

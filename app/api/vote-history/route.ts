@@ -4,37 +4,7 @@ import { getHistoricalVoteSessions } from "@/lib/store";
 import { prisma } from "@/lib/db/client";
 import { RESULT_QUERIES_CARDS } from "@/lib/constants";
 import sanitizeHtml from "sanitize-html";
-import type { VoteResult } from "@/lib/types";
 
-console.log("[vote-history] File loaded");
-
-// Simple rate limiting
-const requestCache = new Map<string, { timestamp: number; response: VoteResult[] | { count: number } }>();
-const CACHE_TTL = 2000; // 2 seconds cache
-const MAX_CACHE_SIZE = 100; // Maximum cache entries
-
-// Clean old cache entries
-function cleanCache() {
-  const now = Date.now();
-  const entriesToDelete: string[] = [];
-  
-  requestCache.forEach((value, key) => {
-    if (now - value.timestamp > CACHE_TTL * 2) {
-      entriesToDelete.push(key);
-    }
-  });
-  
-  entriesToDelete.forEach(key => requestCache.delete(key));
-  
-  // If still too large, remove oldest entries
-  if (requestCache.size > MAX_CACHE_SIZE) {
-    const sortedEntries = Array.from(requestCache.entries())
-      .sort((a, b) => a[1].timestamp - b[1].timestamp);
-    
-    const toRemove = sortedEntries.slice(0, requestCache.size - MAX_CACHE_SIZE);
-    toRemove.forEach(([key]) => requestCache.delete(key));
-  }
-}
 
 interface VoteHistoryEntry {
   id: string;
@@ -109,21 +79,6 @@ export async function GET(request: Request) {
       : RESULT_QUERIES_CARDS;
     const offset = offsetRaw ? parseInt(sanitizeInput(offsetRaw), 10) || 0 : 0;
 
-    // Create cache key
-    const cacheKey = `${limit}-${offset}-${countOnly}-${sinceRaw}-${groupBy}`;
-    
-    // Check cache
-    const cached = requestCache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      console.log("[vote-history] Returning cached response");
-      return NextResponse.json(cached.response);
-    }
-    
-    // Clean cache periodically
-    if (requestCache.size > 50) {
-      cleanCache();
-    }
-
     console.log("[vote-history] Handling GET request:", {
       limitRaw,
       limit,
@@ -174,7 +129,6 @@ export async function GET(request: Request) {
         where: sinceDate ? { timestamp: { gte: sinceDate } } : {},
       });
       console.log("[vote-history] Returning vote session count:", count);
-      requestCache.set(cacheKey, { timestamp: Date.now(), response: { count } });
       return NextResponse.json({ count });
     }
 
@@ -286,11 +240,9 @@ export async function GET(request: Request) {
           voteHistory.length,
           "items"
         );
-        requestCache.set(cacheKey, { timestamp: Date.now(), response: voteHistory });
         return NextResponse.json(voteHistory);
       } else {
         console.log("[vote-history] No vote sessions found");
-        requestCache.set(cacheKey, { timestamp: Date.now(), response: [] });
         return NextResponse.json([]);
       }
     } catch (dbError) {

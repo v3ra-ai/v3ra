@@ -1,12 +1,12 @@
 import type { NextConfig } from 'next';
+import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   images: {
-    domains: ['placehold.co'],
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'verafy.ai',
+        hostname: 'placehold.co',
       },
       {
         protocol: 'https',
@@ -36,4 +36,25 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Wrap the config with Sentry
+export default withSentryConfig(nextConfig, {
+  // For all available options, see:
+  // https://github.com/getsentry/sentry-webpack-plugin#options
+
+  // Suppresses source map uploading logs during build
+  silent: true,
+  
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+
+  // Upload a larger set of source maps for prettier stack traces (increases build time)
+  widenClientFileUpload: true,
+
+  // Automatically tree-shake Sentry logger statements to reduce bundle size
+  disableLogger: true,
+  
+  // Disable source maps in production
+  sourcemaps: {
+    disable: true,
+  },
+});

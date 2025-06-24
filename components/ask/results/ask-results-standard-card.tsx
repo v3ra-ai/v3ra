@@ -104,7 +104,7 @@ export default function AskResultsStandardCard({
           pt-4 gap-2
           border border-zinc-200 dark:border-zinc-700
           transition-colors
-          ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-[95%] sm:w-[90%] md:w-[85%] lg:w-5xl max-w-5xl"}
+          ${layoutMode === "grid" ? "w-full sm:w-[20rem] lg:w-[22rem]" : "w-full sm:w-[90%] md:w-[85%] lg:w-5xl max-w-5xl"}
         `}
       >
         <CardContent className="p-4">
@@ -127,7 +127,7 @@ export default function AskResultsStandardCard({
         transition-all duration-300 hover:-translate-y-1
         hover:shadow-2xl dark:hover:shadow-[0_0_40px_rgba(0,255,255,0.15)]
         dark:shadow-[0_4px_20px_rgba(0,0,0,0.5)]
-        ${layoutMode === "grid" ? "w-full lg:w-[22rem]" : "w-full lg:w-4xl"}
+        ${layoutMode === "grid" ? "w-full sm:w-[20rem] lg:w-[22rem]" : "w-full sm:w-[90%] lg:w-4xl"}
       `}
     >
       <div className="px-4">

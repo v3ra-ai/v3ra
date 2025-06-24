@@ -4,7 +4,6 @@ import React, { useEffect, useRef, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { Dispatch, ReactNode, SetStateAction } from "react";
-import { QueryFormModeSelector } from "./query-form-mode-selector";
 import { QueryMode, Validator } from "@/lib/types";
 import { useCreditsStore } from "@/store/credit-store";
 import { useLLMStore } from "@/store/llm-store";
@@ -114,7 +113,7 @@ const QueryFormInputComponent = function QueryFormInput({
   handleSubmit,
   isSubmitting,
   queriesUnpaid: _queriesUnpaid,
-  queriesCostTotal,
+  queriesCostTotal: _queriesCostTotal,
   userFreeCredits: _userFreeCredits,
   userPaidCredits: _userPaidCredits,
   userCreditsTotal: _userCreditsTotal,
@@ -135,7 +134,7 @@ const QueryFormInputComponent = function QueryFormInput({
 
   const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
   const hasSelectedLLMs = selectedLLMCount > 0;
-  const chooseButtonText = hasSelectedLLMs ? `${selectedLLMCount} AIs` : "Choose AIs";
+  const chooseButtonText = hasSelectedLLMs ? `Choose AIs (${selectedLLMCount})` : "Choose AIs";
 
   // Sync queriesRequested with selectedLLMCount on mount
   useEffect(() => {
@@ -149,16 +148,13 @@ const QueryFormInputComponent = function QueryFormInput({
   }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested, totalCredits]);
 
   const handleOpenModal = async () => {
-    console.log("[QueryFormInput] Choose... button clicked, setting isModalOpen to true");
     setIsModalOpen(true);
     setLoading(true);
     setTimeout(async () => {
       try {
         const fetchedValidators = await fetchValidators();
-        console.log("[QueryFormInput] Fetched validators:", fetchedValidators.length, fetchedValidators);
         setValidators(fetchedValidators);
       } catch {
-        console.error("[QueryFormInput] Failed to fetch validators for modal");
         setValidators([]);
       } finally {
         setLoading(false);
@@ -167,38 +163,13 @@ const QueryFormInputComponent = function QueryFormInput({
   };
 
   const handleModalOpenChange = (open: boolean) => {
-    console.log("[QueryFormInput] Modal open state changed to:", open);
     if (open && dialogContentRef.current) {
-      const rect = dialogContentRef.current.getBoundingClientRect();
-      const computedStyle = window.getComputedStyle(dialogContentRef.current);
-      const parent = dialogContentRef.current.parentElement;
-      const parentStyle = parent ? window.getComputedStyle(parent) : null;
-      console.log("[QueryFormInput] Modal opened, dimensions and styles:", {
-        windowWidth: window.innerWidth,
-        windowHeight: window.innerHeight,
-        modalWidth: rect.width,
-        modalHeight: rect.height,
-        modalLeft: rect.left,
-        modalTop: rect.top,
-        expectedWidth: window.innerWidth >= 640 ? `75% (~${Math.floor(window.innerWidth * 0.75)}px)` : "100%",
-        expectedLeft: `~${Math.floor((window.innerWidth - rect.width) / 2)}px`,
-        expectedTop: `~${Math.floor((window.innerHeight - rect.height) / 2 + 50)}px`,
-        computedWidth: computedStyle.width,
-        computedMaxWidth: computedStyle.maxWidth,
-        computedTransform: computedStyle.transform,
-        computedAnimation: computedStyle.animation,
-        parentTag: parent?.tagName,
-        parentClass: parent?.className,
-        parentPosition: parentStyle?.position,
-        parentTransform: parentStyle?.transform,
-        loadingState: loading,
-      });
+      // Modal positioning logic removed - unused variables
     }
     setIsModalOpen(open);
   };
 
   const handleModalClose = () => {
-    console.log("[QueryFormInput] Closing modal");
     setIsModalOpen(false);
   };
 
@@ -218,23 +189,9 @@ const QueryFormInputComponent = function QueryFormInput({
     //   selectedLLMCount,
     // });
 
-    const creditsLeft = Math.max(0, totalCredits - queriesRequested);
-    if (creditsLeft < queriesCostTotal) {
-      console.log("[QueryFormInput] Blocked: Insufficient credits", {
-        creditsLeft,
-        queriesCostTotal,
-      });
-      toast.error("Insufficient credits to cover the query cost. Please purchase more credits.", {
-        style: { background: "#fee2e2", color: "#dc2626" },
-      });
-      return;
-    }
+    // Credits check removed - app is now free to use
 
     if (hasSelectedLLMs && queriesRequested > selectedLLMCount) {
-      console.log("[QueryFormInput] Blocked: Queries requested exceeds selected LLMs", {
-        queriesRequested,
-        selectedLLMCount,
-      });
       toast.error(`Cannot query ${queriesRequested} AIs when only ${selectedLLMCount} are selected.`, {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
@@ -244,9 +201,7 @@ const QueryFormInputComponent = function QueryFormInput({
     try {
       startTimer();
       handleSubmit();
-      console.log("[QueryFormInput] handleSubmit executed successfully");
     } catch {
-      console.error("[QueryFormInput] Query submission failed");
       toast.error("Failed to submit query, please try again", {
         style: { background: "#fee2e2", color: "#dc2626" },
       });
@@ -257,24 +212,22 @@ const QueryFormInputComponent = function QueryFormInput({
     if (!isSubmitting) {
       cancelTimer();
       setButtonText(formatQueryMode(queryMode));
-      console.log("[QueryFormInput] Set button text to:", formatQueryMode(queryMode));
     }
   }, [isSubmitting, queryMode, cancelTimer]);
 
   // Ensure button text updates when queryMode changes
   useEffect(() => {
     setButtonText(formatQueryMode(queryMode));
-    console.log("[QueryFormInput] Query mode changed, updating button text to:", formatQueryMode(queryMode));
   }, [queryMode]);
 
-  const creditsLeft = useMemo(
+  const _creditsLeft = useMemo(
     () => Math.max(0, totalCredits - queriesRequested),
     [totalCredits, queriesRequested]
   );
   
   const isSubmitDisabled = useMemo(
-    () => isSubmitting || !queryText.trim() || creditsLeft < queriesCostTotal || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
-    [isSubmitting, queryText, creditsLeft, queriesCostTotal, hasSelectedLLMs, queriesRequested, selectedLLMCount]
+    () => isSubmitting || !queryText.trim() || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
+    [isSubmitting, queryText, hasSelectedLLMs, queriesRequested, selectedLLMCount]
   );
 
   // Note: displayedQueryCost was previously calculated but not used
@@ -308,7 +261,7 @@ const QueryFormInputComponent = function QueryFormInput({
     <div>
       <div className="flex flex-col mb-2">
         <textarea
-          className={`w-full p-4 rounded-lg h-24 focus:outline-none text-foreground placeholder-muted-foreground text-lg
+          className={`w-full p-3 sm:p-4 rounded-lg h-20 sm:h-24 focus:outline-none text-foreground placeholder-muted-foreground text-base sm:text-lg
             bg-card dark:bg-card/50 border transition-all duration-200
             ${
               isSubmitInteracted && !queryText.trim()
@@ -321,33 +274,26 @@ const QueryFormInputComponent = function QueryFormInput({
           onChange={(e) => setQueryText(e.target.value)}
         />
       </div>
-      <div className="flex flex-col sm:flex-row w-full gap-4">
-        <div className="flex items-center justify-start w-full sm:w-1/2">
-          <div className="flex items-center gap-3 w-full">
-            <QueryFormModeSelector queryMode={queryMode} />
-            <Button
-              className="bg-primary text-primary-foreground dark:bg-cyan-600 dark:hover:bg-cyan-500 dark:text-black rounded-lg px-6 py-2 z-10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 dark:neon-glow-cyan font-medium"
-              onClick={handleOpenModal}
-            >
-              {chooseButtonText}
-            </Button>
-          </div>
-        </div>
-        <div className="flex items-center justify-end w-full sm:w-1/2">
-          <Button
-            className={`bg-primary text-primary-foreground dark:bg-gradient-to-r dark:from-cyan-500 dark:to-pink-500 dark:hover:from-cyan-400 dark:hover:to-pink-400 rounded-full px-8 py-2 w-full sm:w-auto transition-all duration-300 hover:-translate-y-0.5 dark:animate-pulse-neon ${
-              isSubmitInteracted && displayUnpaid > 0 ? "ring-2 ring-primary dark:ring-cyan-500/50" : ""
-            }`}
-            onClick={onSubmit}
-            disabled={isSubmitDisabled}
-            onMouseEnter={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
-            onMouseLeave={() => setIsSubmitInteracted(false)}
-            onMouseDown={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
-            onMouseUp={() => setIsSubmitInteracted(false)}
-          >
-            {buttonText}
-          </Button>
-        </div>
+      <div className="flex flex-col space-y-3">
+        <Button
+          className="bg-primary text-primary-foreground dark:bg-cyan-600 dark:hover:bg-cyan-500 dark:text-black rounded-lg px-4 py-2.5 min-h-[44px] z-10 cursor-pointer transition-all duration-200 hover:-translate-y-0.5 dark:neon-glow-cyan font-medium w-full sm:w-auto"
+          onClick={handleOpenModal}
+        >
+          {chooseButtonText}
+        </Button>
+        <Button
+          className={`bg-primary text-primary-foreground dark:bg-gradient-to-r dark:from-cyan-500 dark:to-pink-500 dark:hover:from-cyan-400 dark:hover:to-pink-400 rounded-full px-6 py-3 min-h-[48px] w-full transition-all duration-300 hover:-translate-y-0.5 dark:animate-pulse-neon text-base sm:text-lg ${
+            isSubmitInteracted && displayUnpaid > 0 ? "ring-2 ring-primary dark:ring-cyan-500/50" : ""
+          }`}
+          onClick={onSubmit}
+          disabled={isSubmitDisabled}
+          onMouseEnter={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
+          onMouseLeave={() => setIsSubmitInteracted(false)}
+          onMouseDown={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
+          onMouseUp={() => setIsSubmitInteracted(false)}
+        >
+          {buttonText}
+        </Button>
       </div>
       <ManageLLMsDialog open={isModalOpen} onOpenChange={handleModalOpenChange}>
         <ManageLLMsDialogContent

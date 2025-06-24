@@ -1,5 +1,5 @@
 "use client";
-import { CreditsLayout } from "@/components/credits/credits-layout";
+// import { CreditsLayout } from "@/components/credits/credits-layout";
 import Navbar from "@/components/ask/navbar/navbar";
 import { SolanaProvider } from "@/components/solana-provider";
 import { useBackgroundImage } from "@/hooks/useBackgroundImage";
@@ -22,7 +22,11 @@ export default function CreditsPage() {
         }}
       >
       <Navbar />
-      <CreditsLayout />
+      {/* <CreditsLayout /> */}
+      <div className="container mx-auto p-8">
+        <h1 className="text-2xl font-bold">Credits Page</h1>
+        <p>Credits component temporarily unavailable</p>
+      </div>
       </div>
     </SolanaProvider>
   );

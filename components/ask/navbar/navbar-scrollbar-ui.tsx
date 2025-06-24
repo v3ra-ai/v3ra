@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { ViewMode, QueryMode, Validator } from "@/lib/types";
-import { QueryFormModeSelector } from "@/components/ask/query/query-form-mode-selector";
 import { QueryFormAISlider } from "@/components/ask/query/query-form-ai-slider";
 import WalletToggle from "@/components/ask/payments/wallet-toggle";
 import { getPlaceholderText } from "@/lib/query-utils";
@@ -228,7 +227,6 @@ export function NavbarScrollbarUI({
       <div className="flex flex-col md:flex-row md:items-center md:space-x-2">
         <div className="w-full md:w-1/3">
           <div className="flex items-center space-x-2 flex-wrap">
-            <QueryFormModeSelector queryMode={queryMode} />
             <input
               type="text"
               className={`flex-1 p-2 border rounded-md bg-white dark:bg-zinc-800 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-1 focus:ring-teal-500 min-w-[150px] ${

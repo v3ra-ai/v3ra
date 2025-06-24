@@ -39,9 +39,9 @@ export function QueryFormAISlider({
 
   return (
     <div className="flex items-center gap-2">
-      <div className="bg-card dark:bg-white/5 border border-border dark:border-white/10 rounded-lg px-3 py-2 min-w-[120px] text-center">
+      <div className="bg-card dark:bg-white/5 border border-border dark:border-white/10 rounded-lg px-2 sm:px-3 py-2 min-w-[100px] sm:min-w-[120px] text-center">
         <span className="text-sm font-medium text-muted-foreground dark:text-zinc-300 whitespace-nowrap">
-          Query {isClient ? displayValue : allowedAmountQueries} AIs
+          Select AI ({isClient ? displayValue : allowedAmountQueries})
         </span>
       </div>
       <Slider
