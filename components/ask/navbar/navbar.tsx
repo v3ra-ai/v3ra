@@ -5,29 +5,13 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase-client";
-import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
-import { NavbarScrollbar } from "@/components/ask/navbar/navbar-scrollbar";
 import { NavbarSettings } from "@/components/ask/navbar/navbar-settings";
 import { V3raLogo } from "@/components/v3ra-logo";
 
-// Debounce utility with proper typing
-const debounce = <T extends unknown[]>(
-  func: (...args: T) => void,
-  wait: number
-): ((...args: T) => void) => {
-  let timeout: NodeJS.Timeout;
-  return (...args: T) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-};
-
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
-  const { viewMode } = useQueryStore();
   const [mounted, setMounted] = useState(false);
-  const [showSearch, setShowSearch] = useState(false);
   const [, setIsLoggedIn] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
@@ -58,16 +42,6 @@ export default function Navbar() {
     };
   }, []);
 
-  // Handle scroll for search bar with debouncing
-  useEffect(() => {
-    const handleScroll = debounce(() => {
-      setShowSearch(window.scrollY > 50);
-      console.log("[Navbar] Scroll handled, showSearch:", window.scrollY > 50);
-    }, 100); // 100ms debounce
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
 
   // Add padding to body to prevent content overlap with fixed navbar
   useEffect(() => {
@@ -127,8 +101,6 @@ export default function Navbar() {
           />
         </div>
       </div>
-
-      <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
 
       {/* Mobile Menu Drawer */}
       <AnimatePresence>
