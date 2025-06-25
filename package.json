@@ -23,7 +23,9 @@
     "postinstall": "prisma generate",
     "rls:audit": "ts-node --project tsconfig.scripts.json scripts/run-rls-audit.ts",
     "rls:test": "ts-node --project tsconfig.scripts.json scripts/test-rls-implementation.ts",
-    "rls:analyze": "ts-node --project tsconfig.scripts.json scripts/analyze-db-operations.ts"
+    "rls:analyze": "ts-node --project tsconfig.scripts.json scripts/analyze-db-operations.ts",
+    "diagnose:vercel": "ts-node --project tsconfig.scripts.json scripts/diagnose-vercel-apis.ts",
+    "test:api": "ts-node --project tsconfig.scripts.json scripts/test-api-routes.ts"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.0",
