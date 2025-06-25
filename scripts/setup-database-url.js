@@ -21,17 +21,19 @@ Object.entries(vars).forEach(([key, value]) => {
 
 // Set DATABASE_URL if not already set
 if (!process.env.DATABASE_URL) {
-  // Prefer pooled connection for serverless
-  const dbUrl = process.env.POSTGRES_PRISMA_URL || 
-                process.env.PRISMA_DATABASE_URL || 
-                process.env.POSTGRES_URL;
+  // Prefer non-pooled connection for better Prisma compatibility
+  const dbUrl = process.env.POSTGRES_URL_NON_POOLING ||
+                process.env.POSTGRES_URL ||
+                process.env.POSTGRES_PRISMA_URL || 
+                process.env.PRISMA_DATABASE_URL;
   
   if (dbUrl) {
     process.env.DATABASE_URL = dbUrl;
     console.log('[Database Setup] Set DATABASE_URL from:', 
+      process.env.POSTGRES_URL_NON_POOLING ? 'POSTGRES_URL_NON_POOLING' :
+      process.env.POSTGRES_URL ? 'POSTGRES_URL' :
       process.env.POSTGRES_PRISMA_URL ? 'POSTGRES_PRISMA_URL' :
-      process.env.PRISMA_DATABASE_URL ? 'PRISMA_DATABASE_URL' :
-      'POSTGRES_URL'
+      'PRISMA_DATABASE_URL'
     );
   } else {
     console.error('[Database Setup] WARNING: No database URL found! Using dummy URL for build.');
