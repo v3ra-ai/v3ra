@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
+import { prisma } from "@/lib/db/query-wrapper";
 
 export async function GET() {
   const diagnostics: any = {
