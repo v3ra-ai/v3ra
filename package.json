@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/setup-database-url.js && prisma generate && next build",
+    "build": "prisma generate && next build",
     "qa": "ts-node --project tsconfig.scripts.json test/test-qa.ts",
     "test:cache": "ts-node --project tsconfig.scripts.json scripts/test-validator-cache.ts",
     "benchmark:cache": "ts-node --project tsconfig.scripts.json scripts/benchmark-validator-cache.ts",
@@ -111,7 +111,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
-    "@tailwindcss/postcss": "^4",
+    "@tailwindcss/postcss": "^4.1.10",
     "@types/express": "^5.0.1",
     "@types/js-cookie": "^3.0.6",
     "@types/lodash": "^4.17.17",
@@ -120,6 +120,7 @@
     "@types/react": "^19.1.0",
     "@types/react-dom": "^19.1.1",
     "@types/sanitize-html": "^2.16.0",
+    "autoprefixer": "^10.4.21",
     "eslint": "^9",
     "eslint-config-next": "15.2.4",
     "jest": "^30.0.0",

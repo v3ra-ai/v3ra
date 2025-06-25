@@ -1,8 +1,5 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
-
-// Create a fresh Prisma client
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/db";
 
 export async function GET() {
   try {
@@ -32,7 +29,5 @@ export async function GET() {
       { error: error instanceof Error ? error.message : "Failed to fetch validators" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }
