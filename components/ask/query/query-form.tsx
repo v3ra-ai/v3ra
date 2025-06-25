@@ -11,7 +11,6 @@ interface QueryFormProps {
   handleSubmit: () => void;
   isSubmitting: boolean;
   isSubmitInteracted: boolean;
-  setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
 }
 
 export function QueryForm({
@@ -23,7 +22,6 @@ export function QueryForm({
   handleSubmit,
   isSubmitting,
   isSubmitInteracted,
-  setIsSubmitInteracted,
 }: QueryFormProps) {
   return (
     <QueryFormInput

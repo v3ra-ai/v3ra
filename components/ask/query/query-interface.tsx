@@ -7,7 +7,7 @@ import useQueryLogic from "@/hooks/useQueryLogic"; // Correct default import
 import { QueryModelSelector } from "@/components/ask/query/query-model-selector";
 
 export default function QueryInterface() {
-  const [isSubmitInteracted, setIsSubmitInteracted] = useState(false);
+  const [isSubmitInteracted] = useState(false);
 
   const {
     queriesRequested,
@@ -53,7 +53,6 @@ export default function QueryInterface() {
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           isSubmitInteracted={isSubmitInteracted}
-          setIsSubmitInteracted={setIsSubmitInteracted}
         />
       </div>
       <div className="flex justify-center">

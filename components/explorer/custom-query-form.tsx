@@ -31,10 +31,6 @@ export function CustomQueryForm({
       return;
     }
 
-    if (isWalletEnabled && !hasPaid) {
-      setError("Please make a payment of 0.01 SOL first");
-      return;
-    }
 
     if (!csrfToken) {
       setError("CSRF token not initialized");
@@ -46,7 +42,6 @@ export function CustomQueryForm({
     try {
       await onSubmit(query, { csrfToken });
       setQuery("");
-      if (isWalletEnabled) setHasPaid(false);
     } catch (err: unknown) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to submit query";

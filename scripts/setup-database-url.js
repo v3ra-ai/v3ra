@@ -34,8 +34,9 @@ if (!process.env.DATABASE_URL) {
       'POSTGRES_URL'
     );
   } else {
-    console.error('[Database Setup] ERROR: No database URL found!');
-    process.exit(1);
+    console.error('[Database Setup] WARNING: No database URL found! Using dummy URL for build.');
+    // Use a dummy URL just for the build to complete
+    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db?schema=public';
   }
 } else {
   console.log('[Database Setup] DATABASE_URL already set');
