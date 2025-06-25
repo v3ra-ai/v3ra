@@ -1,17 +1,5 @@
 import { PrismaClient } from "@prisma/client"
 
-// Get the database URL
-// For Vercel, we need to use pooled connection (POSTGRES_PRISMA_URL)
-// For local dev, non-pooled is fine
-const databaseUrl = process.env.DATABASE_URL || 
-                   process.env.POSTGRES_PRISMA_URL ||
-                   process.env.POSTGRES_URL ||
-                   process.env.POSTGRES_URL_NON_POOLING;
-
-if (!databaseUrl) {
-  throw new Error('No database URL found. Please set DATABASE_URL, POSTGRES_URL_NON_POOLING, POSTGRES_URL, or POSTGRES_PRISMA_URL');
-}
-
 declare global {
   // allow global `var` declarations
   // eslint-disable-next-line no-var
@@ -26,11 +14,6 @@ export const prisma =
     errorFormat: 'pretty',
     transactionOptions: {
       timeout: 10000, // 10 seconds
-    },
-    datasources: {
-      db: {
-        url: databaseUrl,
-      },
     },
   })
 

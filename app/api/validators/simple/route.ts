@@ -1,15 +1,8 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
 
-// Create a fresh Prisma client with the direct connection
-const prisma = new PrismaClient({
-  datasources: {
-    db: {
-      // Force use of POSTGRES_URL which should be the direct connection
-      url: process.env.POSTGRES_URL || process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL
-    }
-  }
-});
+// Create a fresh Prisma client
+const prisma = new PrismaClient();
 
 export async function GET() {
   try {

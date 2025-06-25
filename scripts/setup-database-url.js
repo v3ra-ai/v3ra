@@ -19,29 +19,13 @@ Object.entries(vars).forEach(([key, value]) => {
   console.log(`  ${key}: ${value ? '✓ Set' : '✗ Not set'}`);
 });
 
-// Set DATABASE_URL if not already set
+// Verify DATABASE_URL is set
 if (!process.env.DATABASE_URL) {
-  // Use pooled connection for Vercel deployment
-  const dbUrl = process.env.POSTGRES_PRISMA_URL || 
-                process.env.PRISMA_DATABASE_URL ||
-                process.env.POSTGRES_URL ||
-                process.env.POSTGRES_URL_NON_POOLING;
-  
-  if (dbUrl) {
-    process.env.DATABASE_URL = dbUrl;
-    console.log('[Database Setup] Set DATABASE_URL from:', 
-      process.env.POSTGRES_URL_NON_POOLING ? 'POSTGRES_URL_NON_POOLING' :
-      process.env.POSTGRES_URL ? 'POSTGRES_URL' :
-      process.env.POSTGRES_PRISMA_URL ? 'POSTGRES_PRISMA_URL' :
-      'PRISMA_DATABASE_URL'
-    );
-  } else {
-    console.error('[Database Setup] WARNING: No database URL found! Using dummy URL for build.');
-    // Use a dummy URL just for the build to complete
-    process.env.DATABASE_URL = 'postgresql://user:pass@localhost:5432/db?schema=public';
-  }
+  console.error('[Database Setup] ERROR: DATABASE_URL not found!');
+  console.error('[Database Setup] Please set DATABASE_URL in your environment variables.');
+  process.exit(1);
 } else {
-  console.log('[Database Setup] DATABASE_URL already set');
+  console.log('[Database Setup] DATABASE_URL is set');
 }
 
 // Verify Supabase configuration

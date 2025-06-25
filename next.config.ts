@@ -15,13 +15,6 @@ const nextConfig: NextConfig = {
     ],
   },
   env: {
-    // CRITICAL: Set DATABASE_URL for runtime
-    // Use pooled connection for Vercel (POSTGRES_PRISMA_URL or POSTGRES_URL)
-    DATABASE_URL: process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || process.env.POSTGRES_URL || process.env.POSTGRES_URL_NON_POOLING,
-    // Also expose the individual URLs for debugging
-    POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING,
-    POSTGRES_URL: process.env.POSTGRES_URL,
-    POSTGRES_PRISMA_URL: process.env.POSTGRES_PRISMA_URL,
     // Map Vercel's Supabase integration vars to NEXT_PUBLIC_ prefixed ones
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL || '',
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '',

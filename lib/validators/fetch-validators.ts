@@ -5,14 +5,13 @@ export async function fetchValidators(): Promise<Validator[]> {
 
   // In browser, use relative URL
   if (typeof window !== 'undefined') {
-    // Temporarily use the simple endpoint that bypasses caching
-    apiUrl = "/api/validators/simple";
+    apiUrl = "/api/validators";
   } else {
     // Server-side: use full URL
     const baseUrl = process.env.VERCEL_URL 
       ? `https://${process.env.VERCEL_URL}`
       : "http://localhost:3000";
-    apiUrl = `${baseUrl}/api/validators/simple`;
+    apiUrl = `${baseUrl}/api/validators`;
   }
 
   let validators: Validator[] = [];

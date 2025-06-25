@@ -31,7 +31,7 @@ export async function GET() {
     };
     
     // Get database connection info (safely, without exposing credentials)
-    const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || '';
+    const dbUrl = process.env.DATABASE_URL || '';
     const dbInfo = {
       host: dbUrl.includes('@') ? dbUrl.split('@')[1]?.split(':')[0] : 'unknown',
       database: dbUrl.includes('/') ? dbUrl.split('/').pop()?.split('?')[0] : 'unknown',
