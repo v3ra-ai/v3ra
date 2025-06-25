@@ -1,15 +1,13 @@
 import { PrismaClient } from "@prisma/client"
 
-// Ensure DATABASE_URL is set for Prisma
-// Prefer non-pooled connection for better compatibility
-if (!process.env.DATABASE_URL) {
-  if (process.env.POSTGRES_URL_NON_POOLING) {
-    process.env.DATABASE_URL = process.env.POSTGRES_URL_NON_POOLING;
-  } else if (process.env.POSTGRES_URL) {
-    process.env.DATABASE_URL = process.env.POSTGRES_URL;
-  } else if (process.env.POSTGRES_PRISMA_URL) {
-    process.env.DATABASE_URL = process.env.POSTGRES_PRISMA_URL;
-  }
+// Get the database URL - prefer non-pooled for Prisma
+const databaseUrl = process.env.DATABASE_URL || 
+                   process.env.POSTGRES_URL_NON_POOLING ||
+                   process.env.POSTGRES_URL ||
+                   process.env.POSTGRES_PRISMA_URL;
+
+if (!databaseUrl) {
+  throw new Error('No database URL found. Please set DATABASE_URL, POSTGRES_URL_NON_POOLING, POSTGRES_URL, or POSTGRES_PRISMA_URL');
 }
 
 declare global {
@@ -17,12 +15,6 @@ declare global {
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined
 }
-
-// Get the database URL - prefer non-pooled for Prisma
-const databaseUrl = process.env.DATABASE_URL || 
-                   process.env.POSTGRES_URL_NON_POOLING ||
-                   process.env.POSTGRES_URL ||
-                   process.env.POSTGRES_PRISMA_URL;
 
 export const prisma =
   global.prisma ||
