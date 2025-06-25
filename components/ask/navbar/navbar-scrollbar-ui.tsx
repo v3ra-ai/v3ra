@@ -95,8 +95,6 @@ interface NavbarScrollbarUIProps {
   queryText: string;
   setQueryText: (text: string) => void;
   isSubmitting: boolean;
-  payWithWallet: boolean;
-  setPayWithWallet: (value: boolean) => void;
   hasAttemptedSubmit: boolean;
   queriesRequested: number;
   queryMode: QueryMode;
@@ -109,8 +107,6 @@ export function NavbarScrollbarUI({
   queryText,
   setQueryText,
   isSubmitting,
-  payWithWallet,
-  setPayWithWallet,
   hasAttemptedSubmit,
   queriesRequested,
   queryMode,
@@ -206,8 +202,6 @@ export function NavbarScrollbarUI({
     console.log("[NavbarScrollbarUI] Closing modal");
     setIsModalOpen(false);
   };
-
-  const displayNumber = hasSelectedLLMs ? selectedLLMCount : queriesRequested;
 
   return (
     <div className="container mx-auto px-4 py-2 bg-zinc-50 dark:bg-zinc-900 border-t border-zinc-200 dark:border-zinc-800">

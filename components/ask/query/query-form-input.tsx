@@ -17,7 +17,6 @@ interface QueryFormInputProps {
   handleSubmit: () => void;
   isSubmitting: boolean;
   isSubmitInteracted: boolean;
-  setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
   queryMode: QueryMode;
   queriesRequested: number;
 }
@@ -29,7 +28,6 @@ const QueryFormInputComponent = function QueryFormInput({
   handleSubmit,
   isSubmitting,
   isSubmitInteracted,
-  setIsSubmitInteracted,
   queryMode,
   queriesRequested,
 }: QueryFormInputProps) {
