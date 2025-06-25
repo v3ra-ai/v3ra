@@ -1,8 +1,28 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/query-wrapper";
 
+interface HealthDiagnostics {
+  timestamp: string;
+  environment: string | undefined;
+  database: {
+    urls: {
+      DATABASE_URL: boolean;
+      POSTGRES_PRISMA_URL: boolean;
+      POSTGRES_URL: boolean;
+    };
+    connection: string;
+    validators: string;
+    voteSessions: string;
+  };
+  supabase: {
+    url: boolean;
+    anonKey: boolean;
+  };
+  error?: string;
+}
+
 export async function GET() {
-  const diagnostics: any = {
+  const diagnostics: HealthDiagnostics = {
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV,
     database: {
