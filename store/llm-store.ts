@@ -66,6 +66,7 @@ interface LLMState {
   init: (initial: LLM[]) => void;
   fetchAll: () => Promise<void>;
   toggleLLM: (id: string) => void;
+  setEnabledLLMs: (ids: string[]) => void;
   setProvider: (provider: Provider | "All") => void;
   setSearch: (q: string) => void;
   setSort: (s: "name" | "provider") => void;
@@ -152,6 +153,18 @@ export const useLLMStore = create<LLMState>()(
         } catch {
           console.error("[llm-store] toggle backend error");
         }
+      },
+
+      setEnabledLLMs: (ids) => {
+        const updatedLLMs = get().llms.map((llm) => ({
+          ...llm,
+          enabled: ids.includes(llm.id)
+        }));
+        set({ llms: updatedLLMs });
+        
+        const setSelectedLLMIds = useQueryStore.getState().setSelectedLLMIds;
+        setSelectedLLMIds(ids);
+        console.log("[llm-store] Set enabled LLMs:", ids);
       },
 
       setProvider: (provider) => {

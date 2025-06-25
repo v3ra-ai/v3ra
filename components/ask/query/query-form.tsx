@@ -8,11 +8,6 @@ interface QueryFormProps {
   placeholderText: string;
   queryMode: QueryMode;
   queriesRequested: number;
-  userFreeCredits: number;
-  userPaidCredits: number;
-  userCreditsTotal: number;
-  queriesUnpaid: number;
-  queriesCostTotal: number;
   handleSubmit: () => void;
   isSubmitting: boolean;
   isSubmitInteracted: boolean;
@@ -25,11 +20,6 @@ export function QueryForm({
   placeholderText,
   queryMode,
   queriesRequested,
-  userFreeCredits,
-  userPaidCredits,
-  userCreditsTotal,
-  queriesUnpaid,
-  queriesCostTotal,
   handleSubmit,
   isSubmitting,
   isSubmitInteracted,
@@ -42,11 +32,6 @@ export function QueryForm({
       placeholderText={placeholderText}
       queryMode={queryMode}
       queriesRequested={queriesRequested}
-      userFreeCredits={userFreeCredits}
-      userPaidCredits={userPaidCredits}
-      userCreditsTotal={userCreditsTotal}
-      queriesUnpaid={queriesUnpaid}
-      queriesCostTotal={queriesCostTotal}
       handleSubmit={handleSubmit}
       isSubmitting={isSubmitting}
       isSubmitInteracted={isSubmitInteracted}

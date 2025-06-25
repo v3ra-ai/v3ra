@@ -2,7 +2,6 @@
 
 import { useCallback, useState, useEffect, useRef, useMemo } from "react";
 import { useWallet } from "@solana/wallet-adapter-react";
-import { useCreditsStore } from "@/store/credit-store";
 import { useQueryStore } from "@/store/query-store";
 import { useVoteStore } from "@/store/vote-store";
 import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
@@ -31,21 +30,10 @@ export default function useQueryLogic({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState<string | undefined>(undefined);
-  const hasFetchedCredits = useRef(false);
 
   const { publicKey } = useWallet();
   const {
-    fetchAllCredits,
-    decrementCreditsForQuery,
-    userFreeCredits,
-    userPaidCredits,
-    userCreditsTotal,
-    hasPaid: storeHasPaid,
-  } = useCreditsStore();
-  const {
     queriesRequested,
-    queriesUnpaid,
-    queriesCostTotal,
     queryMode,
     viewMode,
     setQueriesRequested,
@@ -123,11 +111,6 @@ export default function useQueryLogic({
           console.warn(
             "[useQueryLogic] No active session found during email fetch"
           );
-          toast.error("Please log in to get free credits.", {
-            className:
-              "bg-red-600 text-red-100 border border-red-800 p-4 rounded-lg text-2xl font-medium",
-            duration: 10000,
-          });
           return;
         }
 
@@ -148,18 +131,6 @@ export default function useQueryLogic({
     fetchEmail();
   }, []);
 
-  // Fetch saved credits only on initial mount
-  useEffect(() => {
-    if (!hasFetchedCredits.current && email) {
-      // console.log("[useQueryLogic] Initial fetchAllCredits:", {
-      //   publicKey: publicKey?.toBase58() || "none",
-      //   email,
-      //   timestamp: new Date().toISOString(),
-      // });
-      fetchAllCredits(publicKey, email);
-      hasFetchedCredits.current = true;
-    }
-  }, [publicKey, email, fetchAllCredits]);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -181,26 +152,6 @@ export default function useQueryLogic({
     }
   }, [queryMode]);
 
-  useEffect(() => {
-    // console.log("[useQueryLogic] payWithWallet effect running:", {
-    //   queriesUnpaid,
-    //   currentPayWithWallet: payWithWallet,
-    //   timestamp: new Date().toISOString(),
-    // });
-    const shouldPayWithWallet = queriesUnpaid > 0;
-    if (payWithWallet !== shouldPayWithWallet) {
-      console.log(
-        "[useQueryLogic] Setting payWithWallet to:",
-        shouldPayWithWallet,
-        { timestamp: new Date().toISOString() }
-      );
-      setPayWithWallet(shouldPayWithWallet);
-    } else {
-      console.log("[payWithWallet] No change needed for payWithWallet", {
-        timestamp: new Date().toISOString(),
-      });
-    }
-  }, [queriesUnpaid, payWithWallet, setPayWithWallet]);
 
   const handleSetVoteHistory: Dispatch<SetStateAction<VoteResult[]>> = (
     history
@@ -230,24 +181,16 @@ export default function useQueryLogic({
       console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount, {
         timestamp: new Date().toISOString(),
       });
-      setQueriesRequested(clampedAmount, userCreditsTotal);
+      setQueriesRequested(clampedAmount, 100); // Default credit amount
     },
-    [setQueriesRequested, userCreditsTotal]
+    [setQueriesRequested]
   );
 
   const handleSubmit = async () => {
     console.log("[useQueryLogic] handleSubmit called", {
       queryText,
       queryMode,
-      userCreditsTotal,
-      userFreeCredits,
-      userPaidCredits,
       queriesRequested,
-      queriesUnpaid,
-      queriesCostTotal,
-      payWithWallet,
-      storeHasPaid,
-      creditsLeft: userCreditsTotal - queriesRequested,
       selectedLLMIds,
       timestamp: new Date().toISOString(),
     });
@@ -261,28 +204,6 @@ export default function useQueryLogic({
         return null;
       }
 
-      const creditsLeft = Math.max(0, userCreditsTotal - queriesRequested);
-      console.log("[useQueryLogic] Credit check:", {
-        creditsLeft,
-        queriesCostTotal,
-        userCreditsTotal,
-        queriesRequested,
-        sufficientCredits: creditsLeft >= queriesCostTotal,
-        timestamp: new Date().toISOString(),
-      });
-
-      if (creditsLeft < queriesCostTotal) {
-        console.log("[useQueryLogic] Blocked: Insufficient total credits", {
-          creditsLeft,
-          queriesCostTotal,
-          timestamp: new Date().toISOString(),
-        });
-        toast.error("Insufficient credits to cover the query cost", {
-          style: { background: "#dc2626", color: "#fee2e2" },
-          duration: 5000,
-        });
-        return null;
-      }
 
       const selectedLLMs = llms.filter((llm) => llm.enabled);
       if (selectedLLMs.length > 0 && queriesRequested > selectedLLMs.length) {
@@ -311,39 +232,34 @@ export default function useQueryLogic({
     setError(null);
     try {
       const csrfToken = await fetchCsrfToken();
-      console.log("[useQueryLogic] Processing query with decrementCreditsForQuery", {
+      console.log("[useQueryLogic] Processing query", {
         queriesRequested,
-        userFreeCredits,
-        userPaidCredits,
         publicKey: publicKey?.toBase58() || "none",
         email,
-        payWithWallet,
         csrfToken: csrfToken ? "[REDACTED]" : undefined,
         selectedLLMIds,
         timestamp: new Date().toISOString(),
       });
-      await decrementCreditsForQuery(queriesRequested, publicKey, email, csrfToken);
       await broadcastQuery({
         query: queryText,
         options: {
           csrfToken,
           queryMode,
           queriesRequested,
-          isFreeQuery: userFreeCredits >= queriesRequested,
+          isFreeQuery: true,
           selectedLLMIds,
         },
       });
-      await fetchAllCredits(publicKey, email ?? undefined, true);
       toast.success(
-        `Query submitted, ${queriesRequested} credits deducted!`,
+        `Query submitted successfully!`,
         {
           style: { background: "#22c55e", color: "#ffffff" },
           duration: 5000,
         }
       );
-      resetAfterSubmission(userCreditsTotal);
+      resetAfterSubmission(100);
       setQueryText("");
-      setPayWithWallet(queriesRequested > userCreditsTotal);
+      setPayWithWallet(false);
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit query";
       setError(sanitizeQueryText(errorMessage));
@@ -352,9 +268,6 @@ export default function useQueryLogic({
         queryText,
         queryMode,
         queriesRequested,
-        queriesUnpaid,
-        payWithWallet,
-        storeHasPaid,
         selectedLLMIds,
         timestamp: new Date().toISOString(),
       });
@@ -375,12 +288,7 @@ export default function useQueryLogic({
     error,
     setError,
     placeholderText,
-    availableQueries: userCreditsTotal,
-    queriesCostTotal,
-    queriesUnpaid,
-    userFreeCredits,
-    userPaidCredits,
-    userCreditsTotal,
+    availableQueries: 100,
     queryMode,
     viewMode,
     voteHistory,

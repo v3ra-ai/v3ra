@@ -7,7 +7,6 @@ import LLMGrid from "./llm-grid";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Star } from "lucide-react";
 import { useQueryStore } from "@/store/query-store";
-import { useCreditsStore } from "@/store/credit-store";
 import { Validator } from "@/lib/types";
 
 interface Props {
@@ -28,7 +27,6 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
   // const _activeCategory = useLLMStore((s) => s.activeCategory);
   // const _setCategory = useLLMStore((s) => s.setCategory);
   const { setQueriesRequested } = useQueryStore();
-  const { totalCredits } = useCreditsStore();
 
   const initializedRef = useRef(false);
 
@@ -88,7 +86,7 @@ export default function ManageLLMsClient({ initial, onClose }: Props) {
 
   const handleChoose = () => {
     console.log("[ManageLLMs] Choose button clicked, closing modal", { selectedCount });
-    setQueriesRequested(selectedCount > 0 ? selectedCount : 4, totalCredits); // Sync queriesRequested
+    setQueriesRequested(selectedCount > 0 ? selectedCount : 4, 100); // Sync queriesRequested
     if (onClose) {
       onClose();
     }

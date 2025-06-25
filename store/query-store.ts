@@ -7,42 +7,16 @@ console.log("[query-store] Initializing store");
 
 interface QueryStore {
   queriesRequested: number;
-  queriesUnpaid: number;
-  queriesCostEach: number;
-  queriesCostTotal: number;
-  userCreditConversion: number;
-  userCreditsTotal: number;
   queryMode: QueryMode;
   viewMode: ViewMode;
   selectedLLMIds: string[];
   setQueriesRequested: (amount: number, creditsTotal: number) => void;
   setQueryMode: (mode: QueryMode) => void;
   setViewMode: (mode: ViewMode) => void;
-  decrementQueries: (amount: number, creditsTotal: number) => void;
-  incrementQueries: (amount: number, creditsTotal: number) => void;
-  setUserAiQueryAmountRequested: (amount: number, queriesTotal: number) => void;
   setSelectedLLMIds: (llmIds: string[]) => void;
   resetAfterSubmission: (creditsTotal: number) => void;
-  setUserCreditsTotal: (creditsTotal: number) => void;
 }
 
-const calculateQueriesState = (
-  queriesRequested: number,
-  creditsTotal: number,
-  costEach: number,
-) => {
-  const queriesUnpaid = Math.max(0, queriesRequested - creditsTotal);
-  console.log("[query-store] Calculating queries state:", {
-    queriesRequested,
-    creditsTotal,
-    queriesUnpaid,
-    queriesCostTotal: queriesUnpaid * costEach,
-  });
-  return {
-    queriesUnpaid,
-    queriesCostTotal: queriesUnpaid * costEach,
-  };
-};
 
 // Initialize selectedLLMIds and queriesRequested based on useLLMStore
 const getInitialLLMState = () => {
@@ -62,18 +36,6 @@ export const useQueryStore = create<QueryStore>((set) => {
   const { selectedLLMIds, queriesRequested } = getInitialLLMState();
   const initialState = {
     queriesRequested,
-    queriesUnpaid: Math.max(
-      0,
-      queriesRequested - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS),
-    ),
-    queriesCostEach: DEFAULTS.QUERIES_COST_EACH,
-    queriesCostTotal:
-      Math.max(
-        0,
-        queriesRequested - (DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS),
-      ) * DEFAULTS.QUERIES_COST_EACH,
-    userCreditConversion: DEFAULTS.USER_CREDIT_CONVERSION,
-    userCreditsTotal: DEFAULTS.USER_FREE_CREDITS + DEFAULTS.USER_PAID_CREDITS,
     queryMode: "fact-check" as QueryMode,
     viewMode: "viewExpert" as ViewMode,
     selectedLLMIds,
@@ -82,8 +44,8 @@ export const useQueryStore = create<QueryStore>((set) => {
   return {
     ...initialState,
 
-    setQueriesRequested: (amount, creditsTotal) =>
-      set((state) => {
+    setQueriesRequested: (amount, _creditsTotal) =>
+      set(() => {
         const llms = useLLMStore.getState().llms;
         const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
         const maxQueries = enabledLLMIds.length > 0 ? enabledLLMIds.length : ALLOWED_AMOUNT_QUERIES;
@@ -91,7 +53,6 @@ export const useQueryStore = create<QueryStore>((set) => {
         console.log("[query-store] Setting queriesRequested:", clampedAmount, { maxQueries });
         return {
           queriesRequested: clampedAmount,
-          ...calculateQueriesState(clampedAmount, creditsTotal, state.queriesCostEach),
         };
       }),
 
@@ -105,54 +66,16 @@ export const useQueryStore = create<QueryStore>((set) => {
       set(() => ({ viewMode: mode }));
     },
 
-    decrementQueries: (amount, creditsTotal) =>
-      set((state) => {
-        const llms = useLLMStore.getState().llms;
-        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
-        const maxQueries = enabledLLMIds.length > 0 ? enabledLLMIds.length : ALLOWED_AMOUNT_QUERIES;
-        const newAmount = Math.max(1, Math.min(maxQueries, state.queriesRequested - amount));
-        console.log("[query-store] Decrementing queries:", newAmount);
-        return {
-          queriesRequested: newAmount,
-          ...calculateQueriesState(newAmount, creditsTotal, state.queriesCostEach),
-        };
-      }),
-
-    incrementQueries: (amount, creditsTotal) =>
-      set((state) => {
-        const llms = useLLMStore.getState().llms;
-        const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
-        const maxQueries = enabledLLMIds.length > 0 ? enabledLLMIds.length : ALLOWED_AMOUNT_QUERIES;
-        const newAmount = Math.min(maxQueries, state.queriesRequested + amount);
-        console.log("[query-store] Incrementing queries:", newAmount);
-        return {
-          queriesRequested: newAmount,
-          ...calculateQueriesState(newAmount, creditsTotal, state.queriesCostEach),
-        };
-      }),
-
-    setUserAiQueryAmountRequested: (amount, creditsTotal) => {
-      console.log("[query-store] Setting user AI query amount requested:", amount);
-      set(() => ({
-        queriesRequested: amount,
-        ...calculateQueriesState(amount, creditsTotal, DEFAULTS.QUERIES_COST_EACH),
-      }));
-    },
 
     setSelectedLLMIds: (llmIds) => {
       console.log("[query-store] Setting selectedLLMIds:", llmIds);
-      set((state) => ({
+      set(() => ({
         selectedLLMIds: llmIds,
         queriesRequested: llmIds.length > 0 ? llmIds.length : DEFAULTS.QUERIES_REQUESTED,
-        ...calculateQueriesState(
-          llmIds.length > 0 ? llmIds.length : DEFAULTS.QUERIES_REQUESTED,
-          state.userCreditsTotal,
-          state.queriesCostEach,
-        ),
       }));
     },
 
-    resetAfterSubmission: (creditsTotal) => {
+    resetAfterSubmission: (_creditsTotal) => {
       console.log("[query-store] Resetting after submission");
       set(() => {
         const llms = useLLMStore.getState().llms;
@@ -165,21 +88,8 @@ export const useQueryStore = create<QueryStore>((set) => {
         return {
           queriesRequested: newQueriesRequested,
           selectedLLMIds: enabledLLMIds,
-          ...calculateQueriesState(
-            newQueriesRequested,
-            creditsTotal,
-            DEFAULTS.QUERIES_COST_EACH,
-          ),
         };
       });
-    },
-
-    setUserCreditsTotal: (creditsTotal) => {
-      console.log("[query-store] Setting userCreditsTotal:", creditsTotal);
-      set((state) => ({
-        userCreditsTotal: creditsTotal,
-        ...calculateQueriesState(state.queriesRequested, creditsTotal, state.queriesCostEach),
-      }));
     },
   };
 });

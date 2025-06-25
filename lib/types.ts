@@ -1,9 +1,6 @@
 import { ApiKey } from "@prisma/client";
 import {
-  USER_FREE_CREDITS_DEFAULT,
-  USER_PAID_CREDITS_DEFAULT,
   QUERIES_REQUESTED_DEFAULT,
-  USER_CREDIT_CONVERSION_DEFAULT,
   QUERIES_COST_EACH_DEFAULT,
 } from "@/lib/constants";
 import { AIValidationResponse } from "./validators/types";
@@ -136,12 +133,8 @@ export interface FreeCreditsCookie {
 
 // Constants
 export const DEFAULTS = {
-  USER_FREE_CREDITS: USER_FREE_CREDITS_DEFAULT,
-  USER_PAID_CREDITS: USER_PAID_CREDITS_DEFAULT,
   QUERIES_REQUESTED: QUERIES_REQUESTED_DEFAULT,
-  USER_CREDIT_CONVERSION: USER_CREDIT_CONVERSION_DEFAULT,
   QUERIES_COST_EACH: QUERIES_COST_EACH_DEFAULT,
-  FREE_CREDITS_COOKIE_NAME: "verafy_free_credits",
 };
 
 // Request to validate content

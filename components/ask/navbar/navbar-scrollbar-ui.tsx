@@ -4,7 +4,6 @@
 import { useState, useEffect, useRef } from "react";
 import { ViewMode, QueryMode, Validator } from "@/lib/types";
 import { QueryFormAISlider } from "@/components/ask/query/query-form-ai-slider";
-import WalletToggle from "@/components/ask/payments/wallet-toggle";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { useButtonTextTimer } from "@/utils/button-text-timer";
@@ -13,7 +12,6 @@ import { Button } from "@/components/ui/button";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
-import { useCreditsStore } from "@/store/credit-store";
 import { fetchValidators } from "@/lib/validators/fetch-validators";
 import ManageLLMsClient from "@/components/llm-management/manage-llms-client";
 import { cn } from "@/lib/utils";
@@ -101,11 +99,6 @@ interface NavbarScrollbarUIProps {
   setPayWithWallet: (value: boolean) => void;
   hasAttemptedSubmit: boolean;
   queriesRequested: number;
-  userCreditsTotal: number;
-  userFreeCredits: number;
-  userPaidCredits: number;
-  queriesUnpaid: number;
-  queriesCostTotal: number;
   queryMode: QueryMode;
   viewMode: ViewMode;
   updateQueryAmountRequested: (newAmount: number) => void;
@@ -120,11 +113,6 @@ export function NavbarScrollbarUI({
   setPayWithWallet,
   hasAttemptedSubmit,
   queriesRequested,
-  userCreditsTotal,
-  userFreeCredits,
-  userPaidCredits,
-  queriesUnpaid,
-  queriesCostTotal,
   queryMode,
   updateQueryAmountRequested,
   handleKeyDown,
@@ -133,7 +121,6 @@ export function NavbarScrollbarUI({
   const { startTimer, cancelTimer } = useButtonTextTimer(setPlaceholderContent);
   const { llms } = useLLMStore();
   const { setQueriesRequested } = useQueryStore();
-  const { totalCredits } = useCreditsStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [validators, setValidators] = useState<Validator[]>([]);
   const [loading, setLoading] = useState(false);
@@ -150,9 +137,9 @@ export function NavbarScrollbarUI({
         selectedLLMCount,
         queriesRequested,
       });
-      setQueriesRequested(selectedLLMCount, totalCredits);
+      setQueriesRequested(selectedLLMCount, 100);
     }
-  }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested, totalCredits]);
+  }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested]);
 
   // Start timer when submitting, reset placeholder when not submitting
   useEffect(() => {
@@ -262,20 +249,6 @@ export function NavbarScrollbarUI({
               context="scrollbar"
             />
           )}
-          <div className="flex items-center h-full">
-            <WalletToggle
-              payWithWallet={payWithWallet}
-              setPayWithWallet={setPayWithWallet}
-              queriesCostTotal={queriesCostTotal}
-              userCreditsTotal={userCreditsTotal}
-              userFreeCredits={userFreeCredits}
-              userPaidCredits={userPaidCredits}
-              queriesRequested={displayNumber}
-              queriesUnpaid={queriesUnpaid}
-              highlightPayButton={false}
-              context="scrollbar"
-            />
-          </div>
         </div>
       </div>
       <ManageLLMsDialog open={isModalOpen} onOpenChange={handleModalOpenChange}>

@@ -16,11 +16,6 @@ export default function QueryInterface() {
     isSubmitting,
     error,
     placeholderText,
-    queriesCostTotal,
-    queriesUnpaid,
-    userCreditsTotal,
-    userFreeCredits,
-    userPaidCredits,
     queryMode,
     viewMode,
     handleSubmit,
@@ -55,11 +50,6 @@ export default function QueryInterface() {
           placeholderText={placeholderText}
           queryMode={queryMode}
           queriesRequested={queriesRequested}
-          userFreeCredits={userFreeCredits}
-          userPaidCredits={userPaidCredits}
-          userCreditsTotal={userCreditsTotal}
-          queriesUnpaid={queriesUnpaid}
-          queriesCostTotal={queriesCostTotal}
           handleSubmit={handleSubmit}
           isSubmitting={isSubmitting}
           isSubmitInteracted={isSubmitInteracted}

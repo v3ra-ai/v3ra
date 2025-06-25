@@ -13,20 +13,11 @@ import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import React from "react";
 
-// Define our preset configurations
-const PRESET_3_FREE_MODELS = [
-  "d14b8edf-3efe-4341-ae94-f892ee83b065", // Mistral Small 3.2 24B (Free)
-  "867c5680-19e2-43da-9930-9d46efbb6f34", // GPT-3.5 Turbo
-  "f2707d40-0ce9-4a95-be21-b39426ab5f73", // GPT-4o Mini
-];
+// Simple keyword matching for model selection
+const FAST_MODELS = ["gpt-3.5", "turbo", "mini", "fast", "mistral", "mixtral"];
+const DIVERSE_MODELS = ["gpt-4", "claude", "opus", "sonnet", "llama", "gemini"];
 
-const PRESET_5_FREE_MODELS = [
-  ...PRESET_3_FREE_MODELS,
-  "a6e32995-bea2-4f17-97a1-d88535b2a5ab", // Llama 3 70B
-  "31411f81-75d8-43c3-925c-22ac45d711dc", // Mixtral 8x7B
-];
-
-// Custom ManageLLMsDialog components
+// Custom dialog components
 const ManageLLMsDialog = DialogPrimitive.Root;
 const ManageLLMsDialogPortal = DialogPrimitive.Portal;
 const ManageLLMsDialogClose = DialogPrimitive.Close;
@@ -100,30 +91,71 @@ ManageLLMsDialogTitle.displayName = DialogPrimitive.Title.displayName;
 
 export function QueryModelSelector() {
   const llms = useLLMStore((s) => s.llms);
-  const toggleLLM = useLLMStore((s) => s.toggleLLM);
+  const setEnabledLLMs = useLLMStore((s) => s.setEnabledLLMs);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [validators, setValidators] = useState<Validator[]>([]);
   const [loading, setLoading] = useState(false);
 
-  const applyPreset = (modelIds: string[]) => {
-    // First, disable all currently enabled models
-    const enabledLLMs = llms.filter((llm) => llm.enabled);
-    enabledLLMs.forEach((llm) => {
-      toggleLLM(llm.id);
-    });
+  const selectFastModels = () => {
+    const fastModels = llms
+      .filter(llm => 
+        FAST_MODELS.some(keyword => 
+          llm.name.toLowerCase().includes(keyword)
+        )
+      )
+      .slice(0, 3)
+      .map(llm => llm.id);
+    
+    // If we don't have enough fast models, just take the first 3
+    if (fastModels.length < 3) {
+      const additionalModels = llms
+        .filter(llm => !fastModels.includes(llm.id))
+        .slice(0, 3 - fastModels.length)
+        .map(llm => llm.id);
+      fastModels.push(...additionalModels);
+    }
+    
+    setEnabledLLMs(fastModels);
+  };
 
-    // Then enable only the preset models
-    modelIds.forEach((modelId) => {
-      const llm = llms.find((l) => l.id === modelId);
-      if (llm && !llm.enabled) {
-        toggleLLM(modelId);
+  const selectDiverseModels = () => {
+    const diverseModels: string[] = [];
+    const usedProviders = new Set<string>();
+    
+    // First, try to get one model from each provider
+    for (const llm of llms) {
+      if (diverseModels.length >= 5) break;
+      const provider = llm.provider.toLowerCase();
+      
+      if (!usedProviders.has(provider)) {
+        const matchesDiverse = DIVERSE_MODELS.some(keyword => 
+          llm.name.toLowerCase().includes(keyword)
+        );
+        
+        if (matchesDiverse) {
+          diverseModels.push(llm.id);
+          usedProviders.add(provider);
+        }
       }
-    });
+    }
+    
+    // Fill remaining slots
+    if (diverseModels.length < 5) {
+      const additionalModels = llms
+        .filter(llm => !diverseModels.includes(llm.id))
+        .slice(0, 5 - diverseModels.length)
+        .map(llm => llm.id);
+      diverseModels.push(...additionalModels);
+    }
+    
+    setEnabledLLMs(diverseModels);
   };
 
   const handleOpenModal = async () => {
     setIsModalOpen(true);
     setLoading(true);
+    
+    // Fetch validators after a small delay for smooth animation
     setTimeout(async () => {
       try {
         const fetchedValidators = await fetchValidators();
@@ -136,24 +168,10 @@ export function QueryModelSelector() {
     }, 200);
   };
 
-  const handleModalClose = () => {
-    setIsModalOpen(false);
-  };
-
-  const getActiveCount = () => {
-    return llms.filter((llm) => llm.enabled).length;
-  };
-
-  const activeCount = getActiveCount();
-
-  // Determine which preset is active
-  const is3ModelsActive = activeCount === 3 && 
-    PRESET_3_FREE_MODELS.every(id => llms.find(l => l.id === id && l.enabled));
-  
-  const is5ModelsActive = activeCount === 5 && 
-    PRESET_5_FREE_MODELS.every(id => llms.find(l => l.id === id && l.enabled));
-  
-  const isCustomActive = activeCount > 0 && !is3ModelsActive && !is5ModelsActive;
+  const activeCount = llms.filter(llm => llm.enabled).length;
+  const is3Active = activeCount === 3;
+  const is5Active = activeCount === 5;
+  const isCustomActive = activeCount > 0 && activeCount !== 3 && activeCount !== 5;
 
   return (
     <>
@@ -166,19 +184,19 @@ export function QueryModelSelector() {
         </div>
         <div className="flex gap-2">
           <Button
-            variant={is3ModelsActive ? "default" : "outline"}
+            variant={is3Active ? "default" : "outline"}
             size="sm"
-            onClick={() => applyPreset(PRESET_3_FREE_MODELS)}
-            className={`group transition-all duration-200 ${is3ModelsActive ? 'shadow-lg shadow-cyan-500/25' : 'hover:shadow-md'}`}
+            onClick={selectFastModels}
+            className={`group transition-all duration-200 ${is3Active ? 'shadow-lg shadow-cyan-500/25' : 'hover:shadow-md'}`}
           >
             <Zap className="w-4 h-4 mr-2 group-hover:text-yellow-500 transition-colors" />
             3 Fast Models
           </Button>
           <Button
-            variant={is5ModelsActive ? "default" : "outline"}
+            variant={is5Active ? "default" : "outline"}
             size="sm"
-            onClick={() => applyPreset(PRESET_5_FREE_MODELS)}
-            className={`group transition-all duration-200 ${is5ModelsActive ? 'shadow-lg shadow-cyan-500/25' : 'hover:shadow-md'}`}
+            onClick={selectDiverseModels}
+            className={`group transition-all duration-200 ${is5Active ? 'shadow-lg shadow-cyan-500/25' : 'hover:shadow-md'}`}
           >
             <Sparkles className="w-4 h-4 mr-2 group-hover:text-purple-500 transition-colors" />
             5 Diverse Models
@@ -190,7 +208,7 @@ export function QueryModelSelector() {
             className={`group transition-all duration-200 ${isCustomActive ? 'shadow-lg shadow-pink-500/25' : 'hover:shadow-md'}`}
           >
             <Settings className="w-4 h-4 mr-2 group-hover:animate-spin transition-all" />
-            Custom {activeCount > 0 && !is3ModelsActive && !is5ModelsActive ? `(${activeCount})` : ""}
+            Custom {isCustomActive ? `(${activeCount})` : ""}
           </Button>
         </div>
       </div>
@@ -201,9 +219,6 @@ export function QueryModelSelector() {
             <ManageLLMsDialogTitle className="text-2xl font-semibold">
               Select AI Validators
             </ManageLLMsDialogTitle>
-            <ManageLLMsDialogClose className="absolute right-4 top-4 rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800">
-              <X />
-            </ManageLLMsDialogClose>
           </ManageLLMsDialogHeader>
           <div className="flex flex-col h-full overflow-hidden">
             {loading ? (
@@ -212,7 +227,7 @@ export function QueryModelSelector() {
                 <span className="text-lg text-gray-700 dark:text-gray-300">Loading</span>
               </div>
             ) : (
-              <ManageLLMsClient initial={validators} onClose={handleModalClose} />
+              <ManageLLMsClient initial={validators} onClose={() => setIsModalOpen(false)} />
             )}
           </div>
         </ManageLLMsDialogContent>

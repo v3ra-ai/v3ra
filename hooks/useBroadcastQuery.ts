@@ -5,7 +5,6 @@ import type { VoteResult } from '@/lib/types';
 import { Dispatch, SetStateAction } from 'react';
 import { sanitizeError } from '@/utils/security-utils';
 import { RESULT_QUERIES_CARDS, QUERIES_COST_EACH_DEFAULT, QUERIES_REQUESTED_DEFAULT } from '@/lib/constants';
-import { useCreditsStore } from '@/store/credit-store';
 import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase-client';
@@ -37,7 +36,6 @@ export function useBroadcastQuery(
   refetchNetworkState?: () => Promise<void>,
   fetchVoteHistory?: () => Promise<void>,
 ): BroadcastQueryResult {
-  const { userFreeCredits, userPaidCredits, fetchAllCredits } = useCreditsStore();
   const { publicKey } = useWallet();
   const [email, setEmail] = useState<string | undefined>(undefined);
 
@@ -70,18 +68,7 @@ export function useBroadcastQuery(
     const queriesRequested = options.queriesRequested || QUERIES_REQUESTED_DEFAULT;
     const queryCost = queriesRequested * QUERIES_COST_EACH_DEFAULT;
 
-    // Skip credit deduction if isFreeQuery is true (handled by useQueryLogic)
-    if (options.isFreeQuery) {
-      console.log('[useBroadcastQuery] Skipping credit deduction: isFreeQuery is true', {
-        timestamp: new Date().toISOString(),
-      });
-    } else {
-      // Validate credits only if not free query
-      if (userFreeCredits + userPaidCredits < queryCost) {
-        toast.error('Insufficient credits for query');
-        throw new Error('Insufficient credits for query');
-      }
-    }
+    // Credit validation removed - all queries are now free
 
     try {
       const response = await fetch('/api/broadcast-query', {
@@ -143,9 +130,6 @@ export function useBroadcastQuery(
 
       await new Promise((resolve) => setTimeout(resolve, 500));
       await refetchWithRetry(1, fetchVoteHistory, refetchNetworkState);
-      if (publicKey && email) {
-        await fetchAllCredits(publicKey, email);
-      }
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       console.error('[useBroadcastQuery] Error:', sanitizeError(error), {

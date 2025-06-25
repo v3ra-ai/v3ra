@@ -1,5 +1,5 @@
 import { Connection, PublicKey } from "@solana/web3.js";
-import { CURRENT_SOLANA_NETWORK_NAME, DEV_SOLANA_NETWORK_RPC, MAINNET_SOLANA_NETWORK_RPC, QUERY_COST } from "./constants";
+import { CURRENT_SOLANA_NETWORK_NAME, DEV_SOLANA_NETWORK_RPC, MAINNET_SOLANA_NETWORK_RPC } from "./constants";
 
 // $truth token constants
 export const TRUTH_TOKEN_MINT = new PublicKey("2GmUPhpe93kcTJZrC7NJ2keeDZRT5dBveUgegb13pump");
@@ -16,7 +16,6 @@ export const connection = new Connection(
   "confirmed",
 );
 
-export const CREDIT_PRICE_SOL = QUERY_COST;
 
 const V3RA_WALLET_PUBLIC_KEY = process.env.NEXT_PUBLIC_V3RA_WALLET_PUBLIC_KEY;
 let V3RA_WALLET: PublicKey;

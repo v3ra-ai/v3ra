@@ -4,7 +4,6 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ToggleHeader } from "@/components/explorer/toggle-header";
 import { QueryInput } from "@/components/explorer/query-input";
-import { PaymentControls } from "@/components/explorer/payment-controls";
 import { SubmitButton } from "@/components/explorer/submit-button";
 
 interface CustomQueryFormProps {
@@ -22,8 +21,6 @@ export function CustomQueryForm({
 }: CustomQueryFormProps) {
   const [query, setQuery] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isWalletEnabled, setIsWalletEnabled] = useState(false);
-  const [hasPaid, setHasPaid] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,19 +76,11 @@ export function CustomQueryForm({
             <QueryInput
               query={query}
               setQuery={setQuery}
-              isWalletEnabled={isWalletEnabled}
-              setIsWalletEnabled={setIsWalletEnabled}
-              hasPaid={hasPaid}
             />
             <div className="flex justify-end space-x-2">
-              {isWalletEnabled && (
-                <PaymentControls hasPaid={hasPaid} setHasPaid={setHasPaid} />
-              )}
               <SubmitButton
                 isSubmitting={isSubmitting}
                 query={query}
-                isWalletEnabled={isWalletEnabled}
-                hasPaid={hasPaid}
               />
             </div>
           </form>

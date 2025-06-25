@@ -4,7 +4,6 @@ import React, { useEffect, useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dispatch, ReactNode, SetStateAction } from "react";
 import { QueryMode } from "@/lib/types";
-import { useCreditsStore } from "@/store/credit-store";
 import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
 import { toast } from "sonner";
@@ -17,11 +16,6 @@ interface QueryFormInputProps {
   placeholderText: string;
   handleSubmit: () => void;
   isSubmitting: boolean;
-  queriesUnpaid: number;
-  queriesCostTotal: number;
-  userFreeCredits: number;
-  userPaidCredits: number;
-  userCreditsTotal: number;
   isSubmitInteracted: boolean;
   setIsSubmitInteracted: Dispatch<SetStateAction<boolean>>;
   queryMode: QueryMode;
@@ -34,17 +28,11 @@ const QueryFormInputComponent = function QueryFormInput({
   placeholderText,
   handleSubmit,
   isSubmitting,
-  queriesUnpaid: _queriesUnpaid,
-  queriesCostTotal: _queriesCostTotal,
-  userFreeCredits: _userFreeCredits,
-  userPaidCredits: _userPaidCredits,
-  userCreditsTotal: _userCreditsTotal,
   isSubmitInteracted,
   setIsSubmitInteracted,
   queryMode,
   queriesRequested,
 }: QueryFormInputProps) {
-  const { displayUnpaid, totalCredits } = useCreditsStore();
   const { llms } = useLLMStore();
   const { setQueriesRequested } = useQueryStore();
   const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
@@ -56,9 +44,9 @@ const QueryFormInputComponent = function QueryFormInput({
   // Sync queriesRequested with selectedLLMCount on mount
   useEffect(() => {
     if (hasSelectedLLMs && queriesRequested !== selectedLLMCount) {
-      setQueriesRequested(selectedLLMCount, totalCredits);
+      setQueriesRequested(selectedLLMCount, 100);
     }
-  }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested, totalCredits]);
+  }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested]);
 
   const onSubmit = () => {
     // Credits check removed - app is now free to use
@@ -92,10 +80,6 @@ const QueryFormInputComponent = function QueryFormInput({
     setButtonText(formatQueryMode(queryMode));
   }, [queryMode]);
 
-  const _creditsLeft = useMemo(
-    () => Math.max(0, totalCredits - queriesRequested),
-    [totalCredits, queriesRequested]
-  );
   
   const isSubmitDisabled = useMemo(
     () => isSubmitting || !queryText.trim() || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
@@ -121,15 +105,9 @@ const QueryFormInputComponent = function QueryFormInput({
       </div>
       <div className="flex justify-center">
         <Button
-          className={`bg-primary text-primary-foreground dark:bg-gradient-to-r dark:from-cyan-500 dark:to-pink-500 dark:hover:from-cyan-400 dark:hover:to-pink-400 rounded-full px-6 py-3 min-h-[48px] w-full transition-all duration-300 hover:-translate-y-0.5 dark:animate-pulse-neon text-base sm:text-lg ${
-            isSubmitInteracted && displayUnpaid > 0 ? "ring-2 ring-primary dark:ring-cyan-500/50" : ""
-          }`}
+          className="bg-primary text-primary-foreground dark:bg-gradient-to-r dark:from-cyan-500 dark:to-pink-500 dark:hover:from-cyan-400 dark:hover:to-pink-400 rounded-full px-6 py-3 min-h-[48px] w-full transition-all duration-300 hover:-translate-y-0.5 dark:animate-pulse-neon text-base sm:text-lg"
           onClick={onSubmit}
           disabled={isSubmitDisabled}
-          onMouseEnter={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
-          onMouseLeave={() => setIsSubmitInteracted(false)}
-          onMouseDown={() => displayUnpaid > 0 && setIsSubmitInteracted(true)}
-          onMouseUp={() => setIsSubmitInteracted(false)}
         >
           {buttonText}
         </Button>
