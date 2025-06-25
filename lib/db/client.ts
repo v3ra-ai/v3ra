@@ -1,11 +1,24 @@
 import { PrismaClient } from "@prisma/client"
-import './database-url'; // Ensure DATABASE_URL is set
+
+// Ensure DATABASE_URL is set for Prisma
+if (!process.env.DATABASE_URL) {
+  if (process.env.POSTGRES_PRISMA_URL) {
+    process.env.DATABASE_URL = process.env.POSTGRES_PRISMA_URL;
+  } else if (process.env.POSTGRES_URL) {
+    process.env.DATABASE_URL = process.env.POSTGRES_URL;
+  }
+}
 
 declare global {
   // allow global `var` declarations
   // eslint-disable-next-line no-var
   var prisma: PrismaClient | undefined
 }
+
+// Get the database URL
+const databaseUrl = process.env.DATABASE_URL || 
+                   process.env.POSTGRES_PRISMA_URL || 
+                   process.env.POSTGRES_URL;
 
 export const prisma =
   global.prisma ||
@@ -15,6 +28,11 @@ export const prisma =
     errorFormat: 'pretty',
     transactionOptions: {
       timeout: 10000, // 10 seconds
+    },
+    datasources: {
+      db: {
+        url: databaseUrl,
+      },
     },
   })
 
