@@ -35,7 +35,6 @@ export function QueryForm({
       handleSubmit={handleSubmit}
       isSubmitting={isSubmitting}
       isSubmitInteracted={isSubmitInteracted}
-      setIsSubmitInteracted={setIsSubmitInteracted}
     />
   );
 }
