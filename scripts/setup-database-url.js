@@ -21,11 +21,11 @@ Object.entries(vars).forEach(([key, value]) => {
 
 // Set DATABASE_URL if not already set
 if (!process.env.DATABASE_URL) {
-  // Prefer non-pooled connection for better Prisma compatibility
-  const dbUrl = process.env.POSTGRES_URL_NON_POOLING ||
+  // Use pooled connection for Vercel deployment
+  const dbUrl = process.env.POSTGRES_PRISMA_URL || 
+                process.env.PRISMA_DATABASE_URL ||
                 process.env.POSTGRES_URL ||
-                process.env.POSTGRES_PRISMA_URL || 
-                process.env.PRISMA_DATABASE_URL;
+                process.env.POSTGRES_URL_NON_POOLING;
   
   if (dbUrl) {
     process.env.DATABASE_URL = dbUrl;
