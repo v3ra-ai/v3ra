@@ -30,8 +30,18 @@ export async function GET() {
       NODE_ENV: process.env.NODE_ENV,
     };
     
+    // Get database connection info (safely, without exposing credentials)
+    const dbUrl = process.env.DATABASE_URL || process.env.POSTGRES_PRISMA_URL || '';
+    const dbInfo = {
+      host: dbUrl.includes('@') ? dbUrl.split('@')[1]?.split(':')[0] : 'unknown',
+      database: dbUrl.includes('/') ? dbUrl.split('/').pop()?.split('?')[0] : 'unknown',
+      isPooled: dbUrl.includes('pooler.supabase.com'),
+      hasPoolerParam: dbUrl.includes('pgbouncer=true'),
+    };
+    
     return NextResponse.json({
       database: {
+        connection: dbInfo,
         count: await prisma.validator.count(),
         activeCount: await prisma.validator.count({ where: { active: true } }),
         sample: dbValidators
