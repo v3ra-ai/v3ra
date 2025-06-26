@@ -45,11 +45,6 @@ export function NavbarSitelinks() {
         label="Ask"
         description="Ask AI models questions and explore consensus"
       />
-      <NavLink
-        href="/feedback"
-        label="Feedback"
-        description="Report bugs and share feedback"
-      />
     </div>
   );
 }

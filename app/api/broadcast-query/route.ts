@@ -1,6 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { broadcastCustomQuery } from "@/app/actions";
+import rateLimit from "@/lib/rate-limit";
+
+const limiter = rateLimit({
+  interval: 60 * 1000, // 60 seconds
+  uniqueTokenPerInterval: 500, // Max 500 users per interval
+});
 
 // Log to confirm file is loaded
 console.log("[broadcast-query] File loaded");

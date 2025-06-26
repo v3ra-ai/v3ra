@@ -80,8 +80,8 @@ export default function AuthCallback() {
             console.log("Redirecting to stored return URL:", returnTo);
             router.push(returnTo);
           } else {
-            console.log("Redirecting to profile");
-            router.push("/profile");
+            console.log("Redirecting to main page");
+            router.push("/ask");
           }
           return; // Exit on success
         } catch (err: unknown) {

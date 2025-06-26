@@ -10,37 +10,32 @@ interface V3raLogoProps {
 
 export function V3raLogo({ className, size = "md" }: V3raLogoProps) {
   const sizeClasses = {
-    sm: { width: 100, height: 50 },
-    md: { width: 150, height: 75 },
-    lg: { width: 200, height: 100 }
+    sm: { width: 80, height: 40 },
+    md: { width: 120, height: 60 },
+    lg: { width: 160, height: 80 }
   };
 
   const dimensions = sizeClasses[size];
 
   return (
     <div 
-      className={cn("relative overflow-hidden rounded-lg", className)}
+      className={cn("relative flex items-center justify-center", className)}
       style={{
         width: dimensions.width,
         height: dimensions.height,
       }}
     >
-      {/* Use CSS to hide black pixels */}
-      <div 
-        className="absolute inset-0"
-        style={{
-          background: `url(/logos/v3ralogo.png) no-repeat center`,
-          backgroundSize: 'contain',
-          filter: 'brightness(1.3) contrast(1.2) saturate(1.3)',
-          mixBlendMode: 'lighten', // This makes black pixels transparent
-          transition: 'transform 0.3s ease',
+      <Image
+        src="/logos/v3ralogo.png"
+        alt="V3RA Logo"
+        width={dimensions.width}
+        height={dimensions.height}
+        className="object-contain"
+        style={{ 
+          transform: 'translateY(2px)',
+          marginLeft: '-10px' 
         }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.transform = 'scale(1.05)';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.transform = 'scale(1)';
-        }}
+        priority
       />
     </div>
   );

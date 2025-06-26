@@ -1,13 +1,12 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/button";
-import { Dispatch, ReactNode, SetStateAction } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { QueryMode } from "@/lib/types";
 import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
 import { toast } from "sonner";
-import { formatQueryMode } from "@/utils/text-utils";
 
 interface QueryFormInputProps {
   queryText: string;
@@ -26,13 +25,12 @@ const QueryFormInputComponent = function QueryFormInput({
   placeholderText,
   handleSubmit,
   isSubmitting,
-  isSubmitInteracted,
-  queryMode,
+  isSubmitInteracted: _isSubmitInteracted,
+  queryMode: _queryMode,
   queriesRequested,
 }: QueryFormInputProps) {
   const { llms } = useLLMStore();
   const { setQueriesRequested } = useQueryStore();
-  const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
 
   const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
   const hasSelectedLLMs = selectedLLMCount > 0;
@@ -45,8 +43,6 @@ const QueryFormInputComponent = function QueryFormInput({
   }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested]);
 
   const onSubmit = () => {
-    // Credits check removed - app is now free to use
-
     if (hasSelectedLLMs && queriesRequested > selectedLLMCount) {
       toast.error(`Cannot query ${queriesRequested} AIs when only ${selectedLLMCount} are selected.`, {
         style: { background: "#fee2e2", color: "#dc2626" },
@@ -63,51 +59,48 @@ const QueryFormInputComponent = function QueryFormInput({
     }
   };
 
-  useEffect(() => {
-    if (!isSubmitting) {
-      setButtonText(formatQueryMode(queryMode));
-    }
-  }, [isSubmitting, queryMode]);
-
-  // Ensure button text updates when queryMode changes
-  useEffect(() => {
-    setButtonText(formatQueryMode(queryMode));
-  }, [queryMode]);
-
-  
   const isSubmitDisabled = useMemo(
     () => isSubmitting || !queryText.trim() || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
     [isSubmitting, queryText, hasSelectedLLMs, queriesRequested, selectedLLMCount]
   );
 
   return (
-    <div>
-      <div className="flex flex-col mb-2">
+    <div className="space-y-6">
+      <div className="relative">
         <textarea
-          className={`w-full p-3 sm:p-4 rounded-lg h-20 sm:h-24 focus:outline-none text-foreground placeholder-muted-foreground text-base sm:text-lg
-            bg-card dark:bg-card/50 border transition-all duration-200
-            ${
-              isSubmitInteracted && !queryText.trim()
-                ? "border-primary ring-2 ring-primary/50 dark:border-neon-cyan dark:ring-cyan-500/30"
-                : "border-border hover:border-primary/50 focus:border-primary dark:hover:border-cyan-500/30 dark:focus:border-cyan-500/50"
-            }
-          `}
+          className="w-full p-3 rounded-lg h-20 resize-none
+            bg-zinc-950/30
+            border border-cyan-500/20 
+            text-zinc-100 placeholder-zinc-600
+            focus:outline-none focus:border-cyan-500/40 focus:bg-zinc-950/50
+            transition-all duration-200
+            shadow-[0_0_15px_rgba(0,255,255,0.05)] focus:shadow-[0_0_20px_rgba(0,255,255,0.15)]"
           placeholder={placeholderText}
           value={queryText}
           onChange={(e) => setQueryText(e.target.value)}
         />
       </div>
+      
       <div className="flex justify-center">
         <Button
-          className="bg-primary text-primary-foreground dark:bg-gradient-to-r dark:from-cyan-500 dark:to-pink-500 dark:hover:from-cyan-400 dark:hover:to-pink-400 rounded-full px-6 py-3 min-h-[48px] w-full transition-all duration-300 hover:-translate-y-0.5 dark:animate-pulse-neon text-base sm:text-lg"
           onClick={onSubmit}
           disabled={isSubmitDisabled}
+          className="px-16 h-10 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400
+            text-white font-medium rounded-lg transition-all duration-200 
+            disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20"
         >
-          {buttonText}
+          {isSubmitting ? (
+            <div className="flex items-center gap-2">
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              <span>Analyzing...</span>
+            </div>
+          ) : (
+            "Ask"
+          )}
         </Button>
       </div>
     </div>
   );
 };
 
-export { QueryFormInputComponent as QueryFormInput };
+export const QueryFormInput = QueryFormInputComponent;

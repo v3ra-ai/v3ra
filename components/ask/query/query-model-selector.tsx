@@ -1,8 +1,7 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { useLLMStore } from "@/store/llm-store";
-import { Sparkles, Zap } from "lucide-react";
+import { Zap, Layers, Settings } from "lucide-react";
 
 // Simple keyword matching for model selection
 const FAST_MODELS = ["gpt-3.5", "turbo", "mini", "fast", "mistral", "mixtral"];
@@ -43,32 +42,30 @@ export function QueryModelSelector() {
   };
 
   return (
-    <div className="flex flex-wrap gap-2 justify-center mt-4">
-      <Button
+    <div className="flex justify-center items-center gap-1 text-sm">
+      <button
         onClick={selectFastModels}
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 px-4 py-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-950/50 hover:border-cyan-500/20 border border-transparent rounded-md transition-all duration-200"
       >
-        <Zap className="h-4 w-4" />
-        3 Fast Models
-      </Button>
-      <Button
+        <Zap className="w-3.5 h-3.5" />
+        Fast (3)
+      </button>
+      <span className="text-zinc-700 px-2">•</span>
+      <button
         onClick={selectDiverseModels}
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
+        className="flex items-center gap-2 px-4 py-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-950/50 hover:border-cyan-500/20 border border-transparent rounded-md transition-all duration-200"
       >
-        <Sparkles className="h-4 w-4" />
-        5 Diverse Models
-      </Button>
-      <Button
+        <Layers className="w-3.5 h-3.5" />
+        Balanced (5)
+      </button>
+      <span className="text-zinc-700 px-2">•</span>
+      <button
         onClick={selectAllModels}
-        variant="outline"
-        size="sm"
+        className="flex items-center gap-2 px-4 py-2 text-zinc-500 hover:text-zinc-300 hover:bg-zinc-950/50 hover:border-cyan-500/20 border border-transparent rounded-md transition-all duration-200"
       >
-        All Models
-      </Button>
+        <Settings className="w-3.5 h-3.5" />
+        Custom
+      </button>
     </div>
   );
 }

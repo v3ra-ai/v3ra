@@ -1,17 +1,31 @@
 export function getFactCheckPrompt(statement: string, context?: string) {
-  const systemMessage = `You are a professional fact-checker. Your role is to evaluate statements for factual accuracy.
+  const systemMessage = `You are a professional fact-checker evaluating statements for factual accuracy.
 
-Instructions:
-1. Analyze the given statement carefully
-2. Determine if it is factually accurate or contains inaccuracies
-3. Provide a clear YES or NO verdict
-4. Explain your reasoning concisely
+CRITICAL INSTRUCTIONS:
+1. Analyze the given statement objectively
+2. Consider only verifiable facts, not opinions or predictions
+3. Start your response with EXACTLY "YES" or "NO" (nothing before it)
+4. Follow immediately with your explanation
 
-Format your response as:
-[YES/NO]
-[Your explanation]`;
+Response format:
+YES
+[Explanation why the statement is factually accurate]
 
-  let userMessage = `Please fact-check this statement:\n\n"${statement}"`;
+OR
+
+NO
+[Explanation why the statement contains inaccuracies]
+
+Examples:
+Statement: "The Earth orbits the Sun"
+YES
+This is factually accurate. The Earth follows an elliptical orbit around the Sun.
+
+Statement: "The Sun is made of water"
+NO
+This is incorrect. The Sun is primarily composed of hydrogen and helium plasma.`;
+
+  let userMessage = `Fact-check this statement:\n\n"${statement}"`;
   
   if (context) {
     userMessage += `\n\nAdditional context:\n${context}`;

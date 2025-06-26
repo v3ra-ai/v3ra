@@ -80,16 +80,11 @@ export class OpenRouterValidator implements AIValidator {
       const startTime = Date.now();
 
       // Generate prompt using utility function
-      const promptResult = generatePrompt(
+      const { systemMessage, userMessage } = generatePrompt(
         req.queryMode,
         req.statement,
         req.context
       );
-      let { systemMessage } = promptResult;
-      const { userMessage } = promptResult;
-      
-      // Add clear instructions for clean JSON responses
-      systemMessage = systemMessage + "\n\nIMPORTANT: Respond with ONLY a valid JSON object in the format {\"answer\": \"Yes\" or \"No\", \"confidence\": number from 0-100, \"rationale\": \"your reasoning\"}. Do not include markdown code blocks, prefixes, or any additional text outside the JSON object.";
 
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -112,8 +107,7 @@ export class OpenRouterValidator implements AIValidator {
             // temperature: 0.3, // Example: make it less random
             // max_tokens: 50,   // Example: limit response length for validation
             temperature: 0.3,
-            max_tokens: 1000,
-            stop: ["}"],  // Stop at closing brace to ensure complete JSON
+            max_tokens: 1000
           }),
         }
       );
@@ -141,72 +135,16 @@ export class OpenRouterValidator implements AIValidator {
       let rationale: string;
 
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
-        let rawContent = data.choices[0].message.content;
-        console.log(`[OpenRouter - ${this.modelName}] Raw response content:`, rawContent);
+        const content = data.choices[0].message.content;
+        console.log(`[OpenRouter - ${this.modelName}] Raw response:`, content);
         
-        // Clean up the response - remove any markdown code blocks
-        rawContent = rawContent.replace(/```json|```/g, '').trim();
-        
-        // Ensure we have a complete JSON object by adding the closing brace if needed
-        // (since we used the stop parameter at "}", we might need to add it back)
-        if (rawContent.includes('{') && !rawContent.endsWith('}')) {
-          rawContent = rawContent + '}';
-        }
-        
-        // Special case: Check for numeric prefix followed by JSON (common in some models)
-        const numberJsonMatch = rawContent.match(/(\d+(\.\d+)?)\s*(\{[\s\S]*\})/);
-        if (numberJsonMatch) {
-          console.log(`[OpenRouter - ${this.modelName}] Detected numeric prefix before JSON:`, numberJsonMatch[1]);
-          // Extract just the JSON part
-          rawContent = numberJsonMatch[3];
-        }
-        
-        // If it looks like JSON, try to parse it and extract just the rationale
-        if ((rawContent.startsWith('{') || rawContent.trim().startsWith('{')) && 
-            (rawContent.includes('"rationale"') || rawContent.includes('"explanation"'))) {
-          try {
-            const jsonData = JSON.parse(rawContent);
-            // Keep the full JSON for the parser, but clean up the rationale for display
-            const cleanRationale = jsonData.rationale || jsonData.explanation || '';
-            
-            // If the rationale itself still contains JSON, extract just the text
-            if (typeof cleanRationale === 'string' && cleanRationale.includes('{') && cleanRationale.includes('"')) {
-              try {
-                // Try to parse any JSON in the rationale
-                const match = cleanRationale.match(/\{[\s\S]*\}/);
-                if (match) {
-                  const embeddedJson = JSON.parse(match[0]);
-                  // Use the embedded rationale if it exists
-                  if (embeddedJson.rationale || embeddedJson.explanation) {
-                    jsonData.rationale = embeddedJson.rationale || embeddedJson.explanation;
-                  }
-                }
-              } catch {
-                // If parsing embedded JSON fails, keep the original rationale
-              }
-            }
-            
-            // Reconstruct the JSON with the cleaned rationale
-            rawContent = JSON.stringify(jsonData);
-          } catch (e) {
-            console.error(`[OpenRouter - ${this.modelName}] Error parsing JSON:`, e);
-            // If JSON parsing fails, continue with the raw content
-          }
-        }
-        
-        // If the content doesn't look like JSON at all, wrap it in our expected format
-        if (!rawContent.startsWith('{') && !rawContent.trim().startsWith('{')) {
-          rawContent = `{"answer":"No","confidence":0,"rationale":"${rawContent.replace(/"/g, '\\"')}"}`;  
-        }
-        
-        const content = rawContent.trim();
-        console.log(`[OpenRouter - ${this.modelName}] Processed content:`, content);
+        // Use the standard parser which handles YES/NO format
         const parsed = parseVote(content);
-        console.log(`[OpenRouter - ${this.modelName}] Parsed reply object:`, parsed);
-        const { decision, confidence: c = 0.8, rationale: r } = parsed;
-        vote = decision;
-        confidence = c;
-        rationale = r;
+        console.log(`[OpenRouter - ${this.modelName}] Parsed response:`, parsed);
+        
+        vote = parsed.decision;
+        confidence = parsed.confidence || 0.8;
+        rationale = parsed.rationale;
       } else {
         vote = false;
         confidence = 0;

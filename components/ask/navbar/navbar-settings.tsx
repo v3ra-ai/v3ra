@@ -75,7 +75,7 @@ export function NavbarSettings({
           href="https://x.com/v3ra_ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+          className="text-zinc-600 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
           aria-label="Follow us on X (Twitter)"
         >
           <Twitter className="h-5 w-5" />
@@ -84,7 +84,7 @@ export function NavbarSettings({
           href="https://t.me/v3ra_ai"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+          className="text-zinc-600 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
           aria-label="Join us on Telegram"
         >
           <Send className="h-5 w-5" />
@@ -93,7 +93,7 @@ export function NavbarSettings({
           href="https://github.com/v3ra-ai/v3ra"
           target="_blank"
           rel="noopener noreferrer"
-          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+          className="text-zinc-600 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
           aria-label="View on GitHub"
         >
           <Github className="h-5 w-5" />
@@ -110,7 +110,8 @@ export function NavbarSettings({
           disabled={isCreditsPage}
           className="rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800
             focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
-            disabled:opacity-50 transition-colors cursor-pointer"
+            disabled:opacity-50 transition-all duration-200 cursor-pointer
+            hover:text-cyan-500 dark:hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
           aria-label="Toggle theme"
         >
           <Sun className="h-5 w-5 text-zinc-600 dark:hidden" />
@@ -122,7 +123,7 @@ export function NavbarSettings({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none cursor-pointer"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
             aria-label={isLoggedIn ? "User menu" : "Login/Signup menu"}
           >
             {isLoggedIn ? (
@@ -179,7 +180,7 @@ export function NavbarSettings({
       {/* Mobile Menu Toggle */}
       <button
         onClick={onToggleMenu}
-        className="md:hidden p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 transition-colors cursor-pointer"
+        className="md:hidden p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 transition-all duration-200 cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
         aria-label="Toggle navigation menu"
       >
         <Menu className="h-5 w-5 text-zinc-600 dark:text-zinc-400 cursor-pointer" />

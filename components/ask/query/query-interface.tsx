@@ -27,40 +27,47 @@ export default function QueryInterface() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-2 min-h-[calc(100vh-4rem)]">
-      <div className="flex flex-col items-center justify-center mb-4">
-        <h1 className="text-foreground text-xl sm:text-2xl md:text-3xl font-light tracking-tight text-center mb-4">
-          Ask AI Models a <span className="text-emerald-400 dark:text-emerald-400 dark:drop-shadow-[0_0_10px_rgba(52,211,153,0.5)] font-medium">Yes</span>/<span className="text-rose-400 dark:text-rose-400 dark:drop-shadow-[0_0_10px_rgba(251,113,133,0.5)] font-medium">No</span> Question
-        </h1>
-      </div>
-      <div className="glass-morphism rounded-2xl shadow-xl dark:shadow-none p-4 sm:p-6 max-w-4xl mx-auto">
-        {error && (
-          <p className="text-red-500 text-sm mb-2" role="alert">
-            {error}
-          </p>
-        )}
-        
-        {/* Popular Questions - show only when query text is empty */}
-        {!queryText && (
-          <PopularQuestions onSelectQuestion={handleSelectPopularQuestion} />
-        )}
-        
-        <QueryForm
-          queryText={queryText}
-          setQueryText={setQueryText}
-          placeholderText={placeholderText}
-          queryMode={queryMode}
-          queriesRequested={queriesRequested}
-          handleSubmit={handleSubmit}
-          isSubmitting={isSubmitting}
-          isSubmitInteracted={isSubmitInteracted}
-        />
+    <div className="min-h-screen flex flex-col">
+      <div className="flex-1 flex items-center justify-center px-4 py-8">
+        <div className="w-full max-w-2xl">
+          <div className="text-center mb-12">
+            <h1 className="text-zinc-50 text-4xl sm:text-5xl font-medium tracking-tight mb-2">
+              AI Consensus
+            </h1>
+            <p className="text-zinc-600 text-sm">
+              Multiple AI models. One truth.
+            </p>
+          </div>
+          
+          <div className="relative rounded-xl border border-cyan-500/20 bg-zinc-950/40 p-6 backdrop-blur-sm shadow-[0_0_30px_rgba(0,255,255,0.1)]">
+            {error && (
+              <p className="text-red-400 text-sm mb-6 text-center" role="alert">
+                {error}
+              </p>
+            )}
+            
+            {!queryText && (
+              <PopularQuestions onSelectQuestion={handleSelectPopularQuestion} />
+            )}
+            
+            <QueryForm
+              queryText={queryText}
+              setQueryText={setQueryText}
+              placeholderText={placeholderText}
+              queryMode={queryMode}
+              queriesRequested={queriesRequested}
+              handleSubmit={handleSubmit}
+              isSubmitting={isSubmitting}
+              isSubmitInteracted={isSubmitInteracted}
+            />
 
-        <div className="flex justify-between items-center">
-          <QueryModelSelector />
+            <div className="mt-8">
+              <QueryModelSelector />
+            </div>
+          </div>
         </div>
       </div>
-
+      
       <QueryResults viewMode={viewMode} />
     </div>
   );

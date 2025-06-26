@@ -34,7 +34,7 @@ export default function AskFooter() {
   return (
     <>
       <div className="">
-        <footer className="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 mt-auto">
+        <footer className="bg-black glass-morphism border-t border-border/50 dark:border-border/20 text-zinc-600 dark:text-zinc-400 mt-auto">
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="flex flex-col items-center space-y-6">
               {/* Social Media Icons */}
@@ -45,14 +45,14 @@ export default function AskFooter() {
                 <div className="flex items-center space-x-6">
                   <Link
                     href="https://x.com/v3ra_ai"
-                    className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                    className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors"
                     aria-label="Follow us on X (Twitter)"
                   >
                     <Twitter size={24} />
                   </Link>
                   <Link
                     href="https://t.me/v3ra_ai"
-                    className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                    className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors"
                     aria-label="Join us on Telegram"
                   >
                     <Send size={24} />
@@ -66,7 +66,7 @@ export default function AskFooter() {
                 <p className="mt-1 text-xs">
                   <Link 
                     href="https://github.com/v3ra-ai/v3ra" 
-                    className="hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+                    className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors"
                   >
                     Open Source Project
                   </Link>

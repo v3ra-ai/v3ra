@@ -5,32 +5,54 @@ export interface ParsedVote {
 }
 
 export function parseLLMReply(response: string): ParsedVote {
-  // Simple parser for LLM responses
-  // Expected format: YES/NO followed by rationale
+  // Parser for LLM responses - expects YES/NO at the start
   
-  const normalizedResponse = response.trim().toUpperCase();
+  const trimmedResponse = response.trim();
+  const normalizedResponse = trimmedResponse.toUpperCase();
   let decision = false;
-  let rationale = response;
+  let rationale = "";
+  let confidence = 0.8; // Default confidence
   
-  if (normalizedResponse.startsWith("YES")) {
+  // Check for YES/NO at the beginning (with possible punctuation)
+  if (normalizedResponse.match(/^YES[\s,.:;]/) || normalizedResponse === "YES") {
     decision = true;
-    rationale = response.substring(3).trim();
-  } else if (normalizedResponse.startsWith("NO")) {
+    // Extract rationale after YES and any punctuation/whitespace
+    rationale = trimmedResponse.replace(/^YES[\s,.:;]*/i, "").trim();
+    confidence = 0.85; // Higher confidence for clear format
+  } else if (normalizedResponse.match(/^NO[\s,.:;]/) || normalizedResponse === "NO") {
     decision = false;
-    rationale = response.substring(2).trim();
+    // Extract rationale after NO and any punctuation/whitespace
+    rationale = trimmedResponse.replace(/^NO[\s,.:;]*/i, "").trim();
+    confidence = 0.85; // Higher confidence for clear format
   } else {
-    // Try to infer from content
-    if (normalizedResponse.includes("TRUE") || normalizedResponse.includes("CORRECT") || normalizedResponse.includes("ACCURATE")) {
+    // Fallback: Try to infer from content keywords
+    const positiveKeywords = ["TRUE", "CORRECT", "ACCURATE", "FACTUAL", "VALID", "CONFIRMED"];
+    const negativeKeywords = ["FALSE", "INCORRECT", "INACCURATE", "WRONG", "UNTRUE", "INVALID"];
+    
+    const hasPositive = positiveKeywords.some(keyword => normalizedResponse.includes(keyword));
+    const hasNegative = negativeKeywords.some(keyword => normalizedResponse.includes(keyword));
+    
+    if (hasPositive && !hasNegative) {
       decision = true;
+      confidence = 0.7; // Lower confidence for inferred response
+    } else if (hasNegative && !hasPositive) {
+      decision = false;
+      confidence = 0.7; // Lower confidence for inferred response
+    } else {
+      // Default to false if ambiguous
+      decision = false;
+      confidence = 0.5; // Very low confidence
     }
+    
+    rationale = trimmedResponse;
   }
   
-  // Clean up rationale
+  // Clean up rationale - remove leading punctuation/whitespace
   rationale = rationale.replace(/^[:\-\s]+/, "").trim();
   
   return {
     decision,
     rationale: rationale || "No explanation provided",
-    confidence: 0.8 // Default confidence
+    confidence
   };
 }

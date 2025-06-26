@@ -109,9 +109,9 @@ export default function Navbar() {
         {/* Logo */}
         <div className="flex items-center">
           <Link href="/ask" className="flex items-center cursor-pointer">
-            <V3raLogo size="md" className="transition-all duration-300 hover:scale-105 dark:neon-glow-cyan" />
+            <V3raLogo size="md" />
           </Link>
-          <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-gradient-to-r from-cyan-500 to-pink-500 text-white rounded-full shadow-sm">
+          <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-full">
             BETA
           </span>
         </div>

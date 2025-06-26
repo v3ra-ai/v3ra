@@ -1,42 +1,50 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { getRandomStatement } from "@/lib/example-statements";
 
 interface PopularQuestionsProps {
   onSelectQuestion: (question: string) => void;
 }
 
-const POPULAR_QUESTIONS = [
-  "Is artificial intelligence conscious?",
-  "Should social media platforms be regulated?",
-  "Is nuclear energy the best solution for climate change?",
-  "Will cryptocurrency replace traditional banking?",
-  "Should genetic engineering be used to enhance humans?",
-  "Is universal basic income economically viable?",
-];
-
 export function PopularQuestions({ onSelectQuestion }: PopularQuestionsProps) {
+  const [example, setExample] = useState("");
+  
+  useEffect(() => {
+    setExample(getRandomStatement());
+  }, []);
+  
+  const handleNewExample = () => {
+    const newExample = getRandomStatement();
+    setExample(newExample);
+  };
+  
+  if (!example) return null;
+  
   return (
-    <div className="mb-6 p-4 bg-zinc-50 dark:bg-zinc-900 rounded-lg border border-zinc-200 dark:border-zinc-700">
-      <div className="flex items-center gap-2 mb-3">
-        <Sparkles className="h-4 w-4 text-amber-500" />
-        <h3 className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          Popular Questions
-        </h3>
-      </div>
-      <div className="flex flex-wrap gap-2">
-        {POPULAR_QUESTIONS.map((question, index) => (
-          <Button
-            key={index}
-            variant="outline"
-            size="sm"
-            onClick={() => onSelectQuestion(question)}
-            className="text-xs hover:bg-zinc-100 dark:hover:bg-zinc-800 cursor-pointer"
+    <div className="mb-8 relative">
+      <div className="flex justify-center">
+        <button
+          onClick={() => onSelectQuestion(example)}
+          className="group relative px-5 py-3 rounded-lg border border-cyan-500/20 hover:border-cyan-500/40 
+            bg-zinc-950/30 hover:bg-zinc-950/50 transition-all duration-200
+            shadow-[0_0_15px_rgba(0,255,255,0.05)] hover:shadow-[0_0_20px_rgba(0,255,255,0.15)]"
+        >
+          <span className="block text-xs text-zinc-500 mb-1">Try this example</span>
+          <span className="block text-sm text-zinc-300 group-hover:text-zinc-100 transition-colors duration-200 max-w-md text-center">
+            {example}
+          </span>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleNewExample();
+            }}
+            className="absolute -right-8 top-1/2 -translate-y-1/2 p-1 text-zinc-600 hover:text-zinc-400 transition-colors duration-200"
+            aria-label="Get new example"
           >
-            {question}
-          </Button>
-        ))}
+            ↻
+          </button>
+        </button>
       </div>
     </div>
   );
