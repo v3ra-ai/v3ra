@@ -136,7 +136,7 @@ export default function LoginClient() {
             href="/signup" 
             className="text-sm text-teal-600 hover:text-teal-700 dark:text-teal-500 dark:hover:text-teal-400"
           >
-            Don't have an account? Sign up
+            Don&apos;t have an account? Sign up
           </Link>
           <div>
             <Link 

@@ -51,7 +51,7 @@ export default function VerifyPage() {
             Check Your Email
           </h1>
           <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-            We've sent you a verification email. Please click the link in the email to verify your account.
+            We&apos;ve sent you a verification email. Please click the link in the email to verify your account.
           </p>
           
           {email && (

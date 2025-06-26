@@ -26,7 +26,7 @@ export function NavbarSettings({
   onToggleMenu,
 }: NavbarSettingsProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [_userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {

@@ -10,11 +10,12 @@ import { V3raLogo } from "@/components/v3ra-logo";
 
 export default function Home() {
   const router = useRouter();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [_isLoggedIn, setIsLoggedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     checkAuth();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkAuth = async () => {

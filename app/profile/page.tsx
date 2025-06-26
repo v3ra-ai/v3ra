@@ -19,10 +19,18 @@ import {
 export default function ProfilePage() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{
+    id: string;
+    email?: string;
+    created_at: string;
+    user_metadata?: {
+      username?: string;
+    };
+  } | null>(null);
 
   useEffect(() => {
     checkUser();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const checkUser = async () => {
@@ -148,11 +156,11 @@ export default function ProfilePage() {
                       Member Since
                     </label>
                     <p className="text-zinc-900 dark:text-zinc-100 font-medium">
-                      {new Date(user?.created_at).toLocaleDateString('en-US', {
+                      {user?.created_at ? new Date(user.created_at).toLocaleDateString('en-US', {
                         year: 'numeric',
                         month: 'long',
                         day: 'numeric'
-                      })}
+                      }) : 'N/A'}
                     </p>
                   </div>
                 </div>

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { broadcastCustomQuery } from "@/app/actions";
 import rateLimit from "@/lib/rate-limit";
 
-const limiter = rateLimit({
+const _limiter = rateLimit({
   interval: 60 * 1000, // 60 seconds
   uniqueTokenPerInterval: 500, // Max 500 users per interval
 });
