@@ -1,37 +1,32 @@
-import { ParsedModelResponse } from "./responseParser";
-import { AIValidationResponse } from "./types";
-import type { QueryMode } from "@/lib/types";
-
-/*
- * A lightweight, pluggable interpreter which transforms the generic
- * ParsedModelResponse (derived from the LLM's JSON) into an
- * AIValidationResponse that the rest of the system expects.
- * Each mode encapsulates its own business rules so providers stay thin.
- */
+import { QueryMode } from "@/lib/types";
 
 export interface ModeAdapter {
-  /** Public identifier used by generatePrompt() etc. */
-  type: QueryMode;
-  /**
-   * Convert the generic parsed JSON into a normalised AIValidationResponse.
-   * - confidence **MUST** be 0‒1
-   * - vote **MUST** be boolean (for modes that care)
-   */
-  interpret(parsed: ParsedModelResponse): Pick<AIValidationResponse, "vote" | "confidence" | "rationale">;
+  generateSystemPrompt(): string;
+  generateUserPrompt(query: string, context?: string): string;
 }
 
-const percentToUnit = (pct: number) => Math.max(0, Math.min(100, pct)) / 100;
+class FactCheckAdapter implements ModeAdapter {
+  generateSystemPrompt(): string {
+    return `You are a fact-checking AI assistant. Your job is to evaluate statements for their factual accuracy.
+Respond with YES if the statement is factually accurate, or NO if it contains inaccuracies.
+Always provide a clear, concise rationale for your decision.`;
+  }
 
-export const FactCheckAdapter: ModeAdapter = {
-  type: "fact-check",
-  interpret: (p) => ({
-    vote: p.vote,
-    confidence: percentToUnit(p.confidence),
-    rationale: p.rationale,
-  }),
-};
+  generateUserPrompt(query: string, context?: string): string {
+    let prompt = `Please fact-check the following statement:\n\n"${query}"`;
+    if (context) {
+      prompt += `\n\nContext: ${context}`;
+    }
+    prompt += `\n\nRespond with YES or NO, followed by your rationale.`;
+    return prompt;
+  }
+}
 
-export function getAdapter(_mode?: QueryMode): ModeAdapter {
-  // Always return FactCheckAdapter since it's the only mode now
-  return FactCheckAdapter;
+export function getAdapter(mode: QueryMode): ModeAdapter {
+  switch (mode) {
+    case "fact-check":
+      return new FactCheckAdapter();
+    default:
+      return new FactCheckAdapter();
+  }
 }

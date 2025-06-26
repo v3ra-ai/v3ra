@@ -200,7 +200,7 @@ export class HuggingFaceValidator implements AIValidator {
           }
           
           // Send to response parser
-          const { vote, confidence, rationale } = parseVote(rawContent);
+          const { decision: vote, confidence = 0.8, rationale } = parseVote(rawContent);
           
           console.log(`[HuggingFace - ${this.modelName}] Processed content:`, rawContent);
           console.log(`[HuggingFace - ${this.modelName}] Parsed reply object:`, {

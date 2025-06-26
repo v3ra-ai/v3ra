@@ -23,8 +23,8 @@ export function AskResultsStandardFooter({
     <>
       <div className="ml-5">
         <ResultsCardFeedback
+          queryId={sanitizedQuery.id}
           component="ResultsCard"
-          action={sanitizedQuery.id}
         />
       </div>
       <hr className="h-1 mt-2" />

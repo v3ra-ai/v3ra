@@ -7,7 +7,6 @@ import { QueryMode } from "@/lib/types";
 import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
 import { toast } from "sonner";
-import { useButtonTextTimer } from "@/utils/button-text-timer";
 import { formatQueryMode } from "@/utils/text-utils";
 
 interface QueryFormInputProps {
@@ -34,7 +33,6 @@ const QueryFormInputComponent = function QueryFormInput({
   const { llms } = useLLMStore();
   const { setQueriesRequested } = useQueryStore();
   const [buttonText, setButtonText] = useState<ReactNode>(formatQueryMode(queryMode));
-  const { startTimer, cancelTimer } = useButtonTextTimer(setButtonText);
 
   const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
   const hasSelectedLLMs = selectedLLMCount > 0;
@@ -57,7 +55,6 @@ const QueryFormInputComponent = function QueryFormInput({
     }
 
     try {
-      startTimer();
       handleSubmit();
     } catch {
       toast.error("Failed to submit query, please try again", {
@@ -68,10 +65,9 @@ const QueryFormInputComponent = function QueryFormInput({
 
   useEffect(() => {
     if (!isSubmitting) {
-      cancelTimer();
       setButtonText(formatQueryMode(queryMode));
     }
-  }, [isSubmitting, queryMode, cancelTimer]);
+  }, [isSubmitting, queryMode]);
 
   // Ensure button text updates when queryMode changes
   useEffect(() => {

@@ -60,11 +60,10 @@ export function AskResultsStandardSocialIcons({
   );
 
   const handleCopyLink = () => {
-    copyToClipboard({
-      textToCopy: shareUrl,
-      successDescription: `The link for card ${query?.id || "unknown"} was copied to your clipboard.`,
-      errorDescription: `Failed to copy the link for card ${query?.id || "unknown"}. Try again.`,
-    });
+    copyToClipboard(
+      shareUrl,
+      `The link for card ${query?.id || "unknown"} was copied to your clipboard.`
+    );
   };
 
   const debouncedToggleFavorite = useMemo(

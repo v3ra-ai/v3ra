@@ -4,7 +4,6 @@ const BASE_URL = "http://localhost:3000";
 
 const endpoints = {
   healthCheck: `${BASE_URL}/api/admin/health-check`,
-  voteHistory: `${BASE_URL}/api/vote-history`,
   broadcast: `${BASE_URL}/api/broadcast`,
   network: `${BASE_URL}/api/network`,
 };
@@ -24,21 +23,6 @@ async function testHealthCheck() {
   }
 }
 
-async function testVoteHistory(limit?: number) {
-  const url = `${endpoints.voteHistory}${limit ? `?limit=${limit}` : ""}`;
-  console.log(`Testing ${url}...`);
-  try {
-    const res = await axios.get(url);
-    console.log("Vote History:", res.status, res.data.length, "sessions");
-  } catch (error) {
-    const axiosError = error as AxiosError;
-    console.error(
-      "Vote History Error:",
-      axiosError.response?.status,
-      axiosError.message,
-    );
-  }
-}
 
 async function testBroadcast(queryText: string) {
   console.log(`Testing ${endpoints.broadcast} with query: "${queryText}"...`);
@@ -143,9 +127,6 @@ async function testCreditAssignmentInvalidKey() {
 
 async function runTests() {
   await testHealthCheck();
-  await testVoteHistory(10);
-  await testVoteHistory(5);
-  await testVoteHistory(); // Default
   await testBroadcast("Is the sky blue?");
   await testBroadcast(""); // Empty query
   await testBroadcast(undefined as never); // Missing queryText

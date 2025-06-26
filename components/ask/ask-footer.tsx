@@ -2,13 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import PageFeedback from "./ask-page-feedback";
 import { supabase } from "@/lib/supabase-client";
-import { FeedbackModal } from "../feedback-modal";
 import { Twitter, Send } from "lucide-react";
 
 export default function AskFooter() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [_isLoggedIn, _setIsLoggedIn] = useState(false);
 
   // Check Supabase session to determine login status
   useEffect(() => {
@@ -16,15 +14,15 @@ export default function AskFooter() {
       const {
         data: { session },
       } = await supabase.auth.getSession();
-      setIsLoggedIn(!!session);
+      _setIsLoggedIn(!!session);
     }
 
     checkSession();
 
     // Listen for auth state changes
     const { data: authListener } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setIsLoggedIn(!!session);
+      (_event, session) => {
+        _setIsLoggedIn(!!session);
       }
     );
 
@@ -36,12 +34,6 @@ export default function AskFooter() {
   return (
     <>
       <div className="">
-        {isLoggedIn && (
-          <div className="flex m-8 w-full items-center justify-center">
-            <PageFeedback component="Page" />
-          </div>
-        )}
-        <FeedbackModal /> {/* Add modal */}
         <footer className="bg-zinc-100 dark:bg-zinc-900 text-zinc-600 dark:text-zinc-400 mt-auto">
           <div className="max-w-4xl mx-auto px-4 py-8">
             <div className="flex flex-col items-center space-y-6">

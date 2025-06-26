@@ -25,8 +25,9 @@ const StatusCard = ({
 export default function NetworkStatus() {
   const { networkState, isLoading, error } = useNetworkState();
 
-  const { validators, currentLeaderIndex, isVoting, currentQuery } =
-    getNetworkStateDefaults(networkState);
+  const defaults = getNetworkStateDefaults();
+  const { validators, currentLeaderIndex, isVoting } = networkState || defaults;
+  const currentQuery = networkState?.lastQuery;
 
   // Sanitize fields to prevent XSS
   const sanitizedCurrentQuery = currentQuery
@@ -70,7 +71,7 @@ export default function NetworkStatus() {
         </h3>
         <div className="bg-zinc-100 dark:bg-zinc-800 rounded-xl h-24 w-full flex items-center justify-center">
           <span className="text-red-500">
-            Error: {DOMPurify.sanitize(error.message)}
+            Error: {DOMPurify.sanitize(error)}
           </span>
         </div>
       </div>

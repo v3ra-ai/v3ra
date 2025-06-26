@@ -4,7 +4,6 @@ import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
-import { getAdapter } from "../modeAdapters";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -130,7 +129,7 @@ export class GrokValidator implements AIValidator {
       console.log(
         `[Grok ${this.id}] Attempting to retrieve key with ID: ${this.keyId}`,
       );
-      const key = await keyService.getKeyValue(this.keyId);
+      const key = await keyService.getDecryptedKey(this.keyId);
       if (key) {
         console.log(
           `[Grok ${this.id}] Successfully retrieved key from key service`,
@@ -146,15 +145,17 @@ export class GrokValidator implements AIValidator {
     console.log(
       `[Grok ${this.id}] Attempting to get first active key for Grok`,
     );
-    const key = await keyService.getFirstActiveKeyForProvider("Grok");
-    if (key) {
+    const keyData = await keyService.getFirstActiveKeyForProvider("Grok");
+    if (keyData) {
       console.log(
         `[Grok ${this.id}] Successfully retrieved first active key for Grok`,
       );
+      this.keyId = keyData.id; // Update keyId for future use
+      return keyData.key;
     } else {
       console.log(`[Grok ${this.id}] No active key found for Grok`);
+      return null;
     }
-    return key;
   }
 
   /**
@@ -297,7 +298,7 @@ export class GrokValidator implements AIValidator {
 
           // Parse the response to determine validity and confidence
           const parsed = parseVote(reply);
-          const { vote, confidence, rationale } = getAdapter(request.queryMode).interpret(parsed);
+          const { decision: vote, confidence = 0.8, rationale } = parsed;
           console.log(
             `[Grok ${this.id}] Parsed Grok response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`,
           );

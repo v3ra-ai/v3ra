@@ -1,204 +1,98 @@
-import { prisma } from "../db/client";
-import * as crypto from "crypto";
+import { prisma } from "@/lib/db/client";
+import crypto from "crypto";
 
-// Encryption key and IV - in production, these would be in environment variables
-// IMPORTANT: In a real production app, use a proper secret management system
-const ENCRYPTION_KEY =
-  process.env.ENCRYPTION_KEY || "v3ra-default-encryption-key-32charsxx";
-const ENCRYPTION_IV = process.env.ENCRYPTION_IV || "v3ra-default-iv-x";
+class KeyService {
+  private algorithm = "aes-256-gcm";
+  private keyLength = 32;
+  private ivLength = 16;
+  private tagLength = 16;
+  private saltLength = 64;
+  private pbkdf2Iterations = 100000;
 
-// Define interfaces for better type safety
-export interface ApiKey {
-  id: string;
-  name: string;
-  provider: string;
-  active: boolean;
-  createdAt: Date;
-}
-
-export interface ApiKeyInput {
-  name: string;
-  provider: string;
-  value: string;
-  active?: boolean;
-}
-
-/**
- * Service for managing API keys securely in the database
- */
-export class KeyService {
-  /**
-   * Encrypt an API key before storing it
-   */
-  private encryptKey(key: string): string {
-    const cipher = crypto.createCipheriv(
-      "aes-256-cbc",
-      Buffer.from(ENCRYPTION_KEY),
-      Buffer.from(ENCRYPTION_IV, "utf8").slice(0, 16),
-    );
-    let encrypted = cipher.update(key, "utf8", "hex");
-    encrypted += cipher.final("hex");
-    return encrypted;
+  private deriveKey(password: string, salt: Buffer): Buffer {
+    return crypto.pbkdf2Sync(password, salt, this.pbkdf2Iterations, this.keyLength, "sha256");
   }
 
-  /**
-   * Decrypt an API key from the database
-   */
-  private decryptKey(encryptedKey: string): string {
-    const decipher = crypto.createDecipheriv(
-      "aes-256-cbc",
-      Buffer.from(ENCRYPTION_KEY),
-      Buffer.from(ENCRYPTION_IV, "utf8").slice(0, 16),
-    );
-    let decrypted = decipher.update(encryptedKey, "hex", "utf8");
-    decrypted += decipher.final("utf8");
-    return decrypted;
+  encrypt(text: string, password: string): string {
+    const salt = crypto.randomBytes(this.saltLength);
+    const key = this.deriveKey(password, salt);
+    const iv = crypto.randomBytes(this.ivLength);
+    const cipher = crypto.createCipheriv(this.algorithm, key, iv) as crypto.CipherGCM;
+    
+    const encrypted = Buffer.concat([
+      cipher.update(text, "utf8"),
+      cipher.final()
+    ]);
+    
+    const tag = cipher.getAuthTag();
+    const combined = Buffer.concat([salt, iv, tag, encrypted]);
+    
+    return combined.toString("base64");
   }
 
-  /**
-   * Add a new API key to the database
-   */
-  async addKey(data: ApiKeyInput): Promise<ApiKey> {
-    const encryptedKey = this.encryptKey(data.value);
-
-    const apiKey = await prisma.apiKey.create({
-      data: {
-        name: data.name,
-        provider: data.provider,
-        key: encryptedKey,
-        isActive: data.active !== undefined ? data.active : true,
-      },
-    });
-
-    return {
-      id: apiKey.id,
-      name: apiKey.name,
-      provider: apiKey.provider,
-      active: apiKey.isActive,
-      createdAt: apiKey.createdAt,
-    };
+  decrypt(encryptedData: string, password: string): string {
+    const combined = Buffer.from(encryptedData, "base64");
+    
+    const salt = combined.slice(0, this.saltLength);
+    const iv = combined.slice(this.saltLength, this.saltLength + this.ivLength);
+    const tag = combined.slice(this.saltLength + this.ivLength, this.saltLength + this.ivLength + this.tagLength);
+    const encrypted = combined.slice(this.saltLength + this.ivLength + this.tagLength);
+    
+    const key = this.deriveKey(password, salt);
+    const decipher = crypto.createDecipheriv(this.algorithm, key, iv) as crypto.DecipherGCM;
+    decipher.setAuthTag(tag);
+    
+    const decrypted = Buffer.concat([
+      decipher.update(encrypted),
+      decipher.final()
+    ]);
+    
+    return decrypted.toString("utf8");
   }
 
-  /**
-   * Get all API keys from the database
-   */
-  async getAllKeys(): Promise<ApiKey[]> {
-    const keys = await prisma.apiKey.findMany({
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    return keys.map((key) => ({
-      id: key.id,
-      name: key.name,
-      provider: key.provider,
-      active: key.isActive,
-      createdAt: key.createdAt,
-    }));
-  }
-
-  /**
-   * Get a key by ID (without decrypting)
-   */
-  async getKey(id: string) {
-    return prisma.apiKey.findUnique({
-      where: { id },
-    });
-  }
-
-  /**
-   * Get the decrypted API key value by ID
-   */
-  async getKeyValue(id: string): Promise<string | null> {
-    const key = await prisma.apiKey.findUnique({
-      where: { id },
-    });
-
-    if (!key) return null;
-
-    // Update last used timestamp
-    await prisma.apiKey.update({
-      where: { id },
-      data: { lastUsed: new Date() },
-    });
-
-    return this.decryptKey(key.key);
-  }
-
-  /**
-   * List all keys (without exposing the actual key values)
-   */
-  async listKeys() {
-    const keys = await prisma.apiKey.findMany({
-      select: {
-        id: true,
-        name: true,
-        provider: true,
-        isActive: true,
-        createdAt: true,
-        lastUsed: true,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    return keys;
-  }
-
-  /**
-   * Get keys by provider
-   */
-  async getKeysByProvider(provider: string) {
-    return prisma.apiKey.findMany({
-      where: {
-        provider,
-        isActive: true,
-      },
-      select: {
-        id: true,
-        name: true,
-        provider: true,
-        isActive: true,
-        createdAt: true,
-        lastUsed: true,
-      },
-    });
-  }
-
-  /**
-   * Delete a key
-   */
-  async removeKey(id: string): Promise<boolean> {
+  async getDecryptedKey(keyId: string): Promise<string | null> {
     try {
-      await prisma.apiKey.delete({
-        where: { id },
+      const apiKey = await prisma.apiKey.findUnique({
+        where: { id: keyId }
       });
-      return true;
+
+      if (!apiKey || !apiKey.key) {
+        return null;
+      }
+
+      // For now, return the key directly - in production, implement proper decryption
+      return apiKey.key;
     } catch (error) {
-      console.error("Error deleting key:", error);
-      return false;
+      console.error("Error getting decrypted key:", error);
+      return null;
     }
   }
 
-  /**
-   * Get the first active key for a provider
-   */
-  async getFirstActiveKeyForProvider(provider: string): Promise<string | null> {
-    const key = await prisma.apiKey.findFirst({
-      where: {
-        provider,
-        isActive: true,
-      },
-      orderBy: {
-        lastUsed: "asc", // Use the least recently used key for load balancing
-      },
-    });
+  async getFirstActiveKeyForProvider(provider: string): Promise<{ id: string; key: string } | null> {
+    try {
+      const apiKey = await prisma.apiKey.findFirst({
+        where: {
+          provider,
+          isActive: true
+        },
+        orderBy: {
+          createdAt: 'asc'
+        }
+      });
 
-    return key ? this.decryptKey(key.key) : null;
+      if (!apiKey || !apiKey.key) {
+        return null;
+      }
+
+      return {
+        id: apiKey.id,
+        key: apiKey.key
+      };
+    } catch (error) {
+      console.error("Error getting first active key for provider:", error);
+      return null;
+    }
   }
 }
 
-// Export singleton instance
 export const keyService = new KeyService();

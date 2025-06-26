@@ -4,7 +4,6 @@ import { useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
-import { createOrGetUser } from "@/lib/server-actions";
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -49,20 +48,29 @@ export default function AuthCallback() {
             throw new Error("No user found in session.");
           }
 
-          // Create or get user
-          const result = await createOrGetUser(
-            user.id,
-            user.email || "",
-            user.user_metadata?.username || user.email?.split("@")[0]
-          );
+          // Create or get user via API route
+          const response = await fetch("/api/auth/create-user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              email: user.email || "",
+              username: user.user_metadata?.username || user.email?.split("@")[0],
+            }),
+          });
+
+          const result = await response.json();
           console.log("User creation result:", result);
 
           if (!result.success) {
-            throw new Error(result.error || "Failed to process user.");
-          }
-
-          if (!result.user) {
-            throw new Error("No user returned from createOrGetUser.");
+            // Handle duplicate user case
+            if (result.code === "USER_EXISTS") {
+              console.log("User already exists, proceeding with login");
+            } else {
+              throw new Error(result.error || "Failed to process user.");
+            }
           }
 
           // Check for stored return URL
@@ -72,35 +80,14 @@ export default function AuthCallback() {
             console.log("Redirecting to stored return URL:", returnTo);
             router.push(returnTo);
           } else {
-            console.log("Redirecting to profile:", `/users/profile/${result.user.id}`);
-            router.push(`/users/profile/${result.user.id}`);
+            console.log("Redirecting to profile");
+            router.push("/profile");
           }
           return; // Exit on success
         } catch (err: unknown) {
           attempts++;
           const error = err as Error;
           console.error("Auth callback error (attempt", attempts, "):", error.message, error.stack);
-
-          // Handle duplicate user error
-          if (error.message.includes("User with this email already exists")) {
-            console.log("Duplicate user detected, fetching existing user");
-            const { data } = await supabase.auth.getSession();
-            const user = data.session?.user;
-            if (user) {
-              // Check for stored return URL for existing users too
-              const returnTo = localStorage.getItem("authReturnTo");
-              if (returnTo) {
-                localStorage.removeItem("authReturnTo");
-                console.log("Redirecting existing user to stored return URL:", returnTo);
-                router.push(returnTo);
-              } else {
-                console.log("Redirecting to profile for existing user:", `/users/profile/${user.id}`);
-                router.push(`/users/profile/${user.id}`);
-              }
-              return; // Exit without retry
-            }
-            throw new Error("Failed to fetch existing user session.");
-          }
 
           if (attempts >= maxAttempts) {
             console.error("Max retry attempts reached. Redirecting to login.");

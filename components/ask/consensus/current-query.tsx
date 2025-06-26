@@ -40,14 +40,19 @@ export default function CurrentQuery() {
     return <QueryState state={{ error: formatErrorMessage(error) }} />;
   }
   // Sanitize queryText to prevent XSS
-  const sanitizedQueryText =
-    sanitizeQueryText(voteResult?.queryText) ||  <LoadingSpinner type="beat" message="Loading query..." />;
+  const sanitizedQueryText = voteResult?.queryText 
+    ? sanitizeQueryText(voteResult.queryText) 
+    : null;
 
+  const yesVotes = voteResult?.votingResult?.yes || 0;
+  const noVotes = voteResult?.votingResult?.no || 0;
+  
   const {
-    yes: yesPercentage,
-    no: noPercentage,
-    notVoted: notVotedPercentage,
-  } = calculateVotePercentages(voteResult);
+    yesPercentage,
+    noPercentage,
+  } = calculateVotePercentages(yesVotes, noVotes);
+  
+  const notVotedPercentage = 0; // Simplified for now
 
   return (
     <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">
@@ -56,7 +61,7 @@ export default function CurrentQuery() {
       </h3>
       <div className="space-y-4">
         <div className="text-2xl text-gray-600 dark:text-gray-300">
-          {sanitizedQueryText}
+          {sanitizedQueryText || <LoadingSpinner type="beat" message="Loading query..." />}
         </div>
         <div
           className={`

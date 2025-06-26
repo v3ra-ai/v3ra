@@ -2,7 +2,6 @@ import { AIValidator, ValidationRequest, AIValidationResponse } from "../types";
 import type { QueryMode } from "@/lib/types";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
-import { getAdapter } from "../modeAdapters";
 import { keyService } from "../../services/keyService";
 
 export class OpenRouterValidator implements AIValidator {
@@ -45,11 +44,16 @@ export class OpenRouterValidator implements AIValidator {
 
     // Fall back to key service only if env variable isn't available
     if (this.keyId) {
-      const key = await keyService.getKeyValue(this.keyId);
+      const key = await keyService.getDecryptedKey(this.keyId);
       if (key) return key;
     }
 
-    return keyService.getFirstActiveKeyForProvider("OpenRouter");
+    const keyData = await keyService.getFirstActiveKeyForProvider("OpenRouter");
+    if (keyData) {
+      this.keyId = keyData.id;
+      return keyData.key;
+    }
+    return null;
   }
 
   async validate(req: ValidationRequest): Promise<AIValidationResponse> {
@@ -199,8 +203,8 @@ export class OpenRouterValidator implements AIValidator {
         console.log(`[OpenRouter - ${this.modelName}] Processed content:`, content);
         const parsed = parseVote(content);
         console.log(`[OpenRouter - ${this.modelName}] Parsed reply object:`, parsed);
-        const { vote: v, confidence: c, rationale: r } = getAdapter(req.queryMode).interpret(parsed);
-        vote = v;
+        const { decision, confidence: c = 0.8, rationale: r } = parsed;
+        vote = decision;
         confidence = c;
         rationale = r;
       } else {

@@ -2,12 +2,9 @@ import "./globals.css";
 import type { Metadata } from "next";
 import { Inter, Orbitron, Rajdhani } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
-import { ValidatorInitializer } from "@/components/validator-initializer";
-import { ThemeInitializer } from "@/components/theme-initializer";
 import type { ReactNode } from "react";
 import { SolanaProvider } from "@/components/solana-provider";
 import { Toaster } from "sonner";
-import { Hotjar } from "@/components/analytics/hotjar";
 
 const inter = Inter({ subsets: ["latin"] });
 const orbitron = Orbitron({ 
@@ -30,10 +27,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <Hotjar 
-          hotjarId={process.env.NEXT_PUBLIC_HOTJAR_ID || ""} 
-          hotjarVersion={6} 
-        />
       </head>
       <body className={`${inter.className} ${orbitron.variable} ${rajdhani.variable}`} suppressHydrationWarning>
         <ThemeProvider
@@ -42,8 +35,6 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
-          <ThemeInitializer />
-          <ValidatorInitializer />
           <SolanaProvider>
             <main className="w-full max-w-none mx-auto">{children}</main>
             <Toaster

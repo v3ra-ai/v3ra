@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { X } from "lucide-react";
+import { X, Twitter, Send, Github } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
@@ -166,6 +166,42 @@ export default function Navbar() {
               </button>
               <div className="mt-12 [&>div]:flex [&>div]:flex-col [&>div]:space-y-4 [&>div]:text-base [&>div_a]:p-3 [&>div_a]:min-h-[48px] [&>div_a]:flex [&>div_a]:items-center [&>div_a]:rounded-lg">
                 <NavbarSitelinks />
+                
+                {/* Social Links for Mobile */}
+                <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-700">
+                  <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-4 px-3">
+                    Follow Us
+                  </h3>
+                  <div className="flex space-x-4 px-3">
+                    <Link
+                      href="https://x.com/v3ra_ai"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-2"
+                      aria-label="Follow us on X (Twitter)"
+                    >
+                      <Twitter className="h-5 w-5" />
+                    </Link>
+                    <Link
+                      href="https://t.me/v3ra_ai"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-2"
+                      aria-label="Join us on Telegram"
+                    >
+                      <Send className="h-5 w-5" />
+                    </Link>
+                    <Link
+                      href="https://github.com/v3ra-ai/v3ra"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-2"
+                      aria-label="View on GitHub"
+                    >
+                      <Github className="h-5 w-5" />
+                    </Link>
+                  </div>
+                </div>
               </div>
             </motion.div>
           </>

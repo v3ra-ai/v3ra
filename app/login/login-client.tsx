@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
-import { getAuthCallbackURL } from "@/lib/url-utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import Link from "next/link";
 
 export default function LoginClient() {
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
@@ -26,114 +27,59 @@ export default function LoginClient() {
     }
   }, [searchParams]);
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
-      console.log("[login] Cookies before OTP:", document.cookie.split(";").map((c) => c.trim()));
-
-      const redirectTo = getAuthCallbackURL();
-      console.log("[login] Email:", email, "RedirectTo:", redirectTo);
-
       // Validate email
       if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
         throw new Error("Please enter a valid email address.");
       }
 
-      // Retry logic for signInWithOtp
-      let attempts = 0;
-      const maxAttempts = 3;
-      let lastError: Error | null = null;
-
-      while (attempts < maxAttempts) {
-        attempts++;
-        console.log(`[login] Attempt ${attempts} of ${maxAttempts} for signInWithOtp`);
-
-        try {
-          const { error } = await supabase.auth.signInWithOtp({
-            email,
-            options: {
-              emailRedirectTo: redirectTo,
-            },
-          });
-
-          if (error) {
-            console.error("[login] Supabase OTP error:", {
-              message: error.message,
-              name: error.name,
-              code: error.code,
-              status: error.status,
-              stack: error.stack,
-            });
-            lastError = error;
-            if (!error.message.includes("fetch") && error.code !== "429") {
-              throw error; // Non-retryable error
-            }
-          } else {
-            lastError = null;
-            break; // Success
-          }
-        } catch (err) {
-          lastError = err as Error;
-          console.error("[login] Fetch attempt error:", {
-            message: lastError.message,
-            name: lastError.name,
-            stack: lastError.stack,
-          });
-        }
-
-        if (attempts < maxAttempts) {
-          console.log(`[login] Retrying after 1s delay...`);
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
+      // Validate password
+      if (!password || password.length < 6) {
+        throw new Error("Password must be at least 6 characters.");
       }
 
-      if (lastError) {
-        throw lastError; // Throw the last error if all attempts fail
+      // Sign in with email and password
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        console.error("[login] Supabase auth error:", error);
+        throw error;
       }
 
-      console.log("[login] Cookies after OTP:", document.cookie.split(";").map((c) => c.trim()));
-      localStorage.setItem("signupEmail", email);
-      
+      if (!data.user) {
+        throw new Error("No user returned from login.");
+      }
+
       // Store the return URL if provided
       if (returnTo) {
         localStorage.setItem("authReturnTo", returnTo);
       }
-      
-      console.log("[login] Redirecting to /auth/verify");
-      router.push("/auth/verify");
+
+      // Redirect to callback to handle user creation/retrieval
+      router.push("/auth/callback");
     } catch (err) {
       const error = err as Error & { code?: string; status?: number };
-      console.error("[login] Final error:", {
-        message: error.message,
-        name: error.name,
-        code: error.code,
-        status: error.status,
-        cause: error.cause,
-        stack: error.stack,
-      });
+      console.error("[login] Login error:", error);
 
-      let userMessage = "Failed to send login code. Please try again.";
-      if (error.message.includes("fetch") || error.message.includes("AuthRetryableFetchError")) {
-        userMessage = "Network error connecting to authentication server. Please check your connection or try again later.";
-        if (navigator.userAgent.includes("Chrome")) {
-          toast.error("Login failed", {
-            description: "A browser extension (e.g., a crypto wallet) may be interfering. Try in incognito mode or disable extensions.",
-            duration: 10000,
-            action: {
-              label: "Learn More",
-              onClick: () => window.open("https://support.google.com/chrome/answer/95464", "_blank"),
-            },
-          });
-        }
+      let userMessage = "Failed to log in. Please try again.";
+      if (error.message.includes("Invalid login credentials")) {
+        userMessage = "Invalid email or password.";
       } else if (error.code === "429") {
-        userMessage = "Too many requests. Please wait a minute and try again.";
-      } else if (error.message.includes("invalid")) {
-        userMessage = "Invalid email or configuration. Please check your email and try again.";
+        userMessage = "Too many attempts. Please wait a minute and try again.";
+      } else if (error.message) {
+        userMessage = error.message;
       }
+      
       setError(userMessage);
+    } finally {
       setLoading(false);
     }
   };
@@ -145,7 +91,7 @@ export default function LoginClient() {
           Log In
         </h1>
         {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
-        <form onSubmit={handleEmailLogin} className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div>
             <Label htmlFor="email" className="text-zinc-800 dark:text-zinc-200">
               Email
@@ -158,6 +104,22 @@ export default function LoginClient() {
               required
               disabled={loading}
               className="mt-1 bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200"
+              placeholder="you@example.com"
+            />
+          </div>
+          <div>
+            <Label htmlFor="password" className="text-zinc-800 dark:text-zinc-200">
+              Password
+            </Label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              disabled={loading}
+              className="mt-1 bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200"
+              placeholder="••••••••"
             />
           </div>
           <Button
@@ -165,9 +127,26 @@ export default function LoginClient() {
             disabled={loading}
             className="w-full bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 cursor-pointer"
           >
-            {loading ? "Sending..." : "Log In with Email"}
+            {loading ? "Logging in..." : "Log In"}
           </Button>
         </form>
+        
+        <div className="mt-6 text-center space-y-2">
+          <Link 
+            href="/signup" 
+            className="text-sm text-teal-600 hover:text-teal-700 dark:text-teal-500 dark:hover:text-teal-400"
+          >
+            Don't have an account? Sign up
+          </Link>
+          <div>
+            <Link 
+              href="/forgot-password" 
+              className="text-sm text-zinc-600 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+            >
+              Forgot your password?
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

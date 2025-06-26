@@ -1,4 +1,4 @@
 export function getPlaceholderText(_queryMode: string): string {
-  // Always return fact-check placeholder
-  return "Example: Covid-19 was leaked from a lab in Wuhan, China";
+  // Return helpful placeholder text
+  return "Ask a yes/no question (e.g., 'Is renewable energy better than fossil fuels?')";
 }

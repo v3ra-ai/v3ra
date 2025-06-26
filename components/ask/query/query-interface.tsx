@@ -3,8 +3,9 @@
 import { useState } from "react";
 import { QueryForm } from "@/components/ask/query/query-form";
 import QueryResults from "@/components/ask/query/query-results";
-import useQueryLogic from "@/hooks/useQueryLogic"; // Correct default import
+import useQueryLogic from "@/hooks/useQueryLogic";
 import { QueryModelSelector } from "@/components/ask/query/query-model-selector";
+import { PopularQuestions } from "@/components/ask/query/popular-questions";
 
 export default function QueryInterface() {
   const [isSubmitInteracted] = useState(false);
@@ -21,15 +22,9 @@ export default function QueryInterface() {
     handleSubmit,
   } = useQueryLogic({ payWithWallet: false, setPayWithWallet: () => {} });
 
-  // console.log("QueryInterface render:", {
-  //   payWithWallet,
-  //   queriesUnpaid,
-  //   userPaidCredits,
-  //   queriesCostTotal,
-  //   error,
-  //   viewMode,
-  //   timestamp: new Date().toISOString(),
-  // });
+  const handleSelectPopularQuestion = (question: string) => {
+    setQueryText(question);
+  };
 
   return (
     <div className="container mx-auto px-4 py-2 min-h-[calc(100vh-4rem)]">
@@ -44,6 +39,12 @@ export default function QueryInterface() {
             {error}
           </p>
         )}
+        
+        {/* Popular Questions - show only when query text is empty */}
+        {!queryText && (
+          <PopularQuestions onSelectQuestion={handleSelectPopularQuestion} />
+        )}
+        
         <QueryForm
           queryText={queryText}
           setQueryText={setQueryText}
@@ -54,10 +55,12 @@ export default function QueryInterface() {
           isSubmitting={isSubmitting}
           isSubmitInteracted={isSubmitInteracted}
         />
+
+        <div className="flex justify-between items-center">
+          <QueryModelSelector />
+        </div>
       </div>
-      <div className="flex justify-center">
-        <QueryModelSelector />
-      </div>
+
       <QueryResults viewMode={viewMode} />
     </div>
   );

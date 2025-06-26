@@ -2,8 +2,6 @@ import Navbar from "@/components/ask/navbar/navbar";
 import QueryInterface from "@/components/ask/query/query-interface";
 import { SolanaProvider } from "@/components/solana-provider";
 import AskFooter from "@/components/ask/ask-footer";
-import { FeedbackWidget } from "@/components/feedback-widget";
-import { FeedbackModal } from "@/components/feedback-modal";
 
 export default async function AskPage() {
   return (
@@ -14,12 +12,6 @@ export default async function AskPage() {
         <Navbar />
         <QueryInterface />
         <AskFooter />
-        <FeedbackWidget
-          component="AskPage"
-          action="view"
-          className="fixed bottom-5 right-4"
-        />
-        <FeedbackModal />
       </main>
     </SolanaProvider>
   );

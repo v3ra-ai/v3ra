@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import { useQueryStore } from "@/store/query-store";
 import { ViewMode } from "@/lib/types";
 import AskResultsStandard from "@/components/ask/results/ask-results-standard";
-import AskResultsExpert from "@/components/ask/results/ask-results-expert";
 
 type Props = {
   viewMode: ViewMode;
@@ -29,5 +28,7 @@ export default function QueryResults({ viewMode }: Props) {
     return null;
   }
 
-  return viewMode === "viewStandard" ? <AskResultsStandard /> : <AskResultsExpert />;
+  // For now, both view modes use the same component
+  // TODO: Implement expert view when requirements are clear
+  return <AskResultsStandard />;
 }

@@ -4,7 +4,6 @@ import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
-import { getAdapter } from "../modeAdapters";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -104,7 +103,7 @@ export class AnthropicValidator implements AIValidator {
       console.log(
         `[Anthropic ${this.id}] Attempting to retrieve key with ID: ${this.keyId}`,
       );
-      const key = await keyService.getKeyValue(this.keyId);
+      const key = await keyService.getDecryptedKey(this.keyId);
       if (key) {
         console.log(
           `[Anthropic ${this.id}] Successfully retrieved key from key service`,
@@ -119,15 +118,17 @@ export class AnthropicValidator implements AIValidator {
     console.log(
       `[Anthropic ${this.id}] Attempting to get first active key for Anthropic`,
     );
-    const key = await keyService.getFirstActiveKeyForProvider("Anthropic");
-    if (key) {
+    const keyData = await keyService.getFirstActiveKeyForProvider("Anthropic");
+    if (keyData) {
       console.log(
         `[Anthropic ${this.id}] Successfully retrieved first active key for Anthropic`,
       );
+      this.keyId = keyData.id; // Update keyId for future use
+      return keyData.key;
     } else {
       console.log(`[Anthropic ${this.id}] No active key found for Anthropic`);
+      return null;
     }
-    return key;
   }
 
   async validate(request: ValidationRequest): Promise<AIValidationResponse> {
@@ -285,7 +286,7 @@ export class AnthropicValidator implements AIValidator {
         const endTime = Date.now();
 
         const parsed = parseVote(reply);
-        const { vote, confidence, rationale } = getAdapter(request.queryMode).interpret(parsed);
+        const { decision: vote, confidence = 0.8, rationale } = parsed;
 
         console.log(
           `[Anthropic ${this.id}] Parsed Anthropic response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`,

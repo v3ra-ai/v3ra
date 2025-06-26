@@ -39,16 +39,23 @@ export function useSubmitQuery(): SubmitQueryReturn {
       console.log("[useSubmitQuery] Submitting query with queryMode:", options.queryMode, "queriesRequested:", options.queriesRequested);
       const queryResponse = await submitQueryService(
         sanitizedQuery,
-        options.queryMode,
+        options.queryMode || "fact-check",
         options.queriesRequested
       );
       console.log("[useSubmitQuery] Submission successful, response:", queryResponse);
+      
+      // Check if the response is an error
+      if ("error" in queryResponse) {
+        console.error("[useSubmitQuery] Query failed:", queryResponse.error);
+        throw new Error(queryResponse.error);
+      }
+      
       setVoteHistory((prev: VoteResult[]) => {
-        const newHistory = [...prev, queryResponse.voteResult].slice(0, RESULT_QUERIES_CARDS);
+        const newHistory = [...prev, queryResponse].slice(0, RESULT_QUERIES_CARDS);
         console.log("[useSubmitQuery] Updating voteHistory:", newHistory.length, "items");
         return newHistory;
       });
-      setLastVoteResult(queryResponse.voteResult);
+      setLastVoteResult(queryResponse);
     },
     [setVoteHistory, setLastVoteResult]
   );

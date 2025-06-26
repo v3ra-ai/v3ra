@@ -5,7 +5,6 @@ import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
-import { getAdapter } from "../modeAdapters";
 
 // Rate limiting
 const rateLimits = {
@@ -121,7 +120,7 @@ export class GeminiValidator implements AIValidator {
     // Fall back to key service only if env variable isn't available
     if (this.keyId) {
       console.log(`Looking for key with ID: ${this.keyId}`);
-      const key = await keyService.getKeyValue(this.keyId);
+      const key = await keyService.getDecryptedKey(this.keyId);
       if (key) {
         console.log("Found key in key service by ID");
         return key;
@@ -130,11 +129,14 @@ export class GeminiValidator implements AIValidator {
     }
 
     console.log("Attempting to get first active key for Google provider");
-    const firstKey = await keyService.getFirstActiveKeyForProvider("Google");
-    console.log(
-      firstKey ? "Found active Google key" : "No active Google keys found"
-    );
-    return firstKey;
+    const keyData = await keyService.getFirstActiveKeyForProvider("Google");
+    if (keyData) {
+      this.keyId = keyData.id;
+      console.log("Found active key for Google provider");
+      return keyData.key;
+    }
+    console.log("No active Google keys found");
+    return null;
   }
 
   /**
@@ -252,7 +254,7 @@ export class GeminiValidator implements AIValidator {
 
         // Parse structured JSON reply
         const parsed = parseVote(textResponse);
-        const { vote, confidence, rationale } = getAdapter(request.queryMode).interpret(parsed);
+        const { decision: vote, confidence = 0.8, rationale } = parsed;
 
         console.log(
           `[GEMINI] Parsed result: Vote=${vote}, Confidence=${confidence}, Rationale=${rationale.substring(

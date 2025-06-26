@@ -1,21 +1,15 @@
 import { NetworkState } from "@/lib/types";
 
-/**
- * Provides fallback defaults for NetworkState fields when networkState is null.
- * @param networkState - The NetworkState object or null.
- * @returns An object with default values for validators, currentLeaderIndex, isVoting, and currentQuery.
- */
-export function getNetworkStateDefaults(networkState: NetworkState | null): {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  validators: any[];
-  currentLeaderIndex: number;
-  isVoting: boolean;
-  currentQuery: string | null;
-} {
+export function getNetworkStateDefaults(): NetworkState {
   return {
-    validators: networkState?.validators || [],
-    currentLeaderIndex: networkState?.currentLeaderIndex ?? 0,
-    isVoting: networkState?.isVoting || false,
-    currentQuery: networkState?.lastQuery || null,
+    validators: [],
+    currentLeaderIndex: 0,
+    isVoting: false,
+    lastQuery: null,
+    lastNetworkResponse: null,
+    lastConsensusValue: null,
+    lastConsensusThreshold: 0.6,
+    lastConsensusAchieved: null,
+    lastVoteTimestamp: null,
   };
 }

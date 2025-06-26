@@ -4,7 +4,6 @@ import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
-import { getAdapter } from "../modeAdapters";
 
 // Simple in-memory rate limiting
 const rateLimits = {
@@ -111,11 +110,16 @@ export class OpenAIValidator implements AIValidator {
 
     // Fall back to key service only if env variable isn't available
     if (this.keyId) {
-      const key = await keyService.getKeyValue(this.keyId);
+      const key = await keyService.getDecryptedKey(this.keyId);
       if (key) return key;
     }
 
-    return keyService.getFirstActiveKeyForProvider("OpenAI");
+    const keyData = await keyService.getFirstActiveKeyForProvider("OpenAI");
+    if (keyData) {
+      this.keyId = keyData.id;
+      return keyData.key;
+    }
+    return null;
   }
 
   /**
@@ -213,7 +217,7 @@ export class OpenAIValidator implements AIValidator {
 
       // Parse structured JSON reply
       const parsed = parseVote(reply);
-      const { vote, confidence, rationale } = getAdapter(request.queryMode).interpret(parsed);
+      const { decision: vote, confidence = 0.8, rationale } = parsed;
 
       return {
         vote,

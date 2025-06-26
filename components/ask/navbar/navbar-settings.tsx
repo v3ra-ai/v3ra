@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
-import { Sun, Moon, CircleUser, User, Menu, CircleHelp } from "lucide-react";
+import { Sun, Moon, CircleUser, User, Menu, Twitter, Send, Github } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import {
@@ -12,14 +11,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-
-const WalletMultiButton = dynamic(
-  () =>
-    import("@solana/wallet-adapter-react-ui").then(
-      (mod) => mod.WalletMultiButton
-    ),
-  { ssr: false }
-);
 
 interface NavbarSettingsProps {
   mounted: boolean;
@@ -77,25 +68,61 @@ export function NavbarSettings({
   };
 
   return (
-    <div className="flex items-center space-x-3">
+    <div className="flex items-center space-x-4">
+      {/* Social Links */}
+      <div className="hidden md:flex items-center space-x-3">
+        <Link
+          href="https://x.com/v3ra_ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+          aria-label="Follow us on X (Twitter)"
+        >
+          <Twitter className="h-5 w-5" />
+        </Link>
+        <Link
+          href="https://t.me/v3ra_ai"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+          aria-label="Join us on Telegram"
+        >
+          <Send className="h-5 w-5" />
+        </Link>
+        <Link
+          href="https://github.com/v3ra-ai/v3ra"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors"
+          aria-label="View on GitHub"
+        >
+          <Github className="h-5 w-5" />
+        </Link>
+      </div>
+
+      {/* Divider */}
+      <div className="hidden md:block h-5 w-px bg-zinc-300 dark:bg-zinc-700" />
+
+      {/* Theme Toggle */}
       {mounted && (
         <button
           onClick={handleToggleTheme}
           disabled={isCreditsPage}
-          className="rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800
+          className="rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800
             focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
             disabled:opacity-50 transition-colors cursor-pointer"
           aria-label="Toggle theme"
         >
-          <Sun className="h-5 w-5 text-zinc-500 dark:hidden" />
-          <Moon className="h-5 w-5 text-zinc-500 hidden dark:block" />
+          <Sun className="h-5 w-5 text-zinc-600 dark:hidden" />
+          <Moon className="h-5 w-5 text-zinc-400 hidden dark:block" />
         </button>
       )}
 
+      {/* User Menu */}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="text-gray-800 dark:text-gray-200 focus:outline-none cursor-pointer"
+            className="p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-colors focus:outline-none cursor-pointer"
             aria-label={isLoggedIn ? "User menu" : "Login/Signup menu"}
           >
             {isLoggedIn ? (
@@ -113,7 +140,7 @@ export function NavbarSettings({
             <>
               <DropdownMenuItem asChild>
                 <Link
-                  href={userId ? `/users/profile/${userId}` : "/login"}
+                  href="/profile"
                   className="w-full text-zinc-800 dark:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-700 cursor-pointer"
                 >
                   Profile
@@ -149,32 +176,14 @@ export function NavbarSettings({
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <WalletMultiButton
-        style={{
-          backgroundColor: "#2dd4bf",
-          color: "#fff",
-          padding: "10px 12px",
-          borderRadius: "0.375rem",
-          fontSize: "0.95rem",
-          fontWeight: "normal",
-          height: "2rem",
-          margin: "0 0rem",
-          border: "1px solid #d1d5db",
-        }}
-      />
-
+      {/* Mobile Menu Toggle */}
       <button
         onClick={onToggleMenu}
         className="md:hidden p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 transition-colors cursor-pointer"
         aria-label="Toggle navigation menu"
       >
-        <Menu className="h-5 w-5 text-zinc-500 cursor-pointer" />
+        <Menu className="h-5 w-5 text-zinc-600 dark:text-zinc-400 cursor-pointer" />
       </button>
-      <div className="">
-        <Link href="/docs/faqs/" className=" cursor-pointer">
-          <CircleHelp strokeWidth={1.5} />
-        </Link>
-      </div>
     </div>
   );
 }

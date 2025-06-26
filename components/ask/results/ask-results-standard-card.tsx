@@ -89,11 +89,16 @@ export default function AskResultsStandardCard({
   const validatorProvider =
     longestRationaleResponse?.provider || "Unknown Provider";
 
-  const { cleanText } = useCleanText(displayRationale);
+  const { cleanText } = useCleanText();
+  const cleanedRationale = cleanText(displayRationale);
   const formattedDate = sanitizedQuery.timestamp
     ? formatDateTimeCards(sanitizedQuery.timestamp)
     : "N/A";
-  const { percentage, color } = calculateRating(sanitizedQuery);
+  const yesVotes = sanitizedQuery.votingResult?.yes || 0;
+  const noVotes = sanitizedQuery.votingResult?.no || 0;
+  const percentageNum = calculateRating(yesVotes, noVotes);
+  const percentage = `${percentageNum}%`;
+  const color = percentageNum >= 50 ? "text-green-600" : "text-red-600";
 
   // Render fallback UI if query is invalid
   if (!isValidQuery) {
@@ -145,7 +150,7 @@ export default function AskResultsStandardCard({
           longestRationale={displayRationale}
           validatorName={validatorName}
           validatorProvider={validatorProvider}
-          cleanText={cleanText}
+          cleanText={cleanedRationale}
         />
         <AskResultsStandardAiConsensus
           percentage={percentage}
