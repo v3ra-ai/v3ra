@@ -33,15 +33,15 @@ export default function QueryInterface() {
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-2xl">
           <div className="text-center mb-12">
-            <h1 className="text-zinc-50 text-4xl sm:text-5xl font-medium tracking-tight mb-2">
+            <h1 className="text-zinc-900 dark:text-zinc-50 text-4xl sm:text-5xl font-medium tracking-tight mb-2">
               AI Consensus
             </h1>
-            <p className="text-zinc-600 text-sm">
+            <p className="text-zinc-600 dark:text-zinc-400 text-sm">
               Multiple AI models. One truth.
             </p>
           </div>
           
-          <div className="relative rounded-xl border border-cyan-500/20 bg-zinc-950/40 p-6 backdrop-blur-sm shadow-[0_0_30px_rgba(0,255,255,0.1)]">
+          <div className="relative rounded-xl border-2 border-zinc-200 dark:border-cyan-500/20 bg-white/80 dark:bg-zinc-950/40 p-6 backdrop-blur-sm shadow-lg dark:shadow-[0_0_30px_rgba(0,255,255,0.1)]">
             {error && (
               <p className="text-red-400 text-sm mb-6 text-center" role="alert">
                 {error}

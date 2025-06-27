@@ -42,12 +42,12 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
     const enabledNames = llms.filter(llm => llm.enabled).map(llm => llm.name);
     
     // Check if current selection matches knowledge models
-    const isKnowledge = enabledCount === 5 && 
-      KNOWLEDGE_MODEL_PRIORITY.some(name => enabledNames.includes(name));
+    const knowledgeMatchCount = KNOWLEDGE_MODEL_PRIORITY.filter(name => enabledNames.includes(name)).length;
+    const isKnowledge = enabledCount === 5 && knowledgeMatchCount >= 3;
     
     // Check if current selection matches reasoning models  
-    const isReasoning = enabledCount === 5 &&
-      REASONING_MODEL_PRIORITY.some(name => enabledNames.includes(name));
+    const reasoningMatchCount = REASONING_MODEL_PRIORITY.filter(name => enabledNames.includes(name)).length;
+    const isReasoning = enabledCount === 5 && reasoningMatchCount >= 3 && !isKnowledge;
     
     if (isKnowledge) {
       setActiveMode('fast'); // Using 'fast' for knowledge
@@ -159,8 +159,8 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
           onClick={selectKnowledgeModels}
           className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
             activeMode === 'fast'
-              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
-              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
+              ? 'text-white dark:text-cyan-400 bg-cyan-600 dark:bg-cyan-500/20 border-2 border-cyan-600 dark:border-cyan-500/50 shadow-lg shadow-cyan-500/20'
+              : 'text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 border-2 border-zinc-300 dark:border-zinc-700'
           }`}
         >
           <BookOpen className="w-4 h-4" />
@@ -172,8 +172,8 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
           onClick={selectReasoningModels}
           className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
             activeMode === 'balanced'
-              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
-              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
+              ? 'text-white dark:text-cyan-400 bg-cyan-600 dark:bg-cyan-500/20 border-2 border-cyan-600 dark:border-cyan-500/50 shadow-lg shadow-cyan-500/20'
+              : 'text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 border-2 border-zinc-300 dark:border-zinc-700'
           }`}
         >
           <Brain className="w-4 h-4" />
@@ -185,8 +185,8 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
           onClick={handleCustomClick}
           className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
             activeMode === 'custom'
-              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
-              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
+              ? 'text-white dark:text-cyan-400 bg-cyan-600 dark:bg-cyan-500/20 border-2 border-cyan-600 dark:border-cyan-500/50 shadow-lg shadow-cyan-500/20'
+              : 'text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 border-2 border-zinc-300 dark:border-zinc-700'
           }`}
         >
           <Settings className="w-4 h-4" />
