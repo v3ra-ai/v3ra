@@ -65,6 +65,7 @@ export async function broadcastCustomQuery(
         votesYes: 0,
         votesNo: 0,
         notVoted: 0,
+        updatedAt: new Date(),
       },
     });
 
