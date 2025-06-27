@@ -3,11 +3,12 @@ import { prisma } from "@/lib/db/client";
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const voteSession = await prisma.voteSession.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: {
         id: true,
         queryText: true,
@@ -24,8 +25,7 @@ export async function GET(
     }
 
     return NextResponse.json(voteSession);
-  } catch (error) {
-    console.error("Error fetching vote session:", error);
+  } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
 }
