@@ -3,16 +3,6 @@
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 
-declare global {
-  interface Window {
-    hj?: any;
-    _hjSettings?: {
-      hjid: number;
-      hjsv: number;
-    };
-  }
-}
-
 export function HotjarProvider() {
   useEffect(() => {
     // Only load in production
@@ -23,6 +13,7 @@ export function HotjarProvider() {
     if (!hjid) return;
 
     // Hotjar Tracking Code
+    /* eslint-disable @typescript-eslint/no-explicit-any, prefer-rest-params */
     (function(h: any, o: any, t: any, j: any, a?: any, r?: any) {
       h.hj = h.hj || function() {
         (h.hj.q = h.hj.q || []).push(arguments);
@@ -34,6 +25,7 @@ export function HotjarProvider() {
       r.src = t + h._hjSettings.hjid + j;
       a.appendChild(r);
     })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
+    /* eslint-enable @typescript-eslint/no-explicit-any, prefer-rest-params */
 
     // Set up user identification when auth state changes
     const identifyUser = async () => {
