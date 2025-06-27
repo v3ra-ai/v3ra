@@ -103,7 +103,7 @@ export default function Navbar() {
   }, []);
 
   return (
-    <div className="fixed top-0 w-full glass-morphism z-50 h-16 sm:h-[72px] border-b border-border/50 dark:border-border/20">
+    <div className="fixed top-0 w-full glass-morphism bg-black/90 sm:bg-transparent z-50 h-16 sm:h-[72px] border-b border-border/50 dark:border-border/20">
       <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center">

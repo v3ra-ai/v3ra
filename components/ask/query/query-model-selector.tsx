@@ -154,10 +154,10 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
 
   return (
     <div className="relative w-full">
-      <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-1 text-sm px-4 sm:px-0">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-1 text-sm">
         <button
           onClick={selectKnowledgeModels}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 min-w-[140px] sm:min-w-0 ${
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
             activeMode === 'fast'
               ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
@@ -170,7 +170,7 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
         <span className="hidden sm:inline text-zinc-400 dark:text-zinc-600 px-1">•</span>
         <button
           onClick={selectReasoningModels}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 min-w-[140px] sm:min-w-0 ${
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
             activeMode === 'balanced'
               ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
@@ -183,7 +183,7 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
         <span className="hidden sm:inline text-zinc-400 dark:text-zinc-600 px-1">•</span>
         <button
           onClick={handleCustomClick}
-          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 min-w-[140px] sm:min-w-0 ${
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
             activeMode === 'custom'
               ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
               : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
