@@ -3,17 +3,6 @@ import OpenAI from "openai";
 import { Validator, VoteResult } from "./types";
 
 // Type definitions
-type GraphEdgeCreateInput = {
-  sourceType: string;
-  sourceId: string;
-  targetType: string;
-  targetId: string;
-  relationship: string;
-  weight?: number | null;
-  properties: string;
-  validatorId?: string | null;
-  voteSessionId?: string | null;
-};
 
 type SearchResult = {
   id: string;
@@ -141,7 +130,7 @@ export async function createGraphEdge(
 ): Promise<boolean> {
   try {
     // Build the data object for GraphEdge creation
-    const data: any = {
+    const data: Record<string, unknown> = {
       id: crypto.randomUUID(),
       sourceType,
       sourceId,
