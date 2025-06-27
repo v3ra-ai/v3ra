@@ -19,9 +19,31 @@ export async function POST(request: NextRequest) {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
+    // If user is not authenticated, find or create an anonymous user
+    let feedbackUserId = user?.id || userId;
+    
+    if (!feedbackUserId) {
+      // Check if we have an anonymous user for this email
+      let anonymousUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      // If not, create one
+      if (!anonymousUser) {
+        anonymousUser = await prisma.user.create({
+          data: {
+            email,
+            name: email.split("@")[0],
+          },
+        });
+      }
+
+      feedbackUserId = anonymousUser.id;
+    }
+
     // Prepare feedback data
     const feedbackData = {
-      userId: user?.id || userId || "anonymous",
+      userId: feedbackUserId,
       username: user?.user_metadata?.username || email.split("@")[0],
       email,
       component: type,
@@ -52,7 +74,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch {
+  } catch (error) {
+    console.error("Feedback submission error:", error);
     return NextResponse.json(
       { error: "Failed to submit feedback" },
       { status: 500 }
