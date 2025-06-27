@@ -29,16 +29,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user from session if available
-    console.log("[Feedback API] Getting user from session...");
+    // Get user from session if available (optional)
+    console.log("[Feedback API] Checking for authenticated user...");
     let supabaseUser = null;
-    try {
-      const supabase = await createSupabaseServerClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      supabaseUser = user;
-      console.log("[Feedback API] Supabase user:", user ? "Found" : "Not found");
-    } catch (error) {
-      console.error("[Feedback API] Supabase auth error:", error);
+    
+    // Only try to get user if Supabase is configured
+    if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
+      try {
+        const supabase = await createSupabaseServerClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (error) {
+          console.log("[Feedback API] Auth check error (non-fatal):", error.message);
+        } else {
+          supabaseUser = user;
+          console.log("[Feedback API] Supabase user:", user ? "Found" : "Not authenticated");
+        }
+      } catch (error) {
+        console.log("[Feedback API] Supabase client error (non-fatal):", error);
+        // Continue without auth - feedback should still work
+      }
+    } else {
+      console.log("[Feedback API] Supabase not configured, proceeding without auth");
     }
 
     // If user is not authenticated, find or create an anonymous user
@@ -90,12 +101,14 @@ export async function POST(request: NextRequest) {
       rating: "feedback",
       options: [type],
       includeBrowserInfo: true,
+      title: `${type.charAt(0).toUpperCase() + type.slice(1)} Feedback`,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
 
     // Save to database
     console.log("[Feedback API] Creating feedback record...");
+    console.log("[Feedback API] Feedback data:", JSON.stringify(feedbackData, null, 2));
     try {
       const feedback = await prisma.feedback.create({
         data: feedbackData,
@@ -103,6 +116,11 @@ export async function POST(request: NextRequest) {
       console.log("[Feedback API] Feedback created:", feedback.id);
     } catch (error) {
       console.error("[Feedback API] Feedback creation error:", error);
+      // Log the specific Prisma error details
+      if (error instanceof Error) {
+        console.error("[Feedback API] Error message:", error.message);
+        console.error("[Feedback API] Error stack:", error.stack);
+      }
       throw error;
     }
 

@@ -68,27 +68,32 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Server-side Supabase client for App Router server components
 export async function createSupabaseServerClient() {
-  // Dynamically import App Router-specific dependencies
-  const { createServerClient } = await import('@supabase/ssr');
-  const { cookies } = await import('next/headers');
+  try {
+    // Dynamically import App Router-specific dependencies
+    const { createServerClient } = await import('@supabase/ssr');
+    const { cookies } = await import('next/headers');
 
-  const cookieStore = await cookies();
+    const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl, supabaseAnonKey, {
-    cookies: {
-      getAll() {
-        const cookiesList = cookieStore.getAll().map(({ name, value }) => ({ name, value }));
-        return cookiesList;
+    return createServerClient(supabaseUrl, supabaseAnonKey, {
+      cookies: {
+        getAll() {
+          const cookiesList = cookieStore.getAll().map(({ name, value }) => ({ name, value }));
+          return cookiesList;
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, ...options }) => {
+              cookieStore.set({ name, value, ...options });
+            });
+          } catch {
+            // Handle cookie setting error silently
+          }
+        },
       },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, ...options }) => {
-            cookieStore.set({ name, value, ...options });
-          });
-        } catch {
-          // Handle cookie setting error silently
-        }
-      },
-    },
-  });
+    });
+  } catch (error) {
+    console.error('[Supabase] Failed to create server client:', error);
+    throw error;
+  }
 }
