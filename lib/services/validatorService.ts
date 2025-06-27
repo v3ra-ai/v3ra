@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db/client";
 import { Validator, ValidatorKey } from "@prisma/client";
 import { AIValidator } from "@/lib/types";
+import crypto from "crypto";
 
 type DbValidatorWithKeys = Validator & { ValidatorKey: ValidatorKey[] };
 
@@ -64,6 +65,7 @@ class ValidatorService {
     try {
       await prisma.validatorResponse.create({
         data: {
+          id: crypto.randomUUID(),
           vote: data.vote ? "YES" : "NO",
           rationale: data.rationale,
           confidence: data.confidence,
@@ -71,6 +73,8 @@ class ValidatorService {
           error: data.error,
           voteSessionId: data.voteSessionId,
           validatorId: data.validatorId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
     } catch (err) {
