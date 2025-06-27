@@ -140,8 +140,9 @@ export async function createGraphEdge(
   properties?: string,
 ): Promise<boolean> {
   try {
-    // Determine which optional foreign keys to set based on entity types
-    const data: GraphEdgeCreateInput = {
+    // Build the data object for GraphEdge creation
+    const data: any = {
+      id: crypto.randomUUID(),
       sourceType,
       sourceId,
       targetType,
@@ -149,6 +150,7 @@ export async function createGraphEdge(
       relationship,
       weight: weight ?? null,
       properties: properties || "",
+      createdAt: new Date(),
     };
 
     // Set optional relations for easier querying
@@ -158,9 +160,9 @@ export async function createGraphEdge(
       data.voteSessionId = sourceId;
     }
 
-    if (targetType === "Validator") {
+    if (targetType === "Validator" && !data.validatorId) {
       data.validatorId = targetId;
-    } else if (targetType === "VoteSession") {
+    } else if (targetType === "VoteSession" && !data.voteSessionId) {
       data.voteSessionId = targetId;
     }
 
@@ -184,6 +186,7 @@ export async function persistVoteSession(
       // 1. Create VoteSession record
       const voteSession = await tx.voteSession.create({
         data: {
+          id: crypto.randomUUID(),
           queryText: query,
           isConsensusReached: voteResult.isConsensusReached,
           consensusValue: voteResult.consensusValue,
@@ -191,6 +194,9 @@ export async function persistVoteSession(
           votesNo: voteResult.votingResult.no,
           notVoted: voteResult.votingResult.notVoted,
           leaderId: validators.find((v) => v.isLeader)?.id,
+          timestamp: new Date(),
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
 
@@ -219,10 +225,13 @@ export async function persistVoteSession(
         // Create the validator response
         const validatorResponse = await tx.validatorResponse.create({
           data: {
+            id: crypto.randomUUID(),
             vote: response.vote,
             rationale: response.rationale,
             voteSessionId: voteSession.id,
             validatorId: validator.id,
+            createdAt: new Date(),
+            updatedAt: new Date(),
           },
         });
 
@@ -238,6 +247,7 @@ export async function persistVoteSession(
         // 4. Create graph edges
         await tx.graphEdge.create({
           data: {
+            id: crypto.randomUUID(),
             sourceType: "Validator",
             sourceId: validator.id,
             targetType: "VoteSession",
@@ -245,7 +255,7 @@ export async function persistVoteSession(
             relationship: "VOTED_IN",
             weight: response.vote.toUpperCase() === "YES" ? 1 : 0,
             properties: response.rationale.substring(0, 100), // Changed from object to string
-
+            createdAt: new Date(),
             validatorId: validator.id,
             voteSessionId: voteSession.id,
           },
