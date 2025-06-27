@@ -27,8 +27,8 @@ export default function Home() {
       if (session) {
         router.push("/ask");
       }
-    } catch (error) {
-      console.error("Auth check error:", error);
+    } catch {
+      // Handle auth check error silently
     } finally {
       setLoading(false);
     }

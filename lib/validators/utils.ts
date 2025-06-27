@@ -6,12 +6,10 @@ export function generatePrompt(
   statement: string,
   context?: string
 ): { systemMessage: string; userMessage: string } {
-  console.log(`[generatePrompt] queryMode: ${queryMode || "default"}`);
 
   // Always use fact-check mode
   const { systemMessage, userMessage } = getFactCheckPrompt(statement, context);
 
-  console.log("[generatePrompt] Generated prompt:", { systemMessage, userMessage });
 
   return { systemMessage, userMessage };
 }

@@ -5,11 +5,16 @@ import { VoteResult } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sanitizeValidatorResponse } from "@/utils/security-utils";
 import { parseRationaleDetailed } from "@/lib/utils";
+import { AskResultsValidatorSocialIcons } from "@/components/ask/results/ask-results-validator-social-icons";
 
 const ValidatorResponseCard = ({
   response,
+  queryId,
+  queryText,
 }: {
   response: VoteResult["validatorResponses"][number];
+  queryId?: string;
+  queryText?: string;
 }) => {
   const sanitizedResponse = sanitizeValidatorResponse(response);
   return (
@@ -27,9 +32,15 @@ const ValidatorResponseCard = ({
             </span>
           </div>
         </div>
-        <div className="flex flex-col items-end mt-2 sm:mt-0">
-          <span className="text-sm text-zinc-400 mb-1">Vote:</span>
-          <span
+        <div className="flex items-center gap-4 mt-2 sm:mt-0">
+          <AskResultsValidatorSocialIcons 
+            response={sanitizedResponse} 
+            queryId={queryId}
+            queryText={queryText}
+          />
+          <div className="flex flex-col items-end">
+            <span className="text-sm text-zinc-400 mb-1">Vote:</span>
+            <span
             className={`
               px-4 py-2
               rounded-lg
@@ -46,6 +57,7 @@ const ValidatorResponseCard = ({
           >
             {sanitizedResponse.vote || "N/A"}
           </span>
+          </div>
         </div>
       </div>
       {(() => {
@@ -79,6 +91,8 @@ const ValidatorResponseCard = ({
 export default function ValidatorResults() {
   const { voteResult } = useVoteResult();
   const validatorResponses = voteResult?.validatorResponses ?? [];
+  const queryId = voteResult?.id;
+  const queryText = voteResult?.queryText;
 
   return (
     <Card className="bg-gradient-to-b from-zinc-900/95 to-black/95 backdrop-blur-xl rounded-xl shadow-2xl px-6 py-6 w-full border border-zinc-700/30">
@@ -94,7 +108,12 @@ export default function ValidatorResults() {
         {validatorResponses.length > 0 ? (
           <div className="space-y-4">
             {validatorResponses.map((response) => (
-              <ValidatorResponseCard key={response.id} response={response} />
+              <ValidatorResponseCard 
+                key={response.id} 
+                response={response} 
+                queryId={queryId}
+                queryText={queryText}
+              />
             ))}
           </div>
         ) : (

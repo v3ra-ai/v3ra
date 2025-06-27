@@ -13,7 +13,6 @@ export async function generateMetadata({
   const cardId = resolvedParams.cardId;
 
   if (!cardId) {
-    console.error("Invalid cardId in generateMetadata:", cardId);
     return { title: "Card Not Found" };
   }
 
@@ -28,7 +27,6 @@ export async function generateMetadata({
     });
 
     if (!data) {
-      console.error("Vote session not found for metadata:", { cardId });
       return { title: "Card Not Found" };
     }
 
@@ -51,11 +49,6 @@ export async function generateMetadata({
     };
 
     if (!typedData.id || !typedData.queryText) {
-      console.error("Invalid vote session data for metadata:", {
-        cardId,
-        id: typedData.id,
-        queryText: typedData.queryText,
-      });
       return { title: "Card Not Found" };
     }
 
@@ -103,18 +96,13 @@ export async function generateMetadata({
         images: [ogImageUrl],
       },
     };
-  } catch (error) {
-    console.error("Error fetching vote session for metadata:", {
-      cardId,
-      error: error instanceof Error ? error.message : String(error),
-    });
+  } catch {
     return { title: "Card Not Found" };
   }
 }
 
 async function fetchVoteSession(cardId: string): Promise<VoteResult | { error: string }> {
   if (!cardId) {
-    console.error("Invalid cardId in fetchVoteSession:", cardId);
     return { error: "Invalid card ID" };
   }
 
@@ -129,7 +117,6 @@ async function fetchVoteSession(cardId: string): Promise<VoteResult | { error: s
     });
 
     if (!data) {
-      console.error("Vote session not found:", { cardId });
       return { error: `Vote session not found for card ID ${cardId}` };
     }
 
@@ -152,11 +139,6 @@ async function fetchVoteSession(cardId: string): Promise<VoteResult | { error: s
     };
 
     if (!typedData.id || !typedData.queryText) {
-      console.error("Invalid vote session data:", {
-        cardId,
-        id: typedData.id,
-        queryText: typedData.queryText,
-      });
       return { error: `Invalid vote session data for card ID ${cardId}` };
     }
 
@@ -181,11 +163,7 @@ async function fetchVoteSession(cardId: string): Promise<VoteResult | { error: s
     };
 
     return card;
-  } catch (error) {
-    console.error("Error fetching vote session:", {
-      cardId,
-      error: error instanceof Error ? error.message : String(error),
-    });
+  } catch {
     return { error: `Failed to load vote session for card ID ${cardId}` };
   }
 }

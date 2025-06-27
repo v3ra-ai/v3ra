@@ -83,7 +83,7 @@ export class GrokValidator implements AIValidator {
       const waitTime = Math.min(
         errorTracking.backoffTime *
           Math.pow(2, errorTracking.consecutiveErrors - 1),
-        30000,
+        30000
       );
       const timeElapsed = now - errorTracking.lastErrorTime;
 
@@ -105,55 +105,30 @@ export class GrokValidator implements AIValidator {
       process.env &&
       process.env.GROQ_API_KEY
     ) {
-      console.log(
-        `[Grok ${this.id}] Using Groq API key from environment variable`,
-      );
       return process.env.GROQ_API_KEY;
     } else if (
       typeof process !== "undefined" &&
       process.env &&
       process.env.GROK_API_KEY
     ) {
-      console.log(
-        `[Grok ${this.id}] Using Grok API key from environment variable as fallback`,
-      );
       return process.env.GROK_API_KEY;
     }
 
-    console.log(
-      `[Grok ${this.id}] Environment variable not found, falling back to key service`,
-    );
 
     // Fall back to key service only if env variable isn't available
     if (this.keyId) {
-      console.log(
-        `[Grok ${this.id}] Attempting to retrieve key with ID: ${this.keyId}`,
-      );
       const key = await keyService.getDecryptedKey(this.keyId);
       if (key) {
-        console.log(
-          `[Grok ${this.id}] Successfully retrieved key from key service`,
-        );
         return key;
       }
-      console.log(
-        `[Grok ${this.id}] Failed to retrieve key with ID: ${this.keyId}`,
-      );
     }
 
     // Fall back to any active key for Grok
-    console.log(
-      `[Grok ${this.id}] Attempting to get first active key for Grok`,
-    );
     const keyData = await keyService.getFirstActiveKeyForProvider("Grok");
     if (keyData) {
-      console.log(
-        `[Grok ${this.id}] Successfully retrieved first active key for Grok`,
-      );
       this.keyId = keyData.id; // Update keyId for future use
       return keyData.key;
     } else {
-      console.log(`[Grok ${this.id}] No active key found for Grok`);
       return null;
     }
   }
@@ -163,14 +138,10 @@ export class GrokValidator implements AIValidator {
    */
   async validate(request: ValidationRequest): Promise<AIValidationResponse> {
     const startTime = Date.now();
-    console.log(
-      `[Grok ${this.id}] Starting validation for statement: "${request.statement.substring(0, 30)}..."`,
-    );
 
     try {
       // Check rate limiting
       if (!this.checkRateLimit()) {
-        console.log(`[Grok ${this.id}] Rate limit exceeded for Grok API`);
         return {
           vote: false,
           confidence: 0,
@@ -182,9 +153,6 @@ export class GrokValidator implements AIValidator {
       // Check backoff status
       const backoffStatus = this.shouldBackoff();
       if (backoffStatus.shouldWait) {
-        console.log(
-          `[Grok ${this.id}] Backing off Grok API for ${backoffStatus.waitTime}ms due to previous errors`,
-        );
         return {
           vote: false,
           confidence: 0,
@@ -198,15 +166,9 @@ export class GrokValidator implements AIValidator {
 
       // If we have no API key or we're in the browser, simulate response
       if (!apiKey || typeof window !== "undefined") {
-        console.log(
-          `[Grok ${this.id}] Simulating Grok response (no API key or browser environment)`,
-        );
         return this.simulateResponse(request.statement);
       }
 
-      console.log(
-        `[Grok ${this.id}] Preparing to call Grok API with model: ${this.modelName}`,
-      );
 
       // Generate prompt using utility function
       const { systemMessage, userMessage } = generatePrompt(
@@ -242,30 +204,19 @@ export class GrokValidator implements AIValidator {
           signal: AbortSignal.timeout(30000), // Extended timeout (30 seconds instead of 15)
         });
 
-        console.log(
-          `[Grok ${this.id}] Grok API call completed with status: ${response.status} ${response.statusText}`,
-        );
 
         // Get the raw response
         const rawData = await response.text();
-        console.log(`[Grok ${this.id}] Grok API raw response: ${rawData}`);
 
         // Check if response is not OK
         if (!response.ok) {
-          console.error(
-            `[Grok ${this.id}] API error with status ${response.status}`,
-          );
+          console.error(`[Grok ${this.id}] API error with status ${response.status}`);
           let errorData;
           try {
             errorData = JSON.parse(rawData);
-            console.error(
-              `[Grok ${this.id}] Grok API error details:`,
-              errorData,
-            );
+            console.error(`[Grok ${this.id}] Grok API error details:`, errorData);
           } catch {
-            console.error(
-              `[Grok ${this.id}] Could not parse error response as JSON`,
-            );
+            console.error(`[Grok ${this.id}] Could not parse error response as JSON`);
           }
 
           const errorMessage = `Grok API error: ${response.status} ${response.statusText}${errorData ? " - " + JSON.stringify(errorData) : ""}`;
@@ -285,23 +236,15 @@ export class GrokValidator implements AIValidator {
 
         try {
           const data = JSON.parse(rawData);
-          console.log(
-            `[Grok ${this.id}] Grok API response structure:`,
-            JSON.stringify(data, null, 2),
-          );
 
           // Extract response text - assuming similar structure to OpenAI
           const reply = data.choices?.[0]?.message?.content || "";
-          console.log(`[Grok ${this.id}] Extracted Grok reply: ${reply}`);
 
           const endTime = Date.now();
 
           // Parse the response to determine validity and confidence
           const parsed = parseVote(reply);
           const { decision: vote, confidence = 0.8, rationale } = parsed;
-          console.log(
-            `[Grok ${this.id}] Parsed Grok response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`,
-          );
 
           return {
             vote,
@@ -314,9 +257,7 @@ export class GrokValidator implements AIValidator {
             parseError instanceof Error
               ? parseError.message
               : String(parseError);
-          console.error(
-            `[Grok ${this.id}] Error parsing Grok JSON response: ${errorMessage}`,
-          );
+          console.error(`[Grok ${this.id}] Failed to parse response:`, parseError);
           throw new Error(`Failed to parse Grok API response: ${errorMessage}`);
         }
       } catch (error) {
@@ -326,15 +267,6 @@ export class GrokValidator implements AIValidator {
 
         // Enhanced error logging
         console.error(`[Grok ${this.id}] Error calling Grok: ${errorMessage}`);
-        console.error(
-          `[Grok ${this.id}] Error type: ${error instanceof Error ? error.name : "Unknown"}`,
-        );
-        console.error(
-          `[Grok ${this.id}] Error cause: ${error instanceof Error && error.cause ? String(error.cause) : "Unknown"}`,
-        );
-        console.error(
-          `[Grok ${this.id}] Error stack: ${error instanceof Error && error.stack ? error.stack : "No stack trace"}`,
-        );
 
         // Check if this is the first error after success
         if (errorTracking.consecutiveErrors === 0) {
@@ -357,15 +289,6 @@ export class GrokValidator implements AIValidator {
 
       // Enhanced error logging
       console.error(`[Grok ${this.id}] Error calling Grok: ${errorMessage}`);
-      console.error(
-        `[Grok ${this.id}] Error type: ${error instanceof Error ? error.name : "Unknown"}`,
-      );
-      console.error(
-        `[Grok ${this.id}] Error cause: ${error instanceof Error && error.cause ? String(error.cause) : "Unknown"}`,
-      );
-      console.error(
-        `[Grok ${this.id}] Error stack: ${error instanceof Error && error.stack ? error.stack : "No stack trace"}`,
-      );
 
       // Check if this is the first error after success
       if (errorTracking.consecutiveErrors === 0) {

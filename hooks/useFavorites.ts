@@ -15,12 +15,10 @@ export function useFavorites() {
           } else if (result.error === "User not authenticated") {
             // Silently handle unauthenticated users - this is expected
             setFavorites([]);
-          } else {
-            console.error("Failed to fetch favorites:", result.error);
           }
         })
         .catch((error) => {
-          console.error("Failed to fetch favorites:", error);
+          // Handle fetch error silently
         });
     }
   }, [isHydrated, setFavorites]);

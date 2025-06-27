@@ -1,35 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase-client";
 import { Twitter, Send } from "lucide-react";
 
 export default function AskFooter() {
-  const [_isLoggedIn, _setIsLoggedIn] = useState(false);
-
-  // Check Supabase session to determine login status
-  useEffect(() => {
-    async function checkSession() {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-      _setIsLoggedIn(!!session);
-    }
-
-    checkSession();
-
-    // Listen for auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        _setIsLoggedIn(!!session);
-      }
-    );
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
 
   return (
     <>
@@ -43,34 +17,38 @@ export default function AskFooter() {
                   Follow Us
                 </h3>
                 <div className="flex items-center space-x-6">
-                  <Link
-                    href="https://x.com/v3ra_ai"
-                    className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors"
-                    aria-label="Follow us on X (Twitter)"
-                  >
-                    <Twitter size={24} />
-                  </Link>
-                  <Link
-                    href="https://t.me/v3ra_ai"
-                    className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors"
-                    aria-label="Join us on Telegram"
-                  >
-                    <Send size={24} />
-                  </Link>
+                  <div className="relative group">
+                    <Link
+                      href="https://x.com/v3ra_ai"
+                      className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)] inline-block"
+                      aria-label="Follow us on X"
+                    >
+                      <Twitter size={24} />
+                    </Link>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-zinc-800 text-white text-sm rounded-md whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      Follow us on X
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-zinc-800"></div>
+                    </div>
+                  </div>
+                  <div className="relative group">
+                    <Link
+                      href="https://t.me/v3ra_ai"
+                      className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)] inline-block"
+                      aria-label="Join our TG Community"
+                    >
+                      <Send size={24} />
+                    </Link>
+                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-zinc-800 text-white text-sm rounded-md whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                      Join our TG Community
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-t-[6px] border-t-zinc-800"></div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
               {/* Copyright with MIT License */}
               <div className="text-center text-sm">
                 <p>© {new Date().getFullYear()} v3ra. Licensed under MIT License.</p>
-                <p className="mt-1 text-xs">
-                  <Link 
-                    href="https://github.com/v3ra-ai/v3ra" 
-                    className="hover:text-cyan-500 dark:hover:text-cyan-400 transition-colors"
-                  >
-                    Open Source Project
-                  </Link>
-                </p>
               </div>
             </div>
           </div>

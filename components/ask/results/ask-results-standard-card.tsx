@@ -15,7 +15,6 @@ import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
 import { parseRationaleDetailed } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
-import { InlineFeedback } from "./inline-feedback";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -41,13 +40,6 @@ export default function AskResultsStandardCard({
 
   // Validate query data
   const isValidQuery = query && query.queryText && query.id;
-  if (!isValidQuery) {
-    console.error("Invalid query data in AskResultsStandardCard:", {
-      query,
-      id: query?.id,
-      queryText: query?.queryText,
-    });
-  }
 
   // Sanitize query data to prevent XSS
   const sanitizedQuery: VoteResult = isValidQuery
@@ -161,13 +153,6 @@ export default function AskResultsStandardCard({
         <div className="mt-3">
           <AskResultsStandardValidatorAvatars sanitizedQuery={sanitizedQuery} />
         </div>
-        <InlineFeedback 
-          queryId={sanitizedQuery.id}
-          onFeedback={(id, feedback) => {
-            console.log("Feedback received:", { queryId: id, feedback });
-            // You can add API call here to save feedback to backend
-          }}
-        />
       </CardContent>
       <AskResultsStandardFooter
         sanitizedQuery={sanitizedQuery}

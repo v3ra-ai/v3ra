@@ -67,7 +67,6 @@ export default function LoginClient() {
       router.push("/auth/callback");
     } catch (err) {
       const error = err as Error & { code?: string; status?: number };
-      console.error("[login] Login error:", error);
 
       let userMessage = "Failed to log in. Please try again.";
       if (error.message.includes("Invalid login credentials")) {

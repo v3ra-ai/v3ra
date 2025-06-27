@@ -16,12 +16,24 @@ interface WindowWithValidatorRegistry extends Window {
 
 type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
+// List of providers with actual implementations
+const IMPLEMENTED_PROVIDERS = [
+  'OpenAI',
+  'Anthropic', 
+  'Google',
+  'OpenRouter',
+  'HuggingFace'
+];
+
 export class ValidatorRegistryImpl implements ValidatorRegistry {
   private static instance: ValidatorRegistryImpl;
   private validators: Map<string, AIValidator>;
+  private validatorCache: Map<string, { data: AIValidator[]; timestamp: number }>;
+  private CACHE_TTL = 5 * 60 * 1000; // 5 minutes
 
   private constructor() {
     this.validators = new Map<string, AIValidator>();
+    this.validatorCache = new Map();
   }
 
   static getInstance(): ValidatorRegistryImpl {
@@ -35,11 +47,8 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
     if (isServer) {
       return validatorService.addValidator(validator);
     } else {
-      console.warn("Adding validators from client is not fully implemented yet");
       if (validator.id) {
         this.validators.set(validator.id, validator);
-      } else {
-        console.warn("Skipping validator without id:", validator);
       }
       return validator;
     }
@@ -157,7 +166,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
         }
 
         default:
-          console.log(`Creating generic validator for provider: ${validator.provider}`);
+          // Skip generic validators - they don't have real implementations
           return {
             ...aiValidator,
             validate: async (_request: ValidationRequest): Promise<AIValidationResponse> => {
@@ -173,7 +182,6 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
           };
       }
     } catch (error) {
-      console.error(`[ValidatorRegistry] Error creating validator for ${validator.profileName} (${validator.provider}):`, error);
       return {
         ...aiValidator,
         validate: async (_request: ValidationRequest): Promise<AIValidationResponse> => {
@@ -192,14 +200,24 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
 
   async getAllValidators(): Promise<AIValidator[]> {
     try {
-      console.log("[ValidatorRegistry] getAllValidators called");
+      // Check cache first
+      const cacheKey = 'all-validators';
+      const cached = this.validatorCache.get(cacheKey);
+      
+      if (cached && Date.now() - cached.timestamp < this.CACHE_TTL) {
+        return cached.data;
+      }
+
       if (isServer) {
-        console.log("[ValidatorRegistry] Running on server, fetching from database...");
         const dbValidators = await validatorService.getAllValidators();
-        console.log(`[ValidatorRegistry] Found ${dbValidators.length} validators in database`);
+        
+        // Filter only implemented providers
+        const implementedValidators = dbValidators.filter(v => 
+          IMPLEMENTED_PROVIDERS.includes(v.provider)
+        );
         
         const aiValidators = await Promise.all(
-          dbValidators.map((v) => this.createValidatorImplementation(v)),
+          implementedValidators.map((v) => this.createValidatorImplementation(v)),
         );
         
         // Cache them in memory
@@ -209,10 +227,14 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
           }
         });
         
-        console.log(`[ValidatorRegistry] Returning ${aiValidators.length} AI validators`);
+        // Store in cache
+        this.validatorCache.set(cacheKey, {
+          data: aiValidators,
+          timestamp: Date.now()
+        });
+        
         return aiValidators;
       } else {
-        console.log("[ValidatorRegistry] Running on client, returning cached validators");
         return Array.from(this.validators.values());
       }
     } catch (error) {

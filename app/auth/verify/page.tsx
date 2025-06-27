@@ -35,9 +35,8 @@ export default function VerifyPage() {
       if (error) throw error;
       
       alert("Verification email sent! Please check your inbox.");
-    } catch (err) {
+    } catch {
       setError("Failed to resend verification email. Please try again.");
-      console.error("Resend error:", err);
     } finally {
       setLoading(false);
     }

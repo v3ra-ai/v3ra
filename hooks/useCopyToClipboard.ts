@@ -15,7 +15,6 @@ export function useCopyToClipboard() {
       
       return true;
     } catch (error) {
-      console.error("Failed to copy:", error);
       toast.error("Failed to copy to clipboard");
       return false;
     }

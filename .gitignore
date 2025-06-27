@@ -186,4 +186,4 @@ dump.sql
 get_code-snapshot*
 prisma_migrations_backup
 dump-postgres.sql
-*.dump
+*.dumpAUTH_TROUBLESHOOTING.md

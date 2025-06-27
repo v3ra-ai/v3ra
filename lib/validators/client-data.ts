@@ -69,8 +69,7 @@ export async function getValidators(): Promise<AIValidator[]> {
       ...validator,
       validate: createValidateFunction(validator),
     }));
-  } catch (error) {
-    console.warn("Using mock validators due to error:", error);
+  } catch {
     return Promise.resolve(MOCK_VALIDATORS);
   }
 }
@@ -86,8 +85,7 @@ export async function getActiveValidators(): Promise<AIValidator[]> {
       ...validator,
       validate: createValidateFunction(validator),
     }));
-  } catch (error) {
-    console.warn("Using mock active validators due to error:", error);
+  } catch {
     return Promise.resolve(MOCK_VALIDATORS.filter((v) => v.active));
   }
 }
@@ -105,8 +103,7 @@ export async function toggleValidatorStatus(
 
     if (!response.ok) throw new Error("Failed to toggle validator status");
     return true;
-  } catch (error) {
-    console.error("Error toggling validator status:", error);
+  } catch {
     return false;
   }
 }
@@ -129,12 +126,11 @@ function createValidateFunction(validator: {
 
       if (!response.ok) throw new Error("Validation request failed");
       return await response.json();
-    } catch (error) {
-      console.error("Error in validate function:", error);
+    } catch {
       return {
         vote: Math.random() > 0.5,
         confidence: 0.5,
-        rationale: `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        rationale: "Error: Validation request failed",
       };
     }
   };

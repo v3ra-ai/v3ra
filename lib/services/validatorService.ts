@@ -11,8 +11,7 @@ class ValidatorService {
         where: { active: true },
         orderBy: { createdAt: "asc" },
       });
-    } catch (error) {
-      console.error("Error fetching active validators:", error);
+    } catch {
       return [];
     }
   }
@@ -26,8 +25,7 @@ class ValidatorService {
         },
         orderBy: { createdAt: "asc" },
       });
-    } catch (error) {
-      console.error("Error fetching active validators with keys:", error);
+    } catch {
       return [];
     }
   }
@@ -37,8 +35,7 @@ class ValidatorService {
       return await prisma.validator.findUnique({
         where: { id },
       });
-    } catch (error) {
-      console.error("Error fetching validator by id:", error);
+    } catch {
       return null;
     }
   }
@@ -49,8 +46,7 @@ class ValidatorService {
         where: { id },
         data,
       });
-    } catch (error) {
-      console.error("Error updating validator:", error);
+    } catch {
       return null;
     }
   }
@@ -66,11 +62,19 @@ class ValidatorService {
     error?: string;
   }): Promise<void> {
     try {
-      // In a real implementation, this would record the response in the database
-      // For now, just log it
-      console.log("Recording validator response:", data);
-    } catch (error) {
-      console.error("Error recording validator response:", error);
+      await prisma.validatorResponse.create({
+        data: {
+          vote: data.vote ? "YES" : "NO",
+          rationale: data.rationale,
+          confidence: data.confidence,
+          latency: data.latency,
+          error: data.error,
+          voteSessionId: data.voteSessionId,
+          validatorId: data.validatorId,
+        },
+      });
+    } catch (err) {
+      throw err;
     }
   }
 
@@ -78,21 +82,17 @@ class ValidatorService {
     try {
       // In a real implementation, this would add the validator to the database
       // For now, just log it and return the validator
-      console.log("Adding validator:", validator.name);
       return validator;
-    } catch (error) {
-      console.error("Error adding validator:", error);
-      throw error;
+    } catch (err) {
+      throw err;
     }
   }
 
-  async removeValidator(id: string): Promise<boolean> {
+  async removeValidator(_id: string): Promise<boolean> {
     try {
       // In a real implementation, this would remove the validator from the database
-      console.log("Removing validator:", id);
       return true;
-    } catch (error) {
-      console.error("Error removing validator:", error);
+    } catch {
       return false;
     }
   }
@@ -105,8 +105,7 @@ class ValidatorService {
         },
         orderBy: { createdAt: "asc" },
       });
-    } catch (error) {
-      console.error("Error fetching all validators:", error);
+    } catch {
       return [];
     }
   }
@@ -118,8 +117,7 @@ class ValidatorService {
         data: { active },
       });
       return true;
-    } catch (error) {
-      console.error("Error toggling validator:", error);
+    } catch {
       return false;
     }
   }

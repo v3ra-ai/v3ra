@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { getAuthCallbackURL } from "@/lib/url-utils";
 
 export default function SignupClient() {
   const [email, setEmail] = useState("");
@@ -64,7 +65,7 @@ export default function SignupClient() {
           data: {
             username,
           },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: getAuthCallbackURL(),
         },
       });
 

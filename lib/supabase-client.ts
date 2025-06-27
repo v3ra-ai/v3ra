@@ -14,10 +14,8 @@ let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
 if (!supabaseUrl) {
   // In development, use the actual Supabase URL as fallback
   if (process.env.NODE_ENV === 'development') {
-    console.warn('Supabase URL not found in environment variables. Using development fallback.');
     supabaseUrl = 'https://rccfhomdmfbcywrlvgly.supabase.co';
   } else {
-    console.error('Supabase URL not found in environment variables.');
     // Use a placeholder URL to prevent build errors
     supabaseUrl = 'https://placeholder.supabase.co';
   }
@@ -25,7 +23,6 @@ if (!supabaseUrl) {
 
 // Use a valid placeholder if no key is found to prevent runtime errors
 if (!supabaseAnonKey) {
-  console.warn('Supabase anon key not found in environment variables. Using placeholder.');
   // Use a properly formatted placeholder (base64 encoded JWT-like string)
   supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYyMzkwMjIsImV4cCI6MTk2MTgxNTAyMn0.placeholder-key-do-not-use-in-production';
 }
@@ -88,8 +85,8 @@ export async function createSupabaseServerClient() {
           cookiesToSet.forEach(({ name, value, ...options }) => {
             cookieStore.set({ name, value, ...options });
           });
-        } catch (error) {
-          console.error('Error setting cookies:', error);
+        } catch {
+          // Handle cookie setting error silently
         }
       },
     },

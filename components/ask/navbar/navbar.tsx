@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Twitter, Send, Github } from "lucide-react";
+import { X, Twitter, Send } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { useQueryStore } from "@/store/query-store";
 import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
@@ -63,7 +63,6 @@ export default function Navbar() {
   useEffect(() => {
     const handleScroll = debounce(() => {
       setShowSearch(window.scrollY > 50);
-      console.log("[Navbar] Scroll handled, showSearch:", window.scrollY > 50);
     }, 100); // 100ms debounce
 
     window.addEventListener("scroll", handleScroll);
@@ -190,15 +189,6 @@ export default function Navbar() {
                       aria-label="Join us on Telegram"
                     >
                       <Send className="h-5 w-5" />
-                    </Link>
-                    <Link
-                      href="https://github.com/v3ra-ai/v3ra"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-2"
-                      aria-label="View on GitHub"
-                    >
-                      <Github className="h-5 w-5" />
                     </Link>
                   </div>
                 </div>

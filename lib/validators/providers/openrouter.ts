@@ -36,11 +36,9 @@ export class OpenRouterValidator implements AIValidator {
     // Use environment variable directly instead of key service
     const envKey = process.env.OPENROUTER_API_KEY;
     if (envKey) {
-      console.log("Using OpenRouter API key from environment variable");
       return envKey;
     }
 
-    console.log("Environment variable not found, falling back to key service");
 
     // Fall back to key service only if env variable isn't available
     if (this.keyId) {
@@ -71,10 +69,6 @@ export class OpenRouterValidator implements AIValidator {
         modelName: this.modelName,
       };
     }
-
-    console.log(
-      `OpenRouterValidator validating statement: "${req.statement}" with model ${this.modelName} in mode ${req.queryMode || "fact-check"}`
-    );
 
     try {
       const startTime = Date.now();
@@ -136,11 +130,9 @@ export class OpenRouterValidator implements AIValidator {
 
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
         const content = data.choices[0].message.content;
-        console.log(`[OpenRouter - ${this.modelName}] Raw response:`, content);
         
         // Use the standard parser which handles YES/NO format
         const parsed = parseVote(content);
-        console.log(`[OpenRouter - ${this.modelName}] Parsed response:`, parsed);
         
         vote = parsed.decision;
         confidence = parsed.confidence || 0.8;

@@ -45,6 +45,11 @@ export function NavbarSitelinks() {
         label="Ask"
         description="Ask AI models questions and explore consensus"
       />
+      <NavLink
+        href="/ai-hub"
+        label="AI Hub"
+        description="Configure your AI consensus panel"
+      />
     </div>
   );
 }

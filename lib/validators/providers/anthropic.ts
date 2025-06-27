@@ -71,7 +71,7 @@ export class AnthropicValidator implements AIValidator {
       const waitTime = Math.min(
         errorTracking.backoffTime *
           Math.pow(2, errorTracking.consecutiveErrors - 1),
-        30000,
+        30000
       );
       const timeElapsed = now - errorTracking.lastErrorTime;
 
@@ -89,59 +89,31 @@ export class AnthropicValidator implements AIValidator {
       process.env &&
       process.env.ANTHROPIC_API_KEY
     ) {
-      console.log(
-        `[Anthropic ${this.id}] Using Anthropic API key from environment variable`,
-      );
       return process.env.ANTHROPIC_API_KEY;
     }
 
-    console.log(
-      `[Anthropic ${this.id}] Environment variable not found, falling back to key service`,
-    );
 
     if (this.keyId) {
-      console.log(
-        `[Anthropic ${this.id}] Attempting to retrieve key with ID: ${this.keyId}`,
-      );
       const key = await keyService.getDecryptedKey(this.keyId);
       if (key) {
-        console.log(
-          `[Anthropic ${this.id}] Successfully retrieved key from key service`,
-        );
         return key;
       }
-      console.log(
-        `[Anthropic ${this.id}] Failed to retrieve key with ID: ${this.keyId}`,
-      );
     }
 
-    console.log(
-      `[Anthropic ${this.id}] Attempting to get first active key for Anthropic`,
-    );
     const keyData = await keyService.getFirstActiveKeyForProvider("Anthropic");
     if (keyData) {
-      console.log(
-        `[Anthropic ${this.id}] Successfully retrieved first active key for Anthropic`,
-      );
       this.keyId = keyData.id; // Update keyId for future use
       return keyData.key;
     } else {
-      console.log(`[Anthropic ${this.id}] No active key found for Anthropic`);
       return null;
     }
   }
 
   async validate(request: ValidationRequest): Promise<AIValidationResponse> {
     const startTime = Date.now();
-    console.log(
-      `[Anthropic ${this.id}] Starting validation for statement: "${request.statement.substring(0, 30)}..."`,
-    );
 
     try {
       if (!this.checkRateLimit()) {
-        console.log(
-          `[Anthropic ${this.id}] Rate limit exceeded for Anthropic API`,
-        );
         return {
           vote: false,
           confidence: 0,
@@ -152,9 +124,6 @@ export class AnthropicValidator implements AIValidator {
 
       const backoffStatus = this.shouldBackoff();
       if (backoffStatus.shouldWait) {
-        console.log(
-          `[Anthropic ${this.id}] Backing off Anthropic API for ${backoffStatus.waitTime}ms due to previous errors`,
-        );
         return {
           vote: false,
           confidence: 0,
@@ -166,18 +135,8 @@ export class AnthropicValidator implements AIValidator {
       const apiKey = await this.getApiKey();
 
       if (!apiKey || typeof window !== "undefined") {
-        console.log(
-          `[Anthropic ${this.id}] Simulating Anthropic response (no API key or browser environment)`,
-        );
         return this.simulateResponse(request.statement);
       }
-
-      console.log(
-        `[Anthropic ${this.id}] Preparing to call Anthropic API with model: ${this.modelName}`,
-      );
-      console.log(`-------------------------------
-       request.queryMode  ${request.queryMode}
-        ---------------------`);
 
       // Generate prompt using utility function
       const { systemMessage, userMessage } = generatePrompt(
@@ -209,30 +168,17 @@ export class AnthropicValidator implements AIValidator {
         signal: AbortSignal.timeout(20000),
       });
 
-      console.log(
-        `[Anthropic ${this.id}] Anthropic API call completed with status: ${response.status} ${response.statusText}`,
-      );
 
       const rawData = await response.text();
-      console.log(
-        `[Anthropic ${this.id}] Anthropic API raw response: ${rawData}`,
-      );
 
       if (!response.ok) {
-        console.error(
-          `[Anthropic ${this.id}] API error with status ${response.status}`,
-        );
+        console.error(`[Anthropic ${this.id}] API error with status ${response.status}`);
         let errorData;
         try {
           errorData = JSON.parse(rawData);
-          console.error(
-            `[Anthropic ${this.id}] Anthropic API error details:`,
-            errorData,
-          );
+          console.error(`[Anthropic ${this.id}] Anthropic API error details:`, errorData);
         } catch {
-          console.error(
-            `[Anthropic ${this.id}] Could not parse error response as JSON`,
-          );
+          console.error(`[Anthropic ${this.id}] Could not parse error response as JSON`);
         }
 
         const errorMessage = `Anthropic API error: ${response.status} ${response.statusText}${errorData ? " - " + JSON.stringify(errorData) : ""}`;
@@ -250,10 +196,6 @@ export class AnthropicValidator implements AIValidator {
 
       try {
         const data = JSON.parse(rawData);
-        console.log(
-          `[Anthropic ${this.id}] Anthropic API response structure:`,
-          JSON.stringify(data, null, 2),
-        );
 
         let reply = "";
         if (
@@ -273,24 +215,15 @@ export class AnthropicValidator implements AIValidator {
         } else if (data.completion) {
           reply = data.completion;
         } else {
-          console.error(
-            `[Anthropic ${this.id}] Unexpected Anthropic API response structure:`,
-            data,
-          );
+          console.error(`[Anthropic ${this.id}] Unexpected Anthropic API response structure:`, data);
           reply = "";
         }
 
-        console.log(
-          `[Anthropic ${this.id}] Extracted Anthropic reply: ${reply}`,
-        );
         const endTime = Date.now();
 
         const parsed = parseVote(reply);
         const { decision: vote, confidence = 0.8, rationale } = parsed;
 
-        console.log(
-          `[Anthropic ${this.id}] Parsed Anthropic response: vote=${vote}, confidence=${confidence}, rationale length=${rationale.length}`,
-        );
 
         return {
           vote,
@@ -301,20 +234,16 @@ export class AnthropicValidator implements AIValidator {
       } catch (parseError: unknown) {
         const errorMessage =
           parseError instanceof Error ? parseError.message : String(parseError);
-        console.error(
-          `[Anthropic ${this.id}] Error parsing Anthropic JSON response: ${errorMessage}`,
-        );
+        console.error(`[Anthropic ${this.id}] Failed to parse response:`, parseError);
         throw new Error(
-          `Failed to parse Anthropic API response: ${errorMessage}`,
+          `Failed to parse Anthropic API response: ${errorMessage}`
         );
       }
     } catch (error) {
       const endTime = Date.now();
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error(
-        `[Anthropic ${this.id}] Error calling Anthropic: ${errorMessage}`,
-      );
+      console.error(`[Anthropic ${this.id}] Validation error:`, error);
 
       if (errorTracking.consecutiveErrors === 0) {
         errorTracking.consecutiveErrors = 1;

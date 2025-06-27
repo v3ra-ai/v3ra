@@ -17,7 +17,6 @@ export async function fetchValidators(): Promise<Validator[]> {
   let validators: Validator[] = [];
 
   try {
-    console.log("[fetchValidators] Fetching validators from:", apiUrl);
     const res = await fetch(apiUrl, {
       headers: { "Content-Type": "application/json" },
       cache: "no-store",
@@ -32,7 +31,6 @@ export async function fetchValidators(): Promise<Validator[]> {
 
     const data = await res.json();
     validators = Array.isArray(data) ? data : (data.validators || []);
-    console.log(`[fetchValidators] Fetched ${validators.length} validators`);
   } catch (error) {
     console.error("[fetchValidators] Error fetching validators:", error);
   }

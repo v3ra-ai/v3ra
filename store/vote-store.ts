@@ -2,9 +2,6 @@
 import { create } from "zustand";
 import { VoteResult } from "@/lib/types";
 
-// Log to confirm store initialization
-console.log("[vote-store] Initializing store");
-
 interface VoteStore {
   voteHistory: VoteResult[];
   lastVoteResult: VoteResult | null;
@@ -33,17 +30,12 @@ export const useVoteStore = create<VoteStore>((set) => ({
   offset: 0,
 
   setVoteHistory: (history) => {
-    console.log(
-      "[vote-store] Setting voteHistory:",
-      typeof history === "function" ? "function" : `${history.length} items`
-    );
     set((state) => ({
       voteHistory: typeof history === "function" ? history(state.voteHistory) : history,
     }));
   },
 
   appendVoteHistory: (history) => {
-    console.log("[vote-store] Appending voteHistory:", `${history.length} items`);
     set((state) => ({
       voteHistory: [...state.voteHistory, ...history],
       offset: state.offset + history.length,
@@ -51,17 +43,12 @@ export const useVoteStore = create<VoteStore>((set) => ({
   },
 
   setLastVoteResult: (result) => {
-    console.log(
-      "[vote-store] Setting lastVoteResult:",
-      typeof result === "function" ? "function" : result ? result.id : null
-    );
     set((state) => ({
       lastVoteResult: typeof result === "function" ? result(state.lastVoteResult) : result,
     }));
   },
 
   setVoteSessionCount: (count) => {
-    console.log("[vote-store] Setting voteSessionCount:", count);
     set(() => ({
       voteSessionCount: count,
       lastVoteSessionCountCheck: Date.now(),
@@ -69,22 +56,18 @@ export const useVoteStore = create<VoteStore>((set) => ({
   },
 
   setIsLoadingMore: (loading) => {
-    console.log("[vote-store] Setting isLoadingMore:", loading);
     set(() => ({ isLoadingMore: loading }));
   },
 
   setHasMore: (hasMore) => {
-    console.log("[vote-store] Setting hasMore:", hasMore);
     set(() => ({ hasMore }));
   },
 
   setOffset: (offset) => {
-    console.log("[vote-store] Setting offset:", offset);
     set(() => ({ offset }));
   },
 
   resetPagination: () => {
-    console.log("[vote-store] Resetting pagination");
     set(() => ({
       offset: 0,
       hasMore: true,

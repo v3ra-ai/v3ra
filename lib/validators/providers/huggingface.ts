@@ -52,10 +52,6 @@ export class HuggingFaceValidator implements AIValidator {
       };
     }
 
-    console.log(
-      `HuggingFaceValidator validating statement: "${req.statement}" with model ${this.modelName} in mode ${req.queryMode || "fact-check"}`
-    );
-
     try {
       const startTime = Date.now();
 
@@ -113,7 +109,6 @@ export class HuggingFaceValidator implements AIValidator {
 
           if (response.status === 503 && attempt < maxRetries - 1) {
             // Model is loading, wait and retry
-            console.log(`[HuggingFace - ${this.modelName}] Model loading (attempt ${attempt + 1}/${maxRetries}), waiting...`);
             await new Promise(resolve => setTimeout(resolve, 2000 * (attempt + 1)));
             continue;
           }
@@ -132,7 +127,6 @@ export class HuggingFaceValidator implements AIValidator {
             }
             
             if (attempt < maxRetries - 1) {
-              console.log(`[HuggingFace - ${this.modelName}] Request failed (attempt ${attempt + 1}/${maxRetries}), retrying...`);
               await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
               continue;
             }
@@ -152,7 +146,6 @@ export class HuggingFaceValidator implements AIValidator {
             rawContent = data[0].generated_text;
           }
 
-          console.log(`[HuggingFace - ${this.modelName}] Raw response content:`, rawContent);
           
           // Clean up the response - remove any markdown code blocks
           rawContent = rawContent.replace(/```json|```/g, '').trim();
@@ -201,13 +194,6 @@ export class HuggingFaceValidator implements AIValidator {
           
           // Send to response parser
           const { decision: vote, confidence = 0.8, rationale } = parseVote(rawContent);
-          
-          console.log(`[HuggingFace - ${this.modelName}] Processed content:`, rawContent);
-          console.log(`[HuggingFace - ${this.modelName}] Parsed reply object:`, {
-            vote,
-            confidence,
-            rationale: rationale.length > 100 ? `${rationale.substring(0, 100)}...` : rationale,
-          });
 
           // Process the vote - always use fact-check mode logic
           const finalVote = vote;
@@ -227,7 +213,6 @@ export class HuggingFaceValidator implements AIValidator {
             body: error instanceof Error ? error.message : 'Unknown network error' 
           };
           if (attempt < maxRetries - 1) {
-            console.log(`[HuggingFace - ${this.modelName}] Network error (attempt ${attempt + 1}/${maxRetries}), retrying...`);
             await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
           }
         }

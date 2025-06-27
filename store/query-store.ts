@@ -40,7 +40,6 @@ export const useQueryStore = create<QueryStore>((set) => {
     viewMode: "viewExpert" as ViewMode,
     selectedLLMIds,
   };
-  console.log("[query-store] Initial state:", initialState);
   return {
     ...initialState,
 
@@ -50,25 +49,21 @@ export const useQueryStore = create<QueryStore>((set) => {
         const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
         const maxQueries = enabledLLMIds.length > 0 ? enabledLLMIds.length : ALLOWED_AMOUNT_QUERIES;
         const clampedAmount = Math.max(1, Math.min(maxQueries, amount));
-        console.log("[query-store] Setting queriesRequested:", clampedAmount, { maxQueries });
         return {
           queriesRequested: clampedAmount,
         };
       }),
 
     setQueryMode: (mode) => {
-      console.log("[query-store] Setting queryMode:", mode);
       set(() => ({ queryMode: mode }));
     },
 
     setViewMode: (mode) => {
-      console.log("[query-store] Setting viewMode:", mode);
       set(() => ({ viewMode: mode }));
     },
 
 
     setSelectedLLMIds: (llmIds) => {
-      console.log("[query-store] Setting selectedLLMIds:", llmIds);
       set(() => ({
         selectedLLMIds: llmIds,
         queriesRequested: llmIds.length > 0 ? llmIds.length : DEFAULTS.QUERIES_REQUESTED,
@@ -76,15 +71,10 @@ export const useQueryStore = create<QueryStore>((set) => {
     },
 
     resetAfterSubmission: (_creditsTotal) => {
-      console.log("[query-store] Resetting after submission");
       set(() => {
         const llms = useLLMStore.getState().llms;
         const enabledLLMIds = llms.filter((llm) => llm.enabled).map((llm) => llm.id);
         const newQueriesRequested = enabledLLMIds.length > 0 ? enabledLLMIds.length : DEFAULTS.QUERIES_REQUESTED;
-        console.log("[query-store] Reset after submission:", {
-          enabledLLMIds,
-          newQueriesRequested,
-        });
         return {
           queriesRequested: newQueriesRequested,
           selectedLLMIds: enabledLLMIds,

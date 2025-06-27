@@ -195,6 +195,8 @@ export default function useQueryLogic({
       timestamp: new Date().toISOString(),
     });
 
+    let actualSelectedIds: string[] | undefined;
+
     try {
       if (!queryText.trim()) {
         toast.error("Query cannot be empty", {
@@ -205,13 +207,15 @@ export default function useQueryLogic({
       }
 
 
-      const selectedLLMs = llms.filter((llm) => llm.enabled);
-      if (selectedLLMs.length > 0 && queriesRequested > selectedLLMs.length) {
+      const enabledLLMs = llms.filter((llm) => llm.enabled);
+      actualSelectedIds = enabledLLMs.map(llm => llm.id);
+      
+      if (enabledLLMs.length > 0 && queriesRequested > enabledLLMs.length) {
         console.log("[useQueryLogic] Blocked: Queries requested exceeds selected LLMs", {
           queriesRequested,
-          selectedLLMCount: selectedLLMs.length,
+          selectedLLMCount: enabledLLMs.length,
         });
-        toast.error(`Cannot query ${queriesRequested} AIs when only ${selectedLLMs.length} are selected.`, {
+        toast.error(`Cannot query ${queriesRequested} AIs when only ${enabledLLMs.length} are selected.`, {
           style: { background: "#dc2626", color: "#fee2e2" },
           duration: 5000,
         });
@@ -247,7 +251,7 @@ export default function useQueryLogic({
           queryMode,
           queriesRequested,
           isFreeQuery: true,
-          selectedLLMIds,
+          selectedLLMIds: actualSelectedIds || selectedLLMIds,
         },
       });
       toast.success(

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Sun, Moon, CircleUser, User, Menu, Twitter, Send, Github } from "lucide-react";
+import { Sun, Moon, CircleUser, User, Menu, Twitter, Send } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import {
@@ -26,28 +26,22 @@ export function NavbarSettings({
   onToggleMenu,
 }: NavbarSettingsProps) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [_userId, setUserId] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const checkSession = async () => {
       const { data, error } = await supabase.auth.getSession();
-      console.log("NavbarSettings session check:", { data, error });
       if (error) {
-        console.error("Error checking session:", error.message);
         return;
       }
       setIsLoggedIn(!!data.session);
-      setUserId(data.session?.user?.id || null);
     };
 
     checkSession();
 
     const { data: authListener } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        console.log("Auth state change:", { event, session });
         setIsLoggedIn(!!session);
-        setUserId(session?.user?.id || null);
       }
     );
 
@@ -61,43 +55,45 @@ export function NavbarSettings({
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       router.push("/");
-    } catch (err: unknown) {
-      const error = err as Error;
-      console.error("Sign out error:", error.message);
+    } catch {
+      // Handle sign out error silently
     }
   };
 
   return (
-    <div className="flex items-center space-x-4">
+    <div className="flex items-center gap-3">
       {/* Social Links */}
-      <div className="hidden md:flex items-center space-x-3">
-        <Link
-          href="https://x.com/v3ra_ai"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-zinc-600 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
-          aria-label="Follow us on X (Twitter)"
-        >
-          <Twitter className="h-5 w-5" />
-        </Link>
-        <Link
-          href="https://t.me/v3ra_ai"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-zinc-600 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
-          aria-label="Join us on Telegram"
-        >
-          <Send className="h-5 w-5" />
-        </Link>
-        <Link
-          href="https://github.com/v3ra-ai/v3ra"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-zinc-600 hover:text-cyan-500 dark:text-zinc-400 dark:hover:text-cyan-400 transition-all duration-200 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
-          aria-label="View on GitHub"
-        >
-          <Github className="h-5 w-5" />
-        </Link>
+      <div className="hidden md:flex items-center gap-2">
+        <div className="relative group">
+          <Link
+            href="https://x.com/v3ra_ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center p-2 text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium hover:-translate-y-0.5"
+            aria-label="Follow us on X"
+          >
+            <Twitter className="h-5 w-5" />
+          </Link>
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1 glass-morphism rounded-lg text-sm whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl dark:border dark:border-cyan-500/30 dark:shadow-[0_0_20px_rgba(0,255,255,0.3)]">
+            <p className="text-foreground/90 dark:text-cyan-50">Follow us on X</p>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-white/10 dark:border-b-cyan-500/20"></div>
+          </div>
+        </div>
+        <div className="relative group">
+          <Link
+            href="https://t.me/v3ra_ai"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center p-2 text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium hover:-translate-y-0.5"
+            aria-label="Join our TG Community"
+          >
+            <Send className="h-5 w-5" />
+          </Link>
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 px-3 py-1 glass-morphism rounded-lg text-sm whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-xl dark:border dark:border-cyan-500/30 dark:shadow-[0_0_20px_rgba(0,255,255,0.3)]">
+            <p className="text-foreground/90 dark:text-cyan-50">Join our TG Community</p>
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-white/10 dark:border-b-cyan-500/20"></div>
+          </div>
+        </div>
       </div>
 
       {/* Divider */}
@@ -108,14 +104,11 @@ export function NavbarSettings({
         <button
           onClick={handleToggleTheme}
           disabled={isCreditsPage}
-          className="rounded-full p-2 hover:bg-zinc-100 dark:hover:bg-zinc-800
-            focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800
-            disabled:opacity-50 transition-all duration-200 cursor-pointer
-            hover:text-cyan-500 dark:hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
+          className="flex items-center justify-center p-2 text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium hover:-translate-y-0.5 disabled:opacity-50"
           aria-label="Toggle theme"
         >
-          <Sun className="h-5 w-5 text-zinc-600 dark:hidden" />
-          <Moon className="h-5 w-5 text-zinc-400 hidden dark:block" />
+          <Sun className="h-5 w-5 dark:hidden" />
+          <Moon className="h-5 w-5 hidden dark:block" />
         </button>
       )}
 
@@ -123,7 +116,7 @@ export function NavbarSettings({
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button
-            className="p-2 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-full transition-all duration-200 focus:outline-none cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
+            className="flex items-center justify-center p-2 text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium hover:-translate-y-0.5"
             aria-label={isLoggedIn ? "User menu" : "Login/Signup menu"}
           >
             {isLoggedIn ? (
@@ -180,10 +173,10 @@ export function NavbarSettings({
       {/* Mobile Menu Toggle */}
       <button
         onClick={onToggleMenu}
-        className="md:hidden p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-1 focus:ring-zinc-200 dark:focus:ring-zinc-800 transition-all duration-200 cursor-pointer hover:text-cyan-500 dark:hover:text-cyan-400 hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.5)]"
+        className="md:hidden flex items-center justify-center p-2 text-foreground/70 hover:text-foreground dark:hover:text-cyan-400 dark:hover:drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] transition-all duration-300 font-medium hover:-translate-y-0.5"
         aria-label="Toggle navigation menu"
       >
-        <Menu className="h-5 w-5 text-zinc-600 dark:text-zinc-400 cursor-pointer" />
+        <Menu className="h-5 w-5" />
       </button>
     </div>
   );

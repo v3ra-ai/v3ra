@@ -18,8 +18,6 @@ import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 
-// Log to confirm file is loaded
-console.log("[actions] File loaded");
 
 type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
 
@@ -30,31 +28,19 @@ export async function broadcastCustomQuery(
   selectedLLMIds?: string[]
 ): Promise<VoteResult | { error: string }> {
   try {
-    console.log("[actions] Processing custom query:", {
-      query,
-      queryMode,
-      queriesRequested,
-      selectedLLMIds: selectedLLMIds || "none",
-    });
 
     let dbValidators: DbValidatorWithKeys[] =
       await validatorService.getActiveDbValidators();
 
     if (!dbValidators || dbValidators.length === 0) {
-      console.warn("[actions] No active validators found in the database");
       return { error: "No active validators found" };
     }
 
     // Filter by selectedLLMIds if provided
     if (selectedLLMIds && selectedLLMIds.length > 0) {
       dbValidators = dbValidators.filter((v) => selectedLLMIds.includes(v.id));
-      console.log("[actions] Filtered validators by selectedLLMIds:", {
-        selectedCount: dbValidators.length,
-        requestedIds: selectedLLMIds,
-      });
 
       if (dbValidators.length === 0) {
-        console.warn("[actions] No validators match the provided selectedLLMIds");
         return { error: "No matching validators found for the selected LLMs" };
       }
     }
@@ -65,7 +51,6 @@ export async function broadcastCustomQuery(
       : dbValidators;
 
     if (selectedValidators.length === 0) {
-      console.warn("[actions] No validators selected after filtering");
       return { error: "No validators available after filtering" };
     }
 
@@ -139,9 +124,6 @@ export async function broadcastCustomQuery(
           queryMode,
         });
       } else {
-        console.warn(
-          `[actions] Validator provider ${dbValidator.provider} not supported, skipping`
-        );
         continue;
       }
 
@@ -150,9 +132,6 @@ export async function broadcastCustomQuery(
         dbValidator.provider !== "HuggingFace" &&
         !dbValidator.apiKeys[0]?.apiKeyId
       ) {
-        console.warn(
-          `[actions] No API key for validator ${dbValidator.provider} (${dbValidator.profileName}), skipping`
-        );
         continue;
       }
 
@@ -181,10 +160,6 @@ export async function broadcastCustomQuery(
           } as VoteValidatorResponse;
         })
         .catch((error) => {
-          console.error(
-            `[actions] Error processing validator ${dbValidator.provider} (${dbValidator.profileName}):`,
-            error
-          );
           return {
             id: dbValidator.id,
             provider: dbValidator.provider,
@@ -202,9 +177,6 @@ export async function broadcastCustomQuery(
     );
 
     if (queriesRequested && validatorResponses.length < queriesRequested) {
-      console.warn(
-        `[actions] Expected ${queriesRequested} responses, received ${validatorResponses.length}`
-      );
     }
 
     const yesVotes = validatorResponses.filter((r) => r.vote === "YES").length;
@@ -245,7 +217,6 @@ export async function broadcastCustomQuery(
 
     return result;
   } catch (error) {
-    console.error("[actions] Error broadcasting custom query:", error);
     return { error: (error as Error).message };
   }
 }
@@ -254,7 +225,6 @@ export async function fetchVoteHistory(): Promise<
   VoteResult[] | { error: string }
 > {
   try {
-    console.log("[actions] Starting fetchVoteHistory...");
     const voteSessions = await prisma.voteSession.findMany({
       orderBy: { timestamp: "desc" },
       take: 10,
@@ -276,15 +246,12 @@ export async function fetchVoteHistory(): Promise<
       },
     });
 
-    console.log("[actions] Fetched vote sessions:", voteSessions);
 
     if (!voteSessions || voteSessions.length === 0) {
-      console.log("[actions] No vote sessions found in database");
       return [];
     }
 
     const voteHistory: VoteResult[] = voteSessions.map((session) => {
-      console.log(`[actions] Mapping session ID: ${session.id}`);
       return {
         id: session.id,
         isConsensusReached: session.isConsensusReached,

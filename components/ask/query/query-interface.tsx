@@ -6,9 +6,11 @@ import QueryResults from "@/components/ask/query/query-results";
 import useQueryLogic from "@/hooks/useQueryLogic";
 import { QueryModelSelector } from "@/components/ask/query/query-model-selector";
 import { PopularQuestions } from "@/components/ask/query/popular-questions";
+import { SelectedModelsDisplay } from "@/components/ask/query/selected-models-display";
 
 export default function QueryInterface() {
   const [isSubmitInteracted] = useState(false);
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   const {
     queriesRequested,
@@ -62,7 +64,8 @@ export default function QueryInterface() {
             />
 
             <div className="mt-8">
-              <QueryModelSelector />
+              <QueryModelSelector onDropdownChange={setIsDropdownOpen} />
+              <SelectedModelsDisplay hide={isDropdownOpen} />
             </div>
           </div>
         </div>

@@ -1,12 +1,10 @@
 "use client";
 
-import { Twitter, Copy, StickyNote, Star } from "lucide-react";
+import { Twitter, Copy, Star } from "lucide-react";
 import { VoteResult, Favorite } from "@/lib/types";
 import { useMemo, useCallback } from "react";
 import { CURRENT_DOMAIN } from "@/lib/constants";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useFavoritesStore } from "@/store/favorites-store";
 import { toggleFavorite } from "@/app/actions";
 import { toast } from "sonner";
@@ -20,7 +18,6 @@ export function AskResultsStandardSocialIcons({
   query,
 }: AskResultsStandardSocialIconsProps) {
   const { copyToClipboard } = useCopyToClipboard();
-  const pathname = usePathname();
   const favorites = useFavoritesStore((state) => state.favorites);
   const isFavorited = query?.id
     ? favorites.some((f: Favorite) => f.vote_session_id === query.id)
@@ -28,7 +25,7 @@ export function AskResultsStandardSocialIcons({
 
   const shareText = useMemo(() => {
     if (!query?.queryText || !query?.id) {
-      return encodeURIComponent("Check this truth report card!");
+      return encodeURIComponent("Check this truth report card! #v3ra");
     }
     return encodeURIComponent(
       `Check this v3ra truth report card: ${query.queryText} - ${
@@ -37,7 +34,7 @@ export function AskResultsStandardSocialIcons({
             ? "True"
             : "False"
           : "No Consensus"
-      }`
+      } #v3ra`
     );
   }, [
     query?.queryText,
@@ -81,9 +78,7 @@ export function AskResultsStandardSocialIcons({
           } else {
             toast.error(result.message);
           }
-        } catch (error) {
-          const typedError = error as Error;
-          console.error("[social-icons] Error toggling favorite:", typedError);
+        } catch {
           toast.error("Failed to toggle favorite");
         }
       }, 500),
@@ -95,49 +90,53 @@ export function AskResultsStandardSocialIcons({
     debouncedToggleFavorite(query.id);
   }, [query?.id, debouncedToggleFavorite]);
 
-  const isOnCardPage = query?.id && pathname === `/ask/${query.id}`;
-
   return (
     <div className="flex justify-end mr-2 items-center text-sm text-zinc-500 space-x-3 border-0">
-      <a
-        href={twitterIntentUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="hover:text-blue-500 transition-colors cursor-pointer"
-        aria-label="Share on Twitter"
-      >
-        <Twitter className="h-5 w-5" />
-      </a>
-      <button
-        onClick={handleCopyLink}
-        className="hover:text-blue-500 transition-colors cursor-pointer"
-        aria-label="Copy share link"
-      >
-        <Copy className="h-5 w-5" />
-      </button>
-      {query?.id && !isOnCardPage && (
-        <Link
-          href={`/ask/${query.id}`}
-          className="hover:text-blue-500 transition-colors cursor-pointer"
-          aria-label="View card details"
+      <div className="relative group">
+        <a
+          href={twitterIntentUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="hover:text-cyan-400 transition-colors cursor-pointer inline-block"
+          aria-label="Share on X"
         >
-          <StickyNote className="h-5 w-5" />
-        </Link>
-      )}
-      <button
-        onClick={handleToggleFavorite}
-        className="rounded-full hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors cursor-pointer"
-        aria-label={isFavorited ? "Unfavorite" : "Favorite"}
-        disabled={!query?.id}
-      >
-        <Star
-          className={`h-5 w-5 ${
-            isFavorited
-              ? "fill-yellow-400 text-yellow-400"
-              : "text-zinc-600 dark:text-zinc-300 hover:text-yellow-400 dark:hover:text-yellow-400"
-          }`}
-        />
-      </button>
+          <Twitter className="h-5 w-5" />
+        </a>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-2 py-1 glass-morphism rounded text-xs whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg dark:border dark:border-cyan-500/30">
+          <p className="text-foreground/90 dark:text-cyan-50">Share on X</p>
+        </div>
+      </div>
+      <div className="relative group">
+        <button
+          onClick={handleCopyLink}
+          className="hover:text-cyan-400 transition-colors cursor-pointer"
+          aria-label="Copy card link"
+        >
+          <Copy className="h-5 w-5" />
+        </button>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-2 py-1 glass-morphism rounded text-xs whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg dark:border dark:border-cyan-500/30">
+          <p className="text-foreground/90 dark:text-cyan-50">Copy link</p>
+        </div>
+      </div>
+      <div className="relative group">
+        <button
+          onClick={handleToggleFavorite}
+          className="hover:text-yellow-400 transition-colors cursor-pointer"
+          aria-label={isFavorited ? "Unfavorite" : "Favorite"}
+          disabled={!query?.id}
+        >
+          <Star
+            className={`h-5 w-5 ${
+              isFavorited
+                ? "fill-yellow-400 text-yellow-400"
+                : "hover:text-yellow-400"
+            }`}
+          />
+        </button>
+        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1 px-2 py-1 glass-morphism rounded text-xs whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg dark:border dark:border-cyan-500/30">
+          <p className="text-foreground/90 dark:text-cyan-50">{isFavorited ? "Unfavorite" : "Favorite"}</p>
+        </div>
+      </div>
     </div>
   );
 }

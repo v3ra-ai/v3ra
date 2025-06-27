@@ -22,7 +22,6 @@ export async function createOrGetUser(userId: string, email: string, name?: stri
 
     return { success: true, user: newUser };
   } catch (error) {
-    console.error("Error creating/getting user:", error);
     return { success: false, error: error instanceof Error ? error.message : "Unknown error" };
   }
 }

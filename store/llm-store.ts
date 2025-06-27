@@ -12,12 +12,15 @@ export interface LLM {
 interface LLMStore {
   llms: LLM[];
   initialized: boolean;
+  customSelection: string[]; // Store custom selection
   
   // Actions
   toggleLLM: (id: string) => void;
   setEnabledLLMs: (ids: string[]) => void;
   fetchAll: () => Promise<void>;
   init: () => void;
+  setCustomSelection: (ids: string[]) => Promise<void>;
+  loadCustomSelection: () => Promise<void>;
 }
 
 export const useLLMStore = create<LLMStore>()(
@@ -25,6 +28,7 @@ export const useLLMStore = create<LLMStore>()(
     (set, get) => ({
       llms: [],
       initialized: false,
+      customSelection: [],
 
       toggleLLM: (id: string) => {
         set((state) => ({
@@ -32,6 +36,11 @@ export const useLLMStore = create<LLMStore>()(
             llm.id === id ? { ...llm, enabled: !llm.enabled } : llm
           ),
         }));
+        
+        // Update custom selection when toggling
+        const updatedLLMs = get().llms;
+        const enabledIds = updatedLLMs.filter(llm => llm.enabled).map(llm => llm.id);
+        set({ customSelection: enabledIds });
       },
 
       setEnabledLLMs: (ids: string[]) => {
@@ -40,6 +49,7 @@ export const useLLMStore = create<LLMStore>()(
             ...llm,
             enabled: ids.includes(llm.id),
           })),
+          customSelection: ids,
         }));
       },
 
@@ -50,17 +60,19 @@ export const useLLMStore = create<LLMStore>()(
           
           const validators = await response.json();
           
+          const { customSelection } = get();
+          
           const llmData: LLM[] = validators.map((v: any) => ({
             id: v.id,
             name: v.profileName || v.name,
             provider: v.provider,
-            enabled: true, // Enable all by default
+            enabled: customSelection.includes(v.id), // Only enable if in custom selection
             avatar: v.avatarUrl,
           }));
 
           set({ llms: llmData, initialized: true });
         } catch (error) {
-          console.error("Error fetching validators:", error);
+          // Error fetching validators
         }
       },
 
@@ -70,11 +82,74 @@ export const useLLMStore = create<LLMStore>()(
           get().fetchAll();
         }
       },
+
+      setCustomSelection: async (ids: string[]) => {
+        set({ customSelection: ids });
+        // Also update the enabled state of LLMs
+        set((state) => ({
+          llms: state.llms.map((llm) => ({
+            ...llm,
+            enabled: ids.includes(llm.id),
+          })),
+        }));
+        
+        // Save to database if user is logged in
+        try {
+          await fetch('/api/user/custom-llms', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customLLMSelection: ids }),
+          });
+        } catch (error) {
+          // Failed to save custom LLM selection
+        }
+      },
+
+      loadCustomSelection: async () => {
+        const state = get();
+        // Prevent multiple calls
+        if (state.initialized && state.llms.some(llm => llm.enabled)) {
+          return; // Already loaded
+        }
+        
+        try {
+          // First try to load from database
+          const response = await fetch('/api/user/custom-llms');
+          if (response.ok) {
+            const data = await response.json();
+            if (data.customLLMSelection && data.customLLMSelection.length > 0) {
+              set({ customSelection: data.customLLMSelection });
+              set((state) => ({
+                llms: state.llms.map((llm) => ({
+                  ...llm,
+                  enabled: data.customLLMSelection.includes(llm.id),
+                })),
+              }));
+              return;
+            }
+          }
+        } catch (error) {
+          // Fall back to local storage
+          // Failed to load custom LLM selection from server
+        }
+        
+        // Fall back to local storage
+        const { customSelection } = get();
+        if (customSelection.length > 0) {
+          set((state) => ({
+            llms: state.llms.map((llm) => ({
+              ...llm,
+              enabled: customSelection.includes(llm.id),
+            })),
+          }));
+        }
+      },
     }),
     {
       name: "llm-storage",
       partialize: (state) => ({ 
-        llms: state.llms.map(llm => ({ id: llm.id, enabled: llm.enabled }))
+        llms: state.llms.map(llm => ({ id: llm.id, enabled: llm.enabled })),
+        customSelection: state.customSelection
       }),
     }
   )

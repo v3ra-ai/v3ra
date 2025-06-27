@@ -102,11 +102,9 @@ export class OpenAIValidator implements AIValidator {
     // Use environment variable directly instead of key service
     const envKey = process.env.OPENAI_API_KEY;
     if (envKey) {
-      console.log("Using OpenAI API key from environment variable");
       return envKey;
     }
 
-    console.log("Environment variable not found, falling back to key service");
 
     // Fall back to key service only if env variable isn't available
     if (this.keyId) {
@@ -131,7 +129,6 @@ export class OpenAIValidator implements AIValidator {
     try {
       // Check rate limiting
       if (!this.checkRateLimit()) {
-        console.log("Rate limit exceeded for OpenAI API");
         return {
           vote: false,
           confidence: 0,
@@ -143,9 +140,6 @@ export class OpenAIValidator implements AIValidator {
       // Check backoff status
       const backoffStatus = this.shouldBackoff();
       if (backoffStatus.shouldWait) {
-        console.log(
-          `Backing off OpenAI API for ${backoffStatus.waitTime}ms due to previous errors`
-        );
         return {
           vote: false,
           confidence: 0,

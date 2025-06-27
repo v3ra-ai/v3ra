@@ -15,6 +15,7 @@ import {
   Shield,
   Settings
 } from "lucide-react";
+import { UserFavorites } from "@/components/profile/user-favorites";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -43,8 +44,7 @@ export default function ProfilePage() {
       }
       
       setUser(user);
-    } catch (error) {
-      console.error('Error fetching user:', error);
+    } catch {
       router.push('/login');
     } finally {
       setLoading(false);
@@ -181,6 +181,11 @@ export default function ProfilePage() {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Favorites Section */}
+        <div className="mt-6 sm:mt-8">
+          <UserFavorites />
         </div>
       </div>
     </div>

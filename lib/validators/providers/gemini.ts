@@ -51,7 +51,6 @@ export class GeminiValidator implements AIValidator {
     this.keyId = options.keyId;
 
     // Log validator creation
-    console.log(`Created Gemini validator: ${this.name} (${this.modelName})`);
   }
 
   /**
@@ -106,36 +105,24 @@ export class GeminiValidator implements AIValidator {
   private async getApiKey(): Promise<string | null> {
     // Use environment variable directly instead of key service
     const envKey = process.env.GEMINI_API_KEY;
-    console.log(
-      "Checking for Gemini API key:",
-      envKey ? "Found key in environment" : "No key in environment variable"
-    );
     if (envKey) {
-      console.log("Using Gemini API key from environment variable");
       return envKey;
     }
 
-    console.log("Environment variable not found, falling back to key service");
 
     // Fall back to key service only if env variable isn't available
     if (this.keyId) {
-      console.log(`Looking for key with ID: ${this.keyId}`);
       const key = await keyService.getDecryptedKey(this.keyId);
       if (key) {
-        console.log("Found key in key service by ID");
         return key;
       }
-      console.log("No key found with the specified ID");
     }
 
-    console.log("Attempting to get first active key for Google provider");
     const keyData = await keyService.getFirstActiveKeyForProvider("Google");
     if (keyData) {
       this.keyId = keyData.id;
-      console.log("Found active key for Google provider");
       return keyData.key;
     }
-    console.log("No active Google keys found");
     return null;
   }
 
@@ -144,18 +131,10 @@ export class GeminiValidator implements AIValidator {
    */
   async validate(request: ValidationRequest): Promise<AIValidationResponse> {
     const startTime = Date.now();
-    console.log(
-      `[GEMINI] Starting validation for: "${request.statement.substring(
-        0,
-        50
-      )}..."`
-    );
 
     try {
-      console.log(`[GEMINI] Checking rate limits`);
       // Check rate limiting
       if (!this.checkRateLimit()) {
-        console.log("[GEMINI] Rate limit exceeded");
         return {
           vote: false,
           confidence: 0,
@@ -164,11 +143,9 @@ export class GeminiValidator implements AIValidator {
         };
       }
 
-      console.log(`[GEMINI] Checking backoff status`);
       // Check backoff status
       const backoffStatus = this.shouldBackoff();
       if (backoffStatus.shouldWait) {
-        console.log(`[GEMINI] Backing off for ${backoffStatus.waitTime}ms`);
         return {
           vote: false,
           confidence: 0,
@@ -179,29 +156,19 @@ export class GeminiValidator implements AIValidator {
         };
       }
 
-      console.log(`[GEMINI] Getting API key`);
       // Get API key
       const apiKey = await this.getApiKey();
-      console.log(
-        `[GEMINI] API key retrieval result: ${apiKey ? "Success" : "Failed"}`
-      );
       if (!apiKey) {
         throw new Error("No API key available for Gemini");
       }
 
       // Initialize the Google Generative AI client
-      console.log(
-        `[GEMINI] Initializing GoogleGenerativeAI with model: ${this.modelName}`
-      );
       const genAI = new GoogleGenerativeAI(apiKey);
 
       // Make sure we're using a valid model name, defaulting to gemini-1.5-flash if necessary
       let modelName = this.modelName;
       if (!modelName || modelName === "gemini") {
         modelName = "gemini-1.5-flash";
-        console.log(
-          `[GEMINI] Invalid model name detected, using ${modelName} instead`
-        );
       }
 
       const model = genAI.getGenerativeModel({ model: modelName });
@@ -213,10 +180,6 @@ export class GeminiValidator implements AIValidator {
         request.context
       );
       const prompt = `${systemMessage}\n\n${userMessage}`; // Gemini combines system and user prompts
-
-      console.log(
-        `[GEMINI] Sending request with prompt: ${prompt.substring(0, 100)}...`
-      );
 
       try {
         // Using generateText method with text parameter (updated API format)
@@ -248,20 +211,12 @@ export class GeminiValidator implements AIValidator {
           throw new Error("Empty text in Gemini API response");
         }
 
-        console.log(`[GEMINI] Received response: ${textResponse.substring(0, 100)}...`);
 
         const endTime = Date.now();
 
         // Parse structured JSON reply
         const parsed = parseVote(textResponse);
         const { decision: vote, confidence = 0.8, rationale } = parsed;
-
-        console.log(
-          `[GEMINI] Parsed result: Vote=${vote}, Confidence=${confidence}, Rationale=${rationale.substring(
-            0,
-            50
-          )}...`
-        );
         return {
           vote,
           confidence,

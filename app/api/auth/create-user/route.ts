@@ -16,8 +16,6 @@ export async function POST(request: Request) {
     
     return NextResponse.json({ success: true, user });
   } catch (error) {
-    console.error("Error creating user:", error);
-    
     // Handle duplicate user error
     if (error instanceof Error && error.message.includes("already exists")) {
       return NextResponse.json({ 

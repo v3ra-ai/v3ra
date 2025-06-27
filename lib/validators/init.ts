@@ -48,7 +48,6 @@ class ElizaValidator extends OpenAIValidator {
 
 // Initialize the registry with default validators
 export function initializeValidators() {
-  console.log("Initializing validator registry with default validators...");
 
   // Add our default validators
   validatorRegistry.addValidator(
@@ -74,7 +73,6 @@ export function initializeValidators() {
     }),
   );
 
-  console.log("Initialized validators");
 
   return validatorRegistry;
 }
