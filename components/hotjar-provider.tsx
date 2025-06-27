@@ -5,8 +5,8 @@ import { supabase } from "@/lib/supabase-client";
 
 declare global {
   interface Window {
-    hj: (command: string, ...args: unknown[]) => void;
-    _hjSettings: {
+    hj?: any;
+    _hjSettings?: {
       hjid: number;
       hjsv: number;
     };
@@ -23,14 +23,14 @@ export function HotjarProvider() {
     if (!hjid) return;
 
     // Hotjar Tracking Code
-    (function(h: Window, o: Document, t: string, j: string, a?: HTMLElement, r?: HTMLScriptElement) {
-      h.hj = h.hj || function(...args: unknown[]) {
-        (h.hj.q = h.hj.q || []).push(args);
+    (function(h: any, o: any, t: any, j: any, a?: any, r?: any) {
+      h.hj = h.hj || function() {
+        (h.hj.q = h.hj.q || []).push(arguments);
       };
       h._hjSettings = { hjid: parseInt(hjid), hjsv: 6 };
       a = o.getElementsByTagName('head')[0];
       r = o.createElement('script');
-      r.async = true;
+      r.async = 1;
       r.src = t + h._hjSettings.hjid + j;
       a.appendChild(r);
     })(window, document, 'https://static.hotjar.com/c/hotjar-', '.js?sv=');
