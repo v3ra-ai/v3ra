@@ -14,7 +14,7 @@ interface WindowWithValidatorRegistry extends Window {
   validatorRegistry: ValidatorRegistryImpl;
 }
 
-type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
+type DbValidatorWithKeys = Validator & { ValidatorKey: ValidatorKey[] };
 
 // List of providers with actual implementations
 const IMPLEMENTED_PROVIDERS = [
@@ -101,7 +101,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
             id: validator.id,
             name: validator.profileName,
             modelName: validator.modelName,
-            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            keyId: validator.ValidatorKey?.[0]?.apiKeyId,
             active: validator.active,
           });
           return {
@@ -115,7 +115,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
             id: validator.id,
             name: validator.profileName,
             modelName: validator.modelName,
-            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            keyId: validator.ValidatorKey?.[0]?.apiKeyId,
             active: validator.active,
           });
           return {
@@ -142,7 +142,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
             id: validator.id,
             name: validator.profileName,
             modelName: validator.modelName,
-            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            keyId: validator.ValidatorKey?.[0]?.apiKeyId,
             active: validator.active,
           });
           return {
@@ -156,7 +156,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
             id: validator.id,
             name: validator.profileName,
             modelName: validator.modelName,
-            keyId: validator.apiKeys?.[0]?.apiKeyId,
+            keyId: validator.ValidatorKey?.[0]?.apiKeyId,
             active: validator.active,
           });
           return {

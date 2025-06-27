@@ -130,7 +130,7 @@ export async function createGraphEdge(
 ): Promise<boolean> {
   try {
     // Build the data object for GraphEdge creation
-    const data: Record<string, unknown> = {
+    const data = {
       id: crypto.randomUUID(),
       sourceType,
       sourceId,
@@ -140,6 +140,8 @@ export async function createGraphEdge(
       weight: weight ?? null,
       properties: properties || "",
       createdAt: new Date(),
+      validatorId: null as string | null,
+      voteSessionId: null as string | null,
     };
 
     // Set optional relations for easier querying
@@ -302,8 +304,8 @@ export async function queryGraphRelationships(
 ): Promise<
   Prisma.GraphEdgeGetPayload<{
     include: {
-      validator: true;
-      voteSession: true;
+      Validator: true;
+      VoteSession: true;
     };
   }>[]
 > {
@@ -315,8 +317,8 @@ export async function queryGraphRelationships(
         relationship,
       },
       include: {
-        validator: true,
-        voteSession: true,
+        Validator: true,
+        VoteSession: true,
       },
     });
 

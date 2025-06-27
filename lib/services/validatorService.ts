@@ -2,7 +2,7 @@ import { prisma } from "@/lib/db/client";
 import { Validator, ValidatorKey } from "@prisma/client";
 import { AIValidator } from "@/lib/types";
 
-type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
+type DbValidatorWithKeys = Validator & { ValidatorKey: ValidatorKey[] };
 
 class ValidatorService {
   async getActiveValidators(): Promise<Validator[]> {
@@ -21,7 +21,7 @@ class ValidatorService {
       return await prisma.validator.findMany({
         where: { active: true },
         include: {
-          apiKeys: true,
+          ValidatorKey: true,
         },
         orderBy: { createdAt: "asc" },
       });
@@ -101,7 +101,7 @@ class ValidatorService {
     try {
       return await prisma.validator.findMany({
         include: {
-          apiKeys: true,
+          ValidatorKey: true,
         },
         orderBy: { createdAt: "asc" },
       });

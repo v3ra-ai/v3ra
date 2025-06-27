@@ -70,6 +70,7 @@ async function ensureDefaultApiKeys() {
           name: keyData.name,
           provider: keyData.provider,
           key: encryptApiKey(keyData.key),
+          updatedAt: new Date(),
         },
       });
       console.log(`✅ Created default ${keyData.provider} API key`);

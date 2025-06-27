@@ -19,7 +19,7 @@ import { Validator, ValidatorKey } from "@prisma/client";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 
 
-type DbValidatorWithKeys = Validator & { apiKeys: ValidatorKey[] };
+type DbValidatorWithKeys = Validator & { ValidatorKey: ValidatorKey[] };
 
 export async function broadcastCustomQuery(
   query: string,
@@ -81,7 +81,7 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          keyId: dbValidator.ValidatorKey[0]?.apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Anthropic") {
@@ -89,7 +89,7 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          keyId: dbValidator.ValidatorKey[0]?.apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Grok") {
@@ -97,7 +97,7 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          keyId: dbValidator.ValidatorKey[0]?.apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "Google") {
@@ -105,7 +105,7 @@ export async function broadcastCustomQuery(
           id: dbValidator.id,
           name: dbValidator.profileName,
           modelName: dbValidator.modelName,
-          keyId: dbValidator.apiKeys[0]?.apiKeyId,
+          keyId: dbValidator.ValidatorKey[0]?.apiKeyId,
           active: dbValidator.active,
         });
       } else if (dbValidator.provider === "OpenRouter") {
@@ -131,7 +131,7 @@ export async function broadcastCustomQuery(
       if (
         dbValidator.provider !== "OpenRouter" &&
         dbValidator.provider !== "HuggingFace" &&
-        !dbValidator.apiKeys[0]?.apiKeyId
+        !dbValidator.ValidatorKey[0]?.apiKeyId
       ) {
         continue;
       }

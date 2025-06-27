@@ -97,7 +97,7 @@ export async function getValidatorVoteHistory(validatorId: string, limit: number
     const responses = await prisma.validatorResponse.findMany({
       where: { validatorId },
       include: {
-        voteSession: {
+        VoteSession: {
           select: {
             id: true,
             queryText: true,
@@ -109,7 +109,7 @@ export async function getValidatorVoteHistory(validatorId: string, limit: number
             notVoted: true,
           },
         },
-        validator: {
+        Validator: {
           select: {
             provider: true,
             profileName: true,
@@ -117,7 +117,7 @@ export async function getValidatorVoteHistory(validatorId: string, limit: number
         },
       },
       orderBy: {
-        voteSession: {
+        VoteSession: {
           timestamp: 'desc'
         }
       },
@@ -146,33 +146,33 @@ export async function getValidatorVoteHistory(validatorId: string, limit: number
       // Log each response for debugging
       if (process.env.NODE_ENV === "development") {
         console.log(`Processing ValidatorResponse ${res.id}:`, {
-          voteSessionExists: !!res.voteSession,
-          voteSessionId: res.voteSession?.id,
-          queryText: res.voteSession?.queryText,
-          validator: res.validator,
+          voteSessionExists: !!res.VoteSession,
+          voteSessionId: res.VoteSession?.id,
+          queryText: res.VoteSession?.queryText,
+          validator: res.Validator,
         });
       }
 
       return {
-        id: res.voteSession?.id || `missing-session-${res.id}`,
-        isConsensusReached: res.voteSession?.isConsensusReached || false,
-        consensusValue: res.voteSession?.consensusValue || null,
-        queryText: res.voteSession?.queryText || "N/A",
+        id: res.VoteSession?.id || `missing-session-${res.id}`,
+        isConsensusReached: res.VoteSession?.isConsensusReached || false,
+        consensusValue: res.VoteSession?.consensusValue || null,
+        queryText: res.VoteSession?.queryText || "N/A",
         validatorResponses: [
           {
             id: res.id,
-            provider: res.validator?.provider || "Unknown",
-            profileName: res.validator?.profileName || "Unknown",
+            provider: res.Validator?.provider || "Unknown",
+            profileName: res.Validator?.profileName || "Unknown",
             vote: res.vote,
             rationale: res.rationale,
           },
         ],
         votingResult: {
-          yes: res.voteSession?.votesYes || 0,
-          no: res.voteSession?.votesNo || 0,
-          notVoted: res.voteSession?.notVoted || 0,
+          yes: res.VoteSession?.votesYes || 0,
+          no: res.VoteSession?.votesNo || 0,
+          notVoted: res.VoteSession?.notVoted || 0,
         },
-        timestamp: res.voteSession?.timestamp?.toISOString() || res.createdAt.toISOString(),
+        timestamp: res.VoteSession?.timestamp?.toISOString() || res.createdAt.toISOString(),
       };
     });
 
@@ -204,7 +204,7 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
     const responses = await prisma.validatorResponse.findMany({
       where: { validatorId },
       include: {
-        voteSession: {
+        VoteSession: {
           select: {
             isConsensusReached: true,
             consensusValue: true,
@@ -212,7 +212,7 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
         },
       },
       orderBy: {
-        voteSession: {
+        VoteSession: {
           timestamp: 'desc'
         }
       },
@@ -232,10 +232,10 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
     const noVotes = responses.filter(res => res.vote === "NO").length;
 
     // Calculate consensus matches (vote matches consensusValue when consensus is reached)
-    const consensusVotes = responses.filter(res => res.voteSession?.isConsensusReached);
+    const consensusVotes = responses.filter(res => res.VoteSession?.isConsensusReached);
     const consensusMatches = consensusVotes.filter(res => {
-      if (res.voteSession?.consensusValue === true && res.vote === "YES") return true;
-      if (res.voteSession?.consensusValue === false && res.vote === "NO") return true;
+      if (res.VoteSession?.consensusValue === true && res.vote === "YES") return true;
+      if (res.VoteSession?.consensusValue === false && res.vote === "NO") return true;
       return false;
     }).length;
 

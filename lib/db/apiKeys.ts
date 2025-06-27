@@ -1,5 +1,6 @@
 import { prisma } from "./client";
 import { encryptApiKey, decryptApiKey } from "./setup";
+import crypto from "crypto";
 
 /**
  * Add a new API key to the database
@@ -16,6 +17,7 @@ export async function addApiKey(data: {
       provider: data.provider,
       key: encryptApiKey(data.key),
       isActive: true,
+      updatedAt: new Date(),
     },
   });
 }
@@ -117,6 +119,7 @@ export async function assignApiKeyToValidator(
 ) {
   return prisma.validatorKey.create({
     data: {
+      id: crypto.randomUUID(),
       apiKeyId,
       validatorId,
     },
