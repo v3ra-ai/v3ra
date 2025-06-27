@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
-import { createSupabaseServerClient } from "@/lib/supabase-client";
 import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
@@ -19,7 +18,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     console.log("[Feedback API] Request body:", { type: body.type, email: body.email, hasMessage: !!body.message });
     
-    const { type, message, email, userId, browserInfo } = body;
+    const { type, message, email, browserInfo } = body;
 
     // Validate required fields
     if (!type || !message || !email) {
@@ -29,69 +28,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get user from session if available (optional)
-    console.log("[Feedback API] Checking for authenticated user...");
-    let supabaseUser = null;
-    
-    // Only try to get user if Supabase is configured
-    if (process.env.SUPABASE_URL && process.env.SUPABASE_ANON_KEY) {
-      try {
-        const supabase = await createSupabaseServerClient();
-        const { data: { user }, error } = await supabase.auth.getUser();
-        if (error) {
-          console.log("[Feedback API] Auth check error (non-fatal):", error.message);
-        } else {
-          supabaseUser = user;
-          console.log("[Feedback API] Supabase user:", user ? "Found" : "Not authenticated");
+    // First, ensure we have a system user for anonymous feedback
+    let systemUser = await prisma.user.findFirst({
+      where: { email: "system@v3ra.ai" }
+    });
+
+    if (!systemUser) {
+      console.log("[Feedback API] Creating system user for anonymous feedback");
+      systemUser = await prisma.user.create({
+        data: {
+          id: crypto.randomUUID(),
+          email: "system@v3ra.ai",
+          name: "System",
+          updatedAt: new Date(),
         }
-      } catch (error) {
-        console.log("[Feedback API] Supabase client error (non-fatal):", error);
-        // Continue without auth - feedback should still work
-      }
-    } else {
-      console.log("[Feedback API] Supabase not configured, proceeding without auth");
+      });
     }
 
-    // If user is not authenticated, find or create an anonymous user
-    let feedbackUserId = supabaseUser?.id || userId;
-    
-    if (!feedbackUserId) {
-      console.log("[Feedback API] Creating/finding anonymous user for email:", email);
-      
-      try {
-        // Check if we have an anonymous user for this email
-        let anonymousUser = await prisma.user.findUnique({
-          where: { email },
-        });
-
-        // If not, create one
-        if (!anonymousUser) {
-          console.log("[Feedback API] Creating new user...");
-          anonymousUser = await prisma.user.create({
-            data: {
-              id: crypto.randomUUID(),
-              email,
-              name: email.split("@")[0],
-              updatedAt: new Date(),
-            },
-          });
-          console.log("[Feedback API] User created:", anonymousUser.id);
-        } else {
-          console.log("[Feedback API] Existing user found:", anonymousUser.id);
-        }
-
-        feedbackUserId = anonymousUser.id;
-      } catch (error) {
-        console.error("[Feedback API] User creation/lookup error:", error);
-        throw error;
-      }
-    }
-
-    // Prepare feedback data
+    // Prepare feedback data using system user
     const feedbackData = {
       id: crypto.randomUUID(),
-      userId: feedbackUserId,
-      username: supabaseUser?.user_metadata?.username || email.split("@")[0],
+      userId: systemUser.id,
+      username: email.split("@")[0],
       email,
       component: type,
       action: "user_feedback",
@@ -108,21 +66,10 @@ export async function POST(request: NextRequest) {
 
     // Save to database
     console.log("[Feedback API] Creating feedback record...");
-    console.log("[Feedback API] Feedback data:", JSON.stringify(feedbackData, null, 2));
-    try {
-      const feedback = await prisma.feedback.create({
-        data: feedbackData,
-      });
-      console.log("[Feedback API] Feedback created:", feedback.id);
-    } catch (error) {
-      console.error("[Feedback API] Feedback creation error:", error);
-      // Log the specific Prisma error details
-      if (error instanceof Error) {
-        console.error("[Feedback API] Error message:", error.message);
-        console.error("[Feedback API] Error stack:", error.stack);
-      }
-      throw error;
-    }
+    const feedback = await prisma.feedback.create({
+      data: feedbackData,
+    });
+    console.log("[Feedback API] Feedback created:", feedback.id);
 
     // Send to Slack if webhook is configured
     const slackWebhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
