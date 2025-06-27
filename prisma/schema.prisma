@@ -1,36 +1,139 @@
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
   previewFeatures = ["multiSchema"]
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
   directUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-model User {
-  id            String      @id @default(uuid())
-  email         String      @unique
-  name          String
-  userCreditId  String?     @unique
-  freeCredits   Int         @default(10)
-  lastResetDate DateTime    @default(now())
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  feedbacks     Feedback[]  @relation("UserToFeedback")
-  userCredit    UserCredit? @relation("UserToUserCredit")
+model ApiKey {
+  id           String         @id @default(dbgenerated("uuid_generate_v4()"))
+  name         String
+  provider     String
+  key          String
+  isActive     Boolean        @default(true)
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime
+  lastUsed     DateTime?
+  ValidatorKey ValidatorKey[]
+
+  @@index([provider, isActive])
+  @@index([provider, isActive], map: "idx_api_key_provider")
 }
 
-model UserCredit {
-  id              String        @id @default(uuid())
-  walletPublicKey String        @unique
-  credits         Int           @default(0)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  userId          String?       @unique
-  user            User?         @relation("UserToUserCredit", fields: [userId], references: [id])
-  voteSessions    VoteSession[]
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model Favorite {
+  id              String      @id @db.Uuid
+  user_id         String      @db.Uuid
+  vote_session_id String
+  created_at      DateTime    @default(now()) @db.Timestamptz(3)
+  favoriteType    String?
+  title           String?
+  VoteSession     VoteSession @relation(fields: [vote_session_id], references: [id], onDelete: Cascade)
+
+  @@unique([user_id, vote_session_id])
+  @@index([user_id])
+}
+
+model Feedback {
+  id                 String   @id
+  userId             String
+  username           String
+  email              String
+  rating             String   @default("thumbs_up")
+  explanation        String?
+  options            String[] @default([])
+  includeBrowserInfo Boolean  @default(true)
+  browserInfo        Json?
+  url                String
+  component          String
+  action             String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime
+  title              String?
+  User               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([createdAt])
+  @@index([userId])
+}
+
+model GraphEdge {
+  id            String       @id
+  sourceType    String
+  targetType    String
+  sourceId      String
+  targetId      String
+  relationship  String
+  weight        Float?
+  properties    String       @default("")
+  createdAt     DateTime     @default(now())
+  validatorId   String?
+  voteSessionId String?
+  Validator     Validator?   @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+  VoteSession   VoteSession? @relation(fields: [voteSessionId], references: [id])
+
+  @@index([relationship])
+  @@index([sourceType, sourceId])
+  @@index([targetType, targetId])
+}
+
+model LLMHealthMetric {
+  id               String          @id
+  providerName     String          @db.VarChar(50)
+  modelName        String          @db.VarChar(100)
+  status           LLMHealthStatus @default(healthy)
+  errorRate        Decimal?        @db.Decimal(5, 2)
+  avgLatency       Int?
+  successRate      Decimal?        @db.Decimal(5, 2)
+  lastSuccessAt    DateTime?
+  lastErrorAt      DateTime?
+  lastErrorMessage String?
+  totalRequests    Int             @default(0)
+  failedRequests   Int             @default(0)
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime
+
+  @@unique([providerName, modelName])
+  @@index([createdAt])
+  @@index([providerName, modelName])
+  @@index([status])
+}
+
+model LLMHealthProbe {
+  id             String   @id
+  providerName   String   @db.VarChar(50)
+  modelName      String   @db.VarChar(100)
+  probeType      String   @db.VarChar(50)
+  success        Boolean
+  responseTimeMs Int?
+  errorMessage   String?
+  httpStatus     Int?
+  testedAt       DateTime @default(now())
+
+  @@index([providerName, modelName])
+  @@index([success])
+  @@index([testedAt])
+}
+
+model ModelDeprecationAlert {
+  id                 String    @id
+  modelName          String    @db.VarChar(100)
+  providerName       String    @db.VarChar(50)
+  deprecatedAt       DateTime
+  replacementModel   String?   @db.VarChar(100)
+  alertSent          Boolean   @default(false)
+  resolvedAt         DateTime?
+  errorSample        String?
+  affectedValidators Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime
+
+  @@index([alertSent])
+  @@index([providerName, modelName])
+  @@index([resolvedAt])
 }
 
 model PaymentLog {
@@ -45,57 +148,116 @@ model PaymentLog {
   createdAt       DateTime @default(now())
 }
 
-model ApiKey {
-  id            String         @id @default(dbgenerated("uuid_generate_v4()"))
-  name          String
-  provider      String
-  key           String
-  isActive      Boolean        @default(true)
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  lastUsed      DateTime?
-  validatorKeys ValidatorKey[]
-
-  @@index([provider, isActive])
+model Reply {
+  id        String   @id
+  body      String
+  upvotes   Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime
+  threadId  String
+  Thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
 }
 
-model ValidatorKey {
-  id          String    @id @default(uuid())
-  validatorId String
-  apiKeyId    String
-  createdAt   DateTime  @default(now())
-  apiKey      ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
-  validator   Validator @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+model Thread {
+  id            String      @id
+  title         String
+  body          String
+  upvotes       Int         @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime
+  voteSessionId String
+  downvotes     Int         @default(0)
+  Reply         Reply[]
+  VoteSession   VoteSession @relation(fields: [voteSessionId], references: [id], onDelete: Cascade)
+}
 
-  @@unique([validatorId, apiKeyId])
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model User {
+  id            String      @id
+  email         String      @unique
+  name          String
+  userCreditId  String?     @unique
+  freeCredits   Int         @default(10)
+  lastResetDate DateTime    @default(now())
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime
+  Feedback      Feedback[]
+  UserCredit    UserCredit?
+}
+
+model UserCredit {
+  id              String        @id
+  walletPublicKey String        @unique
+  credits         Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime
+  userId          String?       @unique
+  User            User?         @relation(fields: [userId], references: [id])
+  VoteSession     VoteSession[]
 }
 
 model Validator {
-  id            String              @id @default(uuid())
-  profileName   String
-  provider      String
-  modelName     String
-  publicKey     String
-  isLeader      Boolean             @default(false)
-  active        Boolean             @default(true)
-  description   String?
-  avatarUrl     String?
-  validatorType String?
-  reliability   Float?              @default(0.0)
-  totalVotes    Int                 @default(0)
-  correctVotes  Int                 @default(0)
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  graphEdges    GraphEdge[]         @relation("ValidatorEdges")
-  apiKeys       ValidatorKey[]
-  responses     ValidatorResponse[]
+  id                String              @id
+  profileName       String
+  provider          String
+  modelName         String
+  publicKey         String
+  isLeader          Boolean             @default(false)
+  active            Boolean             @default(true)
+  description       String?
+  avatarUrl         String?
+  validatorType     String?
+  reliability       Float?              @default(0.0)
+  totalVotes        Int                 @default(0)
+  correctVotes      Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime
+  GraphEdge         GraphEdge[]
+  ValidatorKey      ValidatorKey[]
+  ValidatorResponse ValidatorResponse[]
 
-  @@index([provider])
   @@index([active])
+  @@index([provider])
+  @@index([active, provider], map: "idx_validator_active_provider")
+}
+
+model ValidatorKey {
+  id          String    @id
+  validatorId String
+  apiKeyId    String
+  createdAt   DateTime  @default(now())
+  ApiKey      ApiKey    @relation(fields: [apiKeyId], references: [id], onDelete: Cascade)
+  Validator   Validator @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+
+  @@unique([validatorId, apiKeyId])
+  @@index([validatorId], map: "idx_validator_key_validator")
+}
+
+model ValidatorResponse {
+  id                 String      @id
+  vote               String
+  rationale          String
+  confidence         Float?      @default(0.5)
+  rationaleEmbedding String?
+  latency            Int?
+  matchedConsensus   Boolean?
+  voteSessionId      String
+  validatorId        String
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime
+  error              String?
+  Validator          Validator   @relation(fields: [validatorId], references: [id], onDelete: Cascade)
+  VoteSession        VoteSession @relation(fields: [voteSessionId], references: [id])
+
+  @@index([matchedConsensus])
+  @@index([validatorId])
+  @@index([voteSessionId])
+  @@index([vote])
+  @@index([voteSessionId], map: "idx_validator_response_session")
 }
 
 model VoteSession {
-  id                 String              @id @default(uuid())
+  id                 String              @id
   queryText          String
   context            String?
   timestamp          DateTime            @default(now())
@@ -108,7 +270,7 @@ model VoteSession {
   txHash             String?
   blockchainNetwork  String?
   createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
+  updatedAt          DateTime
   mode               QueryMode?
   queryAiCountReq    Int?
   queryCost          Float?
@@ -116,171 +278,16 @@ model VoteSession {
   statusProcessing   QueryStatus?
   userId             String?
   walletPublicKey    String?
-  favorites          Favorite[]
-  graphEdges         GraphEdge[]         @relation("VoteSessionEdges")
-  threads            Thread[]
-  validatorResponses ValidatorResponse[]
-  user               UserCredit?         @relation(fields: [userId], references: [id])
+  Favorite           Favorite[]
+  GraphEdge          GraphEdge[]
+  Thread             Thread[]
+  ValidatorResponse  ValidatorResponse[]
+  UserCredit         UserCredit?         @relation(fields: [userId], references: [id])
 
-  @@index([timestamp])
   @@index([consensusValue])
   @@index([isConsensusReached])
-}
-
-model ValidatorResponse {
-  id                 String      @id @default(uuid())
-  vote               String
-  rationale          String
-  confidence         Float?      @default(0.5)
-  rationaleEmbedding String?
-  latency            Int?
-  matchedConsensus   Boolean?
-  voteSessionId      String
-  validatorId        String
-  createdAt          DateTime    @default(now())
-  updatedAt          DateTime    @updatedAt
-  error              String?
-  validator          Validator   @relation(fields: [validatorId], references: [id], onDelete: Cascade)
-  voteSession        VoteSession @relation(fields: [voteSessionId], references: [id])
-
-  @@index([vote])
-  @@index([voteSessionId])
-  @@index([validatorId])
-  @@index([matchedConsensus])
-}
-
-model GraphEdge {
-  id            String       @id @default(uuid())
-  sourceType    String
-  targetType    String
-  sourceId      String
-  targetId      String
-  relationship  String
-  weight        Float?
-  properties    String       @default("")
-  createdAt     DateTime     @default(now())
-  validatorId   String?
-  voteSessionId String?
-  validator     Validator?   @relation("ValidatorEdges", fields: [validatorId], references: [id], onDelete: Cascade)
-  voteSession   VoteSession? @relation("VoteSessionEdges", fields: [voteSessionId], references: [id])
-
-  @@index([sourceType, sourceId])
-  @@index([targetType, targetId])
-  @@index([relationship])
-}
-
-model Thread {
-  id            String      @id @default(uuid())
-  title         String
-  body          String
-  upvotes       Int         @default(0)
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  voteSessionId String
-  downvotes     Int         @default(0)
-  replies       Reply[]
-  voteSession   VoteSession @relation(fields: [voteSessionId], references: [id], onDelete: Cascade)
-}
-
-model Reply {
-  id        String   @id @default(uuid())
-  body      String
-  upvotes   Int      @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  threadId  String
-  thread    Thread   @relation(fields: [threadId], references: [id], onDelete: Cascade)
-}
-
-model Feedback {
-  id                 String   @id @default(uuid())
-  userId             String
-  username           String
-  email              String
-  rating             String   @default("thumbs_up")
-  explanation        String?
-  options            String[] @default([])
-  includeBrowserInfo Boolean  @default(true)
-  browserInfo        Json?
-  url                String
-  component          String
-  action             String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  title              String?
-  user               User     @relation("UserToFeedback", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([createdAt])
-}
-
-model Favorite {
-  id              String      @id @default(uuid()) @db.Uuid
-  user_id         String      @db.Uuid
-  vote_session_id String
-  created_at      DateTime    @default(now()) @db.Timestamptz(3)
-  favoriteType    String?
-  title           String?
-  vote_session    VoteSession @relation(fields: [vote_session_id], references: [id], onDelete: Cascade)
-
-  @@unique([user_id, vote_session_id])
-  @@index([user_id])
-}
-
-model LLMHealthMetric {
-  id               String          @id @default(uuid())
-  providerName     String          @db.VarChar(50)
-  modelName        String          @db.VarChar(100)
-  status           LLMHealthStatus @default(healthy)
-  errorRate        Decimal?        @db.Decimal(5, 2)
-  avgLatency       Int?
-  successRate      Decimal?        @db.Decimal(5, 2)
-  lastSuccessAt    DateTime?
-  lastErrorAt      DateTime?
-  lastErrorMessage String?
-  totalRequests    Int             @default(0)
-  failedRequests   Int             @default(0)
-  createdAt        DateTime        @default(now())
-  updatedAt        DateTime        @updatedAt
-
-  @@unique([providerName, modelName])
-  @@index([providerName, modelName])
-  @@index([status])
-  @@index([createdAt])
-}
-
-model ModelDeprecationAlert {
-  id                 String    @id @default(uuid())
-  modelName          String    @db.VarChar(100)
-  providerName       String    @db.VarChar(50)
-  deprecatedAt       DateTime
-  replacementModel   String?   @db.VarChar(100)
-  alertSent          Boolean   @default(false)
-  resolvedAt         DateTime?
-  errorSample        String?
-  affectedValidators Int       @default(0)
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-
-  @@index([alertSent])
-  @@index([resolvedAt])
-  @@index([providerName, modelName])
-}
-
-model LLMHealthProbe {
-  id             String   @id @default(uuid())
-  providerName   String   @db.VarChar(50)
-  modelName      String   @db.VarChar(100)
-  probeType      String   @db.VarChar(50)
-  success        Boolean
-  responseTimeMs Int?
-  errorMessage   String?
-  httpStatus     Int?
-  testedAt       DateTime @default(now())
-
-  @@index([providerName, modelName])
-  @@index([testedAt])
-  @@index([success])
+  @@index([timestamp])
+  @@index([timestamp(sort: Desc)], map: "idx_vote_session_timestamp")
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -306,6 +313,13 @@ model credit_audit_log {
   @@index([user_id], map: "idx_credit_audit_user_id")
 }
 
+enum LLMHealthStatus {
+  healthy
+  degraded
+  deprecated
+  offline
+}
+
 enum QueryMode {
   factCheck
   create
@@ -318,11 +332,4 @@ enum QueryStatus {
   Voting
   Completed
   Failed
-}
-
-enum LLMHealthStatus {
-  healthy
-  degraded
-  deprecated
-  offline
 }

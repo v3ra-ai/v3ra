@@ -32,8 +32,10 @@ export async function POST(request: NextRequest) {
       if (!anonymousUser) {
         anonymousUser = await prisma.user.create({
           data: {
+            id: crypto.randomUUID(),
             email,
             name: email.split("@")[0],
+            updatedAt: new Date(),
           },
         });
       }
@@ -43,6 +45,7 @@ export async function POST(request: NextRequest) {
 
     // Prepare feedback data
     const feedbackData = {
+      id: crypto.randomUUID(),
       userId: feedbackUserId,
       username: user?.user_metadata?.username || email.split("@")[0],
       email,
@@ -54,6 +57,7 @@ export async function POST(request: NextRequest) {
       rating: "feedback",
       options: [type],
       includeBrowserInfo: true,
+      updatedAt: new Date(),
     };
 
     // Save to database
