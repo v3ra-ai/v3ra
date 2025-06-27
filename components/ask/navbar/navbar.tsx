@@ -107,7 +107,7 @@ export default function Navbar() {
       <div className="container mx-auto px-4 sm:px-6 flex items-center justify-between h-full">
         {/* Logo */}
         <div className="flex items-center">
-          <Link href="/ask" className="flex items-center cursor-pointer">
+          <Link href="/" className="flex items-center cursor-pointer">
             <V3raLogo size="md" />
           </Link>
           <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-full">

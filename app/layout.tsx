@@ -7,6 +7,7 @@ import { SolanaProvider } from "@/components/solana-provider";
 import { Toaster } from "sonner";
 import { HotjarProvider } from "@/components/hotjar-provider";
 import { FeedbackWidget } from "@/components/feedback/feedback-widget";
+import { AuthProvider } from "@/contexts/auth-context";
 
 const inter = Inter({ subsets: ["latin"] });
 const orbitron = Orbitron({ 
@@ -37,17 +38,19 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           enableSystem
           disableTransitionOnChange
         >
-          <SolanaProvider>
-            <HotjarProvider />
-            <main className="w-full max-w-none mx-auto">{children}</main>
-            <FeedbackWidget />
-            <Toaster
-              richColors
-              position="bottom-center"
-              closeButton
-              visibleToasts={1}
-            />
-          </SolanaProvider>
+          <AuthProvider>
+            <SolanaProvider>
+              <HotjarProvider />
+              <main className="w-full max-w-none mx-auto">{children}</main>
+              <FeedbackWidget />
+              <Toaster
+                richColors
+                position="bottom-center"
+                closeButton
+                visibleToasts={1}
+              />
+            </SolanaProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

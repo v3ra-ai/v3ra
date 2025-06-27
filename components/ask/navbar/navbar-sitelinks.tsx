@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import * as HoverCard from "@radix-ui/react-hover-card";
+import { useAuth } from "@/contexts/auth-context";
 
 interface NavLinkProps {
   href: string;
@@ -58,6 +59,13 @@ interface NavbarSitelinksProps {
  * Mobile: vertical layout with descriptions visible
  */
 export function NavbarSitelinks({ isMobile = false }: NavbarSitelinksProps) {
+  const { user } = useAuth();
+  
+  // Only show navigation links if user is authenticated
+  if (!user) {
+    return null;
+  }
+  
   const links = [
     {
       href: "/ask",
