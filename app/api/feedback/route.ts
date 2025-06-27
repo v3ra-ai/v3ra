@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/database";
+import { prisma } from "@/lib/db/client";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import crypto from "crypto";
 
 export async function POST(request: NextRequest) {
   try {
@@ -80,6 +81,19 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Feedback submission error:", error);
+    
+    // Return more detailed error in development
+    if (process.env.NODE_ENV === "development") {
+      return NextResponse.json(
+        { 
+          error: "Failed to submit feedback",
+          details: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
       { error: "Failed to submit feedback" },
       { status: 500 }
