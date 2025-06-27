@@ -70,7 +70,7 @@ export default function ForgotPasswordPage() {
 
                 <div className="space-y-4 pt-4">
                   <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    Didn't receive the email? Check your spam folder or try again.
+                    Didn&apos;t receive the email? Check your spam folder or try again.
                   </p>
                   
                   <Button
@@ -117,7 +117,7 @@ export default function ForgotPasswordPage() {
                   Reset Password
                 </h1>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  Enter your email and we'll send you a reset link
+                  Enter your email and we&apos;ll send you a reset link
                 </p>
               </div>
 

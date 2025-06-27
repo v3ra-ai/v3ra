@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to submit feedback" },
       { status: 500 }
@@ -60,7 +60,15 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function sendToSlack(webhookUrl: string, feedback: any) {
+interface SlackFeedback {
+  type: string;
+  message: string;
+  email: string;
+  url?: string;
+  userAgent?: string;
+}
+
+async function sendToSlack(webhookUrl: string, feedback: SlackFeedback) {
   const { type, message, email, url, userAgent } = feedback;
 
   // Determine emoji and color based on type
@@ -133,7 +141,7 @@ async function sendToSlack(webhookUrl: string, feedback: any) {
     if (!response.ok) {
       throw new Error("Failed to send to Slack");
     }
-  } catch (error) {
+  } catch (_error) {
     // Log error but don't fail the feedback submission
   }
 }
