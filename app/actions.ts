@@ -230,13 +230,13 @@ export async function fetchVoteHistory(): Promise<
       orderBy: { timestamp: "desc" },
       take: 10,
       include: {
-        validatorResponses: {
+        ValidatorResponse: {
           select: {
             id: true,
             validatorId: true,
             vote: true,
             rationale: true,
-            validator: {
+            Validator: {
               select: {
                 provider: true,
                 profileName: true,
@@ -258,10 +258,10 @@ export async function fetchVoteHistory(): Promise<
         isConsensusReached: session.isConsensusReached,
         consensusValue: session.consensusValue,
         queryText: session.queryText,
-        validatorResponses: session.validatorResponses.map((response) => ({
+        validatorResponses: session.ValidatorResponse.map((response) => ({
           id: response.validatorId,
-          provider: response.validator.provider,
-          profileName: response.validator.profileName,
+          provider: response.Validator.provider,
+          profileName: response.Validator.profileName,
           vote: response.vote as "YES" | "NO" | "ERROR",
           rationale: response.rationale || "No rationale provided",
         })),

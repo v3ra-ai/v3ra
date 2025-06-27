@@ -20,8 +20,8 @@ export async function generateMetadata({
     const data = await prisma.voteSession.findUnique({
       where: { id: cardId },
       include: {
-        validatorResponses: {
-          include: { validator: true },
+        ValidatorResponse: {
+          include: { Validator: true },
         },
       },
     });
@@ -35,10 +35,10 @@ export async function generateMetadata({
       queryText: data.queryText,
       isConsensusReached: data.isConsensusReached,
       consensusValue: data.consensusValue,
-      validatorResponses: data.validatorResponses.map((res) => ({
-        id: res.validator?.id || res.validatorId || "unknown",
-        provider: res.validator?.provider || "Unknown",
-        profileName: res.validator?.profileName || "Unknown",
+      validatorResponses: data.ValidatorResponse.map((res) => ({
+        id: res.Validator?.id || res.validatorId || "unknown",
+        provider: res.Validator?.provider || "Unknown",
+        profileName: res.Validator?.profileName || "Unknown",
         vote: res.vote || "UNKNOWN",
         rationale: res.rationale || "",
       })),
@@ -110,8 +110,8 @@ async function fetchVoteSession(cardId: string): Promise<VoteResult | { error: s
     const data = await prisma.voteSession.findUnique({
       where: { id: cardId },
       include: {
-        validatorResponses: {
-          include: { validator: true },
+        ValidatorResponse: {
+          include: { Validator: true },
         },
       },
     });
@@ -125,10 +125,10 @@ async function fetchVoteSession(cardId: string): Promise<VoteResult | { error: s
       queryText: data.queryText,
       isConsensusReached: data.isConsensusReached,
       consensusValue: data.consensusValue,
-      validatorResponses: data.validatorResponses.map((res) => ({
-        id: res.validator?.id || res.validatorId || "unknown",
-        provider: res.validator?.provider || "Unknown",
-        profileName: res.validator?.profileName || "Unknown",
+      validatorResponses: data.ValidatorResponse.map((res) => ({
+        id: res.Validator?.id || res.validatorId || "unknown",
+        provider: res.Validator?.provider || "Unknown",
+        profileName: res.Validator?.profileName || "Unknown",
         vote: res.vote || "UNKNOWN",
         rationale: res.rationale || "",
       })),

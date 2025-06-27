@@ -8,7 +8,7 @@ export async function GET() {
   try {
     const validators = await prisma.validator.findMany({
       where: { active: true },
-      include: { apiKeys: true },
+      include: { ValidatorKey: true },
       orderBy: { profileName: 'asc' }
     });
     

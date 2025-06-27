@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db/query-wrapper";
 export async function GET() {
   try {
     const validators = await prisma.validator.findMany({
-      include: { apiKeys: true },
+      include: { ValidatorKey: true },
     });
     
     return NextResponse.json({

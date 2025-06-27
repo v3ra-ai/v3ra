@@ -65,11 +65,13 @@ export async function seedValidators(validators: Validator[]): Promise<void> {
     for (const validator of validators) {
       await prisma.validator.create({
         data: {
+          id: crypto.randomUUID(),
           profileName: validator.profileName,
           provider: validator.provider,
           publicKey: validator.publicKey,
           isLeader: validator.isLeader || false,
           modelName: validator.modelName || "", // add new
+          updatedAt: new Date(),
         },
       });
     }

@@ -17,6 +17,7 @@ export async function createOrGetUser(userId: string, email: string, name?: stri
         id: userId,
         email,
         name: name || email.split("@")[0], // Use email prefix as default name
+        updatedAt: new Date(),
       },
     });
 
