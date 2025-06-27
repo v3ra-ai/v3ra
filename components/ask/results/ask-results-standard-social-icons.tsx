@@ -97,7 +97,7 @@ export function AskResultsStandardSocialIcons({
           href={twitterIntentUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="hover:text-cyan-400 transition-colors cursor-pointer inline-block"
+          className="hover:text-cyan-400 transition-colors cursor-pointer inline-flex items-center"
           aria-label="Share on X"
         >
           <Twitter className="h-5 w-5" />
@@ -109,7 +109,7 @@ export function AskResultsStandardSocialIcons({
       <div className="relative group">
         <button
           onClick={handleCopyLink}
-          className="hover:text-cyan-400 transition-colors cursor-pointer"
+          className="hover:text-cyan-400 transition-colors cursor-pointer inline-flex items-center"
           aria-label="Copy card link"
         >
           <Copy className="h-5 w-5" />
@@ -121,7 +121,7 @@ export function AskResultsStandardSocialIcons({
       <div className="relative group">
         <button
           onClick={handleToggleFavorite}
-          className="hover:text-yellow-400 transition-colors cursor-pointer"
+          className="hover:text-yellow-400 transition-colors cursor-pointer inline-flex items-center"
           aria-label={isFavorited ? "Unfavorite" : "Favorite"}
           disabled={!query?.id}
         >
