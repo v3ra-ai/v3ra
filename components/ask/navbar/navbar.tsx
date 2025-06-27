@@ -117,7 +117,7 @@ export default function Navbar() {
 
         {/* Navigation Links */}
         <div className="hidden md:flex items-center space-x-4">
-          <NavbarSitelinks />
+          <NavbarSitelinks isMobile={false} />
         </div>
 
         {/* Right Side - Credits, Theme Toggle, Login, Connect Wallet, Menu */}
@@ -139,16 +139,16 @@ export default function Navbar() {
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black bg-opacity-50 z-50"
+              className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm z-50"
               initial={{ opacity: 0 }}
-              animate={{ opacity: 0.5 }}
+              animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               onClick={toggleMenu}
             />
             {/* Drawer */}
             <motion.div
-              className="fixed top-0 right-0 h-full w-[85vw] max-w-xs bg-background z-50 shadow-lg p-4 sm:p-6"
+              className="mobile-nav-drawer fixed top-0 right-0 h-full w-[85vw] max-w-sm bg-background/95 dark:bg-zinc-900/95 backdrop-blur-xl z-50 shadow-2xl border-l border-zinc-200 dark:border-zinc-800 dark:border-cyan-500/20"
               initial={{ x: "100%" }}
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
@@ -156,42 +156,53 @@ export default function Navbar() {
               role="dialog"
               aria-label="Mobile navigation menu"
             >
-              <button
-                onClick={toggleMenu}
-                className="absolute top-4 right-4 p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                aria-label="Close menu"
-              >
-                <X className="h-6 w-6" />
-              </button>
-              <div className="mt-12 [&>div]:flex [&>div]:flex-col [&>div]:space-y-4 [&>div]:text-base [&>div_a]:p-3 [&>div_a]:min-h-[48px] [&>div_a]:flex [&>div_a]:items-center [&>div_a]:rounded-lg">
-                <NavbarSitelinks />
+              {/* Mobile Drawer Header */}
+              <div className="flex items-center justify-between p-6 border-b border-zinc-200 dark:border-zinc-800">
+                <div className="flex items-center">
+                  <V3raLogo size="sm" />
+                  <span className="ml-2 px-2 py-0.5 text-xs font-medium bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-full">
+                    BETA
+                  </span>
+                </div>
+                <button
+                  onClick={toggleMenu}
+                  className="p-2.5 rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  aria-label="Close menu"
+                >
+                  <X className="h-5 w-5 text-zinc-700 dark:text-zinc-300" />
+                </button>
+              </div>
+              <div className="px-6 py-6">
+                <nav className="space-y-2">
+                  <NavbarSitelinks isMobile={true} />
                 
                 {/* Social Links for Mobile */}
-                <div className="mt-8 pt-8 border-t border-zinc-200 dark:border-zinc-700">
-                  <h3 className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-4 px-3">
-                    Follow Us
+                <div className="mt-12 pt-8 border-t border-zinc-200 dark:border-zinc-700">
+                  <h3 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-6 uppercase tracking-wider">
+                    Connect
                   </h3>
-                  <div className="flex space-x-4 px-3">
+                  <div className="flex gap-4">
                     <Link
                       href="https://x.com/v3ra_ai"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-2"
+                      className="flex items-center justify-center w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-cyan-500/20 dark:hover:bg-cyan-500/20 hover:scale-105 transition-all duration-200"
                       aria-label="Follow us on X (Twitter)"
                     >
-                      <Twitter className="h-5 w-5" />
+                      <Twitter className="h-5 w-5 text-zinc-700 dark:text-zinc-300" />
                     </Link>
                     <Link
                       href="https://t.me/v3ra_ai"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-600 hover:text-zinc-900 dark:text-zinc-400 dark:hover:text-zinc-100 transition-colors p-2"
+                      className="flex items-center justify-center w-12 h-12 rounded-lg bg-zinc-100 dark:bg-zinc-800 hover:bg-cyan-500/20 dark:hover:bg-cyan-500/20 hover:scale-105 transition-all duration-200"
                       aria-label="Join us on Telegram"
                     >
-                      <Send className="h-5 w-5" />
+                      <Send className="h-5 w-5 text-zinc-700 dark:text-zinc-300" />
                     </Link>
                   </div>
                 </div>
+                </nav>
               </div>
             </motion.div>
           </>

@@ -63,7 +63,7 @@ export default function QueryInterface() {
               isSubmitInteracted={isSubmitInteracted}
             />
 
-            <div className="mt-8">
+            <div className="mt-6 sm:mt-8 space-y-2">
               <QueryModelSelector onDropdownChange={setIsDropdownOpen} />
               <SelectedModelsDisplay hide={isDropdownOpen} />
             </div>

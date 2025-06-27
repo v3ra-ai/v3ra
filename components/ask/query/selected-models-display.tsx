@@ -16,14 +16,14 @@ export function SelectedModelsDisplay({ hide = false }: SelectedModelsDisplayPro
   }
 
   return (
-    <div className="mt-4 p-3 bg-zinc-950/50 rounded-lg border border-zinc-800/50">
+    <div className="mt-4 mx-4 sm:mx-0 p-3 bg-zinc-950/50 rounded-lg border border-zinc-800/50">
       <div className="flex items-center gap-2 mb-2">
         <Bot className="w-4 h-4 text-cyan-400" />
         <span className="text-sm text-zinc-400">
           {enabledLLMs.length} AI{enabledLLMs.length !== 1 ? 's' : ''} selected
         </span>
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
         {enabledLLMs.slice(0, 5).map((llm) => (
           <div
             key={llm.id}

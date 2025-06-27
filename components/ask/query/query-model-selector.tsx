@@ -153,42 +153,45 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
   const enabledCount = llms.filter(llm => llm.enabled).length;
 
   return (
-    <div className="relative">
-      <div className="flex justify-center items-center gap-1 text-sm">
+    <div className="relative w-full">
+      <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-1 text-sm px-4 sm:px-0">
         <button
           onClick={selectKnowledgeModels}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 min-w-[140px] sm:min-w-0 ${
             activeMode === 'fast'
-              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-950/50 hover:border-cyan-500/20 border border-transparent'
+              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
           }`}
         >
-          <BookOpen className="w-3.5 h-3.5" />
-          Knowledge (5)
+          <BookOpen className="w-4 h-4" />
+          <span className="font-medium">Knowledge</span>
+          <span className="text-xs opacity-70">(5)</span>
         </button>
-        <span className="text-zinc-700 px-2">•</span>
+        <span className="hidden sm:inline text-zinc-400 dark:text-zinc-600 px-1">•</span>
         <button
           onClick={selectReasoningModels}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 min-w-[140px] sm:min-w-0 ${
             activeMode === 'balanced'
-              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-950/50 hover:border-cyan-500/20 border border-transparent'
+              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
           }`}
         >
-          <Brain className="w-3.5 h-3.5" />
-          Reasoning (5)
+          <Brain className="w-4 h-4" />
+          <span className="font-medium">Reasoning</span>
+          <span className="text-xs opacity-70">(5)</span>
         </button>
-        <span className="text-zinc-700 px-2">•</span>
+        <span className="hidden sm:inline text-zinc-400 dark:text-zinc-600 px-1">•</span>
         <button
           onClick={handleCustomClick}
-          className={`flex items-center gap-2 px-4 py-2 rounded-md transition-all duration-200 ${
+          className={`flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg transition-all duration-200 min-w-[140px] sm:min-w-0 ${
             activeMode === 'custom'
-              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30'
-              : 'text-zinc-500 hover:text-zinc-300 hover:bg-zinc-950/50 hover:border-cyan-500/20 border border-transparent'
+              ? 'text-cyan-400 bg-cyan-500/10 border border-cyan-500/30 shadow-lg shadow-cyan-500/10'
+              : 'text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 hover:border-zinc-200 dark:hover:border-zinc-700 border border-zinc-200 dark:border-zinc-800'
           }`}
         >
-          <Settings className="w-3.5 h-3.5" />
-          Custom ({enabledCount})
+          <Settings className="w-4 h-4" />
+          <span className="font-medium">Custom</span>
+          <span className="text-xs opacity-70">({enabledCount})</span>
         </button>
       </div>
     </div>

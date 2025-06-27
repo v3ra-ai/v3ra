@@ -343,10 +343,25 @@ body {
 
 /* Glass morphism effect */
 .glass-morphism {
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
   background-color: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Dark mode glass morphism with V3RA cyan glow */
+.dark .glass-morphism {
+  background-color: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1);
+}
+
+/* Mobile-optimized glass morphism */
+@media (max-width: 768px) {
+  .glass-morphism {
+    backdrop-filter: blur(8px) saturate(150%);
+    -webkit-backdrop-filter: blur(8px) saturate(150%);
+  }
 }
 
 /* Hover animations */
@@ -482,4 +497,59 @@ body {
 
 .dark .wallet-adapter-dropdown-list-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
+}
+
+/* V3RA Mobile Navigation Styles */
+.mobile-nav-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Mobile nav link hover states */
+.mobile-nav-link {
+  position: relative;
+  overflow: hidden;
+}
+
+.mobile-nav-link::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 3px;
+  height: 0;
+  background: linear-gradient(to bottom, transparent, rgb(0, 255, 255), transparent);
+  transition: height 0.3s ease;
+  transform: translateY(-50%);
+}
+
+.mobile-nav-link:hover::before,
+.mobile-nav-link:focus::before {
+  height: 70%;
+}
+
+/* Improve mobile touch targets */
+@media (max-width: 768px) {
+  .mobile-nav-link {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Larger touch targets for mobile buttons */
+  button, a {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better mobile spacing */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
 }

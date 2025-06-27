@@ -7,9 +7,24 @@ interface NavLinkProps {
   href: string;
   label: string;
   description: string;
+  isMobile?: boolean;
 }
 
-function NavLink({ href, label, description }: NavLinkProps) {
+function NavLink({ href, label, description, isMobile = false }: NavLinkProps) {
+  if (isMobile) {
+    return (
+      <Link
+        href={href}
+        className="mobile-nav-link block px-4 py-3 text-base font-medium text-zinc-700 dark:text-zinc-300 hover:text-cyan-600 dark:hover:text-cyan-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/50 rounded-lg transition-all duration-200"
+      >
+        <div>
+          <div className="font-semibold">{label}</div>
+          <div className="text-sm text-zinc-500 dark:text-zinc-400 mt-0.5">{description}</div>
+        </div>
+      </Link>
+    );
+  }
+
   return (
     <HoverCard.Root openDelay={200} closeDelay={100}>
       <HoverCard.Trigger asChild>
@@ -33,23 +48,44 @@ function NavLink({ href, label, description }: NavLinkProps) {
   );
 }
 
+interface NavbarSitelinksProps {
+  isMobile?: boolean;
+}
+
 /**
- * Renders navigation links for the site, hidden on mobile and displayed horizontally on desktop.
- * Includes links with hover tooltips for better UX.
+ * Renders navigation links for the site, responsive for both mobile and desktop.
+ * Desktop: horizontal layout with hover tooltips
+ * Mobile: vertical layout with descriptions visible
  */
-export function NavbarSitelinks() {
+export function NavbarSitelinks({ isMobile = false }: NavbarSitelinksProps) {
+  const links = [
+    {
+      href: "/ask",
+      label: "Ask",
+      description: "Ask AI models questions and explore consensus"
+    },
+    {
+      href: "/ai-hub",
+      label: "AI Hub",
+      description: "Configure your AI consensus panel"
+    }
+  ];
+
+  if (isMobile) {
+    return (
+      <div className="space-y-2">
+        {links.map((link) => (
+          <NavLink key={link.href} {...link} isMobile={true} />
+        ))}
+      </div>
+    );
+  }
+
   return (
     <div className="hidden md:flex items-center space-x-8">
-      <NavLink
-        href="/ask"
-        label="Ask"
-        description="Ask AI models questions and explore consensus"
-      />
-      <NavLink
-        href="/ai-hub"
-        label="AI Hub"
-        description="Configure your AI consensus panel"
-      />
+      {links.map((link) => (
+        <NavLink key={link.href} {...link} isMobile={false} />
+      ))}
     </div>
   );
 }
