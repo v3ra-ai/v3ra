@@ -5,6 +5,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import type { ReactNode } from "react";
 import { SolanaProvider } from "@/components/solana-provider";
 import { Toaster } from "sonner";
+import { HotjarProvider } from "@/components/hotjar-provider";
+import { FeedbackWidget } from "@/components/feedback/feedback-widget";
 
 const inter = Inter({ subsets: ["latin"] });
 const orbitron = Orbitron({ 
@@ -36,7 +38,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           disableTransitionOnChange
         >
           <SolanaProvider>
+            <HotjarProvider />
             <main className="w-full max-w-none mx-auto">{children}</main>
+            <FeedbackWidget />
             <Toaster
               richColors
               position="bottom-center"

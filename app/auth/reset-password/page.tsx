@@ -1,48 +1,72 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Navbar from "@/components/ask/navbar/navbar";
-import Link from "next/link";
-import { ArrowLeft, Mail, Sparkles } from "lucide-react";
+import { Lock, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("");
+export default function ResetPasswordPage() {
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    // Check if user has access to this page (came from email link)
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error("Invalid or expired reset link");
+        router.push("/forgot-password");
+      }
+    };
+    checkSession();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!email) {
-      toast.error("Please enter your email address");
+    if (password !== confirmPassword) {
+      toast.error("Passwords do not match");
+      return;
+    }
+
+    if (password.length < 6) {
+      toast.error("Password must be at least 6 characters");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+      const { error } = await supabase.auth.updateUser({
+        password: password
       });
 
       if (error) throw error;
 
-      setSubmitted(true);
-      toast.success("Password reset link sent!");
+      setSuccess(true);
+      toast.success("Password updated successfully!");
+      
+      // Redirect to login after 2 seconds
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Failed to send reset email";
+      const message = error instanceof Error ? error.message : "Failed to reset password";
       toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
-  if (submitted) {
+  if (success) {
     return (
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <Navbar />
@@ -51,48 +75,18 @@ export default function ForgotPasswordPage() {
             <div className="p-8 bg-white dark:bg-zinc-900/50 backdrop-blur-xl border border-zinc-200 dark:border-zinc-800 rounded-2xl shadow-xl dark:shadow-[0_0_40px_rgba(0,0,0,0.5)]">
               <div className="text-center space-y-6">
                 <div className="flex justify-center">
-                  <div className="p-4 bg-cyan-500/10 rounded-full">
-                    <Mail className="h-12 w-12 text-cyan-500" />
+                  <div className="p-4 bg-green-500/10 rounded-full">
+                    <CheckCircle className="h-12 w-12 text-green-500" />
                   </div>
                 </div>
                 
                 <div className="space-y-2">
                   <h2 className="text-2xl font-bold text-zinc-800 dark:text-zinc-100">
-                    Check Your Email
+                    Password Reset Successful!
                   </h2>
                   <p className="text-zinc-600 dark:text-zinc-400">
-                    We've sent a password reset link to
+                    Your password has been updated. Redirecting to login...
                   </p>
-                  <p className="font-medium text-cyan-600 dark:text-cyan-400">
-                    {email}
-                  </p>
-                </div>
-
-                <div className="space-y-4 pt-4">
-                  <p className="text-sm text-zinc-500 dark:text-zinc-500">
-                    Didn't receive the email? Check your spam folder or try again.
-                  </p>
-                  
-                  <Button
-                    onClick={() => {
-                      setSubmitted(false);
-                      setEmail("");
-                    }}
-                    variant="outline"
-                    className="w-full border-zinc-300 dark:border-zinc-700 hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                  >
-                    Try Another Email
-                  </Button>
-                  
-                  <Link href="/login" className="block">
-                    <Button 
-                      variant="ghost" 
-                      className="w-full hover:bg-zinc-100 dark:hover:bg-zinc-800"
-                    >
-                      <ArrowLeft className="mr-2 h-4 w-4" />
-                      Back to Login
-                    </Button>
-                  </Link>
                 </div>
               </div>
             </div>
@@ -111,27 +105,46 @@ export default function ForgotPasswordPage() {
             <div className="space-y-6">
               <div className="space-y-2 text-center">
                 <div className="flex justify-center mb-4">
-                  <Sparkles className="h-8 w-8 text-cyan-500" />
+                  <Lock className="h-8 w-8 text-cyan-500" />
                 </div>
                 <h1 className="text-3xl font-bold text-zinc-800 dark:text-zinc-100">
-                  Reset Password
+                  Set New Password
                 </h1>
                 <p className="text-zinc-600 dark:text-zinc-400">
-                  Enter your email and we'll send you a reset link
+                  Choose a strong password for your account
                 </p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
-                  <Label htmlFor="email" className="text-zinc-700 dark:text-zinc-300">
-                    Email Address
+                  <Label htmlFor="password" className="text-zinc-700 dark:text-zinc-300">
+                    New Password
                   </Label>
                   <Input
-                    id="email"
-                    type="email"
-                    placeholder="you@example.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    id="password"
+                    type="password"
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                    disabled={loading}
+                    className="bg-white dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-cyan-500/20"
+                  />
+                  <p className="text-xs text-zinc-500">
+                    Must be at least 6 characters
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-zinc-700 dark:text-zinc-300">
+                    Confirm Password
+                  </Label>
+                  <Input
+                    id="confirmPassword"
+                    type="password"
+                    placeholder="••••••••"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
                     required
                     disabled={loading}
                     className="bg-white dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 focus:border-cyan-500 dark:focus:border-cyan-400 focus:ring-cyan-500/20"
@@ -146,22 +159,12 @@ export default function ForgotPasswordPage() {
                   {loading ? (
                     <div className="flex items-center justify-center">
                       <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                      Sending...
+                      Updating...
                     </div>
                   ) : (
-                    "Send Reset Link"
+                    "Reset Password"
                   )}
                 </Button>
-
-                <div className="text-center pt-4">
-                  <Link
-                    href="/login"
-                    className="text-sm text-zinc-600 dark:text-zinc-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors inline-flex items-center"
-                  >
-                    <ArrowLeft className="mr-1 h-3 w-3" />
-                    Back to Login
-                  </Link>
-                </div>
               </form>
             </div>
           </div>
