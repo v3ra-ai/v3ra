@@ -27,12 +27,11 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "prisma/test-prisma.js",
     "prisma/migrate.js",
     "prisma/archived/migrate",
     "test/generate-transaction.mjs",
     "types/**/*",
     "utils/fetchOpenRouterUsage.js"
   ],
-  "exclude": ["node_modules", "scripts/**/*"]
+  "exclude": ["node_modules", "scripts/**/*", "prisma/test-*.ts"]
 }
