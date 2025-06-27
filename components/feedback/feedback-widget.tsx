@@ -76,7 +76,7 @@ export function FeedbackWidget() {
       setIsOpen(false);
       setMessage("");
       setType("bug");
-    } catch (_error) {
+    } catch {
       toast.error("Failed to send feedback. Please try again.");
     } finally {
       setLoading(false);

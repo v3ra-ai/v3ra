@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json({ success: true });
-  } catch (_error) {
+  } catch {
     return NextResponse.json(
       { error: "Failed to submit feedback" },
       { status: 500 }
@@ -141,7 +141,7 @@ async function sendToSlack(webhookUrl: string, feedback: SlackFeedback) {
     if (!response.ok) {
       throw new Error("Failed to send to Slack");
     }
-  } catch (_error) {
+  } catch {
     // Log error but don't fail the feedback submission
   }
 }
