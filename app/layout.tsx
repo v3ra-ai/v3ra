@@ -30,6 +30,18 @@ export default function RootLayout({ children }: { children: ReactNode }) {
     <html lang="en" suppressHydrationWarning>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        {/* Google tag (gtag.js) */}
+        <script async src="https://www.googletagmanager.com/gtag/js?id=G-RFVVNY8TD0"></script>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-RFVVNY8TD0');
+            `,
+          }}
+        />
       </head>
       <body className={`${inter.className} ${orbitron.variable} ${rajdhani.variable}`} suppressHydrationWarning>
         <ThemeProvider
