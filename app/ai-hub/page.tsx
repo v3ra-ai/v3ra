@@ -22,6 +22,7 @@ function AIHubContent() {
   const init = useLLMStore((s) => s.init);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
+  const [activePreset, setActivePreset] = useState<'knowledge' | 'reasoning' | null>(null);
 
   useEffect(() => {
     init();
@@ -210,8 +211,13 @@ function AIHubContent() {
                 setEnabledLLMs(finalSelection);
                 setSelectedLLMIds(finalSelection);
                 setCustomSelection(finalSelection);
+                setActivePreset('knowledge');
               }}
-              className="px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-lg text-zinc-300 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors flex items-center gap-2"
+              className={`px-4 py-2 border rounded-lg transition-colors flex items-center gap-2 ${
+                activePreset === 'knowledge'
+                  ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
+                  : 'bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:text-cyan-400 hover:border-cyan-500/50'
+              }`}
             >
               <BookOpen className="w-4 h-4" />
               Knowledge (5)
@@ -244,8 +250,13 @@ function AIHubContent() {
                 setEnabledLLMs(finalSelection);
                 setSelectedLLMIds(finalSelection);
                 setCustomSelection(finalSelection);
+                setActivePreset('reasoning');
               }}
-              className="px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-lg text-zinc-300 hover:text-cyan-400 hover:border-cyan-500/50 transition-colors flex items-center gap-2"
+              className={`px-4 py-2 border rounded-lg transition-colors flex items-center gap-2 ${
+                activePreset === 'reasoning'
+                  ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-400'
+                  : 'bg-zinc-900/50 border-zinc-800 text-zinc-300 hover:text-cyan-400 hover:border-cyan-500/50'
+              }`}
             >
               <Brain className="w-4 h-4" />
               Reasoning (5)
@@ -255,6 +266,7 @@ function AIHubContent() {
                 setEnabledLLMs([]);
                 setSelectedLLMIds([]);
                 setCustomSelection([]);
+                setActivePreset(null);
               }}
               className="px-4 py-2 bg-zinc-900/50 border border-zinc-800 rounded-lg text-zinc-300 hover:text-red-400 hover:border-red-500/50 transition-colors"
             >

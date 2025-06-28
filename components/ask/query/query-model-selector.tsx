@@ -18,7 +18,7 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
   const setSelectedLLMIds = useQueryStore((s) => s.setSelectedLLMIds);
   const loadCustomSelection = useLLMStore((s) => s.loadCustomSelection);
   const customSelection = useLLMStore((s) => s.customSelection);
-  const [activeMode, setActiveMode] = useState<'fast' | 'balanced' | null>(null);
+  const [activeMode, setActiveMode] = useState<'fast' | 'balanced' | 'custom' | null>(null);
 
   // Determine active mode based on selected LLMs
   useEffect(() => {
@@ -61,6 +61,12 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
     const reasoningMatches = enabledIds.filter(id => reasoningModels.includes(id)).length;
     if (reasoningMatches >= 3) {
       setActiveMode('balanced');
+      return;
+    }
+    
+    // If there are enabled models but they don't match presets, it's custom mode
+    if (enabledIds.length > 0) {
+      setActiveMode('custom');
       return;
     }
     
@@ -188,7 +194,11 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
         <span className="hidden sm:inline text-zinc-400 dark:text-zinc-600 px-1">•</span>
         <button
           onClick={handleCustomClick}
-          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 border-2 border-zinc-300 dark:border-zinc-700"
+          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
+            activeMode === 'custom'
+              ? 'text-white dark:text-cyan-400 bg-cyan-600 dark:bg-cyan-500/20 border-2 border-cyan-600 dark:border-cyan-500/50 shadow-lg shadow-cyan-500/20'
+              : 'text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 border-2 border-zinc-300 dark:border-zinc-700'
+          }`}
         >
           <Settings className="w-4 h-4" />
           <span className="font-medium">Custom</span>
