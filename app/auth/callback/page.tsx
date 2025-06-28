@@ -13,6 +13,72 @@ export default function AuthCallback() {
       let attempts = 0;
       const maxAttempts = 3;
 
+      // Check for email confirmation token first
+      const urlParams = new URLSearchParams(window.location.search);
+      const token_hash = urlParams.get('token_hash');
+      const type = urlParams.get('type');
+      
+      // If we have a token_hash, verify it first
+      if (token_hash && type) {
+        try {
+          console.log("[AuthCallback] Verifying email token...");
+          
+          // Exchange the token for a session
+          const { data: { user, session }, error } = await supabase.auth.verifyOtp({
+            token_hash,
+            type: type as any,
+          });
+
+          if (error) {
+            console.error("[AuthCallback] Token verification error:", error);
+            router.push(`/login?error=${encodeURIComponent(error.message || "Invalid or expired link")}`);
+            return;
+          }
+
+          if (!user) {
+            router.push("/login?error=Verification failed");
+            return;
+          }
+
+          console.log("[AuthCallback] Email verified successfully");
+          
+          // Create or get user via API route
+          const response = await fetch("/api/auth/create-user", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              userId: user.id,
+              email: user.email || "",
+              username: user.user_metadata?.username || user.email?.split("@")[0],
+            }),
+          });
+
+          const result = await response.json();
+
+          if (!result.success && result.code !== "USER_EXISTS") {
+            throw new Error(result.error || "Failed to create user");
+          }
+
+          // Check for stored return URL
+          const returnTo = localStorage.getItem("authReturnTo");
+          if (returnTo) {
+            localStorage.removeItem("authReturnTo");
+            router.push(returnTo);
+          } else {
+            router.push("/ask");
+          }
+          return;
+        } catch (err: unknown) {
+          const error = err as Error;
+          console.error("[AuthCallback] Error:", error);
+          router.push(`/login?error=${encodeURIComponent(error.message || "Authentication failed")}`);
+          return;
+        }
+      }
+
+      // Original OAuth/refresh flow
       while (attempts < maxAttempts) {
         try {
 
