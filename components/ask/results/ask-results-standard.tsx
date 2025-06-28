@@ -6,7 +6,7 @@ import { ErrorDisplay } from "@/components/error-display";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { ChevronDown, ChevronUp, Star, History } from "lucide-react";
 import { useState } from "react";
-import AskResultsStandardCard from "@/components/ask/results/ask-results-standard-card";
+import CardViewer from "@/components/ask/card-client-wrapper";
 import { default as DOMPurify } from "dompurify";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
@@ -69,11 +69,9 @@ export default function AskResultsStandard() {
             Latest Query
           </h2>
           <div className="w-full">
-            <AskResultsStandardCard
+            <CardViewer
               query={mostRecentQuery}
               layoutMode="row"
-              isOpen={true}
-              toggleItem={() => {}}
             />
           </div>
         </div>
@@ -136,11 +134,9 @@ export default function AskResultsStandard() {
               ) : (
                 filteredHistory.map((query) => (
                   <div key={query.id} className="w-full">
-                    <AskResultsStandardCard
+                    <CardViewer
                       query={query}
                       layoutMode="row"
-                      isOpen={false}
-                      toggleItem={() => {}}
                     />
                   </div>
                 ))
