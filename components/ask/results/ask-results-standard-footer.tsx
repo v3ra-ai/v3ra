@@ -3,7 +3,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, AlertCircle } from "lucide-react";
 import { VoteResult } from "@/lib/types";
 import { parseRationale } from "@/lib/utils";
 import { ResultsCardFeedback } from "./results-card-feedback"; // Confirm import
@@ -67,21 +67,34 @@ export function AskResultsStandardFooter({
                       </div>
                       <span
                         className={`
-                          px-3 py-1 rounded-md text-sm font-bold
+                          px-3 py-1 rounded-md text-sm font-bold flex items-center gap-1
                           ${
                             response.vote === "YES"
                               ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
                               : response.vote === "NO"
                               ? "bg-rose-500/20 text-rose-400 border border-rose-500/30"
+                              : response.vote === "ERROR"
+                              ? "bg-amber-500/20 text-amber-400 border border-amber-500/30"
                               : "bg-zinc-700/50 text-zinc-400 border border-zinc-600/50"
                           }
                         `}
                       >
+                        {response.vote === "ERROR" && <AlertCircle className="w-4 h-4" />}
                         {response.vote}
                       </span>
                     </div>
-                    <div className="mt-3 p-3 bg-zinc-800/30 rounded-md border border-zinc-700/20">
-                      <p className="text-sm text-cyan-400/80 font-medium mb-1">Rationale:</p>
+                    <div className={`mt-3 p-3 rounded-md border ${
+                      response.vote === "ERROR"
+                        ? "bg-amber-900/20 border-amber-700/20"
+                        : "bg-zinc-800/30 border-zinc-700/20"
+                    }`}>
+                      <p className={`text-sm font-medium mb-1 ${
+                        response.vote === "ERROR"
+                          ? "text-amber-400/80"
+                          : "text-cyan-400/80"
+                      }`}>
+                        {response.vote === "ERROR" ? "Error Details:" : "Rationale:"}
+                      </p>
                       <p className="text-sm text-zinc-300 leading-relaxed">
                         {parseRationale(response.rationale)}
                       </p>

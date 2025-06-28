@@ -5,23 +5,7 @@ import { useQueryStore } from "@/store/query-store";
 import { BookOpen, Brain, Settings } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-
-// Model selection based on category - max 5 diverse models
-const KNOWLEDGE_MODEL_PRIORITY = [
-  "GPT-4 Validator",
-  "Gemini Pro Validator", 
-  "Mistral Large Validator",
-  "GPT-3.5-turbo Validator",
-  "Llama 3 8B Validator"
-];
-
-const REASONING_MODEL_PRIORITY = [
-  "Claude 3 Opus Validator",
-  "GPT-4o Validator",
-  "Claude 3 Sonnet Validator",
-  "Llama 3 70B Validator",
-  "Gemini 1.5 Pro Validator"
-];
+import { KNOWLEDGE_MODEL_PRIORITY, REASONING_MODEL_PRIORITY } from "@/lib/model-presets";
 
 interface QueryModelSelectorProps {
   onDropdownChange?: (open: boolean) => void;
@@ -34,30 +18,54 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
   const setSelectedLLMIds = useQueryStore((s) => s.setSelectedLLMIds);
   const loadCustomSelection = useLLMStore((s) => s.loadCustomSelection);
   const customSelection = useLLMStore((s) => s.customSelection);
-  const [activeMode, setActiveMode] = useState<'fast' | 'balanced' | 'custom' | null>(null);
+  const [activeMode, setActiveMode] = useState<'fast' | 'balanced' | null>(null);
 
   // Determine active mode based on selected LLMs
   useEffect(() => {
-    const enabledCount = llms.filter(llm => llm.enabled).length;
-    const enabledNames = llms.filter(llm => llm.enabled).map(llm => llm.name);
-    
-    // Check if current selection matches knowledge models
-    const knowledgeMatchCount = KNOWLEDGE_MODEL_PRIORITY.filter(name => enabledNames.includes(name)).length;
-    const isKnowledge = enabledCount === 5 && knowledgeMatchCount >= 3;
-    
-    // Check if current selection matches reasoning models  
-    const reasoningMatchCount = REASONING_MODEL_PRIORITY.filter(name => enabledNames.includes(name)).length;
-    const isReasoning = enabledCount === 5 && reasoningMatchCount >= 3 && !isKnowledge;
-    
-    if (isKnowledge) {
-      setActiveMode('fast'); // Using 'fast' for knowledge
-    } else if (isReasoning) {
-      setActiveMode('balanced'); // Using 'balanced' for reasoning
-    } else if (enabledCount > 0 && enabledCount <= 5) {
-      setActiveMode('custom');
-    } else {
+    const enabledIds = llms.filter(llm => llm.enabled).map(llm => llm.id);
+    if (enabledIds.length !== 5) {
       setActiveMode(null);
+      return;
     }
+    
+    // Get the models that were selected by Knowledge preset
+    const knowledgeModels: string[] = [];
+    for (const modelName of KNOWLEDGE_MODEL_PRIORITY) {
+      const model = llms.find(llm => 
+        llm.name === modelName || 
+        llm.name === `${modelName} Validator` ||
+        llm.name?.replace(' Validator', '') === modelName
+      );
+      if (model) knowledgeModels.push(model.id);
+    }
+    
+    // Get the models that were selected by Reasoning preset
+    const reasoningModels: string[] = [];
+    for (const modelName of REASONING_MODEL_PRIORITY) {
+      const model = llms.find(llm => 
+        llm.name === modelName || 
+        llm.name === `${modelName} Validator` ||
+        llm.name?.replace(' Validator', '') === modelName
+      );
+      if (model) reasoningModels.push(model.id);
+    }
+    
+    // Check if current selection matches Knowledge preset (at least 3 matches)
+    const knowledgeMatches = enabledIds.filter(id => knowledgeModels.includes(id)).length;
+    if (knowledgeMatches >= 3) {
+      setActiveMode('fast');
+      return;
+    }
+    
+    // Check if current selection matches Reasoning preset (at least 3 matches)
+    const reasoningMatches = enabledIds.filter(id => reasoningModels.includes(id)).length;
+    if (reasoningMatches >= 3) {
+      setActiveMode('balanced');
+      return;
+    }
+    
+    // Otherwise no preset is active
+    setActiveMode(null);
   }, [llms]);
 
   // Load custom selection only on mount
@@ -70,15 +78,17 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
   }, []); // Empty deps to run only on mount
 
   const selectKnowledgeModels = () => {
-    setActiveMode('fast'); // Set active mode immediately
-    
     // Select top 5 knowledge models with diverse providers
     const selectedModels: { id: string; provider?: string; name?: string }[] = [];
     const providers = new Set<string>();
     
     // First pass: get priority models
     for (const modelName of KNOWLEDGE_MODEL_PRIORITY) {
-      const model = llms.find(llm => llm.name === modelName);
+      const model = llms.find(llm => 
+        llm.name === modelName || 
+        llm.name === `${modelName} Validator` ||
+        llm.name?.replace(' Validator', '') === modelName
+      );
       if (model && selectedModels.length < 5) {
         selectedModels.push(model);
         providers.add(model.provider || '');
@@ -104,15 +114,17 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
   };
 
   const selectReasoningModels = () => {
-    setActiveMode('balanced'); // Set active mode immediately
-    
     // Select top 5 reasoning models with diverse providers
     const selectedModels: { id: string; provider?: string; name?: string }[] = [];
     const providers = new Set<string>();
     
     // First pass: get priority models
     for (const modelName of REASONING_MODEL_PRIORITY) {
-      const model = llms.find(llm => llm.name === modelName);
+      const model = llms.find(llm => 
+        llm.name === modelName || 
+        llm.name === `${modelName} Validator` ||
+        llm.name?.replace(' Validator', '') === modelName
+      );
       if (model && selectedModels.length < 5) {
         selectedModels.push(model);
         providers.add(model.provider || '');
@@ -138,19 +150,12 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
     setSelectedLLMIds(modelIds);
   };
 
-  const _selectAllModels = () => {
-    const allModelIds = llms.map((llm) => llm.id);
-    setEnabledLLMs(allModelIds);
-    setSelectedLLMIds(allModelIds);
-  };
 
   const handleCustomClick = () => {
     // Navigate to AI Hub page
     router.push('/ai-hub');
   };
 
-
-  const enabledCount = llms.filter(llm => llm.enabled).length;
 
   return (
     <div className="relative w-full">
@@ -183,15 +188,10 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
         <span className="hidden sm:inline text-zinc-400 dark:text-zinc-600 px-1">•</span>
         <button
           onClick={handleCustomClick}
-          className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
-            activeMode === 'custom'
-              ? 'text-white dark:text-cyan-400 bg-cyan-600 dark:bg-cyan-500/20 border-2 border-cyan-600 dark:border-cyan-500/50 shadow-lg shadow-cyan-500/20'
-              : 'text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 border-2 border-zinc-300 dark:border-zinc-700'
-          }`}
+          className="flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-cyan-500/30 dark:hover:border-cyan-500/30 border-2 border-zinc-300 dark:border-zinc-700"
         >
           <Settings className="w-4 h-4" />
           <span className="font-medium">Custom</span>
-          <span className="text-xs opacity-70">({enabledCount})</span>
         </button>
       </div>
     </div>

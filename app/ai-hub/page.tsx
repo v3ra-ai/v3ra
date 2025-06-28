@@ -8,6 +8,7 @@ import Navbar from "@/components/ask/navbar/navbar";
 import { ArrowLeft, Check, Zap, Brain, BookOpen, Sparkles, Filter } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
+import { KNOWLEDGE_MODEL_PRIORITY, REASONING_MODEL_PRIORITY } from "@/lib/model-presets";
 
 function AIHubContent() {
   const searchParams = useSearchParams();
@@ -187,20 +188,9 @@ function AIHubContent() {
                 const knowledgeModels: string[] = [];
                 const providers = new Set<string>();
                 
-                // Priority order for knowledge models
-                const knowledgePriority = [
-                  { name: 'GPT-4 Validator', provider: 'OpenAI' },
-                  { name: 'Gemini Pro Validator', provider: 'Google' },
-                  { name: 'Mistral Large Validator', provider: 'Mistral' },
-                  { name: 'GPT-3.5-turbo Validator', provider: 'OpenAI' },
-                  { name: 'Llama 3 8B Validator', provider: 'Meta' }
-                ];
-                
-                for (const priority of knowledgePriority) {
-                  const model = llms.find(llm => 
-                    llm.name === priority.name || 
-                    (llm.provider === priority.provider && !providers.has(llm.provider))
-                  );
+                // Use shared priority order for consistency
+                for (const modelName of KNOWLEDGE_MODEL_PRIORITY) {
+                  const model = llms.find(llm => llm.name === modelName);
                   if (model && knowledgeModels.length < 5) {
                     knowledgeModels.push(model.id);
                     providers.add(model.provider || '');
@@ -232,20 +222,9 @@ function AIHubContent() {
                 const reasoningModels: string[] = [];
                 const providers = new Set<string>();
                 
-                // Priority order for reasoning models
-                const reasoningPriority = [
-                  { name: 'Claude 3 Opus Validator', provider: 'Anthropic' },
-                  { name: 'GPT-4o Validator', provider: 'OpenAI' },
-                  { name: 'Claude 3 Sonnet Validator', provider: 'Anthropic' },
-                  { name: 'Llama 3 70B Validator', provider: 'Meta' },
-                  { name: 'Gemini 1.5 Pro Validator', provider: 'Google' }
-                ];
-                
-                for (const priority of reasoningPriority) {
-                  const model = llms.find(llm => 
-                    llm.name === priority.name || 
-                    (llm.name?.includes(priority.name.split(' ')[0]) && !providers.has(llm.provider))
-                  );
+                // Use shared priority order for consistency
+                for (const modelName of REASONING_MODEL_PRIORITY) {
+                  const model = llms.find(llm => llm.name === modelName);
                   if (model && reasoningModels.length < 5) {
                     reasoningModels.push(model.id);
                     providers.add(model.provider || '');

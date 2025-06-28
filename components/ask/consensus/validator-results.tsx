@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { sanitizeValidatorResponse } from "@/utils/security-utils";
 import { parseRationaleDetailed } from "@/lib/utils";
 import { AskResultsValidatorSocialIcons } from "@/components/ask/results/ask-results-validator-social-icons";
+import { AlertCircle } from "lucide-react";
 
 const ValidatorResponseCard = ({
   response,
@@ -46,15 +47,19 @@ const ValidatorResponseCard = ({
               rounded-lg
               text-xl font-bold
               transition-all duration-300
+              flex items-center gap-2
               ${
                 sanitizedResponse.vote === "YES"
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.3)]"
                   : sanitizedResponse.vote === "NO"
                     ? "bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-[0_0_15px_rgba(251,113,133,0.3)]"
+                    : sanitizedResponse.vote === "ERROR"
+                    ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                     : "bg-zinc-700/50 text-zinc-400 border border-zinc-600/50"
               }
             `}
           >
+            {sanitizedResponse.vote === "ERROR" && <AlertCircle className="w-5 h-5" />}
             {sanitizedResponse.vote || "N/A"}
           </span>
           </div>
@@ -73,8 +78,18 @@ const ValidatorResponseCard = ({
   }
   return (
     <>
-      <div className="mt-4 p-4 bg-zinc-800/30 rounded-lg border border-zinc-700/30">
-        <span className="text-sm text-cyan-400/80 font-medium block mb-2">Rationale:</span>
+      <div className={`mt-4 p-4 rounded-lg border ${
+        sanitizedResponse.vote === "ERROR" 
+          ? "bg-amber-900/20 border-amber-700/30" 
+          : "bg-zinc-800/30 border-zinc-700/30"
+      }`}>
+        <span className={`text-sm font-medium block mb-2 ${
+          sanitizedResponse.vote === "ERROR" 
+            ? "text-amber-400/80" 
+            : "text-cyan-400/80"
+        }`}>
+          {sanitizedResponse.vote === "ERROR" ? "Error Details:" : "Rationale:"}
+        </span>
         <span className="text-sm text-zinc-300 block whitespace-pre-wrap leading-relaxed">
           {rationale.length > 600 ? `${rationale.slice(0, 600)}...` : rationale}
         </span>
