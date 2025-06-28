@@ -24,9 +24,9 @@ export default function AuthCallback() {
           console.log("[AuthCallback] Verifying email token...");
           
           // Exchange the token for a session
-          const { data: { user, session }, error } = await supabase.auth.verifyOtp({
+          const { data: { user }, error } = await supabase.auth.verifyOtp({
             token_hash,
-            type: type as any,
+            type: type as "signup" | "recovery" | "invite" | "email_change" | "email",
           });
 
           if (error) {
