@@ -46,6 +46,7 @@ export interface ConsensusResult {
 }
 
 export interface AdaptiveResponse {
+  id: string; // Vote session ID
   query: string;
   classification: QueryClassification;
   consensus: ConsensusResult;

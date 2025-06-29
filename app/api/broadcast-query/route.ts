@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { broadcastCustomQuery } from "@/app/actions";
+import { broadcastAdaptiveQuery } from "@/app/actions-adaptive";
 import rateLimit from "@/lib/rate-limit";
 
 const _limiter = rateLimit({
@@ -37,14 +37,35 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await broadcastCustomQuery(queryText, queryMode, queriesRequested, selectedLLMIds);
+    const result = await broadcastAdaptiveQuery(queryText, queryMode, queriesRequested, selectedLLMIds);
 
 
     if ("error" in result) {
       return NextResponse.json({ error: result.error }, { status: 500 });
     }
 
-    return NextResponse.json(result, { status: 200 });
+    // Convert AdaptiveResponse to VoteResult format for frontend compatibility
+    const voteResult = {
+      id: result.id,
+      isConsensusReached: result.consensus.confidence > 0.6,
+      consensusValue: result.consensus.value || null,
+      queryText: result.query,
+      validatorResponses: result.validatorResponses,
+      votingResult: {
+        yes: result.validatorResponses.filter(r => r.vote === "YES").length,
+        no: result.validatorResponses.filter(r => r.vote === "NO").length,
+        notVoted: result.validatorResponses.filter(r => r.vote === "ERROR").length,
+      },
+      timestamp: result.metadata.timestamp,
+      // Include adaptive data in a custom field
+      _adaptive: {
+        classification: result.classification,
+        consensus: result.consensus,
+        metadata: result.metadata,
+      }
+    };
+
+    return NextResponse.json(voteResult, { status: 200 });
   } catch (error: unknown) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });

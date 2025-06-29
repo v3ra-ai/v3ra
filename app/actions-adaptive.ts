@@ -203,6 +203,9 @@ export async function broadcastAdaptiveQuery(
       validatorResponses,
       processingTime
     );
+    
+    // Add session ID to response
+    adaptiveResponse.id = sessionId;
 
     // Update session with consensus info
     const consensus = adaptiveResponse.consensus;

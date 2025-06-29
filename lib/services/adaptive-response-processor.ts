@@ -29,6 +29,7 @@ export class AdaptiveResponseProcessor {
     );
 
     return {
+      id: '', // Will be set by caller
       query,
       classification,
       consensus,
