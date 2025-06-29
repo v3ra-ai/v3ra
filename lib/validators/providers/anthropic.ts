@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
+import { AIValidator, AIValidationResponse, ValidationRequest, AdaptiveValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
@@ -109,7 +109,7 @@ export class AnthropicValidator implements AIValidator {
     }
   }
 
-  async validate(request: ValidationRequest): Promise<AIValidationResponse> {
+  async validate(request: ValidationRequest | AdaptiveValidationRequest): Promise<AIValidationResponse> {
     const startTime = Date.now();
 
     try {
@@ -119,6 +119,7 @@ export class AnthropicValidator implements AIValidator {
           confidence: 0,
           rationale: "Rate limit exceeded for Anthropic API",
           error: "RATE_LIMIT_EXCEEDED",
+          latency: Date.now() - startTime,
         };
       }
 
@@ -129,6 +130,7 @@ export class AnthropicValidator implements AIValidator {
           confidence: 0,
           rationale: `Service temporarily unavailable (${Math.round(backoffStatus.waitTime / 1000)}s backoff)`,
           error: "SERVICE_BACKOFF",
+          latency: Date.now() - startTime,
         };
       }
 
@@ -138,12 +140,24 @@ export class AnthropicValidator implements AIValidator {
         return this.simulateResponse(request.statement);
       }
 
-      // Generate prompt using utility function
-      const { systemMessage, userMessage } = generatePrompt(
-        request.queryMode,
-        request.statement,
-        request.context
-      );
+      // Determine prompts based on request type
+      let systemMessage: string;
+      let userMessage: string;
+      
+      if ('systemMessage' in request) {
+        // Adaptive request
+        systemMessage = request.systemMessage;
+        userMessage = request.userMessage;
+      } else {
+        // Regular request
+        const prompt = generatePrompt(
+          request.queryMode,
+          request.statement,
+          request.context
+        );
+        systemMessage = prompt.systemMessage;
+        userMessage = prompt.userMessage;
+      }
 
       const response = await fetch("https://api.anthropic.com/v1/messages", {
         method: "POST",
@@ -221,9 +235,19 @@ export class AnthropicValidator implements AIValidator {
 
         const endTime = Date.now();
 
+        // For adaptive requests, return raw response
+        if ('systemMessage' in request) {
+          return {
+            vote: reply.toUpperCase().startsWith("YES"),
+            confidence: 0.85,
+            rationale: reply,
+            latency: endTime - startTime,
+          };
+        }
+
+        // For regular requests, parse structured response
         const parsed = parseVote(reply);
         const { decision: vote, confidence = 0.8, rationale } = parsed;
-
 
         return {
           vote,
