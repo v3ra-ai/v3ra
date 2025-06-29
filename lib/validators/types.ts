@@ -18,6 +18,12 @@ export interface ValidationRequest {
   queryMode?: QueryMode; // Added to support mode-specific validation
 }
 
+// Request for adaptive validation with custom prompts
+export interface AdaptiveValidationRequest extends ValidationRequest {
+  systemMessage: string;
+  userMessage: string;
+}
+
 
 // Result of validation across multiple models
 export interface ValidationResult {
@@ -41,6 +47,7 @@ export interface AIValidator {
   active: boolean;
   keyId?: string; // Reference to the API key ID, not the actual key
   validate: (request: ValidationRequest) => Promise<AIValidationResponse>;
+  validateAdaptive?: (request: AdaptiveValidationRequest) => Promise<AIValidationResponse>;
 }
 
 // Registry of all available validators

@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from "uuid";
-import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
+import { AIValidator, AIValidationResponse, ValidationRequest, AdaptiveValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
@@ -230,6 +230,109 @@ export class OpenAIValidator implements AIValidator {
         errorTracking.consecutiveErrors = 1;
         errorTracking.lastErrorTime = Date.now();
       }
+
+      return {
+        vote: false,
+        confidence: 0,
+        rationale: `Error: ${errorMessage}`,
+        error: errorMessage,
+        latency: endTime - startTime,
+      };
+    }
+  }
+
+  /**
+   * Validate using adaptive prompts for different query categories
+   */
+  async validateAdaptive(
+    request: AdaptiveValidationRequest
+  ): Promise<AIValidationResponse> {
+    const startTime = Date.now();
+
+    // Check rate limits
+    if (!this.checkRateLimit()) {
+      return {
+        vote: false,
+        confidence: 0,
+        rationale: "Rate limit exceeded. Please try again later.",
+        error: "RATE_LIMIT",
+        latency: Date.now() - startTime,
+      };
+    }
+
+    // Check backoff
+    const { shouldWait, waitTime } = this.shouldBackoff();
+    if (shouldWait) {
+      return {
+        vote: false,
+        confidence: 0,
+        rationale: `Too many errors. Please wait ${
+          Math.ceil(waitTime / 1000)
+        } seconds.`,
+        error: "BACKOFF",
+        latency: Date.now() - startTime,
+      };
+    }
+
+    try {
+      const apiKey = await this.getApiKey();
+      
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          model: this.modelName,
+          messages: [
+            { role: "system", content: request.systemMessage },
+            { role: "user", content: request.userMessage },
+          ],
+          temperature: 0.3,
+          max_tokens: 500,
+        }),
+      });
+
+      if (!response.ok) {
+        let errorMessage = `OpenAI API error: ${response.status}`;
+        
+        // Track consecutive errors
+        errorTracking.consecutiveErrors++;
+        errorTracking.lastErrorTime = Date.now();
+
+        try {
+          const errorData = await response.json();
+          if (errorData.error?.message) {
+            errorMessage = errorData.error.message;
+          }
+        } catch {
+          // Ignore JSON parsing errors
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      // Reset error tracking on success
+      errorTracking.consecutiveErrors = 0;
+
+      const data = await response.json();
+      const reply = data.choices[0].message.content;
+      const endTime = Date.now();
+
+      // For adaptive responses, we don't parse as structured JSON
+      // The response format depends on the category
+      return {
+        vote: reply.toUpperCase().startsWith("YES"),
+        confidence: 0.85, // Default confidence for adaptive responses
+        rationale: reply,
+        latency: endTime - startTime,
+      };
+    } catch (error) {
+      const endTime = Date.now();
+      const errorMessage =
+        error instanceof Error ? error.message : String(error);
+      console.error(`Error calling OpenAI (adaptive): ${errorMessage}`);
 
       return {
         vote: false,
