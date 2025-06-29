@@ -40,13 +40,19 @@ export async function broadcastAdaptiveQuery(
     let dbValidators: DbValidatorWithKeys[] =
       await validatorService.getActiveDbValidators();
 
+    console.log("[Adaptive] Found validators:", dbValidators.length);
+    console.log("[Adaptive] Selected LLM IDs:", selectedLLMIds);
+
     if (!dbValidators || dbValidators.length === 0) {
       return { error: "No active validators found" };
     }
 
     // Filter by selectedLLMIds if provided
     if (selectedLLMIds && selectedLLMIds.length > 0) {
-      dbValidators = dbValidators.filter((v) => selectedLLMIds.includes(v.id));
+      console.log("[Adaptive] Filtering validators by IDs...");
+      const filtered = dbValidators.filter((v) => selectedLLMIds.includes(v.id));
+      console.log("[Adaptive] After filtering:", filtered.length, "validators");
+      dbValidators = filtered;
       if (dbValidators.length === 0) {
         return { error: "No matching validators found for the selected LLMs" };
       }
@@ -88,10 +94,12 @@ export async function broadcastAdaptiveQuery(
     const validatorResponsePromises: Promise<VoteValidatorResponse>[] = [];
 
     for (const dbValidator of selectedValidators) {
+      console.log("[Adaptive] Processing validator:", dbValidator.profileName, dbValidator.provider);
       let validator;
 
-      // Create validator instances (same as original)
-      if (dbValidator.provider === "OpenAI") {
+      try {
+        // Create validator instances (same as original)
+        if (dbValidator.provider === "OpenAI") {
         const modelName =
           dbValidator.modelName === "gpt-40" ? "gpt-4o" : dbValidator.modelName;
         validator = new OpenAIValidator({
@@ -191,6 +199,19 @@ export async function broadcastAdaptiveQuery(
         });
 
       validatorResponsePromises.push(validationPromise);
+      } catch (error) {
+        console.error("[Adaptive] Error creating validator:", error);
+        // Add error response for this validator
+        validatorResponsePromises.push(
+          Promise.resolve({
+            id: dbValidator.id,
+            provider: dbValidator.provider,
+            profileName: dbValidator.profileName,
+            vote: "ERROR" as const,
+            rationale: `Failed to create validator: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          } as VoteValidatorResponse)
+        );
+      }
     }
 
     const validatorResponses: VoteValidatorResponse[] = await Promise.all(
