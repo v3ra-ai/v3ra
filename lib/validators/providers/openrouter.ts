@@ -1,4 +1,4 @@
-import { AIValidator, ValidationRequest, AIValidationResponse } from "../types";
+import { AIValidator, ValidationRequest, AIValidationResponse, AdaptiveValidationRequest } from "../types";
 import type { QueryMode } from "@/lib/types";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
@@ -54,7 +54,7 @@ export class OpenRouterValidator implements AIValidator {
     return null;
   }
 
-  async validate(req: ValidationRequest): Promise<AIValidationResponse> {
+  async validate(req: ValidationRequest | AdaptiveValidationRequest): Promise<AIValidationResponse> {
     // Get API key dynamically
     const apiKey = await this.getApiKey();
     if (!apiKey) {
@@ -73,12 +73,24 @@ export class OpenRouterValidator implements AIValidator {
     try {
       const startTime = Date.now();
 
-      // Generate prompt using utility function
-      const { systemMessage, userMessage } = generatePrompt(
-        req.queryMode,
-        req.statement,
-        req.context
-      );
+      // Determine prompts based on request type
+      let systemMessage: string;
+      let userMessage: string;
+      
+      if ('systemMessage' in req) {
+        // Adaptive request
+        systemMessage = req.systemMessage;
+        userMessage = req.userMessage;
+      } else {
+        // Regular request
+        const prompt = generatePrompt(
+          req.queryMode,
+          req.statement,
+          req.context
+        );
+        systemMessage = prompt.systemMessage;
+        userMessage = prompt.userMessage;
+      }
 
       const response = await fetch(
         "https://openrouter.ai/api/v1/chat/completions",
@@ -131,12 +143,18 @@ export class OpenRouterValidator implements AIValidator {
       if (data.choices && data.choices.length > 0 && data.choices[0].message) {
         const content = data.choices[0].message.content;
         
-        // Use the standard parser which handles YES/NO format
-        const parsed = parseVote(content);
-        
-        vote = parsed.decision;
-        confidence = parsed.confidence || 0.8;
-        rationale = parsed.rationale;
+        // For adaptive requests, return raw response
+        if ('systemMessage' in req) {
+          vote = content.toUpperCase().startsWith("YES");
+          confidence = 0.85;
+          rationale = content;
+        } else {
+          // Use the standard parser for regular requests
+          const parsed = parseVote(content);
+          vote = parsed.decision;
+          confidence = parsed.confidence || 0.8;
+          rationale = parsed.rationale;
+        }
       } else {
         vote = false;
         confidence = 0;

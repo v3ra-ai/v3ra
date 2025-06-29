@@ -1,6 +1,6 @@
 import { v4 as uuidv4 } from "uuid";
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
+import { AIValidator, AIValidationResponse, ValidationRequest, AdaptiveValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
@@ -129,7 +129,7 @@ export class GeminiValidator implements AIValidator {
   /**
    * Validate a statement using Google Gemini API
    */
-  async validate(request: ValidationRequest): Promise<AIValidationResponse> {
+  async validate(request: ValidationRequest | AdaptiveValidationRequest): Promise<AIValidationResponse> {
     const startTime = Date.now();
 
     try {
@@ -140,6 +140,7 @@ export class GeminiValidator implements AIValidator {
           confidence: 0,
           rationale: "Rate limit exceeded for Gemini API",
           error: "RATE_LIMIT_EXCEEDED",
+          latency: Date.now() - startTime,
         };
       }
 
@@ -173,13 +174,21 @@ export class GeminiValidator implements AIValidator {
 
       const model = genAI.getGenerativeModel({ model: modelName });
 
-      // Generate prompt using utility function
-      const { systemMessage, userMessage } = generatePrompt(
-        request.queryMode,
-        request.statement,
-        request.context
-      );
-      const prompt = `${systemMessage}\n\n${userMessage}`; // Gemini combines system and user prompts
+      // Determine prompts based on request type
+      let prompt: string;
+      
+      if ('systemMessage' in request) {
+        // Adaptive request
+        prompt = `${request.systemMessage}\n\n${request.userMessage}`;
+      } else {
+        // Regular request
+        const { systemMessage, userMessage } = generatePrompt(
+          request.queryMode,
+          request.statement,
+          request.context
+        );
+        prompt = `${systemMessage}\n\n${userMessage}`;
+      }
 
       try {
         // Using generateText method with text parameter (updated API format)
@@ -214,7 +223,17 @@ export class GeminiValidator implements AIValidator {
 
         const endTime = Date.now();
 
-        // Parse structured JSON reply
+        // For adaptive requests, return raw response
+        if ('systemMessage' in request) {
+          return {
+            vote: textResponse.toUpperCase().startsWith("YES"),
+            confidence: 0.85,
+            rationale: textResponse,
+            latency: endTime - startTime,
+          };
+        }
+
+        // Parse structured JSON reply for regular requests
         const parsed = parseVote(textResponse);
         const { decision: vote, confidence = 0.8, rationale } = parsed;
         return {

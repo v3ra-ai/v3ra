@@ -79,6 +79,10 @@ export async function broadcastAdaptiveQuery(
 
     // Step 4: Get the appropriate prompt configuration
     const promptConfig = getPromptForCategory(classification.category);
+    console.log("[Adaptive] Using prompts for category:", classification.category, {
+      systemMessage: promptConfig.systemMessage.slice(0, 100) + "...",
+      userMessagePreview: promptConfig.userMessageTemplate(query).slice(0, 50) + "..."
+    });
 
     // Step 5: Query validators with adaptive prompts
     const validatorResponsePromises: Promise<VoteValidatorResponse>[] = [];
