@@ -46,8 +46,7 @@ export interface AIValidator {
   validatorType?: string;
   active: boolean;
   keyId?: string; // Reference to the API key ID, not the actual key
-  validate: (request: ValidationRequest) => Promise<AIValidationResponse>;
-  validateAdaptive?: (request: AdaptiveValidationRequest) => Promise<AIValidationResponse>;
+  validate: (request: ValidationRequest | AdaptiveValidationRequest) => Promise<AIValidationResponse>;
 }
 
 // Registry of all available validators

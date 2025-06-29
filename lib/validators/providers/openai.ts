@@ -123,7 +123,7 @@ export class OpenAIValidator implements AIValidator {
   /**
    * Validate a statement using OpenAI's API
    */
-  async validate(request: ValidationRequest): Promise<AIValidationResponse> {
+  async validate(request: ValidationRequest | AdaptiveValidationRequest): Promise<AIValidationResponse> {
     const startTime = Date.now();
 
     try {
@@ -134,6 +134,7 @@ export class OpenAIValidator implements AIValidator {
           confidence: 0,
           rationale: "Rate limit exceeded for OpenAI API",
           error: "RATE_LIMIT_EXCEEDED",
+          latency: Date.now() - startTime,
         };
       }
 
@@ -145,6 +146,7 @@ export class OpenAIValidator implements AIValidator {
           confidence: 0,
           rationale: `Service temporarily unavailable (${Math.round(backoffStatus.waitTime / 1000)}s backoff)`,
           error: "SERVICE_BACKOFF",
+          latency: Date.now() - startTime,
         };
       }
 
@@ -154,13 +156,24 @@ export class OpenAIValidator implements AIValidator {
         throw new Error("No API key available for OpenAI");
       }
 
-      // Make the API call
-      // Generate prompt using utility function
-      const { systemMessage, userMessage } = generatePrompt(
-        request.queryMode,
-        request.statement,
-        request.context
-      );
+      // Determine prompts based on request type
+      let systemMessage: string;
+      let userMessage: string;
+      
+      if ('systemMessage' in request) {
+        // Adaptive request
+        systemMessage = request.systemMessage;
+        userMessage = request.userMessage;
+      } else {
+        // Regular request - use default prompts
+        const prompt = generatePrompt(
+          request.queryMode,
+          request.statement,
+          request.context
+        );
+        systemMessage = prompt.systemMessage;
+        userMessage = prompt.userMessage;
+      }
 
       const response = await fetch(
         "https://api.openai.com/v1/chat/completions",
@@ -173,16 +186,11 @@ export class OpenAIValidator implements AIValidator {
           body: JSON.stringify({
             model: this.modelName,
             messages: [
-              {
-                role: "system",
-                content: systemMessage,
-              },
-              {
-                role: "user",
-                content: userMessage,
-              },
+              { role: "system", content: systemMessage },
+              { role: "user", content: userMessage },
             ],
             temperature: 0.3,
+            max_tokens: 500,
           }),
           signal: AbortSignal.timeout(15000), // 15-second timeout
         }
@@ -209,7 +217,17 @@ export class OpenAIValidator implements AIValidator {
       const reply = data.choices[0].message.content;
       const endTime = Date.now();
 
-      // Parse structured JSON reply
+      // For adaptive requests, return raw response
+      if ('systemMessage' in request) {
+        return {
+          vote: reply.toUpperCase().startsWith("YES"),
+          confidence: 0.85,
+          rationale: reply,
+          latency: endTime - startTime,
+        };
+      }
+      
+      // For regular requests, parse structured response
       const parsed = parseVote(reply);
       const { decision: vote, confidence = 0.8, rationale } = parsed;
 
@@ -241,108 +259,6 @@ export class OpenAIValidator implements AIValidator {
     }
   }
 
-  /**
-   * Validate using adaptive prompts for different query categories
-   */
-  async validateAdaptive(
-    request: AdaptiveValidationRequest
-  ): Promise<AIValidationResponse> {
-    const startTime = Date.now();
-
-    // Check rate limits
-    if (!this.checkRateLimit()) {
-      return {
-        vote: false,
-        confidence: 0,
-        rationale: "Rate limit exceeded. Please try again later.",
-        error: "RATE_LIMIT",
-        latency: Date.now() - startTime,
-      };
-    }
-
-    // Check backoff
-    const { shouldWait, waitTime } = this.shouldBackoff();
-    if (shouldWait) {
-      return {
-        vote: false,
-        confidence: 0,
-        rationale: `Too many errors. Please wait ${
-          Math.ceil(waitTime / 1000)
-        } seconds.`,
-        error: "BACKOFF",
-        latency: Date.now() - startTime,
-      };
-    }
-
-    try {
-      const apiKey = await this.getApiKey();
-      
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-          model: this.modelName,
-          messages: [
-            { role: "system", content: request.systemMessage },
-            { role: "user", content: request.userMessage },
-          ],
-          temperature: 0.3,
-          max_tokens: 500,
-        }),
-      });
-
-      if (!response.ok) {
-        let errorMessage = `OpenAI API error: ${response.status}`;
-        
-        // Track consecutive errors
-        errorTracking.consecutiveErrors++;
-        errorTracking.lastErrorTime = Date.now();
-
-        try {
-          const errorData = await response.json();
-          if (errorData.error?.message) {
-            errorMessage = errorData.error.message;
-          }
-        } catch {
-          // Ignore JSON parsing errors
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      // Reset error tracking on success
-      errorTracking.consecutiveErrors = 0;
-
-      const data = await response.json();
-      const reply = data.choices[0].message.content;
-      const endTime = Date.now();
-
-      // For adaptive responses, we don't parse as structured JSON
-      // The response format depends on the category
-      return {
-        vote: reply.toUpperCase().startsWith("YES"),
-        confidence: 0.85, // Default confidence for adaptive responses
-        rationale: reply,
-        latency: endTime - startTime,
-      };
-    } catch (error) {
-      const endTime = Date.now();
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error(`Error calling OpenAI (adaptive): ${errorMessage}`);
-
-      return {
-        vote: false,
-        confidence: 0,
-        rationale: `Error: ${errorMessage}`,
-        error: errorMessage,
-        latency: endTime - startTime,
-      };
-    }
-  }
 
   /**
    * Create and save this validator in the database

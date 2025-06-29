@@ -151,7 +151,7 @@ export async function broadcastAdaptiveQuery(
 
       // Use adaptive validation with category-specific prompts
       const validationPromise = validator
-        .validateAdaptive({
+        .validate({
           statement: query,
           queryMode,
           systemMessage: promptConfig.systemMessage,
@@ -225,34 +225,3 @@ export async function broadcastAdaptiveQuery(
   }
 }
 
-// Maintain backward compatibility
-export async function broadcastCustomQuery(
-  query: string,
-  queryMode: QueryMode = "fact-check",
-  queriesRequested?: number,
-  selectedLLMIds?: string[]
-): Promise<VoteResult | { error: string }> {
-  // Call the adaptive version and convert to legacy format
-  const result = await broadcastAdaptiveQuery(query, queryMode, queriesRequested, selectedLLMIds);
-  
-  if ("error" in result) {
-    return result;
-  }
-
-  // Convert AdaptiveResponse to VoteResult for backward compatibility
-  const legacyResult: VoteResult = {
-    id: uuidv4(),
-    isConsensusReached: result.consensus.confidence > 0.6,
-    consensusValue: result.consensus.value || null,
-    queryText: result.query,
-    validatorResponses: result.validatorResponses,
-    votingResult: {
-      yes: result.validatorResponses.filter(r => r.vote === "YES").length,
-      no: result.validatorResponses.filter(r => r.vote === "NO").length,
-      notVoted: result.validatorResponses.filter(r => r.vote === "ERROR").length,
-    },
-    timestamp: result.metadata.timestamp,
-  };
-
-  return legacyResult;
-}
