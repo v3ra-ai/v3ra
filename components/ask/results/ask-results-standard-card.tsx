@@ -15,6 +15,8 @@ import { AskResultsStandardFooter } from "./ask-results-standard-footer";
 import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-validator-avatars";
 import { parseRationaleDetailed } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
+import { AdaptivePhilosophicalDisplay } from "@/components/ask/results/adaptive-philosophical-display";
+import { QueryCategory } from "@/lib/types/query-classifier";
 
 interface AskResultsStandardCardProps {
   query: VoteResult;
@@ -35,7 +37,25 @@ export default function AskResultsStandardCard({
       query,
       hasValidatorResponses: !!query?.validatorResponses,
       responseCount: query?.validatorResponses?.length || 0,
+      hasAdaptive: !!query?._adaptive,
     });
+  }
+
+  // Check if this is an adaptive response
+  if (query?._adaptive) {
+    // For philosophical questions, use the simpler display
+    if (query._adaptive.classification.category === QueryCategory.IDENTITY_PHILOSOPHY) {
+      return (
+        <AdaptivePhilosophicalDisplay
+          query={query.queryText}
+          timestamp={query.timestamp?.toString() || new Date().toISOString()}
+          responses={query.validatorResponses}
+        />
+      );
+    }
+    
+    // For other categories, we'll add specific displays later
+    // For now, fall through to standard display
   }
 
   // Validate query data

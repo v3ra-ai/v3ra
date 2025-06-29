@@ -108,6 +108,11 @@ export interface VoteResult {
     notVoted: number;
   };
   timestamp?: string | number;
+  _adaptive?: {
+    classification: any;
+    consensus: any;
+    metadata: any;
+  };
 }
 
 export interface VoteValidatorResponse extends ValidatorResponse {

@@ -1,7 +1,7 @@
 "use client";
 
-import { AdaptiveResponse, QueryCategory } from "@/lib/types/query-classifier";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { QueryCategory } from "@/lib/types/query-classifier";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { 
@@ -10,10 +10,18 @@ import {
   XCircle, 
   HelpCircle,
   Brain,
-  MessageCircle,
   Globe,
   Scale
 } from "lucide-react";
+
+interface AdaptiveResponse {
+  id: string;
+  query: string;
+  classification: any;
+  consensus: any;
+  validatorResponses: any[];
+  metadata: any;
+}
 
 const CATEGORY_CONFIG = {
   [QueryCategory.FACT_CHECK]: {
@@ -60,6 +68,9 @@ interface AdaptiveResultsDisplayProps {
 export function AdaptiveResultsDisplay({ response }: AdaptiveResultsDisplayProps) {
   const categoryConfig = CATEGORY_CONFIG[response.classification.category];
   const Icon = categoryConfig.icon;
+  
+  // Simple responsive width based on content
+  const cardClassName = "w-full sm:w-[90%] lg:w-4xl max-w-4xl mx-auto";
 
   const renderConsensusContent = () => {
     const { consensus } = response;
@@ -164,7 +175,7 @@ export function AdaptiveResultsDisplay({ response }: AdaptiveResultsDisplayProps
   };
 
   return (
-    <Card className="w-full">
+    <Card className={`${cardClassName} bg-gradient-to-br from-zinc-900/90 via-zinc-900/95 to-black/90 backdrop-blur-2xl border border-zinc-700/50 hover:border-cyan-400/40 transition-all duration-300 hover:shadow-2xl`}>
       <CardHeader>
         <div className="space-y-4">
           {/* Category Badge */}
