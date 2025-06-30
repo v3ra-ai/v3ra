@@ -89,6 +89,8 @@ async function addClaude4Validators() {
           reliability: 0.0,
           totalVotes: 0,
           correctVotes: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         },
       });
 
