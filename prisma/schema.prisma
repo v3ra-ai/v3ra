@@ -283,6 +283,7 @@ model VoteSession {
   Thread             Thread[]
   ValidatorResponse  ValidatorResponse[]
   UserCredit         UserCredit?         @relation(fields: [userId], references: [id])
+  Predictions        Prediction[]
 
   @@index([consensusValue])
   @@index([isConsensusReached])
@@ -332,4 +333,116 @@ enum QueryStatus {
   Voting
   Completed
   Failed
+}
+
+enum ResolutionStatus {
+  pending
+  resolved
+  disputed
+  unresolvable
+}
+
+enum ResolutionMethod {
+  automated
+  user_verified
+  consensus
+  official_source
+}
+
+enum ConfidenceLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Prediction {
+  id                String               @id @default(dbgenerated("gen_random_uuid()"))
+  voteSessionId     String?
+  queryText         String
+  category          String?              @db.VarChar(50)
+  createdAt         DateTime             @default(now())
+  resolutionDate    DateTime?
+  resolutionStatus  ResolutionStatus     @default(pending)
+  createdBy         String?              @db.VarChar(100)
+  metadata          Json?
+  VoteSession       VoteSession?         @relation(fields: [voteSessionId], references: [id])
+  outcomes          PredictionOutcome[]
+  modelPredictions  ModelPrediction[]
+  resolutions       PredictionResolution[]
+  verificationVotes VerificationVote[]
+
+  @@index([resolutionStatus])
+  @@index([resolutionDate])
+  @@index([category])
+}
+
+model PredictionOutcome {
+  id                  String      @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId        String
+  outcomeText         String
+  consensusProbability Decimal?    @db.Decimal(5, 4)
+  modelAgreement      Decimal?    @db.Decimal(5, 4)
+  modelCount          Int         @default(0)
+  createdAt           DateTime    @default(now())
+  Prediction          Prediction  @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@index([predictionId])
+}
+
+model ModelPrediction {
+  id              String           @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId    String
+  modelName       String           @db.VarChar(100)
+  outcomeText     String
+  probability     Decimal?         @db.Decimal(5, 4)
+  confidenceLevel ConfidenceLevel?
+  reasoning       String?
+  createdAt       DateTime         @default(now())
+  Prediction      Prediction       @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@index([predictionId])
+}
+
+model PredictionResolution {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId       String
+  actualOutcome      String
+  resolvedAt         DateTime          @default(now())
+  resolutionMethod   ResolutionMethod?
+  verificationSource String?
+  evidence           String?
+  resolverId         String?           @db.VarChar(100)
+  confidenceScore    Decimal?          @db.Decimal(3, 2)
+  disputeCount       Int               @default(0)
+  Prediction         Prediction        @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@index([predictionId])
+}
+
+model ModelPerformance {
+  modelName           String    @db.VarChar(100)
+  periodStart         DateTime  @db.Date
+  periodEnd           DateTime  @db.Date
+  totalPredictions    Int       @default(0)
+  accuratePredictions Int       @default(0)
+  brierScore          Decimal?  @db.Decimal(5, 4)
+  calibrationScore    Decimal?  @db.Decimal(5, 4)
+  logScore            Decimal?  @db.Decimal(6, 4)
+  category            String    @db.VarChar(50) @default("general")
+  metadata            Json?
+
+  @@id([modelName, periodStart, category])
+  @@index([periodStart, periodEnd])
+}
+
+model VerificationVote {
+  id           String     @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId String
+  userId       String     @db.VarChar(100)
+  votedOutcome String
+  evidence     String?
+  createdAt    DateTime   @default(now())
+  Prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@unique([predictionId, userId])
 }

@@ -18,6 +18,7 @@ import { validatorService } from "@/lib/services/validatorService";
 import { Validator, ValidatorKey } from "@prisma/client";
 import { QueryClassifier } from "@/lib/services/query-classifier";
 import { AdaptiveResponseProcessor } from "@/lib/services/adaptive-response-processor";
+import { PredictionTracker } from "@/lib/services/prediction-tracker";
 import { getPromptForCategory } from "@/lib/validators/prompts/adaptive-prompts";
 
 type DbValidatorWithKeys = Validator & { ValidatorKey: ValidatorKey[] };
@@ -257,6 +258,10 @@ export async function broadcastAdaptiveQuery(
         updatedAt: new Date(),
       },
     });
+
+    // Save prediction data if this is a prediction query
+    const predictionTracker = new PredictionTracker();
+    await predictionTracker.savePrediction(adaptiveResponse, sessionId);
 
     return adaptiveResponse;
   } catch (error) {
