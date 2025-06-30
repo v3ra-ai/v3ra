@@ -8,6 +8,7 @@ import {
 } from "@/lib/types/query-classifier";
 import { VoteValidatorResponse } from "@/lib/types";
 import { getPromptForCategory } from "@/lib/validators/prompts/adaptive-prompts";
+import { PredictionNormalizer } from "./prediction-normalizer";
 
 export class AdaptiveResponseProcessor {
   processResponses(
@@ -217,22 +218,24 @@ export class AdaptiveResponseProcessor {
     // Aggregate predictions from all models
     const allPredictions = parsedResponses.flatMap(r => r.predictions || []);
     
-    // Group predictions by outcome and calculate average probabilities
-    const outcomeMap = new Map<string, { totalProb: number; count: number; reasons: string[] }>();
+    // Use normalizer to group similar predictions
+    const normalizer = new PredictionNormalizer();
+    const outcomeMap = new Map<string, { totalProb: number; count: number; reasons: string[]; originalNames: string[] }>();
     
     allPredictions.forEach(pred => {
-      const key = pred.outcome.toLowerCase().trim();
-      const existing = outcomeMap.get(key) || { totalProb: 0, count: 0, reasons: [] };
+      const normalizedKey = normalizer.normalizeOutcome(pred.outcome, 'sports');
+      const existing = outcomeMap.get(normalizedKey) || { totalProb: 0, count: 0, reasons: [], originalNames: [] };
       existing.totalProb += pred.probability;
       existing.count += 1;
+      existing.originalNames.push(pred.outcome);
       if (pred.reasoning) existing.reasons.push(pred.reasoning);
-      outcomeMap.set(key, existing);
+      outcomeMap.set(normalizedKey, existing);
     });
     
     // Convert to array and calculate average probabilities
     const aggregatedPredictions = Array.from(outcomeMap.entries())
-      .map(([outcome, data]) => ({
-        outcome: allPredictions.find(p => p.outcome.toLowerCase().trim() === outcome)?.outcome || outcome,
+      .map(([normalizedOutcome, data]) => ({
+        outcome: normalizedOutcome,
         probability: data.totalProb / data.count,
         reasoning: data.reasons[0] || undefined, // Use first reasoning
         modelCount: data.count

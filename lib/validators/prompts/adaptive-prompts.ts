@@ -81,9 +81,11 @@ export const CATEGORY_PROMPTS: Record<QueryCategory, CategoryPromptConfig> = {
 CRITICAL INSTRUCTIONS:
 1. Start with "PREDICTION:" followed by your primary prediction and probability
 2. List other possible outcomes with their probabilities (must sum to 100%)
-3. Provide reasoning based on current data and trends
-4. Specify confidence level (LOW/MEDIUM/HIGH)
-5. Estimate when this prediction can be verified
+3. For sports: Use ONLY official team names (e.g., "Los Angeles Dodgers", NOT "Dodgers win")
+4. Group all unlikely teams as "Other teams" with combined probability
+5. Provide reasoning based on current data and trends
+6. Specify confidence level (LOW/MEDIUM/HIGH)
+7. Estimate when this prediction can be verified
 
 Format:
 PREDICTION: [Most likely outcome] - [X]%
