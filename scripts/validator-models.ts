@@ -38,6 +38,26 @@ export const openaiModels: ValidatorModel[] = [
 // Anthropic Models
 export const anthropicModels: ValidatorModel[] = [
   {
+    name: "Claude Opus 4",
+    provider: "Anthropic",
+    model_id: "claude-opus-4-20250514",
+  },
+  {
+    name: "Claude Sonnet 4",
+    provider: "Anthropic",
+    model_id: "claude-sonnet-4-20250514",
+  },
+  {
+    name: "Claude 3.5 Sonnet",
+    provider: "Anthropic",
+    model_id: "claude-3-5-sonnet-20241022",
+  },
+  {
+    name: "Claude 3.5 Haiku",
+    provider: "Anthropic",
+    model_id: "claude-3-5-haiku-20241022",
+  },
+  {
     name: "Claude 3 Opus",
     provider: "Anthropic",
     model_id: "claude-3-opus-20240229",
@@ -328,14 +348,24 @@ export const openRouterModels: ValidatorModel[] = [
   },
   // Claude Models via OpenRouter
   {
-    name: "Claude 3 Opus",
+    name: "Claude Opus 4 (OpenRouter)",
     provider: "Anthropic",
-    model_id: "anthropic/claude-3-opus",
+    model_id: "anthropic/claude-opus-4",
+  },
+  {
+    name: "Claude Sonnet 4 (OpenRouter)",
+    provider: "Anthropic",
+    model_id: "anthropic/claude-sonnet-4",
   },
   {
     name: "Claude 3.5 Sonnet",
     provider: "Anthropic",
     model_id: "anthropic/claude-3.5-sonnet",
+  },
+  {
+    name: "Claude 3 Opus",
+    provider: "Anthropic",
+    model_id: "anthropic/claude-3-opus",
   },
   // GPT Models via OpenRouter
   {
