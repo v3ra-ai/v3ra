@@ -233,12 +233,26 @@ export class AdaptiveResponseProcessor {
     });
     
     // Convert to array and calculate average probabilities
-    const aggregatedPredictions = Array.from(outcomeMap.entries())
+    const rawPredictions = Array.from(outcomeMap.entries())
       .map(([normalizedOutcome, data]) => ({
         outcome: normalizedOutcome,
         probability: data.totalProb / data.count,
         reasoning: data.reasons[0] || undefined, // Use first reasoning
         modelCount: data.count
+      }));
+    
+    // Normalize probabilities to sum to 1.0
+    const totalProbability = rawPredictions.reduce((sum, pred) => sum + pred.probability, 0);
+    
+    // Log if probabilities don't sum correctly
+    if (Math.abs(totalProbability - 1.0) > 0.1) {
+      console.warn(`[Prediction] Probabilities sum to ${(totalProbability * 100).toFixed(1)}% instead of 100%. Normalizing...`);
+    }
+    
+    const aggregatedPredictions = rawPredictions
+      .map(pred => ({
+        ...pred,
+        probability: totalProbability > 0 ? pred.probability / totalProbability : pred.probability
       }))
       .sort((a, b) => b.probability - a.probability);
     

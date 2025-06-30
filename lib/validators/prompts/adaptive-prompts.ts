@@ -93,6 +93,8 @@ Other outcomes:
 - [Outcome 2] - [Y]%
 - [Outcome 3] - [Z]%
 
+IMPORTANT: All probabilities MUST sum to exactly 100%!
+
 Reasoning: [Why you predict this based on current evidence]
 Confidence: [LOW/MEDIUM/HIGH]
 Resolution date: [When this can be verified]`,
