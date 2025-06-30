@@ -5,6 +5,7 @@ import {
 } from "@/lib/constants";
 import { AIValidationResponse } from "./validators/types";
 import { Transaction } from "@solana/web3.js";
+import { QueryClassification, ConsensusResult } from "./types/query-classifier";
 
 // Define interface for custom event attributes
 export interface TestRouteEventAttributes {
@@ -55,7 +56,7 @@ export interface ValidatorResponse {
   id: string;
   provider: string;
   profileName: string;
-  vote?: "YES" | "NO" | "ERROR";
+  vote?: "YES" | "NO" | "UNKNOWN" | "ERROR";
   rationale?: string;
   modelName?: string;
   validatorType?: string;
@@ -106,17 +107,22 @@ export interface VoteResult {
     yes: number;
     no: number;
     notVoted: number;
+    uncertain?: number;
   };
   timestamp?: string | number;
   _adaptive?: {
-    classification: any;
-    consensus: any;
-    metadata: any;
+    classification: QueryClassification;
+    consensus: ConsensusResult;
+    metadata: {
+      processingTime: number;
+      modelsQueried: number;
+      timestamp: string;
+    };
   };
 }
 
 export interface VoteValidatorResponse extends ValidatorResponse {
-  vote: "YES" | "NO" | "ERROR";
+  vote: "YES" | "NO" | "UNKNOWN" | "ERROR";
   rationale: string;
 }
 

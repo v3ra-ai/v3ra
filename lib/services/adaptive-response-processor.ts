@@ -79,6 +79,9 @@ export class AdaptiveResponseProcessor {
       case QueryCategory.CURRENT_EVENTS:
         return this.calculateCurrentEventsConsensus(parsedResponses);
       
+      case QueryCategory.PREDICTION:
+        return this.calculatePredictionConsensus(parsedResponses);
+      
       default:
         return this.calculateFactCheckConsensus(parsedResponses, rawResponses);
     }
@@ -91,7 +94,7 @@ export class AdaptiveResponseProcessor {
     const votes = parsedResponses.map(r => r.primary);
     const yesCount = votes.filter(v => v === "YES").length;
     const noCount = votes.filter(v => v === "NO").length;
-    const uncertainCount = votes.filter(v => v === "UNCERTAIN").length;
+    const uncertainCount = votes.filter(v => v === "UNKNOWN").length;
     const totalValidVotes = yesCount + noCount + uncertainCount;
 
     let consensusValue: boolean | null = null;
@@ -101,16 +104,20 @@ export class AdaptiveResponseProcessor {
     if (totalValidVotes === 0) {
       summary = "No valid responses received";
     } else if (uncertainCount > totalValidVotes / 2) {
-      summary = "Too uncertain to fact-check definitively";
-      confidence = 0.3;
+      summary = "Cannot be determined - matter of belief or lacks evidence";
+      consensusValue = null;
+      confidence = 0.5;
     } else if (yesCount > noCount * 2) {
       consensusValue = true;
-      summary = "Strong consensus: Statement is factually accurate";
+      summary = "Consensus: Statement is factually accurate";
       confidence = yesCount / totalValidVotes;
     } else if (noCount > yesCount * 2) {
       consensusValue = false;
-      summary = "Strong consensus: Statement contains inaccuracies";
+      summary = "Consensus: Statement contains inaccuracies";
       confidence = noCount / totalValidVotes;
+    } else if (uncertainCount > 0 && uncertainCount >= Math.max(yesCount, noCount) / 2) {
+      summary = "Mixed responses with many unknowns";
+      confidence = 0.6;
     } else {
       summary = "Mixed responses - no clear consensus";
       confidence = 0.5;
@@ -119,11 +126,14 @@ export class AdaptiveResponseProcessor {
     // Extract key points from explanations
     const keyPoints = this.extractKeyPoints(parsedResponses);
 
+    // Add vote breakdown to summary
+    const voteBreakdown = `(${yesCount} YES, ${noCount} NO, ${uncertainCount} UNKNOWN)`;
+
     return {
       category: QueryCategory.FACT_CHECK,
       value: consensusValue,
       confidence,
-      summary,
+      summary: `${summary} ${voteBreakdown}`,
       keyPoints,
       modelAgreement: this.calculateAgreement(votes),
     };
@@ -198,6 +208,68 @@ export class AdaptiveResponseProcessor {
         : `Found ${keyPoints.length} relevant facts`,
       keyPoints,
       modelAgreement: 0.7,
+    };
+  }
+
+  private calculatePredictionConsensus(
+    parsedResponses: ParsedResponse[]
+  ): ConsensusResult {
+    // Aggregate predictions from all models
+    const allPredictions = parsedResponses.flatMap(r => r.predictions || []);
+    
+    // Group predictions by outcome and calculate average probabilities
+    const outcomeMap = new Map<string, { totalProb: number; count: number; reasons: string[] }>();
+    
+    allPredictions.forEach(pred => {
+      const key = pred.outcome.toLowerCase().trim();
+      const existing = outcomeMap.get(key) || { totalProb: 0, count: 0, reasons: [] };
+      existing.totalProb += pred.probability;
+      existing.count += 1;
+      if (pred.reasoning) existing.reasons.push(pred.reasoning);
+      outcomeMap.set(key, existing);
+    });
+    
+    // Convert to array and calculate average probabilities
+    const aggregatedPredictions = Array.from(outcomeMap.entries())
+      .map(([outcome, data]) => ({
+        outcome: allPredictions.find(p => p.outcome.toLowerCase().trim() === outcome)?.outcome || outcome,
+        probability: data.totalProb / data.count,
+        reasoning: data.reasons[0] || undefined, // Use first reasoning
+        modelCount: data.count
+      }))
+      .sort((a, b) => b.probability - a.probability);
+    
+    // Find most common resolution date
+    const resolutionDates = parsedResponses
+      .map(r => r.resolutionDate)
+      .filter(d => d);
+    const resolutionDate = resolutionDates.length > 0 ? resolutionDates[0] : undefined;
+    
+    // Calculate model agreement based on how closely models agree on probabilities
+    const primaryOutcome = aggregatedPredictions[0];
+    const modelAgreement = primaryOutcome 
+      ? primaryOutcome.modelCount / parsedResponses.length 
+      : 0;
+    
+    // Calculate average confidence
+    const avgConfidence = parsedResponses
+      .map(r => r.confidence || 0.5)
+      .reduce((a, b) => a + b, 0) / parsedResponses.length;
+    
+    return {
+      category: QueryCategory.PREDICTION,
+      predictions: aggregatedPredictions.map(p => ({
+        outcome: p.outcome,
+        probability: p.probability,
+        reasoning: p.reasoning
+      })),
+      resolutionDate,
+      confidence: avgConfidence,
+      summary: `${parsedResponses.length} models analyzed future outcomes`,
+      keyPoints: aggregatedPredictions
+        .slice(0, 3)
+        .map(p => `${p.outcome}: ${(p.probability * 100).toFixed(0)}%`),
+      modelAgreement,
     };
   }
 

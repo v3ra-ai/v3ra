@@ -16,6 +16,7 @@ import { AskResultsStandardValidatorAvatars } from "./ask-results-standard-valid
 import { parseRationaleDetailed } from "@/lib/utils";
 import { Card, CardContent } from "@/components/ui/card";
 import { AdaptivePhilosophicalDisplay } from "@/components/ask/results/adaptive-philosophical-display";
+import { AdaptiveResultsDisplay } from "@/components/ask/results/adaptive-results-display";
 import { QueryCategory } from "@/lib/types/query-classifier";
 
 interface AskResultsStandardCardProps {
@@ -54,8 +55,19 @@ export default function AskResultsStandardCard({
       );
     }
     
-    // For other categories, we'll add specific displays later
-    // For now, fall through to standard display
+    // For all other adaptive categories (including predictions), use the adaptive display
+    return (
+      <AdaptiveResultsDisplay
+        response={{
+          id: query.id,
+          query: query.queryText,
+          classification: query._adaptive.classification,
+          consensus: query._adaptive.consensus,
+          validatorResponses: query.validatorResponses,
+          metadata: query._adaptive.metadata,
+        }}
+      />
+    );
   }
 
   // Validate query data

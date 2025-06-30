@@ -2,7 +2,7 @@ import { QueryCategory, CategoryPromptConfig } from "@/lib/types/query-classifie
 
 export const CATEGORY_PROMPTS: Record<QueryCategory, CategoryPromptConfig> = {
   [QueryCategory.FACT_CHECK]: {
-    systemMessage: `You are a fact-checker. Respond with YES, NO, or UNCERTAIN followed by a brief explanation.`,
+    systemMessage: `You are a fact-checker. Respond with YES, NO, or UNKNOWN followed by a brief explanation. Use UNKNOWN for unverifiable claims, matters of belief, or topics lacking scientific consensus.`,
     
     userMessageTemplate: (query: string) => `Fact-check: "${query}"`,
     
@@ -12,7 +12,7 @@ export const CATEGORY_PROMPTS: Record<QueryCategory, CategoryPromptConfig> = {
       return {
         primary: vote,
         explanation: lines.slice(1).join('\n').trim(),
-        confidence: vote === 'UNCERTAIN' ? 0.3 : 0.8,
+        confidence: vote === 'UNKNOWN' ? 0.5 : 0.85,
       };
     }
   },
@@ -71,6 +71,89 @@ export const CATEGORY_PROMPTS: Record<QueryCategory, CategoryPromptConfig> = {
         primary: "Multiple viewpoints exist on this topic",
         explanation: response,
         confidence: 0.75,
+      };
+    }
+  },
+
+  [QueryCategory.PREDICTION]: {
+    systemMessage: `You are an expert prediction analyst. When asked about future events, provide probability estimates in a structured format.
+
+CRITICAL INSTRUCTIONS:
+1. Start with "PREDICTION:" followed by your primary prediction and probability
+2. List other possible outcomes with their probabilities (must sum to 100%)
+3. Provide reasoning based on current data and trends
+4. Specify confidence level (LOW/MEDIUM/HIGH)
+5. Estimate when this prediction can be verified
+
+Format:
+PREDICTION: [Most likely outcome] - [X]%
+Other outcomes:
+- [Outcome 2] - [Y]%
+- [Outcome 3] - [Z]%
+
+Reasoning: [Why you predict this based on current evidence]
+Confidence: [LOW/MEDIUM/HIGH]
+Resolution date: [When this can be verified]`,
+    
+    userMessageTemplate: (query: string) => query,
+    
+    responseParser: (response: string) => {
+      const lines = response.split('\n');
+      const predictionLine = lines.find(l => l.startsWith('PREDICTION:'));
+      const primaryMatch = predictionLine?.match(/PREDICTION:\s*(.+?)\s*-\s*(\d+)%/);
+      
+      const predictions = [];
+      let inOtherOutcomes = false;
+      let reasoning = '';
+      let confidence = 0.5;
+      let resolutionDate = '';
+      
+      for (const line of lines) {
+        if (line.includes('Other outcomes:')) {
+          inOtherOutcomes = true;
+          continue;
+        }
+        
+        if (inOtherOutcomes && line.trim().startsWith('-')) {
+          const match = line.match(/-\s*(.+?)\s*-\s*(\d+)%/);
+          if (match) {
+            predictions.push({
+              outcome: match[1].trim(),
+              probability: parseInt(match[2]) / 100
+            });
+          }
+        }
+        
+        if (line.startsWith('Reasoning:')) {
+          reasoning = line.substring('Reasoning:'.length).trim();
+          inOtherOutcomes = false;
+        }
+        
+        if (line.startsWith('Confidence:')) {
+          const conf = line.substring('Confidence:'.length).trim().toUpperCase();
+          confidence = conf === 'HIGH' ? 0.8 : conf === 'MEDIUM' ? 0.6 : 0.4;
+        }
+        
+        if (line.startsWith('Resolution date:')) {
+          resolutionDate = line.substring('Resolution date:'.length).trim();
+        }
+      }
+      
+      // Add primary prediction
+      if (primaryMatch) {
+        predictions.unshift({
+          outcome: primaryMatch[1].trim(),
+          probability: parseInt(primaryMatch[2]) / 100,
+          reasoning
+        });
+      }
+      
+      return {
+        primary: primaryMatch ? `${primaryMatch[1]} (${primaryMatch[2]}%)` : 'No clear prediction',
+        explanation: response,
+        confidence,
+        predictions,
+        resolutionDate
       };
     }
   }

@@ -1,9 +1,14 @@
 "use client";
 
-import { QueryCategory } from "@/lib/types/query-classifier";
+import { 
+  QueryCategory, 
+  QueryClassification, 
+  ConsensusResult
+} from "@/lib/types/query-classifier";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { PredictionCard } from "./prediction-card";
 import { 
   AlertCircle, 
   CheckCircle, 
@@ -11,16 +16,21 @@ import {
   HelpCircle,
   Brain,
   Globe,
-  Scale
+  Scale,
+  TrendingUp
 } from "lucide-react";
 
 interface AdaptiveResponse {
   id: string;
   query: string;
-  classification: any;
-  consensus: any;
+  classification: QueryClassification;
+  consensus: ConsensusResult;
   validatorResponses: any[];
-  metadata: any;
+  metadata: {
+    processingTime: number;
+    modelsQueried: number;
+    timestamp: string;
+  };
 }
 
 const CATEGORY_CONFIG = {
@@ -59,6 +69,13 @@ const CATEGORY_CONFIG = {
     bgColor: "bg-amber-500/10",
     borderColor: "border-amber-500/30",
   },
+  [QueryCategory.PREDICTION]: {
+    label: "Prediction",
+    icon: TrendingUp,
+    color: "text-emerald-500",
+    bgColor: "bg-emerald-500/10",
+    borderColor: "border-emerald-500/30",
+  },
 };
 
 interface AdaptiveResultsDisplayProps {
@@ -68,6 +85,17 @@ interface AdaptiveResultsDisplayProps {
 export function AdaptiveResultsDisplay({ response }: AdaptiveResultsDisplayProps) {
   const categoryConfig = CATEGORY_CONFIG[response.classification.category];
   const Icon = categoryConfig.icon;
+  
+  // Use dedicated prediction card for predictions
+  if (response.classification.category === QueryCategory.PREDICTION) {
+    return (
+      <PredictionCard 
+        query={response.query}
+        consensus={response.consensus}
+        metadata={response.metadata}
+      />
+    );
+  }
   
   // Simple responsive width based on content
   const cardClassName = "w-full sm:w-[90%] lg:w-4xl max-w-4xl mx-auto";
@@ -97,7 +125,7 @@ export function AdaptiveResultsDisplay({ response }: AdaptiveResultsDisplayProps
                 {consensus.value === null && (
                   <>
                     <AlertCircle className="w-6 h-6 text-amber-500" />
-                    <span className="text-2xl font-bold text-amber-500">UNCERTAIN</span>
+                    <span className="text-2xl font-bold text-amber-500">UNKNOWN</span>
                   </>
                 )}
               </div>

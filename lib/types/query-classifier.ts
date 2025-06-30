@@ -3,7 +3,8 @@ export enum QueryCategory {
   QUESTION_ANSWER = "question_answer", 
   IDENTITY_PHILOSOPHY = "identity_philosophy",
   CURRENT_EVENTS = "current_events",
-  OPINION_DEBATE = "opinion_debate"
+  OPINION_DEBATE = "opinion_debate",
+  PREDICTION = "prediction"
 }
 
 export interface QueryClassification {
@@ -26,6 +27,14 @@ export interface ParsedResponse {
   confidence?: number;
   evidence?: string[];
   perspectives?: Perspective[];
+  predictions?: PredictionOutcome[];
+  resolutionDate?: string;
+}
+
+export interface PredictionOutcome {
+  outcome: string;
+  probability: number;
+  reasoning?: string;
 }
 
 export interface Perspective {
@@ -39,6 +48,8 @@ export interface ConsensusResult {
   value?: boolean | null;  // For fact-check
   answer?: string;         // For Q&A
   perspectives?: Perspective[]; // For opinions
+  predictions?: PredictionOutcome[]; // For predictions
+  resolutionDate?: string; // When prediction can be verified
   confidence: number;
   summary: string;
   keyPoints: string[];

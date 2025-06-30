@@ -53,6 +53,8 @@ const ValidatorResponseCard = ({
                   ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 shadow-[0_0_15px_rgba(52,211,153,0.3)]"
                   : sanitizedResponse.vote === "NO"
                     ? "bg-rose-500/20 text-rose-400 border border-rose-500/30 shadow-[0_0_15px_rgba(251,113,133,0.3)]"
+                    : sanitizedResponse.vote === "UNKNOWN"
+                    ? "bg-blue-500/20 text-blue-400 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.3)]"
                     : sanitizedResponse.vote === "ERROR"
                     ? "bg-amber-500/20 text-amber-400 border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.3)]"
                     : "bg-zinc-700/50 text-zinc-400 border border-zinc-600/50"

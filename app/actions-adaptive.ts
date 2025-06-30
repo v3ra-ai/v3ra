@@ -180,11 +180,23 @@ export async function broadcastAdaptiveQuery(
             error: response.error,
           });
 
+          // Determine vote from rationale for adaptive responses
+          let vote: "YES" | "NO" | "UNKNOWN" | "ERROR" = "NO";
+          const upperRationale = response.rationale.toUpperCase();
+          
+          if (response.vote === true || upperRationale.startsWith("YES")) {
+            vote = "YES";
+          } else if (upperRationale.startsWith("UNKNOWN")) {
+            vote = "UNKNOWN";
+          } else if (upperRationale.startsWith("NO")) {
+            vote = "NO";
+          }
+          
           return {
             id: dbValidator.id,
             provider: dbValidator.provider,
             profileName: dbValidator.profileName,
-            vote: response.vote ? "YES" : "NO",
+            vote,
             rationale: response.rationale,
           } as VoteValidatorResponse;
         })

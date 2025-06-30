@@ -55,6 +55,7 @@ export async function POST(request: NextRequest) {
         yes: result.validatorResponses.filter(r => r.vote === "YES").length,
         no: result.validatorResponses.filter(r => r.vote === "NO").length,
         notVoted: result.validatorResponses.filter(r => r.vote === "ERROR").length,
+        uncertain: result.validatorResponses.filter(r => r.vote === "UNKNOWN").length,
       },
       timestamp: result.metadata.timestamp,
       // Include adaptive data in a custom field

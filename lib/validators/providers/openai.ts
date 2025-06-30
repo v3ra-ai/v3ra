@@ -219,8 +219,18 @@ export class OpenAIValidator implements AIValidator {
 
       // For adaptive requests, return raw response
       if ('systemMessage' in request) {
+        const upperReply = reply.toUpperCase();
+        let vote = false;
+        if (upperReply.startsWith("YES")) {
+          vote = true;
+        } else if (upperReply.startsWith("UNKNOWN")) {
+          // For UNKNOWN, we still need a boolean vote, so use false
+          // The rationale will contain the UNKNOWN explanation
+          vote = false;
+        }
+        
         return {
-          vote: reply.toUpperCase().startsWith("YES"),
+          vote,
           confidence: 0.85,
           rationale: reply,
           latency: endTime - startTime,
