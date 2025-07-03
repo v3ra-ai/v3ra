@@ -73,6 +73,21 @@ export function NavbarSitelinks({ isMobile = false }: NavbarSitelinksProps) {
       description: "Ask AI models questions and explore consensus"
     },
     {
+      href: "/ask/truth-market-simple",
+      label: "Truth Market",
+      description: "AI-powered prediction market for any question"
+    },
+    {
+      href: "/predictions",
+      label: "Predictions",
+      description: "Track and verify AI predictions over time"
+    },
+    {
+      href: "/leaderboard",
+      label: "Leaderboard",
+      description: "See which AI models predict most accurately"
+    },
+    {
       href: "/ai-hub",
       label: "AI Hub",
       description: "Configure your AI consensus panel"

@@ -370,6 +370,7 @@ model Prediction {
   modelPredictions  ModelPrediction[]
   resolutions       PredictionResolution[]
   verificationVotes VerificationVote[]
+  market            PredictionMarket?
 
   @@index([resolutionStatus])
   @@index([resolutionDate])
@@ -446,3 +447,119 @@ model VerificationVote {
 
   @@unique([predictionId, userId])
 }
+
+// ==================== V3RA Points System ====================
+
+model UserPoints {
+  id           String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId       String   @unique
+  balance      Decimal  @default(1000.00) @db.Decimal(20, 2)
+  totalEarned  Decimal  @default(1000.00) @db.Decimal(20, 2)
+  totalSpent   Decimal  @default(0.00) @db.Decimal(20, 2)
+  level        Int      @default(1)
+  streak       Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  @@index([userId])
+}
+
+model PointsTransaction {
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId      String
+  type        PointsTransactionType
+  amount      Decimal  @db.Decimal(20, 2)
+  balance     Decimal  @db.Decimal(20, 2)
+  description String?
+  metadata    Json?
+  createdAt   DateTime @default(now())
+  
+  @@index([userId])
+}
+
+model PredictionMarket {
+  id                   String    @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId         String    @unique
+  creatorId           String
+  status              MarketStatus @default(PENDING)
+  activationThreshold Decimal   @default(100.00) @db.Decimal(20, 2)
+  currentStake        Decimal   @default(0.00) @db.Decimal(20, 2)
+  yesPool             Decimal   @default(0.00) @db.Decimal(20, 2)
+  noPool              Decimal   @default(0.00) @db.Decimal(20, 2)
+  initialProbability  Decimal   @db.Decimal(5, 4)
+  currentProbability  Decimal   @db.Decimal(5, 4)
+  activatedAt         DateTime?
+  resolvedAt          DateTime?
+  winningOutcome      String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  prediction   Prediction     @relation(fields: [predictionId], references: [id])
+  bets         MarketBet[]
+  stakes       MarketStake[]
+  
+  @@index([status])
+  @@index([creatorId])
+}
+
+model MarketBet {
+  id              String    @id @default(dbgenerated("gen_random_uuid()"))
+  marketId        String
+  userId          String
+  position        BetPosition
+  amount          Decimal   @db.Decimal(20, 2)
+  odds            Decimal   @db.Decimal(10, 4)
+  potentialReturn Decimal   @db.Decimal(20, 2)
+  status          BetStatus @default(PENDING)
+  settledAt       DateTime?
+  payout          Decimal?  @db.Decimal(20, 2)
+  createdAt       DateTime  @default(now())
+  
+  market          PredictionMarket @relation(fields: [marketId], references: [id])
+  
+  @@index([marketId])
+  @@index([userId])
+  @@index([status])
+}
+
+model MarketStake {
+  id        String   @id @default(dbgenerated("gen_random_uuid()"))
+  marketId  String
+  userId    String
+  amount    Decimal  @db.Decimal(20, 2)
+  createdAt DateTime @default(now())
+  
+  market    PredictionMarket @relation(fields: [marketId], references: [id])
+  
+  @@index([marketId])
+}
+
+enum PointsTransactionType {
+  DAILY_BONUS
+  BET_WIN
+  BET_LOSS
+  MARKET_CREATE
+  VERIFICATION_REWARD
+  STAKE_REFUND
+  INITIAL_GRANT
+}
+
+enum MarketStatus {
+  PENDING
+  ACTIVE
+  RESOLVED
+  CANCELLED
+}
+
+enum BetPosition {
+  YES
+  NO
+}
+
+enum BetStatus {
+  PENDING
+  WON
+  LOST
+  CANCELLED
+}
+EOF < /dev/null

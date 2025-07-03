@@ -147,6 +147,11 @@ export class PredictionTracker {
       include: {
         outcomes: true,
         modelPredictions: true,
+        _count: {
+          select: {
+            modelPredictions: true,
+          },
+        },
       },
       orderBy: { resolutionDate: 'asc' },
     });
@@ -159,6 +164,11 @@ export class PredictionTracker {
         outcomes: true,
         resolutions: true,
         modelPredictions: true,
+        _count: {
+          select: {
+            modelPredictions: true,
+          },
+        },
       },
       orderBy: { createdAt: 'desc' },
       take: limit,

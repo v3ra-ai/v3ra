@@ -15,6 +15,7 @@ export async function GET() {
         return {
           id: validator.id,
           name: validator.name,
+          profileName: validator.name, // Add profileName for compatibility with LLM store
           provider: validator.provider,
           modelName: validator.modelName || "unknown",
           description: validator.description || undefined,

@@ -5,10 +5,12 @@ import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
 import { useSearchParams } from "next/navigation";
 import Navbar from "@/components/ask/navbar/navbar";
-import { ArrowLeft, Check, Zap, Brain, BookOpen, Sparkles, Filter } from "lucide-react";
+import { ArrowLeft, Check, Zap, Brain, BookOpen, Sparkles, Filter, Calendar, Info } from "lucide-react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { KNOWLEDGE_MODEL_PRIORITY, REASONING_MODEL_PRIORITY } from "@/lib/model-presets";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { KnowledgeCutoffDisplay } from "@/components/ai-hub/knowledge-cutoff-display";
 
 function AIHubContent() {
   const searchParams = useSearchParams();
@@ -23,6 +25,7 @@ function AIHubContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<'knowledge' | 'reasoning' | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("configure");
 
   useEffect(() => {
     init();
@@ -131,33 +134,49 @@ function AIHubContent() {
           
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-zinc-100">
+              <h1 className="text-3xl font-bold text-zinc-100 flex items-center gap-3">
+                <Brain className="w-8 h-8 text-cyan-400" />
                 AI Hub
-                {categoryFilter && (
-                  <span className="ml-3 text-lg font-normal text-cyan-400">
-                    ({categoryFilter === 'knowledge' ? 'Knowledge Models' : 'Reasoning Models'})
-                  </span>
-                )}
               </h1>
-              <p className="text-zinc-400 mt-1">Configure your truth consensus panel</p>
+              <p className="text-zinc-400 mt-1">
+                {activeTab === "configure" ? "Configure your truth consensus panel" : "Track AI model capabilities"}
+              </p>
             </div>
-            <div className="flex items-center gap-4">
-              <div className="text-right">
-                <p className="text-2xl font-bold text-cyan-400">{enabledCount} / 5</p>
-                <p className="text-sm text-zinc-400">Models Selected</p>
+            {activeTab === "configure" && (
+              <div className="flex items-center gap-4">
+                <div className="text-right">
+                  <p className="text-2xl font-bold text-cyan-400">{enabledCount} / 5</p>
+                  <p className="text-sm text-zinc-400">Models Selected</p>
+                </div>
+                {enabledCount > 0 && (
+                  <Link
+                    href="/ask"
+                    className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors flex items-center gap-2"
+                  >
+                    <Check className="w-4 h-4" />
+                    Save & Return
+                  </Link>
+                )}
               </div>
-              {enabledCount > 0 && (
-                <Link
-                  href="/ask"
-                  className="px-4 py-2 bg-cyan-500/10 border border-cyan-500/30 rounded-lg text-cyan-400 hover:bg-cyan-500/20 transition-colors flex items-center gap-2"
-                >
-                  <Check className="w-4 h-4" />
-                  Save & Return
-                </Link>
-              )}
-            </div>
+            )}
           </div>
         </div>
+
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <TabsList className="grid w-full max-w-md grid-cols-2 bg-zinc-900/50 border border-zinc-800/50">
+            <TabsTrigger value="configure" className="data-[state=active]:bg-zinc-800">
+              <Sparkles className="w-4 h-4 mr-2" />
+              Configure Models
+            </TabsTrigger>
+            <TabsTrigger value="knowledge" className="data-[state=active]:bg-zinc-800">
+              <Calendar className="w-4 h-4 mr-2" />
+              Knowledge Dates
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Configure Tab */}
+          <TabsContent value="configure" className="space-y-6">
 
         {/* Search and Actions */}
         <div className="mb-6 flex flex-col sm:flex-row gap-4">
@@ -350,15 +369,22 @@ function AIHubContent() {
           })}
         </div>
 
-        {/* Save Button */}
-        <div className="mt-8 flex justify-center">
-          <Link
-            href="/ask"
-            className="px-8 py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/30 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] transition-all duration-300 font-medium"
-          >
-            Save & Return to Ask
-          </Link>
-        </div>
+            {/* Save Button */}
+            <div className="mt-8 flex justify-center">
+              <Link
+                href="/ask"
+                className="px-8 py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-lg hover:bg-cyan-500/30 hover:shadow-[0_0_20px_rgba(0,255,255,0.3)] transition-all duration-300 font-medium"
+              >
+                Save & Return to Ask
+              </Link>
+            </div>
+          </TabsContent>
+
+          {/* Knowledge Dates Tab */}
+          <TabsContent value="knowledge" className="space-y-6">
+            <KnowledgeCutoffDisplay />
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );

@@ -44,7 +44,7 @@ export default function AskResultsStandardCard({
 
   // Check if this is an adaptive response
   if (query?._adaptive) {
-    // For philosophical questions, use the simpler display
+    // For philosophical questions, use the special philosophical display
     if (query._adaptive.classification.category === QueryCategory.IDENTITY_PHILOSOPHY) {
       return (
         <AdaptivePhilosophicalDisplay
@@ -55,19 +55,23 @@ export default function AskResultsStandardCard({
       );
     }
     
-    // For all other adaptive categories (including predictions), use the adaptive display
-    return (
-      <AdaptiveResultsDisplay
-        response={{
-          id: query.id,
-          query: query.queryText,
-          classification: query._adaptive.classification,
-          consensus: query._adaptive.consensus,
-          validatorResponses: query.validatorResponses,
-          metadata: query._adaptive.metadata,
-        }}
-      />
-    );
+    // For fact-checking and other non-prediction queries, use the classic card style below
+    // Only use adaptive display for predictions
+    if (query._adaptive.classification.category === QueryCategory.PREDICTION) {
+      return (
+        <AdaptiveResultsDisplay
+          response={{
+            id: query.id,
+            query: query.queryText,
+            classification: query._adaptive.classification,
+            consensus: query._adaptive.consensus,
+            validatorResponses: query.validatorResponses,
+            metadata: query._adaptive.metadata,
+          }}
+        />
+      );
+    }
+    // Otherwise, fall through to use the classic dark card style
   }
 
   // Validate query data

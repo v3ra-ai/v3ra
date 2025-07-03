@@ -149,19 +149,9 @@ export const openRouterModels: ValidatorModel[] = [
     model_id: "meta-llama/llama-3-8b-instruct",
   },
   {
-    name: "Llama 2 70B Chat",
+    name: "Code Llama 70B",
     provider: "Meta",
-    model_id: "meta-llama/llama-2-70b-chat",
-  },
-  {
-    name: "Llama 2 13B Chat",
-    provider: "Meta",
-    model_id: "meta-llama/llama-2-13b-chat",
-  },
-  {
-    name: "Code Llama 34B",
-    provider: "Meta",
-    model_id: "codellama/codellama-34b-instruct",
+    model_id: "codellama/codellama-70b-instruct",
   },
   // DeepSeek Models
   {
@@ -213,16 +203,11 @@ export const openRouterModels: ValidatorModel[] = [
     provider: "Phind",
     model_id: "phind/phind-codellama-34b-v2",
   },
-  // WizardLM Models
+  // Microsoft Models
   {
     name: "WizardLM 2 8x22B",
-    provider: "WizardLM",
+    provider: "Microsoft",
     model_id: "microsoft/wizardlm-2-8x22b",
-  },
-  {
-    name: "WizardCoder 15B",
-    provider: "WizardLM",
-    model_id: "wizardlm/wizardcoder-15b",
   },
   // Zephyr Models
   {
@@ -282,32 +267,7 @@ export const openRouterModels: ValidatorModel[] = [
     provider: "xAI",
     model_id: "xai/grok-beta",
   },
-  // Others
-  {
-    name: "Dolphin Mixtral 8x7B",
-    provider: "Cognitive Computations",
-    model_id: "cognitivecomputations/dolphin-mixtral-8x7b",
-  },
-  {
-    name: "Yi 34B Chat",
-    provider: "01-AI",
-    model_id: "01-ai/yi-34b-chat",
-  },
-  {
-    name: "Yi 6B",
-    provider: "01-AI",
-    model_id: "01-ai/yi-6b",
-  },
-  {
-    name: "Toppy M 7B",
-    provider: "Undi95",
-    model_id: "undi95/toppy-m-7b",
-  },
-  {
-    name: "MythoMax L2 13B",
-    provider: "Gryphe",
-    model_id: "gryphe/mythomax-l2-13b",
-  },
+  // Others (only keeping high-quality models)
   // DeepSeek Models
   {
     name: "DeepSeek Chat",
