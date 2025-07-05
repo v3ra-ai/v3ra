@@ -29,6 +29,20 @@ export default function PredictionsPage() {
           {/* Navigation Tabs */}
           <div className="flex gap-1 mb-4">
             <Link 
+              href="/headlines"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
+                pathname === "/headlines"
+                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
+              )}
+            >
+              <span className="flex items-center gap-1">
+                <span>📰</span>
+                Headlines
+              </span>
+            </Link>
+            <Link 
               href="/ask/truth-market-simple"
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
