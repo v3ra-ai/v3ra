@@ -46,6 +46,23 @@ export default function HeadlinesPage() {
     initializeUser();
   }, []);
 
+  // Development keyboard shortcut
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        // Press Ctrl/Cmd + Shift + R to reset
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+          e.preventDefault();
+          resetDailyStatus();
+          console.log('Headlines daily status reset!');
+        }
+      };
+      
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }
+  }, []);
+
   const initializeUser = async () => {
     try {
       // Get current user session
@@ -131,6 +148,15 @@ export default function HeadlinesPage() {
       setStreak(1);
       localStorage.setItem('headlinesStreak', '1');
     }
+  };
+
+  // Development helper to reset daily status
+  const resetDailyStatus = () => {
+    localStorage.removeItem('lastHeadlinesCompleted');
+    setHasCompletedToday(false);
+    setCurrentIndex(0);
+    setUserVotes({});
+    loadDailyPredictions();
   };
 
   const handleVote = async (vote: 'YES' | 'NO') => {
@@ -317,6 +343,19 @@ export default function HeadlinesPage() {
                 </Button>
               </Link>
             </div>
+            
+            {/* Development mode reset button */}
+            {process.env.NODE_ENV === 'development' && (
+              <div className="mt-6 pt-6 border-t border-zinc-800">
+                <Button 
+                  onClick={resetDailyStatus}
+                  variant="outline" 
+                  className="w-full text-xs opacity-50 hover:opacity-100"
+                >
+                  [Dev] Reset Daily Status
+                </Button>
+              </div>
+            )}
           </Card>
         </div>
       </div>
