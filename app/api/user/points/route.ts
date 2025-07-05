@@ -1,59 +1,51 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
-import { cookies } from "next/headers";
+import { createClient } from "@/lib/supabase/server";
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    // For demo, use a consistent user ID from cookie
-    const cookieStore = cookies();
-    let userId = cookieStore.get("demo_user_id")?.value;
+    const { searchParams } = new URL(request.url);
+    const userId = searchParams.get("userId");
     
-    // If no user ID, create one and set cookie
     if (!userId) {
-      userId = `user-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
-      // Note: In Next.js 13+ with app router, we can't set cookies in GET requests
-      // So we'll use the default demo-user-1 for now
-      userId = "demo-user-1";
+      // Try to get from session
+      const supabase = await createClient();
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        return NextResponse.json(
+          { error: "User not authenticated" },
+          { status: 401 }
+        );
+      }
+      
+      const userPoints = await V3RAPointsService.getUserPoints(user.id);
+      return NextResponse.json({
+        userId: user.id,
+        balance: Number(userPoints.balance),
+        totalEarned: Number(userPoints.totalEarned),
+        totalSpent: Number(userPoints.totalSpent),
+        streak: userPoints.streak,
+        level: userPoints.level
+      });
     }
-
+    
     const userPoints = await V3RAPointsService.getUserPoints(userId);
-    const canClaimBonus = await V3RAPointsService.checkDailyBonus(userId);
-
+    
     return NextResponse.json({
-      balance: userPoints.balance.toNumber(),
-      totalEarned: userPoints.totalEarned.toNumber(),
-      totalSpent: userPoints.totalSpent.toNumber(),
-      level: userPoints.level,
+      userId,
+      balance: Number(userPoints.balance),
+      totalEarned: Number(userPoints.totalEarned),
+      totalSpent: Number(userPoints.totalSpent),
       streak: userPoints.streak,
-      canClaimDailyBonus: canClaimBonus,
+      level: userPoints.level
     });
+    
   } catch (error) {
-    console.error("Error fetching user points:", error);
+    console.error("Get user points error:", error);
     return NextResponse.json(
-      { error: "Failed to fetch user points" },
+      { error: "Failed to get user points" },
       { status: 500 }
-    );
-  }
-}
-
-export async function POST(request: Request) {
-  try {
-    const cookieStore = cookies();
-    const userId = cookieStore.get("demo_user_id")?.value || "demo-user-1";
-
-    const { action } = await request.json();
-
-    if (action === "claimDailyBonus") {
-      const bonus = await V3RAPointsService.claimDailyBonus(userId);
-      return NextResponse.json({ success: true, bonus });
-    }
-
-    return NextResponse.json({ error: "Invalid action" }, { status: 400 });
-  } catch (error: any) {
-    console.error("Error processing points action:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to process action" },
-      { status: 400 }
     );
   }
 }

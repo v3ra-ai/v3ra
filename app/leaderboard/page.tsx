@@ -5,10 +5,10 @@ import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { Trophy, TrendingUp, Brain, Zap, Target, Activity, Home, Sparkles } from "lucide-react";
+import { Trophy, TrendingUp, Brain, Zap, Target, Activity, Home, Sparkles, Users, Bot } from "lucide-react";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 interface ModelPerformance {
   modelName: string;
@@ -25,6 +25,7 @@ interface ModelPerformance {
 
 export default function LeaderboardPage() {
   const pathname = usePathname();
+  const router = useRouter();
   const [models, setModels] = useState<ModelPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<"all" | "month" | "week">("all");
@@ -77,6 +78,20 @@ export default function LeaderboardPage() {
           {/* Navigation Tabs */}
           <div className="flex gap-1 mb-4">
             <Link 
+              href="/headlines"
+              className={cn(
+                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
+                pathname === "/headlines"
+                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
+              )}
+            >
+              <span className="flex items-center gap-1">
+                <span>📰</span>
+                Headlines
+              </span>
+            </Link>
+            <Link 
               href="/ask/truth-market-simple"
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
@@ -102,7 +117,7 @@ export default function LeaderboardPage() {
               href="/leaderboard"
               className={cn(
                 "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/leaderboard"
+                pathname === "/leaderboard" || pathname === "/leaderboard/users"
                   ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
               )}
@@ -111,20 +126,53 @@ export default function LeaderboardPage() {
             </Link>
           </div>
           
-          <div className="flex items-center gap-3">
-            <Trophy className="w-8 h-8 text-yellow-400" />
-            <div>
-              <h1 className="text-2xl font-bold text-zinc-100">AI Model Leaderboard</h1>
-              <p className="text-sm text-zinc-400 mt-1">
-                Track which AI models make the most accurate predictions
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-100">Leaderboard</h1>
+            <p className="text-sm text-zinc-400 mt-1">
+              Track performance rankings for AI models and human predictors
+            </p>
           </div>
         </div>
       </div>
 
-      {/* Timeframe Tabs */}
+      {/* Navigation Cards */}
       <div className="container mx-auto px-4 py-6">
+        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
+          <Card 
+            className="backdrop-blur-sm bg-gradient-to-br from-cyan-900/20 to-blue-900/20 border-cyan-500/30 p-6 cursor-pointer hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-200"
+            onClick={() => router.push('/leaderboard/users')}
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
+                <Users className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-zinc-100">User Rankings</h3>
+                <p className="text-sm text-zinc-400">Top predictors by V3RA earnings</p>
+              </div>
+              <Trophy className="w-5 h-5 text-yellow-400" />
+            </div>
+          </Card>
+          
+          <Card 
+            className="backdrop-blur-sm bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-500/30 p-6 opacity-100"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+                <Bot className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="text-lg font-semibold text-zinc-100">AI Models</h3>
+                <p className="text-sm text-zinc-400">Model accuracy & performance</p>
+              </div>
+              <Brain className="w-5 h-5 text-purple-400" />
+            </div>
+          </Card>
+        </div>
+        
+        <h2 className="text-xl font-semibold text-zinc-100 mb-4">AI Model Performance</h2>
+        
+        {/* Timeframe Tabs */}
         <Tabs value={timeframe} onValueChange={(v) => setTimeframe(v as any)}>
           <TabsList className="bg-zinc-900/50 border border-zinc-800/50">
             <TabsTrigger value="week">This Week</TabsTrigger>

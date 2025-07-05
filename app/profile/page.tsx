@@ -180,6 +180,36 @@ export default function ProfilePage() {
                 Sign Out
               </Button>
             </div>
+            
+            {/* Recent Activity */}
+            {pointsHistory.length > 0 && (
+              <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
+                <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4 flex items-center gap-2">
+                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span>Recent V3RA Activity</span>
+                </h3>
+                
+                <div className="space-y-2">
+                  {pointsHistory.slice(0, 5).map((transaction, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/50">
+                      <div>
+                        <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {transaction.description}
+                        </p>
+                        <p className="text-xs text-zinc-500">
+                          {new Date(transaction.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <span className={`text-sm font-semibold ${
+                        transaction.amount > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                      }`}>
+                        {transaction.amount > 0 ? '+' : ''}{transaction.amount} V3RA
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

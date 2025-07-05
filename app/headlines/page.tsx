@@ -35,17 +35,52 @@ export default function HeadlinesPage() {
   const [userVotes, setUserVotes] = useState<Record<string, 'YES' | 'NO'>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [streak, setStreak] = useState(0);
-  const [points, setPoints] = useState(1000);
+  const [points, setPoints] = useState(0);
   const [hasCompletedToday, setHasCompletedToday] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isPlacingBet, setIsPlacingBet] = useState(false);
 
   useEffect(() => {
+    // Initialize user session
+    initializeUser();
+  }, []);
+
+  const initializeUser = async () => {
+    try {
+      // Get current user session
+      const response = await fetch('/api/auth/session');
+      if (response.ok) {
+        const session = await response.json();
+        if (session.userId) {
+          setUserId(session.userId);
+          // Load user points
+          await loadUserPoints(session.userId);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to initialize user:', error);
+    }
+    
     // Load today's predictions
     loadDailyPredictions();
     // Check if user already completed today
     checkDailyCompletion();
     // Load streak from localStorage
     loadStreak();
-  }, []);
+  };
+
+  const loadUserPoints = async (userId: string) => {
+    try {
+      const response = await fetch(`/api/user/points?userId=${userId}`);
+      if (response.ok) {
+        const data = await response.json();
+        setPoints(data.balance || 0);
+        setStreak(data.streak || 0);
+      }
+    } catch (error) {
+      console.error('Failed to load user points:', error);
+    }
+  };
 
   const loadDailyPredictions = async () => {
     setIsLoading(true);
@@ -100,21 +135,55 @@ export default function HeadlinesPage() {
     }
   };
 
-  const handleVote = (vote: 'YES' | 'NO') => {
+  const handleVote = async (vote: 'YES' | 'NO') => {
     const currentPrediction = predictions[currentIndex];
-    if (!currentPrediction) return;
+    if (!currentPrediction || isPlacingBet) return;
 
-    setUserVotes(prev => ({
-      ...prev,
-      [currentPrediction.id]: vote
-    }));
+    setIsPlacingBet(true);
+    
+    try {
+      // Place bet with fixed 10 V3RA
+      const betAmount = 10;
+      
+      if (points < betAmount) {
+        alert('Not enough V3RA points! You need at least 10 V3RA to make a prediction.');
+        setIsPlacingBet(false);
+        return;
+      }
+      
+      // Deduct points immediately for better UX
+      setPoints(prev => prev - betAmount);
+      
+      setUserVotes(prev => ({
+        ...prev,
+        [currentPrediction.id]: vote
+      }));
 
-    // Animate to next card
-    if (currentIndex < predictions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
-    } else {
-      // All predictions completed
-      completeDaily();
+      // TODO: Send bet to backend
+      // await fetch('/api/headlines/bet', {
+      //   method: 'POST',
+      //   headers: { 'Content-Type': 'application/json' },
+      //   body: JSON.stringify({
+      //     predictionId: currentPrediction.id,
+      //     vote,
+      //     amount: betAmount,
+      //     userId
+      //   })
+      // });
+
+      // Animate to next card
+      if (currentIndex < predictions.length - 1) {
+        setCurrentIndex(prev => prev + 1);
+      } else {
+        // All predictions completed
+        await completeDaily();
+      }
+    } catch (error) {
+      console.error('Failed to place bet:', error);
+      // Refund points on error
+      setPoints(prev => prev + 10);
+    } finally {
+      setIsPlacingBet(false);
     }
   };
 
@@ -127,15 +196,38 @@ export default function HeadlinesPage() {
     localStorage.setItem('lastHeadlinesCompleted', today);
     setHasCompletedToday(true);
 
-    // Award daily completion bonus
-    setPoints(prev => prev + 50);
+    // Award daily completion bonus (50 V3RA)
+    try {
+      if (userId) {
+        const response = await fetch('/api/user/daily-bonus', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            type: 'HEADLINES_COMPLETION',
+            amount: 50
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setPoints(data.newBalance);
+        }
+      } else {
+        // Fallback for demo mode
+        setPoints(prev => prev + 50);
+      }
+    } catch (error) {
+      console.error('Failed to claim bonus:', error);
+    }
     
-    // Submit votes to API
+    // Submit all bets to API
     try {
       await fetch('/api/headlines/daily', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          userId,
           predictions: Object.entries(userVotes).map(([id, vote]) => ({
             predictionId: id,
             vote
@@ -204,8 +296,10 @@ export default function HeadlinesPage() {
               </div>
               
               <div className="bg-black/50 rounded-lg p-4 border border-zinc-800">
-                <p className="text-sm text-zinc-400 mb-1">Points Earned</p>
-                <p className="text-2xl font-bold text-yellow-400">+50 V3RA</p>
+                <p className="text-sm text-zinc-400 mb-1">Today's Results</p>
+                <p className="text-sm font-medium text-zinc-300">Completion Bonus: <span className="text-yellow-400">+50 V3RA</span></p>
+                <p className="text-sm font-medium text-zinc-300">Predictions Made: <span className="text-cyan-400">3</span></p>
+                <p className="text-sm font-medium text-zinc-300">V3RA Wagered: <span className="text-zinc-400">30</span></p>
               </div>
             </div>
             
@@ -343,8 +437,20 @@ export default function HeadlinesPage() {
                         </div>
                       </div>
 
+                      {/* Betting Info */}
+                      <div className="bg-zinc-900/50 rounded-lg p-3 mb-4">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-zinc-400">Cost per prediction:</span>
+                          <span className="text-yellow-400 font-medium">10 V3RA</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm mt-1">
+                          <span className="text-zinc-400">Win reward:</span>
+                          <span className="text-green-400 font-medium">15 V3RA</span>
+                        </div>
+                      </div>
+
                       {/* Swipe Hints */}
-                      <div className="flex justify-between mt-6 text-xs">
+                      <div className="flex justify-between text-xs">
                         <div className="flex items-center gap-2 text-red-400">
                           <ChevronLeft className="w-4 h-4" />
                           <span>Won't happen</span>
@@ -361,25 +467,36 @@ export default function HeadlinesPage() {
             </AnimatePresence>
           </div>
 
+          {/* Not Enough Points Warning */}
+          {points < 10 && currentPrediction && (
+            <div className="mt-4 p-4 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm text-center">
+                You need at least 10 V3RA to make predictions. Complete daily bonuses or win more predictions!
+              </p>
+            </div>
+          )}
+
           {/* Action Buttons (Alternative to swiping) */}
           <div className="flex gap-4 mt-8">
             <Button
               onClick={() => handleVote('NO')}
               variant="outline"
               size="lg"
-              className="flex-1 border-red-500/30 hover:bg-red-500/10 hover:border-red-500/50"
+              disabled={isPlacingBet || points < 10}
+              className="flex-1 border-red-500/30 hover:bg-red-500/10 hover:border-red-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ThumbsDown className="w-5 h-5 mr-2 text-red-400" />
-              <span className="text-red-400">No</span>
+              <span className="text-red-400">No (10 V3RA)</span>
             </Button>
             <Button
               onClick={() => handleVote('YES')}
               variant="outline"
               size="lg"
-              className="flex-1 border-green-500/30 hover:bg-green-500/10 hover:border-green-500/50"
+              disabled={isPlacingBet || points < 10}
+              className="flex-1 border-green-500/30 hover:bg-green-500/10 hover:border-green-500/50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ThumbsUp className="w-5 h-5 mr-2 text-green-400" />
-              <span className="text-green-400">Yes</span>
+              <span className="text-green-400">Yes (10 V3RA)</span>
             </Button>
           </div>
         </div>
