@@ -14,7 +14,8 @@ import {
   TrendingUp,
   Newspaper,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
@@ -71,9 +72,20 @@ export default function HeadlinesPage() {
         setUserId(user.id);
         // Load user points
         await loadUserPoints(user.id);
+      } else {
+        // For development without auth, use demo user
+        if (process.env.NODE_ENV === 'development') {
+          setUserId('demo-user');
+          await loadUserPoints('demo-user');
+        }
       }
     } catch (error) {
       console.error('Failed to initialize user:', error);
+      // Fallback for development
+      if (process.env.NODE_ENV === 'development') {
+        setUserId('demo-user');
+        await loadUserPoints('demo-user');
+      }
     }
     
     // Load today's predictions
@@ -413,15 +425,26 @@ export default function HeadlinesPage() {
               <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
                 {streak} day streak 🔥
               </Badge>
-              {process.env.NODE_ENV === 'development' && points < 100 && (
-                <Button
-                  onClick={addDevPoints}
-                  size="sm"
-                  variant="outline"
-                  className="text-xs"
-                >
-                  +5000 V3RA
-                </Button>
+              {process.env.NODE_ENV === 'development' && (
+                <>
+                  <Button
+                    onClick={addDevPoints}
+                    size="sm"
+                    variant="outline"
+                    className="text-xs"
+                  >
+                    +5000 V3RA
+                  </Button>
+                  <Button
+                    onClick={() => loadUserPoints(userId || 'demo-user')}
+                    size="sm"
+                    variant="ghost"
+                    className="text-xs p-2"
+                    title="Refresh points"
+                  >
+                    <RefreshCw className="w-3 h-3" />
+                  </Button>
+                </>
               )}
             </div>
           </div>
