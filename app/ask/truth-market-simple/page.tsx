@@ -11,6 +11,7 @@ import { Sparkles, Loader2, Home, Coins, Newspaper, ArrowRight } from "lucide-re
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/lib/supabase-client";
 
 export default function SimpleTruthMarketPage() {
   const pathname = usePathname();
@@ -28,11 +29,24 @@ export default function SimpleTruthMarketPage() {
   
   const fetchUserPoints = async () => {
     try {
-      // Use test endpoint for now
-      const response = await fetch("/api/test-points");
-      const data = await response.json();
-      setUserPoints(data.balance || 0);
-      setCanClaimBonus(data.canClaimDailyBonus || false);
+      // Check if user is authenticated
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const response = await fetch(`/api/user/points?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserPoints(data.balance || 0);
+          setCanClaimBonus(false); // TODO: Implement daily bonus check
+        } else {
+          // Fallback values
+          setUserPoints(1000);
+          setCanClaimBonus(true);
+        }
+      } else {
+        // Not authenticated - use demo values
+        setUserPoints(1000);
+        setCanClaimBonus(true);
+      }
     } catch (error) {
       console.error("Failed to fetch points:", error);
       // Set default values
