@@ -159,6 +159,25 @@ export default function HeadlinesPage() {
     loadDailyPredictions();
   };
 
+  // Development helper to add points
+  const addDevPoints = async () => {
+    try {
+      const response = await fetch('/api/dev/add-points', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ amount: 5000 })
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setPoints(data.newBalance);
+        alert(`Added ${data.awarded} V3RA! New balance: ${data.newBalance}`);
+      }
+    } catch (error) {
+      console.error('Failed to add dev points:', error);
+    }
+  };
+
   const handleVote = async (vote: 'YES' | 'NO') => {
     const currentPrediction = predictions[currentIndex];
     if (!currentPrediction || isPlacingBet) return;
@@ -379,6 +398,16 @@ export default function HeadlinesPage() {
               <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
                 {streak} day streak 🔥
               </Badge>
+              {process.env.NODE_ENV === 'development' && points < 100 && (
+                <Button
+                  onClick={addDevPoints}
+                  size="sm"
+                  variant="outline"
+                  className="text-xs"
+                >
+                  +5000 V3RA
+                </Button>
+              )}
             </div>
           </div>
         </div>
@@ -510,6 +539,16 @@ export default function HeadlinesPage() {
               <p className="text-red-400 text-sm text-center">
                 You need at least 10 V3RA to make predictions. Complete daily bonuses or win more predictions!
               </p>
+              {process.env.NODE_ENV === 'development' && (
+                <Button
+                  onClick={addDevPoints}
+                  variant="outline"
+                  size="sm"
+                  className="w-full mt-3 text-xs"
+                >
+                  [Dev] Add 5000 V3RA for Testing
+                </Button>
+              )}
             </div>
           )}
 
