@@ -9,6 +9,8 @@ import { Trophy, TrendingUp, Brain, Zap, Target, Activity, Home, Sparkles, Users
 import { cn } from "@/lib/utils";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { Navbar } from "@/components/shared/navbar";
+import { supabase } from "@/lib/supabase-client";
 
 interface ModelPerformance {
   modelName: string;
@@ -29,10 +31,27 @@ export default function LeaderboardPage() {
   const [models, setModels] = useState<ModelPerformance[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<"all" | "month" | "week">("all");
+  const [userPoints, setUserPoints] = useState(0);
 
   useEffect(() => {
+    loadUserPoints();
     fetchLeaderboard();
   }, [timeframe]);
+  
+  const loadUserPoints = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const response = await fetch(`/api/user/points?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserPoints(data.balance || 0);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load user points:', error);
+    }
+  };
 
   const fetchLeaderboard = async () => {
     try {
@@ -60,78 +79,16 @@ export default function LeaderboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      {/* Header */}
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      <Navbar userPoints={userPoints} />
+      
+      {/* Page Header */}
       <div className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/" className="flex items-center gap-2 text-zinc-300 hover:text-zinc-100">
-              <Home className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
-              <span className="text-sm text-cyan-400">Truth Market Beta</span>
-            </div>
-          </div>
-          
-          {/* Navigation Tabs */}
-          <div className="flex gap-1 mb-4">
-            <Link 
-              href="/headlines"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/headlines"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              <span className="flex items-center gap-1">
-                <span>📰</span>
-                Headlines
-              </span>
-            </Link>
-            <Link 
-              href="/ask/truth-market-simple"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/ask/truth-market-simple"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              Ask
-            </Link>
-            <Link 
-              href="/predictions"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/predictions"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              Predictions
-            </Link>
-            <Link 
-              href="/leaderboard"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/leaderboard" || pathname === "/leaderboard/users"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              Leaderboard
-            </Link>
-          </div>
-          
-          <div>
-            <h1 className="text-2xl font-bold text-zinc-100">Leaderboard</h1>
-            <p className="text-sm text-zinc-400 mt-1">
-              Track performance rankings for AI models and human predictors
-            </p>
-          </div>
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold text-zinc-100">Leaderboard</h1>
+          <p className="text-sm text-zinc-400 mt-1">
+            Track performance rankings for AI models and human predictors
+          </p>
         </div>
       </div>
 

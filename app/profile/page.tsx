@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
-import Navbar from "@/components/ask/navbar/navbar";
+import { Navbar } from "@/components/shared/navbar";
 import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/loading-spinner-new";
 import { 
@@ -13,9 +13,11 @@ import {
   Fingerprint,
   LogOut,
   Shield,
-  Settings
+  Settings,
+  Activity
 } from "lucide-react";
 import { UserFavorites } from "@/components/profile/user-favorites";
+import { V3raStats } from "@/components/profile/v3ra-stats";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -28,11 +30,34 @@ export default function ProfilePage() {
       username?: string;
     };
   } | null>(null);
+  const [userPoints, setUserPoints] = useState(0);
+  const [pointsHistory, setPointsHistory] = useState<{
+    amount: number;
+    description: string;
+    createdAt: string;
+  }[]>([]);
 
   useEffect(() => {
     checkUser();
+    loadUserPoints();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+  
+  const loadUserPoints = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const response = await fetch(`/api/user/points?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserPoints(data.balance || 0);
+          setPointsHistory(data.history || []);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load user points:', error);
+    }
+  };
 
   const checkUser = async () => {
     try {
@@ -72,8 +97,8 @@ export default function ProfilePage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-      <Navbar />
+    <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950 flex flex-col">
+      <Navbar userPoints={userPoints} />
       <div className="container mx-auto px-4 py-6 sm:py-8 md:py-12 max-w-4xl">
         <div className="mb-6 sm:mb-8">
           <h1 className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -211,6 +236,11 @@ export default function ProfilePage() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* V3RA Stats Section */}
+        <div className="mt-6 sm:mt-8">
+          <V3raStats userId={user?.id} />
         </div>
 
         {/* Favorites Section */}

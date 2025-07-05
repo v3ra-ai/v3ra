@@ -7,14 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { TruthResult } from "@/components/truth-market/truth-result";
-import { Sparkles, Loader2, Home, Coins, Newspaper, ArrowRight } from "lucide-react";
+import { Sparkles, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase-client";
+import { Navbar } from "@/components/shared/navbar";
 
 export default function SimpleTruthMarketPage() {
-  const pathname = usePathname();
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -116,90 +115,12 @@ export default function SimpleTruthMarketPage() {
   
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">
-      {/* Simple Header */}
-      <div className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/" className="flex items-center gap-2 text-zinc-300 hover:text-zinc-100">
-              <Home className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1.5">
-                  <Coins className="w-4 h-4" />
-                  {userPoints.toLocaleString()} V3RA
-                </Badge>
-                {canClaimBonus && (
-                  <Button
-                    size="sm"
-                    onClick={claimDailyBonus}
-                    disabled={claiming}
-                    className="bg-purple-600 hover:bg-purple-500 text-white text-xs shadow-lg shadow-purple-600/20 hover:shadow-purple-500/30 transition-all duration-200"
-                  >
-                    {claiming ? "Claiming..." : "Claim Daily Bonus 🎁"}
-                  </Button>
-                )}
-              </div>
-              <div className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-cyan-400" />
-                <span className="text-sm text-cyan-400">Truth Market Beta</span>
-              </div>
-            </div>
-          </div>
-          
-          {/* Navigation Tabs */}
-          <div className="flex gap-1 justify-center">
-            <Link 
-              href="/headlines"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/headlines"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              <span className="flex items-center gap-1">
-                <span>📰</span>
-                Headlines
-              </span>
-            </Link>
-            <Link 
-              href="/ask/truth-market-simple"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/ask/truth-market-simple"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              Ask
-            </Link>
-            <Link 
-              href="/predictions"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/predictions"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              Predictions
-            </Link>
-            <Link 
-              href="/leaderboard"
-              className={cn(
-                "px-4 py-2 text-sm font-medium rounded-t-lg transition-all",
-                pathname === "/leaderboard"
-                  ? "bg-zinc-800/50 text-cyan-400 border-b-2 border-cyan-400"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/30"
-              )}
-            >
-              Leaderboard
-            </Link>
-          </div>
-        </div>
-      </div>
+      <Navbar 
+        userPoints={userPoints}
+        canClaimBonus={canClaimBonus}
+        onClaimBonus={claimDailyBonus}
+        claiming={claiming}
+      />
       
       <div className="flex-1 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 max-w-4xl w-full">
@@ -216,27 +137,6 @@ export default function SimpleTruthMarketPage() {
             Every question becomes a probability. Every AI is a trader.
           </p>
         </motion.div>
-        
-        {/* Daily Headlines Banner */}
-        <Link href="/headlines">
-          <Card className="backdrop-blur-sm bg-gradient-to-br from-purple-900/20 to-pink-900/20 border border-purple-500/30 shadow-[0_0_30px_rgba(147,51,234,0.25)] p-6 mb-6 cursor-pointer hover:shadow-[0_0_40px_rgba(147,51,234,0.35)] transition-all duration-200 group">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Newspaper className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-zinc-100">Tomorrow's Headlines</h3>
-                  <p className="text-sm text-zinc-400">Daily prediction game • Earn 50 V3RA</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">NEW</Badge>
-                <ArrowRight className="w-5 h-5 text-purple-400 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </div>
-          </Card>
-        </Link>
         
         {/* Main Query Card */}
         <Card className="backdrop-blur-sm bg-gradient-to-br from-zinc-900/80 to-black/90 border border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.25)] p-8 mb-8">

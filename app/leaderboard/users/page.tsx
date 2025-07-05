@@ -19,6 +19,8 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { Navbar } from "@/components/shared/navbar";
+import { supabase } from "@/lib/supabase-client";
 
 interface UserStats {
   userId: string;
@@ -39,11 +41,28 @@ export default function UserLeaderboardPage() {
   const [leaderboard, setLeaderboard] = useState<UserStats[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [userPoints, setUserPoints] = useState(0);
 
   useEffect(() => {
+    loadUserPoints();
     loadLeaderboard();
     getCurrentUser();
   }, [timeframe]);
+  
+  const loadUserPoints = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const response = await fetch(`/api/user/points?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserPoints(data.balance || 0);
+        }
+      }
+    } catch (error) {
+      console.error('Failed to load user points:', error);
+    }
+  };
 
   const getCurrentUser = async () => {
     try {
@@ -152,32 +171,19 @@ export default function UserLeaderboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950">
-      {/* Header */}
+    <div className="min-h-screen bg-zinc-950 flex flex-col">
+      <Navbar userPoints={userPoints} />
+      
+      {/* Page Header */}
       <div className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <Link href="/" className="flex items-center gap-2 text-zinc-300 hover:text-zinc-100">
-              <Home className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
-            <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-cyan-400" />
-              <span className="text-sm text-cyan-400">Truth Market Beta</span>
-            </div>
-          </div>
-          
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
-                <Trophy className="w-6 h-6 text-yellow-400" />
-                User Leaderboard
-              </h1>
-              <p className="text-sm text-zinc-400 mt-1">
-                Top predictors ranked by V3RA earnings
-              </p>
-            </div>
-          </div>
+        <div className="container mx-auto px-4 py-6">
+          <h1 className="text-2xl font-bold text-zinc-100 flex items-center gap-2">
+            <Trophy className="w-6 h-6 text-yellow-400" />
+            User Leaderboard
+          </h1>
+          <p className="text-sm text-zinc-400 mt-1">
+            Top predictors ranked by V3RA earnings
+          </p>
         </div>
       </div>
 

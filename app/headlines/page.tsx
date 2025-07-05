@@ -6,21 +6,20 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { 
-  Sparkles, 
   ThumbsUp, 
   ThumbsDown, 
-  Home, 
   Clock,
-  TrendingUp,
   Newspaper,
   ChevronLeft,
   ChevronRight,
-  RefreshCw
+  Sparkles,
+  Flame
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
+import { Navbar } from "@/components/shared/navbar";
 
 interface Headline {
   id: string;
@@ -342,14 +341,10 @@ export default function HeadlinesPage() {
   if (hasCompletedToday) {
     return (
       <div className="min-h-screen bg-zinc-950 flex flex-col">
-        <div className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
-          <div className="container mx-auto px-4 py-4">
-            <Link href="/" className="flex items-center gap-2 text-zinc-300 hover:text-zinc-100">
-              <Home className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
-          </div>
-        </div>
+        <Navbar 
+          userPoints={points}
+          canClaimBonus={false}
+        />
         
         <div className="flex-1 flex items-center justify-center p-4">
           <Card className="max-w-md w-full backdrop-blur-sm bg-gradient-to-br from-zinc-900/80 to-black/90 border border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.25)] p-8 text-center">
@@ -418,50 +413,27 @@ export default function HeadlinesPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 flex flex-col">
-      {/* Header */}
-      <div className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/" className="flex items-center gap-2 text-zinc-300 hover:text-zinc-100">
-              <Home className="w-5 h-5" />
-              <span>Home</span>
-            </Link>
-            <div className="flex items-center gap-4">
-              <Badge className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30">
-                {points.toLocaleString()} V3RA
-              </Badge>
-              <Badge className="bg-purple-500/20 text-purple-400 border-purple-500/30">
-                {streak} day streak 🔥
-              </Badge>
-              {process.env.NODE_ENV === 'development' && (
-                <>
-                  <Button
-                    onClick={addDevPoints}
-                    size="sm"
-                    variant="outline"
-                    className="text-xs"
-                  >
-                    +5000 V3RA
-                  </Button>
-                  <Button
-                    onClick={() => loadUserPoints(userId || 'demo-user')}
-                    size="sm"
-                    variant="ghost"
-                    className="text-xs p-2"
-                    title="Refresh points"
-                  >
-                    <RefreshCw className="w-3 h-3" />
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+      <Navbar 
+        userPoints={points}
+        canClaimBonus={false}
+      />
 
       {/* Main Content */}
       <div className="flex-1 flex items-center justify-center p-4">
         <div className="max-w-md w-full">
+          {/* Streak Badge */}
+          {streak > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="flex justify-center mb-6"
+            >
+              <Badge className="bg-gradient-to-r from-orange-500/20 to-red-500/20 text-orange-400 border-orange-500/30 px-4 py-2 flex items-center gap-2">
+                <Flame className="w-5 h-5" />
+                <span className="font-semibold text-lg">{streak} day streak</span>
+              </Badge>
+            </motion.div>
+          )}
           {/* Title */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
