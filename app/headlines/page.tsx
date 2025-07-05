@@ -241,7 +241,22 @@ export default function HeadlinesPage() {
 
     // Award daily completion bonus (50 V3RA)
     try {
-      if (userId) {
+      if (process.env.NODE_ENV === 'development') {
+        // Use mock endpoint in development
+        const response = await fetch('/api/dev/mock-points', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            amount: 50,
+            userId: userId || 'demo-user'
+          })
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setPoints(data.newBalance);
+        }
+      } else if (userId) {
         const response = await fetch('/api/user/daily-bonus', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
