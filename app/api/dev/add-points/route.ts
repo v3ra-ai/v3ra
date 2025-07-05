@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { V3RAPointsService } from "@/lib/services/v3ra-points";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { prisma } from "@/lib/db/client";
+import { Decimal } from "@prisma/client/runtime/library";
 
 export async function POST(request: NextRequest) {
   // Only allow in development
@@ -26,13 +27,45 @@ export async function POST(request: NextRequest) {
       );
     }
     
-    // Award points
-    const userPoints = await V3RAPointsService.awardPoints(
-      user.id,
-      amount,
-      'DEV_GRANT',
-      `Development testing grant: ${amount} V3RA`
-    );
+    // For development, we'll use a simpler approach
+    // Check if user has points record
+    let userPoints = await prisma.userPoints.findUnique({
+      where: { userId: user.id }
+    });
+    
+    if (!userPoints) {
+      // Create new points record
+      userPoints = await prisma.userPoints.create({
+        data: {
+          userId: user.id,
+          balance: new Decimal(amount),
+          totalEarned: new Decimal(amount),
+          totalSpent: new Decimal(0),
+          level: 1,
+          streak: 0
+        }
+      });
+    } else {
+      // Update existing balance
+      userPoints = await prisma.userPoints.update({
+        where: { userId: user.id },
+        data: {
+          balance: userPoints.balance.plus(amount),
+          totalEarned: userPoints.totalEarned.plus(amount)
+        }
+      });
+    }
+    
+    // Record transaction
+    await prisma.pointsTransaction.create({
+      data: {
+        userId: user.id,
+        type: 'DEV_GRANT',
+        amount: new Decimal(amount),
+        balance: userPoints.balance,
+        description: `Development testing grant: ${amount} V3RA`
+      }
+    });
     
     return NextResponse.json({
       success: true,
