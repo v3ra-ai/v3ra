@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
+import { supabase } from "@/lib/supabase-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -161,10 +162,18 @@ export function MarketBetting({ predictionId, initialProbability, isPrediction }
 
   const fetchUserPoints = async () => {
     try {
-      // Use test endpoint temporarily
-      const response = await fetch("/api/test-points");
-      const data = await response.json();
-      setUserPoints(data.balance || 0);
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const response = await fetch(`/api/user/points?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserPoints(data.balance || 0);
+        } else {
+          setUserPoints(1000); // Default
+        }
+      } else {
+        setUserPoints(1000); // Default for non-authenticated
+      }
     } catch (error) {
       console.error("Failed to fetch user points:", error);
       // Set default value
