@@ -19,6 +19,7 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase-client";
 
 interface Headline {
   id: string;
@@ -48,14 +49,11 @@ export default function HeadlinesPage() {
   const initializeUser = async () => {
     try {
       // Get current user session
-      const response = await fetch('/api/auth/session');
-      if (response.ok) {
-        const session = await response.json();
-        if (session.userId) {
-          setUserId(session.userId);
-          // Load user points
-          await loadUserPoints(session.userId);
-        }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserId(user.id);
+        // Load user points
+        await loadUserPoints(user.id);
       }
     } catch (error) {
       console.error('Failed to initialize user:', error);

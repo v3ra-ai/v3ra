@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 
 export async function GET(request: NextRequest) {
   try {
@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
     
     if (!userId) {
       // Try to get from session
-      const supabase = await createClient();
+      const supabase = await createSupabaseServerClient();
       const { data: { user } } = await supabase.auth.getUser();
       
       if (!user) {

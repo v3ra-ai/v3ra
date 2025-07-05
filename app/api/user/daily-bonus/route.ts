@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
-import { createClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
     const { userId, type, amount } = body;
     
     // Verify user is authenticated
-    const supabase = await createClient();
+    const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user || (userId && user.id !== userId)) {
