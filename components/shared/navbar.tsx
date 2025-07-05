@@ -13,7 +13,9 @@ import {
   TrendingUp, 
   Trophy,
   User,
-  Sparkles
+  Sparkles,
+  LineChart,
+  MessageCircle
 } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -41,8 +43,13 @@ export function Navbar({
     },
     {
       href: "/ask/truth-market-simple", 
-      label: "Ask",
-      icon: MessageSquare,
+      label: "Truth Market",
+      icon: LineChart,
+    },
+    {
+      href: "/ask",
+      label: "Q&A",
+      icon: MessageCircle,
     },
     {
       href: "/predictions",
@@ -58,6 +65,7 @@ export function Navbar({
 
   const isActive = (href: string) => {
     if (href === "/ask/truth-market-simple" && pathname === "/ask/truth-market-simple") return true;
+    if (href === "/ask" && pathname === "/ask") return true;
     if (href === "/leaderboard" && pathname.startsWith("/leaderboard")) return true;
     return pathname === href;
   };
@@ -67,15 +75,17 @@ export function Navbar({
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
+          <Link href="/" className="flex items-center gap-2 group">
             <div className="relative">
               <V3raLogo size="sm" className="group-hover:scale-110 transition-transform" />
               <div className="absolute inset-0 bg-cyan-500/20 blur-xl group-hover:bg-cyan-500/30 transition-colors" />
             </div>
-            <div className="hidden sm:block">
-              <h1 className="text-lg font-bold text-zinc-100 group-hover:text-cyan-400 transition-colors">V3RA</h1>
-              <p className="text-xs text-zinc-500">Truth Market Beta</p>
-            </div>
+            <span className="text-lg font-bold text-zinc-100 group-hover:text-cyan-400 transition-colors">
+              V3RA
+            </span>
+            <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-xs px-1.5 py-0.5">
+              BETA
+            </Badge>
           </Link>
 
           {/* Center Navigation */}
