@@ -94,7 +94,6 @@ export default function Home() {
               <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-xs px-1.5 py-0.5">
                 BETA
               </Badge>
-              <p className="text-xs text-zinc-500 ml-2">Truth Discovery Engine</p>
             </div>
             
             <div className="flex items-center gap-3">
@@ -152,7 +151,7 @@ export default function Home() {
           </div>
 
           {/* Feature Cards */}
-          <div className="grid md:grid-cols-3 gap-6 max-w-6xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {features.map((feature, index) => (
               <motion.div
                 key={feature.id}
@@ -196,7 +195,7 @@ export default function Home() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
-            className="mt-16 grid grid-cols-3 gap-8 max-w-3xl mx-auto"
+            className="mt-16 grid grid-cols-3 gap-8 max-w-2xl mx-auto"
           >
             <div className="text-center">
               <div className="text-3xl font-bold text-cyan-400 mb-1">1,247</div>
