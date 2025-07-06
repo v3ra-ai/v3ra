@@ -14,10 +14,15 @@ import {
   LogOut,
   Shield,
   Settings,
-  Activity
+  Activity,
+  Coins,
+  TrendingUp,
+  Download,
+  Trash2,
+  History,
+  Award
 } from "lucide-react";
 import { UserFavorites } from "@/components/profile/user-favorites";
-import { V3raStats } from "@/components/profile/v3ra-stats";
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -56,6 +61,22 @@ export default function ProfilePage() {
       }
     } catch (error) {
       console.error('Failed to load user points:', error);
+    }
+    
+    // Mock data for development
+    if (process.env.NODE_ENV === 'development') {
+      if (userPoints === 0) {
+        setUserPoints(1337);
+      }
+      if (pointsHistory.length === 0) {
+        setPointsHistory([
+          { amount: 15, description: "Won prediction: Bitcoin price", createdAt: new Date().toISOString() },
+          { amount: -10, description: "Placed bet on Headlines", createdAt: new Date(Date.now() - 86400000).toISOString() },
+          { amount: 50, description: "Daily bonus claimed", createdAt: new Date(Date.now() - 172800000).toISOString() },
+          { amount: -10, description: "Truth Market prediction", createdAt: new Date(Date.now() - 259200000).toISOString() },
+          { amount: 100, description: "Welcome bonus", createdAt: new Date(Date.now() - 604800000).toISOString() }
+        ]);
+      }
     }
   };
 
@@ -196,26 +217,100 @@ export default function ProfilePage() {
               <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4">
                 Account Actions
               </h3>
-              <Button
-                onClick={handleLogout}
-                variant="outline"
-                className="w-full flex items-center justify-center gap-2 text-sm sm:text-base hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-800"
-              >
-                <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                Sign Out
-              </Button>
+              <div className="space-y-3">
+                <Button
+                  onClick={handleLogout}
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2 text-sm sm:text-base hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-800"
+                >
+                  <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Sign Out
+                </Button>
+              </div>
+            </div>
+            
+            {/* Data Management */}
+            <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4 flex items-center gap-2">
+                <Shield className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <span>Data & Privacy</span>
+              </h3>
+              <div className="space-y-3">
+                <Button
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2 text-sm sm:text-base"
+                  onClick={() => alert('Export feature coming soon!')}
+                >
+                  <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Export My Data
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2 text-sm sm:text-base hover:bg-red-50 dark:hover:bg-red-950/20 hover:text-red-600 dark:hover:text-red-400 hover:border-red-300 dark:hover:border-red-800"
+                  onClick={() => {
+                    if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+                      alert('Account deletion feature coming soon!');
+                    }
+                  }}
+                >
+                  <Trash2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                  Delete Account
+                </Button>
+              </div>
+              <p className="text-xs text-zinc-500 mt-4">
+                Your data belongs to you. Export your data anytime or permanently delete your account.
+              </p>
+            </div>
+            
+            {/* V3RA Token Stats */}
+            <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
+              <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4 flex items-center gap-2">
+                <Coins className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0 text-yellow-400" />
+                <span>V3RA Token Balance</span>
+              </h3>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="bg-gradient-to-br from-yellow-500/10 to-amber-500/10 rounded-lg p-4 border border-yellow-500/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">Current Balance</p>
+                      <p className="text-2xl font-bold text-yellow-400">{userPoints.toLocaleString()}</p>
+                    </div>
+                    <Coins className="w-8 h-8 text-yellow-400/20" />
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-green-500/10 to-emerald-500/10 rounded-lg p-4 border border-green-500/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">Total Earned</p>
+                      <p className="text-2xl font-bold text-green-400">12,450</p>
+                    </div>
+                    <TrendingUp className="w-8 h-8 text-green-400/20" />
+                  </div>
+                </div>
+                
+                <div className="bg-gradient-to-br from-purple-500/10 to-pink-500/10 rounded-lg p-4 border border-purple-500/20">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-xs text-zinc-500 dark:text-zinc-400">Win Rate</p>
+                      <p className="text-2xl font-bold text-purple-400">68%</p>
+                    </div>
+                    <Award className="w-8 h-8 text-purple-400/20" />
+                  </div>
+                </div>
+              </div>
             </div>
             
             {/* Recent Activity */}
-            {pointsHistory.length > 0 && (
-              <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
+            <div className="bg-white dark:bg-zinc-800 rounded-xl shadow-sm border border-zinc-200 dark:border-zinc-700 p-4 sm:p-6">
                 <h3 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100 mb-3 sm:mb-4 flex items-center gap-2">
-                  <Activity className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                  <span>Recent V3RA Activity</span>
+                  <History className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                  <span>Recent Activity</span>
                 </h3>
                 
                 <div className="space-y-2">
-                  {pointsHistory.slice(0, 5).map((transaction, index) => (
+                  {pointsHistory.length > 0 ? pointsHistory.slice(0, 5).map((transaction, index) => (
                     <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-zinc-50 dark:bg-zinc-900/50">
                       <div>
                         <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
@@ -231,16 +326,26 @@ export default function ProfilePage() {
                         {transaction.amount > 0 ? '+' : ''}{transaction.amount} V3RA
                       </span>
                     </div>
-                  ))}
+                  )) : (
+                    <div className="text-center py-8 text-zinc-500">
+                      <Activity className="w-8 h-8 mx-auto mb-2 opacity-20" />
+                      <p className="text-sm">No recent activity</p>
+                      <p className="text-xs mt-1">Start making predictions to see your history</p>
+                    </div>
+                  )}
                 </div>
+                
+                {pointsHistory.length > 5 && (
+                  <Button
+                    variant="ghost"
+                    className="w-full mt-4 text-sm"
+                    onClick={() => router.push('/activity')}
+                  >
+                    View All Activity
+                  </Button>
+                )}
               </div>
-            )}
           </div>
-        </div>
-
-        {/* V3RA Stats Section */}
-        <div className="mt-6 sm:mt-8">
-          <V3raStats userId={user?.id} />
         </div>
 
         {/* Favorites Section */}

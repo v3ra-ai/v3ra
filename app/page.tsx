@@ -217,7 +217,7 @@ export default function Home() {
       <div className="border-t border-zinc-800/50 bg-zinc-900/50">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between text-sm text-zinc-500">
-            <div>© 2024 V3RA. All rights reserved.</div>
+            <div>© 2025 V3RA. All rights reserved.</div>
             <div className="flex items-center gap-4">
               <Link href="/about" className="hover:text-zinc-300">About</Link>
               <Link href="/privacy" className="hover:text-zinc-300">Privacy</Link>

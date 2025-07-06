@@ -8,7 +8,7 @@ interface LoadingSpinnerProps {
 }
 
 export function LoadingSpinner({
-  message = "Loading Verafy Testnet Explorer...",
+  message = "Loading V3RA Testnet Explorer...",
   className = "flex items-center justify-center min-h-screen",
 }: LoadingSpinnerProps) {
   return (
