@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import { PredictionMarketService } from "@/lib/services/prediction-market";
-import { cookies } from "next/headers";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const cookieStore = cookies();
-    const userId = cookieStore.get("demo_user_id")?.value || "demo-user-1";
+    // Get authenticated user
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
     
     const { amount } = await request.json();
     
@@ -39,13 +47,13 @@ export async function POST(
       
       // Create market with initial probability
       const initialProb = (prediction.outcomes[0].consensusProbability?.toNumber() || 0.5) * 100;
-      await PredictionMarketService.createMarket(params.id, userId, initialProb);
+      await PredictionMarketService.createMarket(params.id, user.id, initialProb);
     }
 
     // Stake to market
     const updatedMarket = await PredictionMarketService.stakeToMarket(
       params.id,
-      userId,
+      user.id,
       amount
     );
 

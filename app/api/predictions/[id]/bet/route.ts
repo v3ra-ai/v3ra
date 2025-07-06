@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import { PredictionMarketService } from "@/lib/services/prediction-market";
-import { cookies } from "next/headers";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 
 export async function POST(
   request: Request,
   { params }: { params: { id: string } }
 ) {
   try {
-    const cookieStore = cookies();
-    const userId = cookieStore.get("demo_user_id")?.value || "demo-user-1";
+    // Get authenticated user
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      return NextResponse.json(
+        { error: "Authentication required" },
+        { status: 401 }
+      );
+    }
     
     const { position, amount } = await request.json();
     
@@ -29,7 +37,7 @@ export async function POST(
     // Place bet
     const bet = await PredictionMarketService.placeBet(
       params.id,
-      userId,
+      user.id,
       position,
       amount
     );

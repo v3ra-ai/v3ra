@@ -42,6 +42,11 @@ export default function UserLeaderboardPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [userPoints, setUserPoints] = useState(0);
+  const [summary, setSummary] = useState({
+    totalV3RAInPlay: 0,
+    activeUsers: 0,
+    avgWinRate: 0
+  });
 
   useEffect(() => {
     loadUserPoints();
@@ -79,72 +84,14 @@ export default function UserLeaderboardPage() {
   const loadLeaderboard = async () => {
     setIsLoading(true);
     try {
-      // For MVP, generate mock data
-      // In production: const response = await fetch(`/api/leaderboard/users?timeframe=${timeframe}`);
-      const mockData: UserStats[] = [
-        {
-          userId: "1",
-          username: "TruthSeeker42",
-          rank: 1,
-          balance: 15420,
-          totalEarned: 25000,
-          winRate: 78.5,
-          totalBets: 142,
-          wins: 111,
-          streak: 12,
-          level: 15
-        },
-        {
-          userId: "2", 
-          username: "OracleAI",
-          rank: 2,
-          balance: 12850,
-          totalEarned: 18500,
-          winRate: 71.2,
-          totalBets: 98,
-          wins: 70,
-          streak: 8,
-          level: 12
-        },
-        {
-          userId: "3",
-          username: "PredictionPro",
-          rank: 3,
-          balance: 11200,
-          totalEarned: 16200,
-          winRate: 69.8,
-          totalBets: 86,
-          wins: 60,
-          streak: 5,
-          level: 10
-        },
-        {
-          userId: "4",
-          username: "CryptoOracle",
-          rank: 4,
-          balance: 9800,
-          totalEarned: 14500,
-          winRate: 65.4,
-          totalBets: 78,
-          wins: 51,
-          streak: 3,
-          level: 8
-        },
-        {
-          userId: "5",
-          username: "NewsHawk",
-          rank: 5,
-          balance: 8500,
-          totalEarned: 12000,
-          winRate: 62.1,
-          totalBets: 66,
-          wins: 41,
-          streak: 2,
-          level: 7
-        }
-      ];
-      
-      setLeaderboard(mockData);
+      const response = await fetch(`/api/leaderboard/users?timeframe=${timeframe}`);
+      if (response.ok) {
+        const data = await response.json();
+        setLeaderboard(data.leaderboard);
+        setSummary(data.summary);
+      } else {
+        console.error('Failed to load leaderboard');
+      }
     } catch (error) {
       console.error('Failed to load leaderboard:', error);
     } finally {
@@ -301,7 +248,7 @@ export default function UserLeaderboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-zinc-500">Total V3RA in Play</p>
-                  <p className="text-2xl font-bold text-zinc-100">2.5M</p>
+                  <p className="text-2xl font-bold text-zinc-100">{(summary.totalV3RAInPlay / 1000).toFixed(1)}K</p>
                 </div>
                 <Coins className="w-8 h-8 text-yellow-400/20" />
               </div>
@@ -311,7 +258,7 @@ export default function UserLeaderboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-zinc-500">Active Predictors</p>
-                  <p className="text-2xl font-bold text-zinc-100">1,247</p>
+                  <p className="text-2xl font-bold text-zinc-100">{summary.activeUsers.toLocaleString()}</p>
                 </div>
                 <Star className="w-8 h-8 text-cyan-400/20" />
               </div>
@@ -321,7 +268,7 @@ export default function UserLeaderboardPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm text-zinc-500">Avg Win Rate</p>
-                  <p className="text-2xl font-bold text-zinc-100">58.3%</p>
+                  <p className="text-2xl font-bold text-zinc-100">{summary.avgWinRate}%</p>
                 </div>
                 <Target className="w-8 h-8 text-green-400/20" />
               </div>

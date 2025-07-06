@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/database";
+import { V3RAPointsService } from "@/lib/services/v3ra-points";
 
 export async function createOrGetUser(userId: string, email: string, name?: string) {
   try {
@@ -20,6 +21,9 @@ export async function createOrGetUser(userId: string, email: string, name?: stri
         updatedAt: new Date(),
       },
     });
+
+    // Initialize V3RA points for new user
+    await V3RAPointsService.getUserPoints(userId);
 
     return { success: true, user: newUser };
   } catch (error) {
