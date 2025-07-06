@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 export default function AuthCallback() {
   const router = useRouter();

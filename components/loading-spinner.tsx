@@ -1,22 +1,63 @@
 "use client";
 
 import React from "react";
+import {
+  BeatLoader,
+  ClipLoader,
+  PulseLoader,
+  RingLoader,
+  ScaleLoader,
+} from "react-spinners";
+
+type LoaderType = "beat" | "clip" | "pulse" | "ring" | "scale";
 
 interface LoadingSpinnerProps {
+  type?: LoaderType;
   message?: string;
-  className?: string;
+  color?: string;
+  size?: number;
+  noWrapper?: boolean; // New prop
 }
 
-export function LoadingSpinner({
-  message = "Loading V3RA Testnet Explorer...",
-  className = "flex items-center justify-center min-h-screen",
-}: LoadingSpinnerProps) {
+export const LoadingSpinner = ({
+  type = "beat",
+  message = "Loading...",
+  color = "#14b8a6",
+  size = 15,
+  noWrapper = false, // Default to false
+}: LoadingSpinnerProps) => {
+  const renderLoader = () => {
+    switch (type) {
+      case "beat":
+        return <BeatLoader color={color} size={size} />;
+      case "clip":
+        return <ClipLoader color={color} size={size} />;
+      case "pulse":
+        return <PulseLoader color={color} size={size / 2} />;
+      case "ring":
+        return <RingLoader color={color} size={size * 2} />;
+      case "scale":
+        return <ScaleLoader color={color} />;
+      default:
+        return <BeatLoader color={color} size={size} />;
+    }
+  };
+
+  if (noWrapper) {
+    return (
+      <>
+        {renderLoader()}
+        {message && <span className="text-lg font-light">{message}</span>}
+      </>
+    );
+  }
+
   return (
-    <div className={className}>
-      <div className="text-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-purple-500 mx-auto"></div>
-        <p className="mt-4 text-lg">{message}</p>
+    <div className="w-full flex justify-center items-center py-8">
+      <div className="flex justify-center items-center mr-2">
+        {renderLoader()}
       </div>
+      {message && <div className="text-lg font-light">{message}</div>}
     </div>
   );
-}
+};

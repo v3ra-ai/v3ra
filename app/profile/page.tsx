@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase-client";
 import { Navbar } from "@/components/shared/navbar";
 import { Button } from "@/components/ui/button";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { 
   Mail, 
   User, 
@@ -36,6 +36,7 @@ export default function ProfilePage() {
     };
   } | null>(null);
   const [userPoints, setUserPoints] = useState(0);
+  const [totalEarned, setTotalEarned] = useState(0);
   const [pointsHistory, setPointsHistory] = useState<{
     amount: number;
     description: string;
@@ -56,27 +57,12 @@ export default function ProfilePage() {
         if (response.ok) {
           const data = await response.json();
           setUserPoints(data.balance || 0);
+          setTotalEarned(data.totalEarned || 0);
           setPointsHistory(data.history || []);
         }
       }
     } catch (error) {
       console.error('Failed to load user points:', error);
-    }
-    
-    // Mock data for development
-    if (process.env.NODE_ENV === 'development') {
-      if (userPoints === 0) {
-        setUserPoints(1337);
-      }
-      if (pointsHistory.length === 0) {
-        setPointsHistory([
-          { amount: 15, description: "Won prediction: Bitcoin price", createdAt: new Date().toISOString() },
-          { amount: -10, description: "Placed bet on Headlines", createdAt: new Date(Date.now() - 86400000).toISOString() },
-          { amount: 50, description: "Daily bonus claimed", createdAt: new Date(Date.now() - 172800000).toISOString() },
-          { amount: -10, description: "Truth Market prediction", createdAt: new Date(Date.now() - 259200000).toISOString() },
-          { amount: 100, description: "Welcome bonus", createdAt: new Date(Date.now() - 604800000).toISOString() }
-        ]);
-      }
     }
   };
 
@@ -284,7 +270,7 @@ export default function ProfilePage() {
                   <div className="flex items-center justify-between">
                     <div>
                       <p className="text-xs text-zinc-500 dark:text-zinc-400">Total Earned</p>
-                      <p className="text-2xl font-bold text-green-400">12,450</p>
+                      <p className="text-2xl font-bold text-green-400">{totalEarned.toLocaleString()}</p>
                     </div>
                     <TrendingUp className="w-8 h-8 text-green-400/20" />
                   </div>

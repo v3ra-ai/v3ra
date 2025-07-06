@@ -1,11 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { prisma } from "@/lib/db/client";
 
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const userId = searchParams.get("userId");
+    let userId = searchParams.get("userId");
     
     if (!userId) {
       // Try to get from session
@@ -19,18 +20,33 @@ export async function GET(request: NextRequest) {
         );
       }
       
-      const userPoints = await V3RAPointsService.getUserPoints(user.id);
-      return NextResponse.json({
-        userId: user.id,
-        balance: Number(userPoints.balance),
-        totalEarned: Number(userPoints.totalEarned),
-        totalSpent: Number(userPoints.totalSpent),
-        streak: userPoints.streak,
-        level: userPoints.level
-      });
+      userId = user.id;
     }
     
+    // Get user points
     const userPoints = await V3RAPointsService.getUserPoints(userId);
+    
+    // Get transaction history
+    const transactions = await prisma.pointsTransaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 10, // Get last 10 transactions
+      select: {
+        id: true,
+        type: true,
+        amount: true,
+        description: true,
+        createdAt: true,
+      }
+    });
+    
+    // Format history for frontend
+    const history = transactions.map(tx => ({
+      amount: Number(tx.amount),
+      description: tx.description || getTransactionDescription(tx.type),
+      createdAt: tx.createdAt.toISOString(),
+      type: tx.type
+    }));
     
     return NextResponse.json({
       userId,
@@ -38,7 +54,8 @@ export async function GET(request: NextRequest) {
       totalEarned: Number(userPoints.totalEarned),
       totalSpent: Number(userPoints.totalSpent),
       streak: userPoints.streak,
-      level: userPoints.level
+      level: userPoints.level,
+      history
     });
     
   } catch (error) {
@@ -48,4 +65,18 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
+}
+
+function getTransactionDescription(type: string): string {
+  const descriptions: Record<string, string> = {
+    'DAILY_BONUS': 'Daily bonus claimed',
+    'BET_WIN': 'Won prediction bet',
+    'BET_LOSS': 'Lost prediction bet',
+    'MARKET_CREATE': 'Created prediction market',
+    'VERIFICATION_REWARD': 'Verification reward',
+    'STAKE_REFUND': 'Market stake refunded',
+    'INITIAL_GRANT': 'Welcome bonus'
+  };
+  
+  return descriptions[type] || type.replace(/_/g, ' ').toLowerCase();
 }

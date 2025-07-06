@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { calculateVotePercentages } from "@/utils/vote-utils";
 import { formatErrorMessage } from "@/utils/error-utils";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 const QueryState = ({ state }: { state: "loading" | { error: string } }) => (
   <div className="bg-white dark:bg-zinc-900 rounded-xl shadow-md p-6 h-64 w-full">

@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import DOMPurify from "dompurify";
 import { truncateText } from "@/utils/text-utils";
 import { getNetworkStateDefaults } from "@/utils/network-utils";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 const StatusCard = ({
   title,

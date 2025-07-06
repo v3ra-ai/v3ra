@@ -3,7 +3,7 @@
 import { useVoteHistory } from "@/hooks/useVoteHistory";
 import { useVoteStore } from "@/store/vote-store";
 import { ErrorDisplay } from "@/components/error-display";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { LoadingSpinner } from "@/components/loading-spinner";
 import { ChevronDown, ChevronUp, Star, History } from "lucide-react";
 import { useState } from "react";
 import CardViewer from "@/components/ask/card-client-wrapper";

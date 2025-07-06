@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { PredictionMarketService } from "@/lib/services/prediction-market";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { ApiError, errorResponse, validate } from "@/lib/utils/api-errors";
 
 export async function POST(
   request: Request,
@@ -12,27 +13,14 @@ export async function POST(
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {
-      return NextResponse.json(
-        { error: "Authentication required" },
-        { status: 401 }
-      );
+      throw new ApiError('UNAUTHORIZED');
     }
     
-    const { position, amount } = await request.json();
+    const body = await request.json();
     
-    if (!position || !["YES", "NO"].includes(position)) {
-      return NextResponse.json(
-        { error: "Invalid position. Must be YES or NO" },
-        { status: 400 }
-      );
-    }
-    
-    if (!amount || amount <= 0) {
-      return NextResponse.json(
-        { error: "Invalid bet amount" },
-        { status: 400 }
-      );
-    }
+    // Validate inputs
+    const position = validate.enum(body.position, ['YES', 'NO'], 'position');
+    const amount = validate.positiveNumber(body.amount, 'amount');
 
     // Place bet
     const bet = await PredictionMarketService.placeBet(
@@ -52,11 +40,7 @@ export async function POST(
         potentialReturn: bet.potentialReturn.toNumber(),
       }
     });
-  } catch (error: any) {
-    console.error("Error placing bet:", error);
-    return NextResponse.json(
-      { error: error.message || "Failed to place bet" },
-      { status: 400 }
-    );
+  } catch (error) {
+    return errorResponse(error);
   }
 }

@@ -1,4 +1,4 @@
-import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 export default function VoteHistoryLoading() {
   return (

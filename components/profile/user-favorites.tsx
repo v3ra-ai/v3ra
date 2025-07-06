@@ -5,7 +5,7 @@ import { Heart, ExternalLink, Calendar, TrendingUp } from "lucide-react";
 import { fetchUserFavorites } from "@/app/actions";
 import { Favorite, VoteResult } from "@/lib/types";
 import Link from "next/link";
-import { LoadingSpinner } from "@/components/loading-spinner-new";
+import { LoadingSpinner } from "@/components/loading-spinner";
 
 interface FavoriteWithVoteSession extends Favorite {
   voteSession?: VoteResult;
