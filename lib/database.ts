@@ -1,6 +1,7 @@
 import { PrismaClient, Prisma } from "@prisma/client";
 import OpenAI from "openai";
 import { Validator, VoteResult } from "./types";
+import { logger } from "./utils/logger";
 
 // Type definitions
 
@@ -29,13 +30,13 @@ const openai = process.env.OPENAI_API_KEY
 export async function initDatabase(): Promise<boolean> {
   try {
     // Create any necessary extensions (pgvector should be enabled in the schema)
-    console.log("Initializing database connection...");
+    logger.info("Initializing database connection...");
     await prisma.$connect();
-    console.log("Database connection established");
+    logger.info("Database connection established");
 
     return true;
   } catch (error) {
-    console.error("Database initialization failed:", error);
+    logger.error("Database initialization failed:", error);
     return false;
   }
 }
@@ -45,7 +46,7 @@ export async function seedValidators(validators: Validator[]): Promise<void> {
   // Check if validators already exist
   const count = await prisma.validator.count();
   if (count > 0) {
-    console.log("Validators already exist, skipping seed");
+    logger.info("Validators already exist, skipping seed");
     return;
   }
 
@@ -64,9 +65,9 @@ export async function seedValidators(validators: Validator[]): Promise<void> {
         },
       });
     }
-    console.log(`Seeded ${validators.length} validators successfully`);
+    logger.info(`Seeded ${validators.length} validators successfully`);
   } catch (error) {
-    console.error("Failed to seed validators:", error);
+    logger.error("Failed to seed validators:", error);
   }
 }
 
@@ -76,7 +77,7 @@ export async function getEmbeddingForText(
 ): Promise<number[] | null> {
   try {
     if (!openai || !process.env.OPENAI_API_KEY) {
-      console.warn("No OpenAI API key found, returning simulated embeddings");
+      logger.warn("No OpenAI API key found, returning simulated embeddings");
       // Return simulated embedding (dimensionality should match your pgvector setup)
       return Array(1536)
         .fill(0)
@@ -90,7 +91,7 @@ export async function getEmbeddingForText(
 
     return response.data[0].embedding;
   } catch (error) {
-    console.error("Error generating embeddings:", error);
+    logger.error("Error generating embeddings:", error);
     return null;
   }
 }
@@ -113,7 +114,7 @@ export async function storeEmbeddingsInVectorDB(
 
     return true;
   } catch (error) {
-    console.error("Failed to store embedding:", error);
+    logger.error("Failed to store embedding:", error);
     return false;
   }
 }
@@ -160,7 +161,7 @@ export async function createGraphEdge(
     await prisma.graphEdge.create({ data });
     return true;
   } catch (error) {
-    console.error("Failed to create graph edge:", error);
+    logger.error("Failed to create graph edge:", error);
     return false;
   }
 }
@@ -207,8 +208,8 @@ export async function persistVoteSession(
         });
 
         if (!validator) {
-          console.warn(
-            `Validator not found for ${response.profileName} (${response.provider})`,
+          logger.warn(
+            `Validator not found for ${response.profileName} (${response.provider})`
           );
           continue;
         }
@@ -256,7 +257,7 @@ export async function persistVoteSession(
       return true;
     });
   } catch (error) {
-    console.error("Failed to persist vote session:", error);
+    logger.error("Failed to persist vote session:", error);
     return false;
   }
 }
@@ -291,7 +292,7 @@ export async function searchVoteSessions(
     // Cast the result to any[] to ensure TypeScript compatibility
     return results as SearchResult[];
   } catch (error) {
-    console.error("Search error:", error);
+    logger.error("Search error:", error);
     return [];
   }
 }
@@ -324,7 +325,7 @@ export async function queryGraphRelationships(
 
     return edges;
   } catch (error) {
-    console.error("Failed to query graph relationships:", error);
+    logger.error("Failed to query graph relationships:", error);
     return [];
   }
 }

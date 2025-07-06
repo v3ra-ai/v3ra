@@ -3,6 +3,7 @@ import { Validator } from "@prisma/client";
 import { AIValidator } from "../validators/types";
 import { VoteResult } from "./../types";
 import { MAX_VOTE_HISTORY_RESULTS, RECENT_HISTORY_RESULTS } from "./../constants";
+import { logger } from "../utils/logger";
 
 // Exception list of validator IDs to skip - REMOVED HARDCODED EXCLUSIONS
 const EXCLUDED_VALIDATOR_IDS: string[] = [];
@@ -12,13 +13,7 @@ export async function getValidators(): Promise<Validator[]> {
   try {
     const validators = await prisma.validator.findMany();
     // Log fetched validators for debugging
-    if (process.env.NODE_ENV === "development") {
-      console.log("Fetched validators:", validators);
-    }
-    // console.log(validators);
-    console.log(`------------ VALIDATORS WITH FILTER ----------`);
-
-    // console.log(validators.filter((validator) => !EXCLUDED_VALIDATOR_IDS.includes(validator.id)));
+    logger.debug("Fetched validators:", validators, { context: "getValidators" });
 
 
     return validators
@@ -41,7 +36,7 @@ export async function getValidators(): Promise<Validator[]> {
         updatedAt: validator.updatedAt,
       }));
   } catch (error) {
-    console.error("Error fetching validators:", error);
+    logger.error("Error fetching validators:", error, { context: "getValidators" });
     return [];
   } finally {
     await prisma.$disconnect();
@@ -53,18 +48,14 @@ export async function getValidatorById(id: string): Promise<Validator | null> {
   try {
     const validator = await prisma.validator.findUnique({ where: { id } });
     if (!validator) {
-      if (process.env.NODE_ENV === "development") {
-        console.log(`Validator not found for ID: ${id}`);
-        const allValidators = await prisma.validator.findMany();
-        console.log("Available validator IDs:", allValidators.map((v) => v.id));
-      }
+      logger.debug(`Validator not found for ID: ${id}`, null, { context: "getValidatorById" });
+      const allValidators = await prisma.validator.findMany();
+      logger.debug("Available validator IDs:", allValidators.map((v) => v.id), { context: "getValidatorById" });
       return null;
     }
 
     // Log fetched validator data for debugging
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Fetched validator for ID: ${id}`, validator);
-    }
+    logger.debug(`Fetched validator for ID: ${id}`, validator, { context: "getValidatorById" });
 
     return {
       id: validator.id,
@@ -84,7 +75,7 @@ export async function getValidatorById(id: string): Promise<Validator | null> {
       updatedAt: validator.updatedAt,
     };
   } catch (error) {
-    console.error(`Error fetching validator with ID ${id}:`, error);
+    logger.error(`Error fetching validator with ID ${id}:`, error, { context: "getValidatorById" });
     return null;
   }
 }
@@ -125,33 +116,29 @@ export async function getValidatorVoteHistory(validatorId: string, limit: number
     });
 
     // Log raw responses for debugging
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Raw ValidatorResponse records for validator ${validatorId} (limit: ${effectiveLimit}):`, responses);
-      if (responses.length === 0) {
-        console.log(`No ValidatorResponse records found for validatorId: ${validatorId}`);
-        const allResponses = await prisma.validatorResponse.findMany({
-          where: { validatorId },
-          select: { id: true, voteSessionId: true },
-        });
-        console.log(`All ValidatorResponse records for validator (sanity check):`, allResponses);
-        const voteSessions = await prisma.voteSession.findMany({
-          where: { id: { in: allResponses.map((r) => r.voteSessionId) } },
-          select: { id: true, queryText: true },
-        });
-        console.log(`Related VoteSession records:`, voteSessions);
-      }
+    logger.debug(`Raw ValidatorResponse records for validator ${validatorId} (limit: ${effectiveLimit}):`, responses, { context: "getValidatorVoteHistory" });
+    if (responses.length === 0) {
+      logger.debug(`No ValidatorResponse records found for validatorId: ${validatorId}`, null, { context: "getValidatorVoteHistory" });
+      const allResponses = await prisma.validatorResponse.findMany({
+        where: { validatorId },
+        select: { id: true, voteSessionId: true },
+      });
+      logger.debug(`All ValidatorResponse records for validator (sanity check):`, allResponses, { context: "getValidatorVoteHistory" });
+      const voteSessions = await prisma.voteSession.findMany({
+        where: { id: { in: allResponses.map((r) => r.voteSessionId) } },
+        select: { id: true, queryText: true },
+      });
+      logger.debug(`Related VoteSession records:`, voteSessions, { context: "getValidatorVoteHistory" });
     }
 
     const voteHistory = responses.map((res) => {
       // Log each response for debugging
-      if (process.env.NODE_ENV === "development") {
-        console.log(`Processing ValidatorResponse ${res.id}:`, {
-          voteSessionExists: !!res.VoteSession,
-          voteSessionId: res.VoteSession?.id,
-          queryText: res.VoteSession?.queryText,
-          validator: res.Validator,
-        });
-      }
+      logger.debug(`Processing ValidatorResponse ${res.id}:`, {
+        voteSessionExists: !!res.VoteSession,
+        voteSessionId: res.VoteSession?.id,
+        queryText: res.VoteSession?.queryText,
+        validator: res.Validator,
+      }, { context: "getValidatorVoteHistory" });
 
       return {
         id: res.VoteSession?.id || `missing-session-${res.id}`,
@@ -177,15 +164,13 @@ export async function getValidatorVoteHistory(validatorId: string, limit: number
     });
 
     // Log filtered vote history for debugging
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Filtered vote history for validator ${validatorId}:`, voteHistory);
-      if (voteHistory.length === 0) {
-        console.log(`Possible issues: No ValidatorResponse records or missing VoteSession links`);
-      }
+    logger.debug(`Filtered vote history for validator ${validatorId}:`, voteHistory, { context: "getValidatorVoteHistory" });
+    if (voteHistory.length === 0) {
+      logger.debug(`Possible issues: No ValidatorResponse records or missing VoteSession links`, null, { context: "getValidatorVoteHistory" });
     }
     return voteHistory;
   } catch (error) {
-    console.error(`Error fetching vote history for validator ${validatorId}:`, error);
+    logger.error(`Error fetching vote history for validator ${validatorId}:`, error, { context: "getValidatorVoteHistory" });
     return [];
   }
 }
@@ -220,11 +205,9 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
     });
 
     // Log raw responses for debugging
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Raw ValidatorResponse records for vote stats (validator ${validatorId}, limit: ${effectiveLimit}):`, responses);
-      if (responses.length === 0) {
-        console.log(`No ValidatorResponse records found for validatorId: ${validatorId}`);
-      }
+    logger.debug(`Raw ValidatorResponse records for vote stats (validator ${validatorId}, limit: ${effectiveLimit}):`, responses, { context: "getValidatorVoteStats" });
+    if (responses.length === 0) {
+      logger.debug(`No ValidatorResponse records found for validatorId: ${validatorId}`, null, { context: "getValidatorVoteStats" });
     }
 
     const totalVotes = responses.length;
@@ -251,13 +234,11 @@ export async function getValidatorVoteStats(validatorId: string, limit: number =
     };
 
     // Log vote statistics for debugging
-    if (process.env.NODE_ENV === "development") {
-      console.log(`Vote stats for validator ${validatorId}:`, stats);
-    }
+    logger.debug(`Vote stats for validator ${validatorId}:`, stats, { context: "getValidatorVoteStats" });
 
     return stats;
   } catch (error) {
-    console.error(`Error fetching vote stats for validator ${validatorId}:`, error);
+    logger.error(`Error fetching vote stats for validator ${validatorId}:`, error, { context: "getValidatorVoteStats" });
     return {
       totalVotes: 0,
       yesVotes: 0,

@@ -13,6 +13,7 @@ import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { supabase } from "@/lib/supabase-client";
 import { useLLMStore } from "@/store/llm-store";
+import { logger } from "@/lib/utils/client-logger";
 
 interface UseQueryLogicProps {
   payWithWallet: boolean;
@@ -46,10 +47,10 @@ export default function useQueryLogic({
 
   const placeholderText = getPlaceholderText(queryMode);
 
-  // console.log("[useQueryLogic] Initial queryMode:", queryMode);
+  logger.debug("Initial queryMode:", queryMode, { context: "useQueryLogic" });
 
   const fetchCsrfToken = useCallback(async (): Promise<string> => {
-    console.log("[useQueryLogic] Starting CSRF token fetch");
+    logger.debug("Starting CSRF token fetch", null, { context: "useQueryLogic" });
     let attempts = 0;
     const maxAttempts = 3;
     while (attempts < maxAttempts) {
@@ -58,11 +59,11 @@ export default function useQueryLogic({
           method: "GET",
           credentials: "include",
         });
-        console.log("[useQueryLogic] CSRF fetch response:", {
+        logger.debug("CSRF fetch response:", {
           status: response.status,
           headers: Object.fromEntries(response.headers),
           timestamp: new Date().toISOString(),
-        });
+        }, { context: "useQueryLogic" });
         const data = await response.json();
         if (!response.ok) {
           throw new Error(
@@ -76,18 +77,18 @@ export default function useQueryLogic({
         ) {
           throw new Error("Invalid CSRF token format");
         }
-        console.log(
-          "[useQueryLogic] CSRF token fetched successfully:",
-          data.csrfToken
+        logger.debug(
+          "CSRF token fetched successfully:",
+          data.csrfToken,
+          { context: "useQueryLogic" }
         );
         return data.csrfToken;
       } catch {
         attempts++;
-        console.error(
-          "[useQueryLogic] CSRF token fetch attempt",
-          attempts,
-          "failed",
-          { timestamp: new Date().toISOString() }
+        logger.error(
+          `CSRF token fetch attempt ${attempts} failed`,
+          { timestamp: new Date().toISOString() },
+          { context: "useQueryLogic" }
         );
         if (attempts === maxAttempts) {
           throw new Error("Failed to fetch CSRF token after retries");
@@ -108,8 +109,10 @@ export default function useQueryLogic({
         } = await supabase.auth.getSession();
         if (error) throw error;
         if (!session?.user?.email) {
-          console.warn(
-            "[useQueryLogic] No active session found during email fetch"
+          logger.warn(
+            "No active session found during email fetch",
+            null,
+            { context: "useQueryLogic" }
           );
           return;
         }
@@ -119,9 +122,9 @@ export default function useQueryLogic({
         //   timestamp: new Date().toISOString(),
         // });
       } catch {
-        console.error("[useQueryLogic] Error fetching email", {
+        logger.error("Error fetching email", {
           timestamp: new Date().toISOString(),
-        });
+        }, { context: "useQueryLogic" });
         toast.error("Failed to fetch user session. Please log in again.", {
           style: { background: "#dc2626", color: "#fee2e2" },
           duration: 5000,
@@ -137,17 +140,16 @@ export default function useQueryLogic({
       const params = new URLSearchParams(window.location.search);
       const q = params.get("q");
       if (q === "shop") {
-        console.log(
-          "[useQueryLogic] URL param 'q' is 'shop', current queryMode:",
-          queryMode
+        logger.debug(
+          "URL param 'q' is 'shop', current queryMode:",
+          queryMode,
+          { context: "useQueryLogic" }
         );
       }
-      console.log(
-        "[useQueryLogic] URL param 'q':",
-        q,
-        "Current queryMode:",
-        queryMode,
-        { timestamp: new Date().toISOString() }
+      logger.debug(
+        `URL param 'q': ${q}, Current queryMode: ${queryMode}`,
+        { timestamp: new Date().toISOString() },
+        { context: "useQueryLogic" }
       );
     }
   }, [queryMode]);
@@ -178,22 +180,23 @@ export default function useQueryLogic({
         1,
         Math.min(ALLOWED_AMOUNT_QUERIES, newAmount)
       );
-      console.log("[useQueryLogic] Updating queriesRequested:", clampedAmount, {
+      logger.debug("Updating queriesRequested:", {
+        clampedAmount,
         timestamp: new Date().toISOString(),
-      });
+      }, { context: "useQueryLogic" });
       setQueriesRequested(clampedAmount, 100); // Default credit amount
     },
     [setQueriesRequested]
   );
 
   const handleSubmit = async () => {
-    console.log("[useQueryLogic] handleSubmit called", {
+    logger.debug("handleSubmit called", {
       queryText,
       queryMode,
       queriesRequested,
       selectedLLMIds,
       timestamp: new Date().toISOString(),
-    });
+    }, { context: "useQueryLogic" });
 
     let actualSelectedIds: string[] | undefined;
 
@@ -211,10 +214,10 @@ export default function useQueryLogic({
       actualSelectedIds = enabledLLMs.map(llm => llm.id);
       
       if (enabledLLMs.length > 0 && queriesRequested > enabledLLMs.length) {
-        console.log("[useQueryLogic] Blocked: Queries requested exceeds selected LLMs", {
+        logger.debug("Blocked: Queries requested exceeds selected LLMs", {
           queriesRequested,
           selectedLLMCount: enabledLLMs.length,
-        });
+        }, { context: "useQueryLogic" });
         toast.error(`Cannot query ${queriesRequested} AIs when only ${enabledLLMs.length} are selected.`, {
           style: { background: "#dc2626", color: "#fee2e2" },
           duration: 5000,
@@ -236,14 +239,14 @@ export default function useQueryLogic({
     setError(null);
     try {
       const csrfToken = await fetchCsrfToken();
-      console.log("[useQueryLogic] Processing query", {
+      logger.debug("Processing query", {
         queriesRequested,
         publicKey: publicKey?.toBase58() || "none",
         email,
         csrfToken: csrfToken ? "[REDACTED]" : undefined,
         selectedLLMIds,
         timestamp: new Date().toISOString(),
-      });
+      }, { context: "useQueryLogic" });
       await broadcastQuery({
         query: queryText,
         options: {
@@ -267,14 +270,14 @@ export default function useQueryLogic({
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Failed to submit query";
       setError(sanitizeQueryText(errorMessage));
-      console.error("[useQueryLogic] Submission failed:", {
+      logger.error("Submission failed:", {
         errorMessage,
         queryText,
         queryMode,
         queriesRequested,
         selectedLLMIds,
         timestamp: new Date().toISOString(),
-      });
+      }, { context: "useQueryLogic" });
       toast.error(errorMessage, {
         style: { background: "#dc2626", color: "#fee2e2" },
         duration: 5000,

@@ -1,13 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import crypto from "crypto";
+import { logger } from "@/lib/utils/logger";
 
 export async function POST(request: NextRequest) {
-  console.log("[Feedback API] Request received");
+  logger.debug("Request received", null, { context: "Feedback API" });
   
   // Check environment
   if (!process.env.DATABASE_URL) {
-    console.error("[Feedback API] DATABASE_URL not configured");
+    logger.error("DATABASE_URL not configured", null, { context: "Feedback API" });
     return NextResponse.json(
       { error: "Server configuration error" },
       { status: 500 }
@@ -16,7 +17,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    console.log("[Feedback API] Request body:", { type: body.type, email: body.email, hasMessage: !!body.message });
+    logger.debug("Request body:", { type: body.type, email: body.email, hasMessage: !!body.message }, { context: "Feedback API" });
     
     const { type, message, email, browserInfo } = body;
 
@@ -34,7 +35,7 @@ export async function POST(request: NextRequest) {
     });
 
     if (!systemUser) {
-      console.log("[Feedback API] Creating system user for anonymous feedback");
+      logger.debug("Creating system user for anonymous feedback", null, { context: "Feedback API" });
       systemUser = await prisma.user.create({
         data: {
           id: crypto.randomUUID(),
@@ -65,11 +66,11 @@ export async function POST(request: NextRequest) {
     };
 
     // Save to database
-    console.log("[Feedback API] Creating feedback record...");
+    logger.debug("Creating feedback record...", null, { context: "Feedback API" });
     const feedback = await prisma.feedback.create({
       data: feedbackData,
     });
-    console.log("[Feedback API] Feedback created:", feedback.id);
+    logger.debug("Feedback created:", feedback.id, { context: "Feedback API" });
 
     // Send to Slack if webhook is configured
     const slackWebhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
