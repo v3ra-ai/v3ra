@@ -75,14 +75,11 @@ export function Navbar({
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2 group">
+          <Link href="/" className="flex items-center gap-1.5 group">
             <div className="relative">
               <V3raLogo size="sm" className="group-hover:scale-110 transition-transform" />
               <div className="absolute inset-0 bg-cyan-500/20 blur-xl group-hover:bg-cyan-500/30 transition-colors" />
             </div>
-            <span className="text-lg font-bold text-zinc-100 group-hover:text-cyan-400 transition-colors">
-              V3RA
-            </span>
             <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-xs px-1.5 py-0.5">
               BETA
             </Badge>

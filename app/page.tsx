@@ -6,6 +6,7 @@ import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { 
   Newspaper, 
   TrendingUp, 
@@ -88,12 +89,12 @@ export default function Home() {
       <div className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <V3raLogo size="sm" />
-              <div>
-                <h1 className="text-xl font-bold text-zinc-100">V3RA</h1>
-                <p className="text-xs text-zinc-500">Truth Discovery Engine</p>
-              </div>
+              <Badge className="bg-cyan-500/20 text-cyan-400 border-cyan-500/30 text-xs px-1.5 py-0.5">
+                BETA
+              </Badge>
+              <p className="text-xs text-zinc-500 ml-2">Truth Discovery Engine</p>
             </div>
             
             <div className="flex items-center gap-3">
