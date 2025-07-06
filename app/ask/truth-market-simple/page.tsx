@@ -12,8 +12,12 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase-client";
 import { Navbar } from "@/components/shared/navbar";
+import { QueryModelSelector } from "@/components/ask/query/query-model-selector";
+import { useLLMStore } from "@/store/llm-store";
+import { LLMProvider } from "@/components/llm-provider";
+import { logger } from "@/lib/utils/client-logger";
 
-export default function SimpleTruthMarketPage() {
+function SimpleTruthMarketPageContent() {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -21,6 +25,10 @@ export default function SimpleTruthMarketPage() {
   const [userPoints, setUserPoints] = useState<number>(0);
   const [canClaimBonus, setCanClaimBonus] = useState(false);
   const [claiming, setClaiming] = useState(false);
+  
+  // Get selected LLMs from store
+  const llms = useLLMStore((state) => state.llms);
+  const selectedLLMIds = llms.filter(llm => llm.enabled).map(llm => llm.id);
   
   useEffect(() => {
     fetchUserPoints();
@@ -47,7 +55,7 @@ export default function SimpleTruthMarketPage() {
         setCanClaimBonus(true);
       }
     } catch (error) {
-      console.error("Failed to fetch points:", error);
+      logger.error("Failed to fetch points:", error);
       // Set default values
       setUserPoints(1000);
       setCanClaimBonus(true);
@@ -62,7 +70,7 @@ export default function SimpleTruthMarketPage() {
       setCanClaimBonus(false);
       alert('Claimed 50 V3RA points! (Demo mode)');
     } catch (error) {
-      console.error("Failed to claim bonus:", error);
+      logger.error("Failed to claim bonus:", error);
     } finally {
       setClaiming(false);
     }
@@ -80,7 +88,8 @@ export default function SimpleTruthMarketPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          query: query.trim()
+          query: query.trim(),
+          selectedLLMIds: selectedLLMIds.length > 0 ? selectedLLMIds : undefined
         }),
       });
       
@@ -90,11 +99,11 @@ export default function SimpleTruthMarketPage() {
       }
       
       const data = await response.json();
-      console.log('API Response:', data);
+      logger.debug('API Response:', data);
       
       // Debug alert for prediction
       if (data.isPrediction && data.predictionId) {
-        console.warn('🎯 PREDICTION DETECTED!', {
+        logger.info('🎯 PREDICTION DETECTED!', {
           isPrediction: data.isPrediction,
           predictionId: data.predictionId,
           statement: data.statement
@@ -141,6 +150,18 @@ export default function SimpleTruthMarketPage() {
         {/* Main Query Card */}
         <Card className="backdrop-blur-sm bg-gradient-to-br from-zinc-900/80 to-black/90 border border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.25)] p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
+            {/* Model Selector */}
+            <div className="mb-4">
+              <label className="text-sm font-medium text-zinc-300 mb-2 block">
+                Select AI Models
+              </label>
+              <QueryModelSelector />
+              {selectedLLMIds.length > 0 && (
+                <p className="text-xs text-zinc-500 mt-1">
+                  Querying {selectedLLMIds.length} model{selectedLLMIds.length > 1 ? 's' : ''}
+                </p>
+              )}
+            </div>
             <div>
               <label className="text-sm font-medium text-zinc-300 mb-2 block">
                 Ask anything - we'll assess its probability of being true
@@ -163,7 +184,7 @@ export default function SimpleTruthMarketPage() {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                    Querying...
+                    Querying {selectedLLMIds.length || 5} models...
                   </>
                 ) : (
                   'Ask'
@@ -241,5 +262,13 @@ export default function SimpleTruthMarketPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function SimpleTruthMarketPage() {
+  return (
+    <LLMProvider>
+      <SimpleTruthMarketPageContent />
+    </LLMProvider>
   );
 }
