@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
+import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export async function GET() {
+export const GET = rateLimitNormal(async () => {
   try {
     // Generate a simple CSRF token
     const csrfToken = randomBytes(32).toString("hex");
     
-    // Create response with token
-    const response = NextResponse.json({ csrfToken }, { status: 200 });
+    // Create response with token (include legacy 'token' field for compatibility)
+    const response = NextResponse.json({ csrfToken, token: csrfToken }, { status: 200 });
     
     // Set cookie
     response.cookies.set("csrf-token", csrfToken, {
@@ -22,4 +23,4 @@ export async function GET() {
     console.error("Error generating CSRF token:", error);
     return NextResponse.json({ error: "Failed to generate CSRF token" }, { status: 500 });
   }
-}
+});

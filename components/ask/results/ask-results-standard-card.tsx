@@ -24,6 +24,7 @@ interface AskResultsStandardCardProps {
   layoutMode: "grid" | "row";
   isOpen: boolean;
   toggleItem: (id: string) => void;
+  philosophyMode?: boolean;
 }
 
 export default function AskResultsStandardCard({
@@ -31,6 +32,7 @@ export default function AskResultsStandardCard({
   layoutMode,
   isOpen,
   toggleItem,
+  philosophyMode = false,
 }: AskResultsStandardCardProps) {
   // Debug log to check incoming query data
   if (process.env.NODE_ENV === "development") {
@@ -42,18 +44,19 @@ export default function AskResultsStandardCard({
     });
   }
 
+  // Check if philosophy mode is enabled or if this is an adaptive philosophical response
+  if (philosophyMode || query?._adaptive?.classification?.category === QueryCategory.IDENTITY_PHILOSOPHY) {
+    return (
+      <AdaptivePhilosophicalDisplay
+        query={query.queryText}
+        timestamp={query.timestamp?.toString() || new Date().toISOString()}
+        responses={query.validatorResponses}
+      />
+    );
+  }
+
   // Check if this is an adaptive response
   if (query?._adaptive) {
-    // For philosophical questions, use the special philosophical display
-    if (query._adaptive.classification.category === QueryCategory.IDENTITY_PHILOSOPHY) {
-      return (
-        <AdaptivePhilosophicalDisplay
-          query={query.queryText}
-          timestamp={query.timestamp?.toString() || new Date().toISOString()}
-          responses={query.validatorResponses}
-        />
-      );
-    }
     
     // For fact-checking and other non-prediction queries, use the classic card style below
     // Only use adaptive display for predictions

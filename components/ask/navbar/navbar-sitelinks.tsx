@@ -91,6 +91,11 @@ export function NavbarSitelinks({ isMobile = false }: NavbarSitelinksProps) {
       href: "/ai-hub",
       label: "AI Hub",
       description: "Configure your AI consensus panel"
+    },
+    {
+      href: "/help",
+      label: "Help",
+      description: "Learn how to use V3RA and get support"
     }
   ];
 

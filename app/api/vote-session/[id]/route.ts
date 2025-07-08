@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
 
-export async function GET(
+export const GET = rateLimitRelaxed(async (
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
@@ -28,4 +29,4 @@ export async function GET(
   } catch {
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
   }
-}
+});

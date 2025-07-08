@@ -8,6 +8,8 @@ import { Toaster } from "sonner";
 import { HotjarProvider } from "@/components/hotjar-provider";
 import { FeedbackWidget } from "@/components/feedback/feedback-widget";
 import { AuthProvider } from "@/contexts/auth-context";
+import { WelcomeModal } from "@/components/onboarding/welcome-modal";
+import GlobalErrorBoundary from "./error-boundary";
 
 const inter = Inter({ subsets: ["latin"] });
 const orbitron = Orbitron({ 
@@ -29,7 +31,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
         {/* Google tag (gtag.js) */}
         <script async src="https://www.googletagmanager.com/gtag/js?id=G-RFVVNY8TD0"></script>
         <script
@@ -53,7 +55,9 @@ export default function RootLayout({ children }: { children: ReactNode }) {
           <AuthProvider>
             <SolanaProvider>
               <HotjarProvider />
+              <GlobalErrorBoundary />
               <main className="w-full max-w-none mx-auto">{children}</main>
+              <WelcomeModal />
               <FeedbackWidget />
               <Toaster
                 richColors

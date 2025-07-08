@@ -43,37 +43,88 @@ export class PredictionMarketService {
    * Stake points to activate a market
    */
   static async stakeToMarket(predictionId: string, userId: string, amount: number) {
-    const market = await prisma.predictionMarket.findUnique({
-      where: { predictionId },
+    return await prisma.$transaction(async (tx) => {
+      const market = await tx.predictionMarket.findUnique({
+        where: { predictionId },
+      });
+
+      if (!market) throw new Error("Market not found");
+      if (market.status !== "PENDING") throw new Error("Market already active");
+
+      // Check and update user points atomically
+      const userPoints = await tx.userPoints.findUnique({
+        where: { userId },
+      });
+
+      if (!userPoints) {
+        throw new Error("User points not found");
+      }
+
+      if (userPoints.balance.lessThan(amount)) {
+        throw new Error("Insufficient V3RA points");
+      }
+
+      // Update user points
+      const updatedPoints = await tx.userPoints.update({
+        where: { 
+          userId,
+          version: userPoints.version
+        },
+        data: {
+          balance: { decrement: amount },
+          totalSpent: { increment: amount },
+          version: { increment: 1 }
+        },
+      });
+
+      // Record the transaction
+      await tx.pointsTransaction.create({
+        data: {
+          userId,
+          type: "MARKET_CREATE",
+          amount: -amount,
+          balance: updatedPoints.balance,
+          description: `Staked ${amount} V3RA to activate market`,
+          metadata: {
+            predictionId,
+            marketId: market.id,
+          },
+        },
+      });
+
+      // Record stake
+      await tx.marketStake.create({
+        data: {
+          marketId: market.id,
+          userId,
+          amount: new Decimal(amount),
+        },
+      });
+
+      // Update market stake total
+      const newStake = market.currentStake.plus(amount);
+      const newTotalStake = market.totalStake.plus(amount);
+      const isActivating = newStake.gte(market.activationThreshold);
+      
+      const updated = await tx.predictionMarket.update({
+        where: { id: market.id },
+        data: {
+          currentStake: newStake,
+          totalStake: newTotalStake,
+          status: isActivating ? "ACTIVE" : "PENDING",
+          activatedAt: isActivating ? new Date() : null,
+          // Initialize pools if activating
+          yesPool: isActivating && market.yesPool.equals(0) ? 
+            newStake.mul(market.initialProbability) : 
+            market.yesPool,
+          noPool: isActivating && market.noPool.equals(0) ? 
+            newStake.mul(new Decimal(1).minus(market.initialProbability)) : 
+            market.noPool,
+        },
+      });
+
+      return updated;
     });
-
-    if (!market) throw new Error("Market not found");
-    if (market.status !== "PENDING") throw new Error("Market already active");
-
-    // Deduct points from user
-    await V3RAPointsService.deductPoints(userId, amount);
-
-    // Record stake
-    await prisma.marketStake.create({
-      data: {
-        marketId: market.id,
-        userId,
-        amount: new Decimal(amount),
-      },
-    });
-
-    // Update market stake total
-    const newStake = market.currentStake.plus(amount);
-    const updated = await prisma.predictionMarket.update({
-      where: { id: market.id },
-      data: {
-        currentStake: newStake,
-        status: newStake.gte(market.activationThreshold) ? "ACTIVE" : "PENDING",
-        activatedAt: newStake.gte(market.activationThreshold) ? new Date() : null,
-      },
-    });
-
-    return updated;
   }
 
   /**
@@ -115,53 +166,98 @@ export class PredictionMarketService {
     position: "YES" | "NO",
     amount: number
   ) {
-    const market = await prisma.predictionMarket.findUnique({
-      where: { predictionId },
+    // Use transaction to ensure atomicity
+    return await prisma.$transaction(async (tx) => {
+      const market = await tx.predictionMarket.findUnique({
+        where: { predictionId },
+      });
+
+      if (!market) throw new Error("Market not found");
+      if (market.status !== "ACTIVE") throw new Error("Market not active");
+
+      // Initialize pools if empty
+      let yesPool = market.yesPool;
+      let noPool = market.noPool;
+      
+      if (yesPool.equals(0) && noPool.equals(0)) {
+        // Initialize with liquidity based on probability
+        const prob = market.initialProbability.toNumber();
+        yesPool = new Decimal(1000 * prob);
+        noPool = new Decimal(1000 * (1 - prob));
+      }
+
+      // Calculate odds
+      const { odds, probability, payout } = this.calculateOdds(yesPool, noPool, amount, position);
+
+      // Check and update user points atomically
+      const userPoints = await tx.userPoints.findUnique({
+        where: { userId },
+      });
+
+      if (!userPoints) {
+        throw new Error("User points not found");
+      }
+
+      if (userPoints.balance.lessThan(amount)) {
+        throw new Error("Insufficient V3RA points");
+      }
+
+      // Update user points with optimistic locking
+      const updatedPoints = await tx.userPoints.update({
+        where: { 
+          userId,
+          version: userPoints.version // Optimistic locking
+        },
+        data: {
+          balance: { decrement: amount },
+          totalSpent: { increment: amount },
+          version: { increment: 1 }
+        },
+      });
+
+      // Record the transaction
+      await tx.pointsTransaction.create({
+        data: {
+          userId,
+          type: "BET_PLACED",
+          amount: -amount,
+          balance: updatedPoints.balance,
+          description: `Bet ${amount} V3RA on ${position}`,
+          metadata: {
+            predictionId,
+            position,
+            odds: odds.toFixed(2),
+          },
+        },
+      });
+
+      // Create bet record
+      const bet = await tx.marketBet.create({
+        data: {
+          marketId: market.id,
+          userId,
+          position: position as any,
+          amount: new Decimal(amount),
+          odds: new Decimal(odds),
+          potentialReturn: new Decimal(payout),
+        },
+      });
+
+      // Update market pools
+      await tx.predictionMarket.update({
+        where: { id: market.id },
+        data: {
+          yesPool: position === "YES" ? yesPool.plus(amount) : yesPool,
+          noPool: position === "NO" ? noPool.plus(amount) : noPool,
+          currentProbability: new Decimal(probability / 100),
+        },
+      });
+
+      return bet;
+    }, {
+      maxWait: 5000, // 5 seconds
+      timeout: 10000, // 10 seconds
     });
-
-    if (!market) throw new Error("Market not found");
-    if (market.status !== "ACTIVE") throw new Error("Market not active");
-
-    // Initialize pools if empty
-    let yesPool = market.yesPool;
-    let noPool = market.noPool;
-    
-    if (yesPool.equals(0) && noPool.equals(0)) {
-      // Initialize with liquidity based on probability
-      const prob = market.initialProbability.toNumber();
-      yesPool = new Decimal(1000 * prob);
-      noPool = new Decimal(1000 * (1 - prob));
-    }
-
-    // Calculate odds
-    const { odds, probability, payout } = this.calculateOdds(yesPool, noPool, amount, position);
-
-    // Deduct points from user
-    await V3RAPointsService.deductPoints(userId, amount);
-
-    // Create bet record
-    const bet = await prisma.marketBet.create({
-      data: {
-        marketId: market.id,
-        userId,
-        position: position as any,
-        amount: new Decimal(amount),
-        odds: new Decimal(odds),
-        potentialReturn: new Decimal(payout),
-      },
-    });
-
-    // Update market pools
-    await prisma.predictionMarket.update({
-      where: { id: market.id },
-      data: {
-        yesPool: position === "YES" ? yesPool.plus(amount) : yesPool,
-        noPool: position === "NO" ? noPool.plus(amount) : noPool,
-        currentProbability: new Decimal(probability / 100),
-      },
-    });
-
-    return bet;
   }
 
   /**

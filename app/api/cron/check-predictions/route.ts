@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { PredictionResolver } from "@/lib/services/prediction-resolver";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
 
-export async function GET(request: Request) {
+export const GET = rateLimitRelaxed(async (request: Request) {
   try {
     // Verify this is from a cron job (in production, check secret/auth)
     const authHeader = request.headers.get("authorization");

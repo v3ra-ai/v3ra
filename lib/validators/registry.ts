@@ -44,14 +44,21 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
   }
 
   async addValidator(validator: AIValidator): Promise<AIValidator> {
-    if (isServer) {
-      return validatorService.addValidator(validator);
-    } else {
-      if (validator.id) {
-        this.validators.set(validator.id, validator);
-      }
-      return validator;
+    // Always store in memory first
+    if (validator.id) {
+      this.validators.set(validator.id, validator);
     }
+    
+    if (isServer) {
+      // Try to save to database, but don't fail if it doesn't work
+      try {
+        await validatorService.addValidator(validator);
+      } catch (error) {
+        console.log('[ValidatorRegistry] Database not available, using in-memory storage');
+      }
+    }
+    
+    return validator;
   }
 
   async removeValidator(id: string): Promise<boolean> {
@@ -88,6 +95,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       return undefined;
     }
   }
+
 
   private async createValidatorImplementation(
     validator: DbValidatorWithKeys,
@@ -209,62 +217,85 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       }
 
       if (isServer) {
-        const dbValidators = await validatorService.getAllValidators();
-        
-        // Filter only implemented providers
-        const implementedValidators = dbValidators.filter(v => 
-          IMPLEMENTED_PROVIDERS.includes(v.provider)
-        );
-        
-        const aiValidators = await Promise.all(
-          implementedValidators.map((v) => this.createValidatorImplementation(v)),
-        );
-        
-        // Cache them in memory
-        aiValidators.forEach((validator) => {
-          if (validator.id) {
-            this.validators.set(validator.id, validator);
+        try {
+          const dbValidators = await validatorService.getAllValidators();
+          
+          // If we got validators from DB
+          if (dbValidators.length > 0) {
+            // Filter only implemented providers
+            const implementedValidators = dbValidators.filter(v => 
+              IMPLEMENTED_PROVIDERS.includes(v.provider)
+            );
+            
+            const aiValidators = await Promise.all(
+              implementedValidators.map((v) => this.createValidatorImplementation(v)),
+            );
+            
+            // Cache them in memory
+            aiValidators.forEach((validator) => {
+              if (validator.id) {
+                this.validators.set(validator.id, validator);
+              }
+            });
+            
+            // Store in cache
+            this.validatorCache.set(cacheKey, {
+              data: aiValidators,
+              timestamp: Date.now()
+            });
+            
+            return aiValidators;
           }
-        });
+        } catch (dbError) {
+          console.log('[ValidatorRegistry] Database not available, using in-memory validators');
+        }
+        
+        // Fallback to in-memory validators
+        const memoryValidators = Array.from(this.validators.values());
         
         // Store in cache
-        this.validatorCache.set(cacheKey, {
-          data: aiValidators,
-          timestamp: Date.now()
-        });
+        if (memoryValidators.length > 0) {
+          this.validatorCache.set(cacheKey, {
+            data: memoryValidators,
+            timestamp: Date.now()
+          });
+        }
         
-        return aiValidators;
+        return memoryValidators;
       } else {
         return Array.from(this.validators.values());
       }
     } catch (error) {
       console.error("[ValidatorRegistry] Error getting all validators:", error);
-      return [];
+      return Array.from(this.validators.values());
     }
   }
 
-  async getActiveValidators(): Promise<AIValidator[]> {
+  async getActiveValidators(page: number = 1, limit: number = 50): Promise<AIValidator[]> {
     try {
       if (isServer) {
-        const dbValidators = await validatorService.getActiveDbValidators();
-        const aiValidators = await Promise.all(
-          dbValidators.map((validator) => this.createValidatorImplementation(validator)),
-        );
-        aiValidators.forEach((validator) => {
-          if (validator.id) {
-            this.validators.set(validator.id, validator);
-          }
-        });
-        return aiValidators;
-      } else {
-        const validators = await Promise.resolve<AIValidator[]>([]);
-        validators.forEach((validator) => {
-          if (validator.id) {
-            this.validators.set(validator.id, validator);
-          }
-        });
-        return validators;
+        const skip = (page - 1) * limit;
+        const dbValidators = await validatorService.getActiveValidators(page, limit);
+        
+        if (dbValidators.length > 0) {
+          // Filter only implemented providers
+          const implementedValidators = dbValidators.filter(v => 
+            IMPLEMENTED_PROVIDERS.includes(v.provider)
+          );
+          
+          const aiValidators = await Promise.all(
+            implementedValidators.map((v) => this.createValidatorImplementation(v)),
+          );
+          
+          return aiValidators;
+        }
       }
+      
+      // Fallback to in-memory active validators
+      const allValidators = await this.getAllValidators();
+      const activeValidators = allValidators.filter(v => v.active);
+      const start = (page - 1) * limit;
+      return activeValidators.slice(start, start + limit);
     } catch (error) {
       console.error("Failed to get active validators:", error);
       return [];

@@ -7,9 +7,10 @@ import { VoteResult } from "@/lib/types";
 interface CardViewerProps {
   query: VoteResult;
   layoutMode: "grid" | "row";
+  philosophyMode?: boolean;
 }
 
-export default function CardViewer({ query, layoutMode }: CardViewerProps) {
+export default function CardViewer({ query, layoutMode, philosophyMode = false }: CardViewerProps) {
   const [isOpen, setIsOpen] = useState(true);
 
   const toggleItem = () => {
@@ -22,6 +23,7 @@ export default function CardViewer({ query, layoutMode }: CardViewerProps) {
       layoutMode={layoutMode}
       isOpen={isOpen}
       toggleItem={toggleItem}
+      philosophyMode={philosophyMode}
     />
   );
 }

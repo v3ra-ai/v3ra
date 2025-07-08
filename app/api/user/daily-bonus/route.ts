@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export async function POST(request: NextRequest) {
+export const POST = rateLimitNormal(async (request: NextRequest) => {
   try {
     const body = await request.json();
     const { userId, type, amount } = body;
@@ -38,14 +39,13 @@ export async function POST(request: NextRequest) {
     
     // For regular daily bonus
     try {
-      const bonusAmount = await V3RAPointsService.claimDailyBonus(actualUserId);
-      const userPoints = await V3RAPointsService.getUserPoints(actualUserId);
+      const result = await V3RAPointsService.claimDailyBonus(actualUserId);
       
       return NextResponse.json({
         success: true,
-        newBalance: Number(userPoints.balance),
-        awarded: bonusAmount,
-        streak: userPoints.streak
+        newBalance: Number(result.newBalance),
+        awarded: result.awarded,
+        streak: result.streak
       });
     } catch (error: any) {
       if (error.message === "Daily bonus already claimed") {
@@ -64,4 +64,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

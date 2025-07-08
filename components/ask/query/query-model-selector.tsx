@@ -1,17 +1,20 @@
 "use client";
 
+import { memo, useEffect, useState } from "react";
 import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
-import { BookOpen, Brain, Settings } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BookOpen, Brain, Settings, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { KNOWLEDGE_MODEL_PRIORITY, REASONING_MODEL_PRIORITY } from "@/lib/model-presets";
+import { logger } from "@/lib/utils/client-logger";
 
 interface QueryModelSelectorProps {
   onDropdownChange?: (open: boolean) => void;
+  onPhilosophyModeChange?: (enabled: boolean) => void;
+  showPhilosophy?: boolean;
 }
 
-export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
+export const QueryModelSelector = memo(function QueryModelSelector({ onPhilosophyModeChange, showPhilosophy = false }: QueryModelSelectorProps = {}) {
   const router = useRouter();
   const llms = useLLMStore((s) => s.llms);
   const setEnabledLLMs = useLLMStore((s) => s.setEnabledLLMs);
@@ -19,9 +22,16 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
   const loadCustomSelection = useLLMStore((s) => s.loadCustomSelection);
   const customSelection = useLLMStore((s) => s.customSelection);
   const [activeMode, setActiveMode] = useState<'fast' | 'balanced' | 'custom' | null>(null);
+  const [justClicked, setJustClicked] = useState(false);
+  const [philosophyMode, setPhilosophyMode] = useState(false);
 
   // Determine active mode based on selected LLMs
   useEffect(() => {
+    // Don't run if a button was just clicked
+    if (justClicked) {
+      setJustClicked(false);
+      return;
+    }
     const enabledIds = llms.filter(llm => llm.enabled).map(llm => llm.id);
     if (enabledIds.length !== 5) {
       setActiveMode(null);
@@ -61,6 +71,7 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
     const reasoningMatches = enabledIds.filter(id => reasoningModels.includes(id)).length;
     if (reasoningMatches >= 3) {
       setActiveMode('balanced');
+      logger.debug('Reasoning mode activated', { reasoningMatches, enabledIds, reasoningModels });
       return;
     }
     
@@ -117,6 +128,9 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
     const modelIds = selectedModels.slice(0, 5).map(llm => llm.id);
     setEnabledLLMs(modelIds);
     setSelectedLLMIds(modelIds);
+    // Force activeMode update immediately
+    setActiveMode('fast');
+    setJustClicked(true);
   };
 
   const selectReasoningModels = () => {
@@ -152,20 +166,51 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
     }
     
     const modelIds = selectedModels.slice(0, 5).map(llm => llm.id);
+    logger.debug('Selecting reasoning models', { modelIds, selectedModels: selectedModels.map(m => m.name) });
     setEnabledLLMs(modelIds);
     setSelectedLLMIds(modelIds);
+    // Force activeMode update immediately
+    setActiveMode('balanced');
+    setJustClicked(true);
   };
 
 
   const handleCustomClick = () => {
+    // Set custom mode before navigating
+    setActiveMode('custom');
+    setJustClicked(true);
     // Navigate to AI Hub page
     router.push('/ai-hub');
+  };
+
+  const handlePhilosophyToggle = () => {
+    const newValue = !philosophyMode;
+    setPhilosophyMode(newValue);
+    onPhilosophyModeChange?.(newValue);
   };
 
 
   return (
     <div className="relative w-full">
       <div className="flex flex-col sm:flex-row justify-center items-center gap-2 sm:gap-1 text-sm">
+        {/* Philosophy Mode Button - Smaller and to the left */}
+        {showPhilosophy && (
+          <>
+            <button
+              onClick={handlePhilosophyToggle}
+              className={`flex items-center justify-center gap-1.5 px-2 py-1.5 rounded-lg transition-all duration-200 text-xs ${
+                philosophyMode
+                  ? 'text-white dark:text-purple-400 bg-purple-600 dark:bg-purple-500/20 border-2 border-purple-600 dark:border-purple-500/50 shadow-lg shadow-purple-500/20'
+                  : 'text-zinc-700 dark:text-zinc-400 bg-white dark:bg-zinc-900/50 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-50 dark:hover:bg-zinc-800 hover:border-purple-500/30 dark:hover:border-purple-500/30 border-2 border-zinc-300 dark:border-zinc-700'
+              }`}
+              title="Toggle philosophical exploration mode"
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span className="font-medium">Philosophy</span>
+            </button>
+            <span className="hidden sm:inline text-zinc-400 dark:text-zinc-600 px-1">|</span>
+          </>
+        )}
         <button
           onClick={selectKnowledgeModels}
           className={`flex items-center justify-center gap-2 px-3 py-2 rounded-lg transition-all duration-200 w-full sm:w-auto sm:min-w-0 ${
@@ -206,4 +251,4 @@ export function QueryModelSelector({}: QueryModelSelectorProps = {}) {
       </div>
     </div>
   );
-}
+});

@@ -1,22 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { broadcastAdaptiveQuery } from "@/app/actions-adaptive";
-import rateLimit from "@/lib/rate-limit";
-
-const _limiter = rateLimit({
-  interval: 60 * 1000, // 60 seconds
-  uniqueTokenPerInterval: 500, // Max 500 users per interval
-});
-
+import { rateLimitStrict } from "@/lib/middleware/rate-limit";
 
 const broadcastQuerySchema = z.object({
   queryText: z.string().min(1, "Query text is required"),
   queryMode: z.enum(["fact-check"]).optional(),
   queriesRequested: z.number().int().min(1).optional(),
   selectedLLMIds: z.array(z.string()).optional(),
+  philosophyMode: z.boolean().optional(),
 });
 
-export async function POST(request: NextRequest) {
+export const POST = rateLimitStrict(async (request: NextRequest) => {
   try {
     const body = await request.json();
 
@@ -28,7 +23,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { queryText, queryMode, queriesRequested, selectedLLMIds } = parsedBody.data;
+    const { queryText, queryMode, queriesRequested, selectedLLMIds, philosophyMode } = parsedBody.data;
 
     if (selectedLLMIds && selectedLLMIds.length > 0 && queriesRequested && queriesRequested > selectedLLMIds.length) {
       return NextResponse.json(
@@ -37,7 +32,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await broadcastAdaptiveQuery(queryText, queryMode, queriesRequested, selectedLLMIds);
+    const result = await broadcastAdaptiveQuery(queryText, queryMode, queriesRequested, selectedLLMIds, philosophyMode);
 
 
     if ("error" in result) {
@@ -71,4 +66,4 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+});

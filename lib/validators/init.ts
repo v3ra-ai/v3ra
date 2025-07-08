@@ -47,32 +47,41 @@ class ElizaValidator extends OpenAIValidator {
 }
 
 // Initialize the registry with default validators
-export function initializeValidators() {
-
+export async function initializeValidators() {
+  console.log('[initializeValidators] Adding built-in validators...');
+  
   // Add our default validators
-  validatorRegistry.addValidator(
-    new OpenAIValidator({
-      modelName: "gpt-4o",
-      name: "GPT-4o Validator",
-    }),
-  );
+  const openaiValidator = new OpenAIValidator({
+    id: uuidv4(),
+    modelName: "gpt-4o",
+    name: "GPT-4o Validator",
+    active: true,
+  });
+  openaiValidator.avatarUrl = "/validators/openai.jpg";
+  await validatorRegistry.addValidator(openaiValidator);
 
-  validatorRegistry.addValidator(
-    new AnthropicValidator({
-      modelName: "claude-3-opus",
-      name: "Claude 3 Opus Validator",
-    }),
-  );
+  const anthropicValidator = new AnthropicValidator({
+    id: uuidv4(),
+    modelName: "claude-3-opus",
+    name: "Claude 3 Opus Validator",
+    active: true,
+  });
+  anthropicValidator.avatarUrl = "/validators/anthropic.jpg";
+  await validatorRegistry.addValidator(anthropicValidator);
 
-  validatorRegistry.addValidator(new ElizaValidator());
+  const elizaValidator = new ElizaValidator();
+  elizaValidator.avatarUrl = "/validators/eliza.jpg";
+  await validatorRegistry.addValidator(elizaValidator);
 
-  validatorRegistry.addValidator(
-    new GeminiValidator({
-      modelName: "gemini-1.5-flash",
-      name: "Gemini 1.5 Flash Validator",
-    }),
-  );
+  const geminiValidator = new GeminiValidator({
+    id: uuidv4(),
+    modelName: "gemini-1.5-flash",
+    name: "Gemini 1.5 Flash Validator",
+    active: true,
+  });
+  geminiValidator.avatarUrl = "/validators/gemini.jpg";
+  await validatorRegistry.addValidator(geminiValidator);
 
-
+  console.log('[initializeValidators] Built-in validators added successfully');
   return validatorRegistry;
 }

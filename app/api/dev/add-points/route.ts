@@ -34,6 +34,18 @@ export async function POST(request: NextRequest) {
     });
     
     if (!userPoints) {
+      // Check if user exists in database first
+      const dbUser = await prisma.user.findUnique({
+        where: { id: user.id }
+      });
+      
+      if (!dbUser) {
+        return NextResponse.json(
+          { error: "User not found in database" },
+          { status: 404 }
+        );
+      }
+      
       // Create new points record
       userPoints = await prisma.userPoints.create({
         data: {

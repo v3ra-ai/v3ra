@@ -10,9 +10,7 @@ export class QueryClassifier {
     }
     
     if (this.isQuestion(q)) {
-      if (this.isPhilosophical(q)) {
-        return this.result(QueryCategory.IDENTITY_PHILOSOPHY, 0.9);
-      }
+      // Philosophy mode is now manually selected by the user
       return this.result(QueryCategory.QUESTION_ANSWER, 0.85);
     }
     
@@ -32,10 +30,8 @@ export class QueryClassifier {
     return q.endsWith("?") || /^(what|how|why|when|where|who|which|can|could|would|should|will|do|does|did|is|are)\s/i.test(q);
   }
 
-  private isPhilosophical(q: string): boolean {
-    return /(who am i|meaning of life|purpose of existence|consciousness|soul|identity)/i.test(q) ||
-           /tôi là ai/i.test(q); // Vietnamese: "Who am I?"
-  }
+  // Philosophy mode is now manually selected by the user
+  // Removed automatic philosophical question detection
 
   private isOpinion(q: string): boolean {
     return /(should|better|worse|best|worst|opinion|vs|versus|compared to)/i.test(q);

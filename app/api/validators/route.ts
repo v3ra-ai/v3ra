@@ -2,9 +2,10 @@
 import { NextResponse } from "next/server";
 import { validatorRegistry } from "@/lib/validators/registry";
 import { AIValidator } from "@/lib/validators/types";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
 
 // GET /api/validators - Get all validators
-export async function GET() {
+export const GET = rateLimitRelaxed(async () => {
   try {
     console.log("[validators API] Starting to fetch validators...");
     const allValidators = await validatorRegistry.getAllValidators(); // Line 8: Fixed
@@ -35,4 +36,4 @@ export async function GET() {
       { status: 500 },
     );
   }
-}
+});

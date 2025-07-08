@@ -42,37 +42,6 @@ INSERT INTO "public"."Validator" ("id", "profileName", "provider", "modelName", 
 
 
 --
--- Data for Name: VoteSession; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO "public"."VoteSession" ("id", "queryText", "context", "timestamp", "isConsensusReached", "consensusValue", "votesYes", "votesNo", "notVoted", "leaderId", "txHash", "blockchainNetwork", "createdAt", "updatedAt") VALUES
-	('37655d44-1622-4f48-a3d6-dd62ba23df67', 'Is artificial intelligence beneficial for society?', NULL, '2025-03-25 18:54:21.203+00', true, false, 0, 2, 0, NULL, NULL, NULL, '2025-03-25 18:54:21.204+00', '2025-03-25 18:54:21.367+00'),
-	('8105db03-f612-45b3-800d-fe79279938a6', 'Is the sky blue?', NULL, '2025-03-25 19:49:46.213+00', true, false, 0, 2, 0, NULL, NULL, NULL, '2025-03-25 19:49:46.214+00', '2025-03-25 19:49:46.232+00'),
-	('b67b0213-e9fe-44da-9879-50dcc3ebc90e', 'AI is smarter than majority of humans', NULL, '2025-04-01 14:26:25.05+00', true, false, 0, 4, 0, NULL, NULL, NULL, '2025-04-01 14:26:25.051+00', '2025-04-01 14:26:29.496+00'),
-	('db8be63b-b610-406d-bffd-43169a7299dc', 'Unknown query', NULL, '2025-03-29 21:36:27.448+00', false, NULL, 0, 0, 0, NULL, NULL, NULL, '2025-03-29 21:36:27.448+00', '2025-03-29 21:36:27.448+00');
-
-
---
--- Data for Name: GraphEdge; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
--- Data for Name: Thread; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO "public"."Thread" ("id", "title", "body", "upvotes", "downvotes", "createdAt", "updatedAt", "voteSessionId") VALUES
-	('c41ed104-8e66-462d-8449-0864a33cad2a', 'proof of mis-using funds:', 'https://x.com/MilaLovesJoe/status/1905138291743379763', 0, 0, '2025-03-29 21:36:27.448+00', '2025-03-29 21:36:27.448+00', 'db8be63b-b610-406d-bffd-43169a7299dc');
-
-
---
--- Data for Name: Reply; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-
-
---
 -- Data for Name: ValidatorKey; Type: TABLE DATA; Schema: public; Owner: postgres
 --
 
@@ -82,25 +51,6 @@ INSERT INTO "public"."ValidatorKey" ("id", "validatorId", "apiKeyId", "createdAt
 	('d289bcc8-9d86-4a65-bd5d-031edcf5e5bf', '1192bc8f-32d9-406d-ba33-673d8996ada4', '43badc43-4b34-4497-bbe8-1bc46a1562d6', '2025-03-27 10:30:48.024+00'),
 	('5e0c2f3a-12a5-4f8b-9689-eec5f88d964b', '3d279b08-9b0a-46af-9b40-30b79ea7f787', 'd28293f2-3c44-4883-9257-92ae57953d1e', '2025-03-31 15:45:35.721+00'),
 	('38d5ec51-d868-42ee-ad12-93fe98c7d6ef', '31a0275e-0703-493a-8a2e-b58ab117b92a', 'd28293f2-3c44-4883-9257-92ae57953d1e', '2025-03-31 19:15:26.472+00');
-
-
---
--- Data for Name: ValidatorResponse; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO "public"."ValidatorResponse" ("id", "vote", "rationale", "confidence", "rationaleEmbedding", "latency", "matchedConsensus", "voteSessionId", "validatorId", "createdAt", "updatedAt", "error") VALUES
-	('8ee07973-4ac1-4731-9b8b-3e688c773752', 'NO', 'Error: No API key available for OpenAI', 0, NULL, 1, NULL, '37655d44-1622-4f48-a3d6-dd62ba23df67', 'b6e88f6c-4b89-4965-8678-c7822ecd95be', '2025-03-25 18:54:21.223+00', '2025-03-25 18:54:21.223+00', 'No API key available for OpenAI'),
-	('b8751ee1-39ae-43d9-bbe1-87ac23f8ac0b', 'NO', 'The statement is not factually accurate because "smarter" is subjective and depends on context. Current AI systems excel in specific tasks but lack the general intelligence, emotional understanding, and adaptability of the majority of humans.', 0.7, NULL, 968, NULL, 'b67b0213-e9fe-44da-9879-50dcc3ebc90e', '1192bc8f-32d9-406d-ba33-673d8996ada4', '2025-04-01 14:26:26.034+00', '2025-04-01 14:26:26.034+00', NULL);
-
-
---
--- Data for Name: _prisma_migrations; Type: TABLE DATA; Schema: public; Owner: postgres
---
-
-INSERT INTO "public"."_prisma_migrations" ("id", "checksum", "finished_at", "migration_name", "logs", "rolled_back_at", "started_at", "applied_steps_count") VALUES
-	('da3fcddf-e23e-4cea-a894-ddf364bc4c11', 'b0ba44303b635acd35074ee4ae98831eb4484fb66a2b5c728336b9f84f4ea566', '2025-03-24 16:16:35.338+00', '20250324161635_initial_setup', NULL, NULL, '2025-03-24 16:16:35.285+00', 1),
-	('860743c9-df70-4531-acff-6e9b8e384765', 'cc6841352b26225fc3a2d37de6327285e1c099f7251300de43998168998d4a10', '2025-03-28 13:10:12.349+00', '20250328131012_add_thread_reply_models', NULL, NULL, '2025-03-28 13:10:12.339+00', 1),
-	('136a3e8d-3d03-4867-a36d-d44bcf60dc1d', 'ad13c8f3cc2d51e0e1e7ce5d4c16f1cf4e2ebcaf09b4f0d99362b1380065215c', '2025-03-28 17:48:29.7+00', '20250328174829_add_downvotes_to_thread', NULL, NULL, '2025-03-28 17:48:29.683+00', 1);
 
 
 --

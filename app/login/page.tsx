@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import Navbar from "@/components/ask/navbar/navbar";
+import { Navbar } from "@/components/shared/navbar";
 import LoginClient from "./login-client";
 
 export default function LoginPage() {

@@ -2,171 +2,547 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import { TruthMarket } from "@/lib/truth-market";
 import { validatorRegistry } from "@/lib/validators/registry";
+import { logger } from "@/lib/utils/logger";
+import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-// Categories for news predictions
-const NEWS_CATEGORIES = [
-  "technology",
-  "finance", 
-  "politics",
-  "science",
-  "climate",
-  "business",
-  "health",
-  "sports"
-];
+// Prediction types for better engagement
+type PredictionType = 'binary_event' | 'statistical' | 'trend' | 'comparison';
 
-// Template predictions for MVP
-const PREDICTION_TEMPLATES = [
+interface PredictionTemplate {
+  type: PredictionType;
+  statement: string;
+  category: string;
+  difficulty: 'easy' | 'medium' | 'hard';
+  resolutionTime: number; // hours
+  resolutionSource?: string;
+  verificationMethod?: string;
+}
+
+// Better prediction templates focused on verifiable outcomes
+const PREDICTION_TEMPLATES: PredictionTemplate[] = [
+  // Binary Events (clear yes/no outcomes)
   {
-    template: "Major tech company will announce {action} in the next 24 hours",
-    actions: ["layoffs", "new AI product", "acquisition", "security breach", "earnings beat"],
-    category: "technology"
+    type: 'binary_event',
+    statement: "A major tech company (FAANG) will announce a new AI product or feature this week",
+    category: "technology",
+    difficulty: 'medium',
+    resolutionTime: 168, // 1 week
+    resolutionSource: "tech news sites",
+    verificationMethod: "news_api"
   },
   {
-    template: "Stock market will {movement} by more than {percent}% tomorrow",
-    movements: ["rise", "fall"],
-    percents: ["1", "2", "3"],
-    category: "finance"
+    type: 'binary_event',
+    statement: "Bitcoin will reach ${price} within the next 7 days",
+    category: "finance",
+    difficulty: 'medium',
+    resolutionTime: 168,
+    resolutionSource: "crypto exchanges",
+    verificationMethod: "price_api"
   },
   {
-    template: "New {type} breakthrough will be announced within 24 hours", 
-    types: ["AI", "medical", "climate", "space", "quantum computing"],
-    category: "science"
+    type: 'binary_event',
+    statement: "A new COVID variant will be designated by WHO this week",
+    category: "health",
+    difficulty: 'hard',
+    resolutionTime: 168,
+    resolutionSource: "WHO announcements",
+    verificationMethod: "official_api"
+  },
+  
+  // Statistical Predictions (numerical outcomes)
+  {
+    type: 'statistical',
+    statement: "The S&P 500 will close higher on Friday than on Monday",
+    category: "finance",
+    difficulty: 'easy',
+    resolutionTime: 120, // 5 days
+    resolutionSource: "market data",
+    verificationMethod: "market_api"
   },
   {
-    template: "{company} will make a major announcement tomorrow",
-    companies: ["Tesla", "Apple", "Google", "Microsoft", "OpenAI", "Meta"],
-    category: "technology"
+    type: 'statistical',
+    statement: "US gas prices will drop below $3.50/gallon national average this week",
+    category: "economy",
+    difficulty: 'medium',
+    resolutionTime: 168,
+    resolutionSource: "AAA gas prices",
+    verificationMethod: "price_api"
   },
   {
-    template: "Government will announce new {policy} policy in next 24 hours",
-    policies: ["climate", "AI regulation", "cryptocurrency", "trade", "immigration"],
-    category: "politics"
+    type: 'statistical',
+    statement: "Total cryptocurrency market cap will increase by >5% in the next 3 days",
+    category: "finance",
+    difficulty: 'hard',
+    resolutionTime: 72,
+    resolutionSource: "CoinMarketCap",
+    verificationMethod: "crypto_api"
+  },
+  
+  // Trend Predictions (relative comparisons)
+  {
+    type: 'trend',
+    statement: "AI-related news articles will outnumber crypto articles 2:1 this week",
+    category: "technology",
+    difficulty: 'medium',
+    resolutionTime: 168,
+    resolutionSource: "news aggregators",
+    verificationMethod: "news_analysis"
+  },
+  {
+    type: 'trend',
+    statement: "'Climate change' mentions in major news will increase >20% vs last week",
+    category: "climate",
+    difficulty: 'medium',
+    resolutionTime: 168,
+    resolutionSource: "news analysis",
+    verificationMethod: "trend_analysis"
+  },
+  
+  // Comparison Predictions
+  {
+    type: 'comparison',
+    statement: "Tesla stock will outperform the S&P 500 this week",
+    category: "finance",
+    difficulty: 'easy',
+    resolutionTime: 168,
+    resolutionSource: "market data",
+    verificationMethod: "market_api"
+  },
+  {
+    type: 'comparison',
+    statement: "More people will search for 'AI' than 'Taylor Swift' on Google this week",
+    category: "culture",
+    difficulty: 'hard',
+    resolutionTime: 168,
+    resolutionSource: "Google Trends",
+    verificationMethod: "trends_api"
   }
 ];
 
-function generateDailyPredictions(): any[] {
-  const predictions = [];
-  const usedTemplates = new Set();
+// Dynamic values for template placeholders
+const DYNAMIC_VALUES = {
+  price: () => {
+    // Get current Bitcoin price and generate realistic targets
+    const basePrice = 42000; // This would come from an API
+    const variations = [-2000, -1000, 1000, 2000, 3000];
+    const target = basePrice + variations[Math.floor(Math.random() * variations.length)];
+    return Math.round(target / 1000) * 1000; // Round to nearest 1000
+  }
+};
+
+function generateDailyPredictions(): PredictionTemplate[] {
+  const predictions: PredictionTemplate[] = [];
+  const usedIndices = new Set<number>();
   
-  // Generate 3 unique predictions
+  // Ensure variety: 1 easy, 1 medium, 1 hard
+  const difficulties = ['easy', 'medium', 'hard'] as const;
+  
+  for (const difficulty of difficulties) {
+    const availableTemplates = PREDICTION_TEMPLATES
+      .map((t, i) => ({ template: t, index: i }))
+      .filter(({ template, index }) => 
+        template.difficulty === difficulty && !usedIndices.has(index)
+      );
+    
+    if (availableTemplates.length > 0) {
+      const selected = availableTemplates[Math.floor(Math.random() * availableTemplates.length)];
+      usedIndices.add(selected.index);
+      
+      // Process dynamic values in statement
+      let statement = selected.template.statement;
+      statement = statement.replace(/\${(\w+)}/g, (match, key) => {
+        return DYNAMIC_VALUES[key as keyof typeof DYNAMIC_VALUES]?.() || match;
+      });
+      
+      predictions.push({
+        ...selected.template,
+        statement
+      });
+    }
+  }
+  
+  // If we couldn't get exactly one of each difficulty, fill remaining slots
   while (predictions.length < 3) {
-    const templateIndex = Math.floor(Math.random() * PREDICTION_TEMPLATES.length);
+    const remaining = PREDICTION_TEMPLATES
+      .map((t, i) => ({ template: t, index: i }))
+      .filter(({ index }) => !usedIndices.has(index));
     
-    // Ensure we don't use the same template twice
-    if (usedTemplates.has(templateIndex)) continue;
-    usedTemplates.add(templateIndex);
+    if (remaining.length === 0) break;
     
-    const template = PREDICTION_TEMPLATES[templateIndex];
-    let statement = template.template;
-    
-    // Replace placeholders with random values
-    Object.entries(template).forEach(([key, value]) => {
-      if (key !== 'template' && key !== 'category' && Array.isArray(value)) {
-        const randomValue = value[Math.floor(Math.random() * value.length)];
-        statement = statement.replace(`{${key}}`, randomValue);
-      }
-    });
-    
-    predictions.push({
-      statement,
-      category: template.category,
-      expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours from now
-    });
+    const selected = remaining[Math.floor(Math.random() * remaining.length)];
+    usedIndices.add(selected.index);
+    predictions.push(selected.template);
   }
   
   return predictions;
 }
 
-export async function GET(request: NextRequest) {
+export const GET = rateLimitNormal(async (request: NextRequest) => {
   try {
-    // Check if user has already completed today's predictions
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    // Get user ID from session if available
+    const userId = request.headers.get('x-user-id');
     
-    // For MVP, generate predictions on the fly
-    // In production, these would be pre-generated daily
+    // Check if user already has active predictions for today
+    if (userId) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const existingPredictions = await prisma.prediction.findMany({
+        where: {
+          createdAt: { gte: today },
+          market: {
+            bets: {
+              some: { userId }
+            }
+          }
+        },
+        include: {
+          market: true
+        }
+      });
+      
+      if (existingPredictions.length >= 3) {
+        // User already completed today's predictions
+        return NextResponse.json({
+          headlines: existingPredictions.map(p => ({
+            id: p.id,
+            statement: p.queryText,
+            category: p.category || 'general',
+            aiConsensus: p.market?.currentProbability || 50,
+            expiresAt: p.resolutionDate || new Date(Date.now() + 24 * 60 * 60 * 1000),
+            difficulty: (p.metadata as any)?.difficulty || 'medium',
+            resolutionTime: (p.metadata as any)?.resolutionTime || 168
+          })),
+          alreadyCompleted: true
+        });
+      }
+    }
+    
+    // Generate new predictions
     const dailyPredictions = generateDailyPredictions();
     
     // Get AI consensus for each prediction
     const validators = await validatorRegistry.getActiveValidators();
-    const limitedValidators = validators.slice(0, 3); // Use only 3 validators for speed
+    const limitedValidators = validators.slice(0, 3);
     
-    const predictionsWithConsensus = await Promise.all(
-      dailyPredictions.map(async (prediction) => {
-        try {
-          const { consensus } = await TruthMarket.processQuery(
-            prediction.statement,
-            limitedValidators
-          );
+    const predictionsWithData = await Promise.all(
+      dailyPredictions.map(async (template, index) => {
+        // For development, just return mock data without DB
+        if (process.env.NODE_ENV === 'development') {
+          const mockId = `mock-${Date.now()}-${index}`;
+          let aiConsensus = template.difficulty === 'easy' ? 65 : 
+                           template.difficulty === 'hard' ? 35 : 50;
           
           return {
-            id: Math.random().toString(36).substring(2),
-            statement: prediction.statement,
-            category: prediction.category,
-            aiConsensus: consensus.probability,
-            expiresAt: prediction.expiresAt
+            id: mockId,
+            statement: template.statement,
+            category: template.category,
+            aiConsensus,
+            difficulty: template.difficulty,
+            resolutionTime: template.resolutionTime,
+            expiresAt: new Date(Date.now() + template.resolutionTime * 60 * 60 * 1000)
+          };
+        }
+        
+        try {
+          // Create prediction in database
+          const prediction = await prisma.prediction.create({
+            data: {
+              queryText: template.statement,
+              category: template.category,
+              resolutionStatus: 'pending',
+              metadata: {
+                type: template.type,
+                difficulty: template.difficulty,
+                resolutionTime: template.resolutionTime,
+                resolutionSource: template.resolutionSource,
+                verificationMethod: template.verificationMethod,
+                source: 'daily_headlines'
+              }
+            }
+          });
+          
+          // Get AI consensus
+          let aiConsensus = 50;
+          try {
+            const { consensus } = await TruthMarket.processQuery(
+              template.statement,
+              limitedValidators
+            );
+            aiConsensus = consensus.probability;
+          } catch (error) {
+            logger.error("Failed to get AI consensus:", error);
+            // Use difficulty-based defaults
+            aiConsensus = template.difficulty === 'easy' ? 65 : 
+                         template.difficulty === 'hard' ? 35 : 50;
+          }
+          
+          // Create prediction market
+          await prisma.predictionMarket.create({
+            data: {
+              predictionId: prediction.id,
+              initialProbability: aiConsensus,
+              currentProbability: aiConsensus,
+              yesPool: 100,
+              noPool: 100,
+              totalStake: 200,
+              resolvedAt: new Date(Date.now() + template.resolutionTime * 60 * 60 * 1000)
+            }
+          });
+          
+          return {
+            id: prediction.id,
+            statement: template.statement,
+            category: template.category,
+            aiConsensus,
+            difficulty: template.difficulty,
+            resolutionTime: template.resolutionTime,
+            expiresAt: new Date(Date.now() + template.resolutionTime * 60 * 60 * 1000)
           };
         } catch (error) {
-          // If AI processing fails, use a random consensus
-          console.error("Failed to get AI consensus:", error);
+          logger.error("Failed to create prediction:", error);
+          // Return mock data on error
+          const mockId = `mock-${Date.now()}-${index}`;
           return {
-            id: Math.random().toString(36).substring(2),
-            statement: prediction.statement,
-            category: prediction.category,
-            aiConsensus: Math.floor(Math.random() * 60) + 20, // Random between 20-80
-            expiresAt: prediction.expiresAt
+            id: mockId,
+            statement: template.statement,
+            category: template.category,
+            aiConsensus: 50,
+            difficulty: template.difficulty,
+            resolutionTime: template.resolutionTime,
+            expiresAt: new Date(Date.now() + template.resolutionTime * 60 * 60 * 1000)
           };
         }
       })
     );
     
     return NextResponse.json({
-      headlines: predictionsWithConsensus,
-      generatedAt: new Date().toISOString(),
-      expiresAt: dailyPredictions[0].expiresAt.toISOString()
+      headlines: predictionsWithData,
+      generatedAt: new Date().toISOString()
     });
     
   } catch (error) {
-    console.error("Daily headlines error:", error);
-    
-    // Return mock data as fallback
-    const mockPredictions = generateDailyPredictions().map(p => ({
-      id: Math.random().toString(36).substring(2),
-      statement: p.statement,
-      category: p.category,
-      aiConsensus: Math.floor(Math.random() * 60) + 20,
-      expiresAt: p.expiresAt
-    }));
-    
-    return NextResponse.json({
-      headlines: mockPredictions,
-      generatedAt: new Date().toISOString(),
-      expiresAt: mockPredictions[0].expiresAt.toISOString(),
-      mock: true
-    });
+    logger.error("Daily headlines error:", error);
+    return NextResponse.json(
+      { error: "Failed to load daily predictions" },
+      { status: 500 }
+    );
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = rateLimitNormal(async (request: NextRequest) => {
   try {
     const body = await request.json();
     const { predictions, userId } = body;
     
-    // TODO: Save user's predictions to database
-    // For now, just return success
+    logger.info("Processing daily predictions", { userId, predictionsCount: predictions?.length });
+    
+    if (!userId || !predictions || predictions.length === 0) {
+      return NextResponse.json(
+        { error: "Missing required fields" },
+        { status: 400 }
+      );
+    }
+    
+    // Process each prediction bet
+    const betResults = await Promise.all(
+      predictions.map(async ({ predictionId, vote }: { predictionId: string, vote: 'YES' | 'NO' }) => {
+        try {
+          // For development with mock IDs, just return success
+          if (process.env.NODE_ENV === 'development' && predictionId.startsWith('mock-')) {
+            return { success: true, betId: `bet-${predictionId}` };
+          }
+          
+          // Check if prediction exists and is active
+          const prediction = await prisma.prediction.findUnique({
+            where: { id: predictionId },
+            include: { market: true }
+          });
+          
+          if (!prediction || !prediction.market) {
+            throw new Error("Invalid prediction");
+          }
+          
+          // Check if user already bet on this prediction
+          const existingBet = await prisma.marketBet.findFirst({
+            where: {
+              userId,
+              marketId: prediction.market.id
+            }
+          });
+          
+          if (existingBet) {
+            throw new Error("Already placed bet on this prediction");
+          }
+          
+          // Fixed bet amount of 10 V3RA
+          const betAmount = 10;
+          
+          // Get or create user points
+          let userPoints = await prisma.userPoints.findUnique({
+            where: { userId }
+          });
+          
+          if (!userPoints) {
+            // Check if user exists first
+            const user = await prisma.user.findUnique({
+              where: { id: userId }
+            });
+            
+            if (!user) {
+              throw new Error("User not found");
+            }
+            
+            // Create user points if not exists (for new users)
+            userPoints = await prisma.userPoints.create({
+              data: {
+                userId,
+                balance: 1000 // Starting balance
+              }
+            });
+          }
+          
+          if (userPoints.balance < betAmount) {
+            throw new Error("Insufficient balance");
+          }
+          
+          // Create bet and update user points in transaction
+          const result = await prisma.$transaction(async (tx) => {
+            // Create bet
+            const bet = await tx.marketBet.create({
+              data: {
+                userId,
+                marketId: prediction.market.id,
+                position: vote,
+                stake: betAmount,
+                potentialPayout: vote === 'YES' 
+                  ? betAmount * (100 / prediction.market.currentProbability)
+                  : betAmount * (100 / (100 - prediction.market.currentProbability))
+              }
+            });
+            
+            // Update user points
+            await tx.userPoints.update({
+              where: { userId },
+              data: { balance: { decrement: betAmount } }
+            });
+            
+            // Create transaction record
+            await tx.pointsTransaction.create({
+              data: {
+                userId,
+                amount: -betAmount,
+                type: 'PREDICTION_BET',
+                description: `Bet on prediction: ${prediction.queryText.substring(0, 50)}...`,
+                metadata: {
+                  predictionId: prediction.id,
+                  betId: bet.id,
+                  position: vote
+                }
+              }
+            });
+            
+            // Update market pools
+            if (vote === 'YES') {
+              await tx.predictionMarket.update({
+                where: { id: prediction.market.id },
+                data: {
+                  yesPool: { increment: betAmount },
+                  totalStake: { increment: betAmount }
+                }
+              });
+            } else {
+              await tx.predictionMarket.update({
+                where: { id: prediction.market.id },
+                data: {
+                  noPool: { increment: betAmount },
+                  totalStake: { increment: betAmount }
+                }
+              });
+            }
+            
+            return bet;
+          });
+          
+          return { success: true, betId: result.id };
+        } catch (error) {
+          logger.error("Failed to process bet:", error);
+          return { success: false, error: error instanceof Error ? error.message : 'Unknown error' };
+        }
+      })
+    );
+    
+    // Award completion bonus if all 3 predictions were bet on
+    const successfulBets = betResults.filter(r => r.success).length;
+    let bonusAwarded = 0;
+    
+    if (successfulBets === 3) {
+      // For development, just return mock bonus
+      if (process.env.NODE_ENV === 'development' && predictions.some(p => p.predictionId.startsWith('mock-'))) {
+        bonusAwarded = 50;
+      } else {
+        try {
+          await prisma.$transaction(async (tx) => {
+            // Award 50 V3RA bonus
+            bonusAwarded = 50;
+            
+            await tx.userPoints.update({
+              where: { userId },
+              data: { balance: { increment: bonusAwarded } }
+            });
+            
+            await tx.pointsTransaction.create({
+              data: {
+                userId,
+                amount: bonusAwarded,
+                type: 'DAILY_BONUS',
+                description: 'Daily predictions completion bonus',
+                metadata: {
+                  bonusType: 'headlines_completion',
+                  predictionsCompleted: successfulBets
+                }
+              }
+            });
+          });
+        } catch (error) {
+          logger.error("Failed to award bonus:", error);
+        }
+      }
+    }
+    
+    // Get updated balance
+    let newBalance = 1000; // Default for dev
+    
+    if (process.env.NODE_ENV === 'development') {
+      // Return mock balance for development
+      newBalance = 1000 + bonusAwarded - (successfulBets * 10);
+    } else {
+      const updatedUser = await prisma.userPoints.findUnique({
+        where: { userId }
+      });
+      newBalance = updatedUser?.balance || 0;
+    }
+    
+    logger.info("Predictions processed successfully", { 
+      userId, 
+      betsPlaced: successfulBets, 
+      bonusAwarded,
+      newBalance
+    });
     
     return NextResponse.json({
       success: true,
-      message: "Predictions recorded",
-      pointsAwarded: 50
+      betsPlaced: successfulBets,
+      bonusAwarded,
+      newBalance,
+      results: betResults
     });
     
   } catch (error) {
-    console.error("Submit predictions error:", error);
+    logger.error("Submit predictions error:", error);
     return NextResponse.json(
-      { error: "Failed to submit predictions" },
+      { error: error instanceof Error ? error.message : "Failed to submit predictions" },
       { status: 500 }
     );
   }
-}
+});

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { TruthMarket } from "@/lib/truth-market";
 import { validatorRegistry } from "@/lib/validators/registry";
 import { prisma } from "@/lib/db/client";
+import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
 const truthMarketSchema = z.object({
   query: z.string().min(1, "Query is required"),
@@ -35,7 +36,7 @@ function detectCategory(statement: string): string {
   return 'general';
 }
 
-export async function POST(request: NextRequest) {
+export const POST = rateLimitNormal(async (request: NextRequest) => {
   try {
     const body = await request.json();
     
@@ -244,4 +245,4 @@ export async function POST(request: NextRequest) {
     const message = error instanceof Error ? error.message : "Internal server error";
     return NextResponse.json({ error: message }, { status: 500 });
   }
-}
+});

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { supabase } from "@/lib/supabase-client";
@@ -49,7 +49,7 @@ interface Bet {
   userId?: string;
 }
 
-export function MarketBetting({ predictionId, initialProbability, isPrediction }: MarketBettingProps) {
+const MarketBettingComponent = ({ predictionId, initialProbability, isPrediction }: MarketBettingProps) => {
   // const { user } = useAuth();
   const [market, setMarket] = useState<MarketData | null>(null);
   const [userPoints, setUserPoints] = useState<number>(0);
@@ -265,7 +265,7 @@ export function MarketBetting({ predictionId, initialProbability, isPrediction }
       
       // Show success message with animation
       const successDiv = document.createElement('div');
-      successDiv.className = 'fixed bottom-4 right-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-6 py-3 rounded-lg shadow-xl z-50 animate-slide-in';
+      successDiv.className = 'fixed bottom-4 left-4 right-4 sm:left-auto sm:right-4 max-w-sm mx-auto sm:mx-0 bg-gradient-to-r from-green-600 to-emerald-600 text-white px-4 sm:px-6 py-3 rounded-lg shadow-xl z-50 animate-slide-in';
       successDiv.innerHTML = `
         <div class="flex items-center gap-3">
           <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
@@ -281,6 +281,7 @@ export function MarketBetting({ predictionId, initialProbability, isPrediction }
       document.body.appendChild(successDiv);
       setTimeout(() => successDiv.remove(), 4000);
       
+      // React 18 automatically batches these updates
       setBetAmount("");
       setSelectedPosition(null);
     } catch (error) {
@@ -371,7 +372,7 @@ export function MarketBetting({ predictionId, initialProbability, isPrediction }
             <p className="text-xs text-zinc-400">Choose your position and bet amount to participate</p>
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4">
             <button
               onClick={() => setSelectedPosition("YES")}
               className={cn(
@@ -522,3 +523,5 @@ export function MarketBetting({ predictionId, initialProbability, isPrediction }
     </Card>
   );
 }
+
+export const MarketBetting = memo(MarketBettingComponent);

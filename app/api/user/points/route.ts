@@ -2,11 +2,23 @@ import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { prisma } from "@/lib/db/client";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
+import { ensureUserExists } from "@/lib/auth/ensure-user";
 
-export async function GET(request: NextRequest) {
+export const GET = rateLimitRelaxed(async (request: NextRequest) => {
   try {
     const { searchParams } = new URL(request.url);
     let userId = searchParams.get("userId");
+    let userEmail = "";
+    
+    // Check headers from middleware first
+    const headerUserId = request.headers.get('x-user-id');
+    const headerUserEmail = request.headers.get('x-user-email');
+    
+    if (!userId && headerUserId) {
+      userId = headerUserId;
+      userEmail = headerUserEmail || "";
+    }
     
     if (!userId) {
       // Try to get from session
@@ -21,6 +33,17 @@ export async function GET(request: NextRequest) {
       }
       
       userId = user.id;
+      userEmail = user.email || "";
+    }
+    
+    // Ensure user exists in database
+    const { success: userExists, error: userError } = await ensureUserExists(userId, userEmail);
+    
+    if (!userExists) {
+      return NextResponse.json(
+        { error: userError || "Failed to ensure user exists" },
+        { status: 500 }
+      );
     }
     
     // Get user points
@@ -65,7 +88,7 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 function getTransactionDescription(type: string): string {
   const descriptions: Record<string, string> = {

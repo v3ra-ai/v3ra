@@ -152,7 +152,7 @@ export function Navbar({
                 size="sm"
                 onClick={onClaimBonus}
                 disabled={claiming}
-                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-600/20 hover:shadow-purple-500/30 transition-all duration-200 hidden sm:flex"
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white shadow-lg shadow-purple-600/20 hover:shadow-purple-500/30 transition-all duration-200 text-xs sm:text-sm"
               >
                 <Sparkles className="w-4 h-4 mr-1.5" />
                 {claiming ? "Claiming..." : "Daily Bonus"}

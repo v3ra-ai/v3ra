@@ -6,25 +6,34 @@ import crypto from "crypto";
 type DbValidatorWithKeys = Validator & { ValidatorKey: ValidatorKey[] };
 
 class ValidatorService {
-  async getActiveValidators(): Promise<Validator[]> {
+  async getActiveValidators(page: number = 1, limit: number = 50): Promise<DbValidatorWithKeys[]> {
     try {
+      const skip = (page - 1) * limit;
       return await prisma.validator.findMany({
         where: { active: true },
-        orderBy: { createdAt: "asc" },
+        include: {
+          ValidatorKey: true,
+        },
+        orderBy: { createdAt: "desc" },
+        take: limit,
+        skip,
       });
     } catch {
       return [];
     }
   }
 
-  async getActiveDbValidators(): Promise<DbValidatorWithKeys[]> {
+  async getActiveDbValidators(page: number = 1, limit: number = 50): Promise<DbValidatorWithKeys[]> {
     try {
+      const skip = (page - 1) * limit;
       return await prisma.validator.findMany({
         where: { active: true },
         include: {
           ValidatorKey: true,
         },
         orderBy: { createdAt: "asc" },
+        take: limit,
+        skip,
       });
     } catch {
       return [];

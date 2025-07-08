@@ -5,7 +5,7 @@ import type {
   VoteValidatorResponse,
   QueryMode,
 } from "@/lib/types";
-import { AdaptiveResponse } from "@/lib/types/query-classifier";
+import { AdaptiveResponse, QueryCategory } from "@/lib/types/query-classifier";
 import { prisma } from "@/lib/db/client";
 import { v4 as uuidv4 } from "uuid";
 import { OpenAIValidator } from "@/lib/validators/providers/openai";
@@ -27,14 +27,25 @@ export async function broadcastAdaptiveQuery(
   query: string,
   queryMode: QueryMode = "fact-check",
   queriesRequested?: number,
-  selectedLLMIds?: string[]
+  selectedLLMIds?: string[],
+  philosophyMode?: boolean
 ): Promise<AdaptiveResponse | { error: string }> {
   const startTime = Date.now();
   
   try {
     // Step 1: Classify the query
     const classifier = new QueryClassifier();
-    const classification = classifier.classify(query);
+    let classification = classifier.classify(query);
+    
+    // Override classification if philosophy mode is enabled
+    if (philosophyMode) {
+      classification = {
+        category: QueryCategory.IDENTITY_PHILOSOPHY,
+        confidence: 1.0,
+        reasoning: "User selected philosophical exploration mode"
+      };
+    }
+    
     console.log("[Adaptive] Query classified as:", classification);
 
     // Step 2: Get validators

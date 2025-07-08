@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db/query-wrapper";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
 
 // Direct database query to bypass cache
-export async function GET() {
+export const GET = rateLimitRelaxed(async () {
   try {
     const validators = await prisma.validator.findMany({
       include: { ValidatorKey: true },

@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
 // TODO: This is a temporary implementation using in-memory storage
 // In production, this should be stored in the database (User.customLLMSelection)
 // For now, this will reset on server restart
 const userPreferences = new Map<string, string[]>();
 
-export async function GET() {
+export const GET = rateLimitNormal(async () => {
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -26,9 +27,9 @@ export async function GET() {
       { status: 500 }
     );
   }
-}
+});
 
-export async function POST(request: NextRequest) {
+export const POST = rateLimitNormal(async (request: NextRequest) => {
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -61,4 +62,4 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});

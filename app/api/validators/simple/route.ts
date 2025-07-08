@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { PrismaClient } from "@prisma/client";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
 
 // Create a fresh Prisma client
 const prisma = new PrismaClient();
 
-export async function GET() {
+export const GET = rateLimitRelaxed(async () {
   try {
     const validators = await prisma.validator.findMany({
       where: { active: true },

@@ -1,5 +1,6 @@
 "use client";
 
+import { memo } from "react";
 import { useLLMStore } from "@/store/llm-store";
 import { Bot, CheckCircle } from "lucide-react";
 
@@ -7,7 +8,7 @@ interface SelectedModelsDisplayProps {
   hide?: boolean;
 }
 
-export function SelectedModelsDisplay({ hide = false }: SelectedModelsDisplayProps) {
+export const SelectedModelsDisplay = memo(function SelectedModelsDisplay({ hide = false }: SelectedModelsDisplayProps) {
   const llms = useLLMStore((s) => s.llms);
   const enabledLLMs = llms.filter((llm) => llm.enabled);
 
@@ -41,4 +42,4 @@ export function SelectedModelsDisplay({ hide = false }: SelectedModelsDisplayPro
       </div>
     </div>
   );
-}
+});

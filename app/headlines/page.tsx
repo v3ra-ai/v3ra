@@ -18,6 +18,7 @@ import {
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { useRouter } from "next/navigation";
+import { getCSRFToken } from "@/lib/utils/csrf";
 import { supabase } from "@/lib/supabase-client";
 import { Navbar } from "@/components/shared/navbar";
 
@@ -87,12 +88,20 @@ export default function HeadlinesPage() {
       }
     }
     
-    // Load today's predictions
-    loadDailyPredictions();
-    // Check if user already completed today
-    checkDailyCompletion();
-    // Load streak from localStorage
-    loadStreak();
+    // Load data in parallel with error resilience
+    const results = await Promise.allSettled([
+      loadDailyPredictions(),
+      checkDailyCompletion(),
+      loadStreak()
+    ]);
+    
+    // Log any errors but don't fail the entire init
+    results.forEach((result, index) => {
+      if (result.status === 'rejected') {
+        const taskNames = ['loadDailyPredictions', 'checkDailyCompletion', 'loadStreak'];
+        console.error(`Failed to ${taskNames[index]}:`, result.reason);
+      }
+    });
   };
 
   const loadUserPoints = async (userId: string) => {
@@ -119,10 +128,19 @@ export default function HeadlinesPage() {
   const loadDailyPredictions = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/headlines/daily');
+      const headers: HeadersInit = {};
+      if (userId) {
+        headers['x-user-id'] = userId;
+      }
+      
+      const response = await fetch('/api/headlines/daily', { headers });
       const data = await response.json();
       
-      if (data.headlines && data.headlines.length > 0) {
+      console.log('Loaded headlines data:', data);
+      
+      if (data.alreadyCompleted) {
+        setHasCompletedToday(true);
+      } else if (data.headlines && data.headlines.length > 0) {
         setPredictions(data.headlines.map((h: any) => ({
           ...h,
           expiresAt: new Date(h.expiresAt)
@@ -213,25 +231,10 @@ export default function HeadlinesPage() {
         return;
       }
       
-      // Deduct points immediately for better UX
-      setPoints(prev => prev - betAmount);
-      
       setUserVotes(prev => ({
         ...prev,
         [currentPrediction.id]: vote
       }));
-
-      // TODO: Send bet to backend
-      // await fetch('/api/headlines/bet', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({
-      //     predictionId: currentPrediction.id,
-      //     vote,
-      //     amount: betAmount,
-      //     userId
-      //   })
-      // });
 
       // Animate to next card
       if (currentIndex < predictions.length - 1) {
@@ -242,77 +245,66 @@ export default function HeadlinesPage() {
       }
     } catch (error) {
       console.error('Failed to place bet:', error);
-      // Refund points on error
-      setPoints(prev => prev + 10);
     } finally {
       setIsPlacingBet(false);
     }
   };
 
   const completeDaily = async () => {
-    // Update streak
-    updateStreak();
-    
-    // Mark as completed for today
-    const today = new Date().toDateString();
-    localStorage.setItem('lastHeadlinesCompleted', today);
-    setHasCompletedToday(true);
-
-    // Award daily completion bonus (50 V3RA)
     try {
-      if (process.env.NODE_ENV === 'development') {
-        // Use mock endpoint in development
-        const response = await fetch('/api/dev/mock-points', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            amount: 50,
-            userId: userId || 'demo-user'
-          })
-        });
+      // Submit all bets to API
+      const submissionData = {
+        userId: userId || 'demo-user',
+        predictions: Object.entries(userVotes).map(([id, vote]) => ({
+          predictionId: id,
+          vote
+        }))
+      };
+      
+      console.log('Submitting predictions:', submissionData);
+      
+      // Get CSRF token
+      const csrfToken = await getCSRFToken();
+      
+      const response = await fetch('/api/headlines/daily', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken })
+        },
+        body: JSON.stringify(submissionData),
+        credentials: 'include'
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
         
-        if (response.ok) {
-          const data = await response.json();
-          setPoints(data.newBalance);
-        }
-      } else if (userId) {
-        const response = await fetch('/api/user/daily-bonus', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId,
-            type: 'HEADLINES_COMPLETION',
-            amount: 50
-          })
-        });
+        // Update points with new balance from server
+        setPoints(data.newBalance);
         
-        if (response.ok) {
-          const data = await response.json();
-          setPoints(data.newBalance);
+        // Update streak
+        updateStreak();
+        
+        // Mark as completed for today
+        const today = new Date().toDateString();
+        localStorage.setItem('lastHeadlinesCompleted', today);
+        setHasCompletedToday(true);
+        
+        // Show success message if bonus was awarded
+        if (data.bonusAwarded > 0) {
+          console.log(`Bonus awarded: ${data.bonusAwarded} V3RA`);
         }
       } else {
-        // Fallback for demo mode
-        setPoints(prev => prev + 50);
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || `Failed to submit predictions (${response.status})`);
       }
     } catch (error) {
-      console.error('Failed to claim bonus:', error);
-    }
-    
-    // Submit all bets to API
-    try {
-      await fetch('/api/headlines/daily', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId,
-          predictions: Object.entries(userVotes).map(([id, vote]) => ({
-            predictionId: id,
-            vote
-          }))
-        })
-      });
-    } catch (error) {
       console.error('Failed to submit votes:', error);
+      alert('Failed to submit your predictions. Please try again.');
+      
+      // Reset to allow retry
+      setCurrentIndex(0);
+      setUserVotes({});
     }
   };
 
@@ -443,8 +435,9 @@ export default function HeadlinesPage() {
             <h1 className="text-3xl font-bold text-zinc-100 mb-2">
               Tomorrow's Headlines
             </h1>
-            <p className="text-zinc-400">
-              Swipe right if you think it'll happen, left if not
+            <p className="text-zinc-400 text-sm sm:text-base">
+              <span className="hidden sm:inline">Swipe right if you think it'll happen, left if not</span>
+              <span className="sm:hidden">Tap Yes or No below</span>
             </p>
           </motion.div>
 
@@ -465,7 +458,7 @@ export default function HeadlinesPage() {
           </div>
 
           {/* Card Stack */}
-          <div className="relative h-[400px]">
+          <div className="relative h-[400px] sm:h-[400px] min-h-[350px]" style={{ height: "min(400px, calc(100vh - 300px))" }}>
             <AnimatePresence>
               {currentPrediction && (
                 <motion.div
@@ -480,7 +473,7 @@ export default function HeadlinesPage() {
                   onDragEnd={handleDragEnd}
                   whileDrag={{ scale: 1.05 }}
                 >
-                  <Card className="h-full backdrop-blur-sm bg-gradient-to-br from-zinc-900/95 to-black/95 border-2 border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.3)] p-6 cursor-grab active:cursor-grabbing">
+                  <Card className="h-full backdrop-blur-sm bg-gradient-to-br from-zinc-900/95 to-black/95 border-2 border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.3)] p-4 sm:p-6 cursor-grab active:cursor-grabbing overflow-y-auto" data-swipe-card>
                     <div className="flex flex-col h-full">
                       {/* Category Badge */}
                       <div className="flex justify-between items-start mb-4">

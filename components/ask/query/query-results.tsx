@@ -7,9 +7,10 @@ import AskResultsStandard from "@/components/ask/results/ask-results-standard";
 
 type Props = {
   viewMode: ViewMode;
+  philosophyMode?: boolean;
 };
 
-export default function QueryResults({ viewMode: _viewMode }: Props) {
+export default function QueryResults({ viewMode: _viewMode, philosophyMode = false }: Props) {
   const { setViewMode } = useQueryStore();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -27,5 +28,5 @@ export default function QueryResults({ viewMode: _viewMode }: Props) {
 
   // For now, both view modes use the same component
   // TODO: Implement expert view when requirements are clear
-  return <AskResultsStandard />;
+  return <AskResultsStandard philosophyMode={philosophyMode} />;
 }

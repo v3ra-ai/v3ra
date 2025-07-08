@@ -11,7 +11,11 @@ import { default as DOMPurify } from "dompurify";
 import { useFavorites } from "@/hooks/useFavorites";
 import { Button } from "@/components/ui/button";
 
-export default function AskResultsStandard() {
+interface AskResultsStandardProps {
+  philosophyMode?: boolean;
+}
+
+export default function AskResultsStandard({ philosophyMode = false }: AskResultsStandardProps) {
   const { voteHistory, isLoading, error, refetch } = useVoteHistory();
   const { lastVoteResult } = useVoteStore();
   const { favorites, isHydrated } = useFavorites();
@@ -72,6 +76,7 @@ export default function AskResultsStandard() {
             <CardViewer
               query={mostRecentQuery}
               layoutMode="row"
+              philosophyMode={philosophyMode}
             />
           </div>
         </div>
@@ -137,6 +142,7 @@ export default function AskResultsStandard() {
                     <CardViewer
                       query={query}
                       layoutMode="row"
+                      philosophyMode={philosophyMode}
                     />
                   </div>
                 ))

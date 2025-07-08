@@ -569,3 +569,97 @@ body {
     padding-right: 1rem;
   }
 }
+
+/* Mobile-specific optimizations that don't affect desktop */
+@media (max-width: 640px) {
+  /* Fix dialog/modal height for mobile */
+  [role="dialog"] {
+    max-height: 90vh;
+    max-height: 90dvh; /* Dynamic viewport height for mobile browsers */
+    overflow-y: auto;
+    margin: 1rem;
+  }
+  
+  /* Make tables scrollable on mobile */
+  .table-container,
+  table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* Optimize card layouts for mobile */
+  .grid {
+    gap: 0.75rem;
+  }
+  
+  /* Better input field sizing on mobile */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px; /* Prevents zoom on iOS */
+    min-height: 44px;
+  }
+  
+  /* Responsive text sizing */
+  h1 {
+    font-size: clamp(1.5rem, 5vw, 2.5rem);
+  }
+  
+  h2 {
+    font-size: clamp(1.25rem, 4vw, 2rem);
+  }
+  
+  h3 {
+    font-size: clamp(1.1rem, 3.5vw, 1.5rem);
+  }
+  
+  /* Better spacing for mobile */
+  .space-y-4 > * + * {
+    margin-top: 1rem;
+  }
+  
+  .space-y-6 > * + * {
+    margin-top: 1.5rem;
+  }
+  
+  /* Fix fixed positioning issues */
+  .fixed {
+    position: fixed;
+    z-index: 50;
+  }
+  
+  /* Headlines card height fix */
+  .headline-card,
+  [data-swipe-card] {
+    height: auto !important;
+    min-height: 300px;
+    max-height: calc(100vh - 200px);
+  }
+  
+  /* Mobile-friendly padding */
+  .px-4 {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+  
+  .py-8 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+}
+
+/* Landscape mobile optimizations */
+@media (max-height: 500px) and (orientation: landscape) {
+  [role="dialog"] {
+    max-height: 85vh;
+    margin: 0.5rem;
+  }
+  
+  .headline-card {
+    max-height: calc(100vh - 120px);
+  }
+}

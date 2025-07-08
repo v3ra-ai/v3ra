@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, memo } from "react";
 import { MessageSquarePlus, X, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,7 +12,7 @@ import { supabase } from "@/lib/supabase-client";
 
 type FeedbackType = "bug" | "feature" | "ux" | "other";
 
-export function FeedbackWidget() {
+const FeedbackWidgetComponent = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [type, setType] = useState<FeedbackType>("bug");
   const [message, setMessage] = useState("");
@@ -58,9 +58,16 @@ export function FeedbackWidget() {
         timestamp: new Date().toISOString(),
       };
 
+      // Get CSRF token
+      const csrfResponse = await fetch('/api/csrf-token');
+      const { token: csrfToken } = await csrfResponse.json();
+      
       const response = await fetch("/api/feedback", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(csrfToken && { "X-CSRF-Token": csrfToken })
+        },
         body: JSON.stringify({
           type,
           message,
@@ -68,6 +75,7 @@ export function FeedbackWidget() {
           userId: user?.id,
           browserInfo,
         }),
+        credentials: 'include'
       });
 
       if (!response.ok) throw new Error("Failed to send feedback");
@@ -244,3 +252,5 @@ export function FeedbackWidget() {
     </>
   );
 }
+
+export const FeedbackWidget = memo(FeedbackWidgetComponent);

@@ -2,8 +2,28 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db/client";
 import crypto from "crypto";
 import { logger } from "@/lib/utils/logger";
+import { z } from "zod";
+import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export async function POST(request: NextRequest) {
+const feedbackSchema = z.object({
+  type: z.enum(["bug", "feature", "ux", "other"]),
+  message: z.string().min(1).max(5000),
+  email: z.string().email(),
+  browserInfo: z.object({
+    userAgent: z.string(),
+    platform: z.string(),
+    language: z.string(),
+    screenResolution: z.string(),
+    timezone: z.string(),
+    url: z.string().url(),
+  }).optional(),
+  category: z.string().optional(),
+  component: z.string().optional(),
+  action: z.string().optional(),
+  url: z.string().url().optional(),
+});
+
+export const POST = rateLimitNormal(async (request: NextRequest) => {
   logger.debug("Request received", null, { context: "Feedback API" });
   
   // Check environment
@@ -17,17 +37,21 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    logger.debug("Request body:", { type: body.type, email: body.email, hasMessage: !!body.message }, { context: "Feedback API" });
     
-    const { type, message, email, browserInfo } = body;
-
-    // Validate required fields
-    if (!type || !message || !email) {
+    // Validate request body
+    const validationResult = feedbackSchema.safeParse(body);
+    if (!validationResult.success) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { 
+          error: "Invalid request data", 
+          details: validationResult.error.format() 
+        },
         { status: 400 }
       );
     }
+    
+    const { type, message, email, browserInfo } = validationResult.data;
+    logger.debug("Request body:", { type, email, hasMessage: !!message }, { context: "Feedback API" });
 
     // First, ensure we have a system user for anonymous feedback
     let systemUser = await prisma.user.findFirst({
@@ -105,7 +129,7 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+});
 
 interface SlackFeedback {
   type: string;

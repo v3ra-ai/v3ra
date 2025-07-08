@@ -1,9 +1,10 @@
 "use client";
 
-import Navbar from "@/components/ask/navbar/navbar";
+import { Navbar } from "@/components/shared/navbar";
 import AskFooter from "@/components/ask/ask-footer";
 import CardViewer from "@/components/ask/card-client-wrapper";
 import { VoteResult } from "@/lib/types";
+import { useUserPoints } from "@/hooks/useUserPoints";
 
 interface CardPageClientProps {
   cardId: string;
@@ -11,11 +12,17 @@ interface CardPageClientProps {
 }
 
 export default function CardPageClient({ result }: CardPageClientProps) {
+  const { userPoints, canClaimBonus, claiming, claimDailyBonus } = useUserPoints();
 
   if ("error" in result) {
     return (
       <main className="min-h-screen bg-background flex flex-col">
-        <Navbar />
+        <Navbar 
+          userPoints={userPoints}
+          canClaimBonus={canClaimBonus}
+          onClaimBonus={claimDailyBonus}
+          claiming={claiming}
+        />
         <div className="flex-grow flex items-center justify-center p-4">
           <p className="text-red-500">{result.error}</p>
         </div>
@@ -32,7 +39,12 @@ export default function CardPageClient({ result }: CardPageClientProps) {
 
   return (
     <main className="min-h-screen bg-background flex flex-col">
-      <Navbar />
+      <Navbar 
+        userPoints={userPoints}
+        canClaimBonus={canClaimBonus}
+        onClaimBonus={claimDailyBonus}
+        claiming={claiming}
+      />
       <div className="flex-grow flex items-center justify-center p-4">
         <CardViewer query={result} layoutMode="row" />
       </div>

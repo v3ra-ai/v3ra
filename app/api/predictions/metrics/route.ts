@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { PredictionMetrics } from "@/lib/services/prediction-metrics";
 import { prisma } from "@/lib/db/client";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
 
-export async function GET(request: Request) {
+export const GET = rateLimitRelaxed(async (request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "all";

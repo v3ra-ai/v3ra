@@ -11,6 +11,7 @@ import { SelectedModelsDisplay } from "@/components/ask/query/selected-models-di
 export default function QueryInterface() {
   const [isSubmitInteracted] = useState(false);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [philosophyMode, setPhilosophyMode] = useState(false);
 
   const {
     queriesRequested,
@@ -22,7 +23,11 @@ export default function QueryInterface() {
     queryMode,
     viewMode,
     handleSubmit,
-  } = useQueryLogic({ payWithWallet: false, setPayWithWallet: () => {} });
+  } = useQueryLogic({ 
+    payWithWallet: false, 
+    setPayWithWallet: () => {},
+    philosophyMode 
+  });
 
   const handleSelectPopularQuestion = (question: string) => {
     setQueryText(question);
@@ -64,14 +69,18 @@ export default function QueryInterface() {
             />
 
             <div className="mt-6 sm:mt-8 space-y-2 -mx-2 px-2 sm:mx-0 sm:px-0">
-              <QueryModelSelector onDropdownChange={setIsDropdownOpen} />
+              <QueryModelSelector 
+                onDropdownChange={setIsDropdownOpen} 
+                onPhilosophyModeChange={setPhilosophyMode}
+                showPhilosophy={true}
+              />
               <SelectedModelsDisplay hide={isDropdownOpen} />
             </div>
           </div>
         </div>
       </div>
       
-      <QueryResults viewMode={viewMode} />
+      <QueryResults viewMode={viewMode} philosophyMode={philosophyMode} />
     </div>
   );
 }

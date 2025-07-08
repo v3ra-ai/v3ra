@@ -8,6 +8,8 @@ import { RESULT_QUERIES_CARDS, QUERIES_COST_EACH_DEFAULT, QUERIES_REQUESTED_DEFA
 import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase-client';
+import { sessionCache } from '@/lib/utils/cache';
+import { getCSRFToken } from '@/lib/utils/csrf';
 
 interface BroadcastQueryOptions {
   csrfToken?: string;
@@ -15,6 +17,7 @@ interface BroadcastQueryOptions {
   queriesRequested?: number;
   isFreeQuery?: boolean;
   selectedLLMIds?: string[];
+  philosophyMode?: boolean;
 }
 
 interface BroadcastQueryParams {
@@ -43,10 +46,24 @@ export function useBroadcastQuery(
   useEffect(() => {
     const fetchEmail = async () => {
       try {
+        // Check cache first
+        const cachedSession = sessionCache.get('user-session');
+        if (cachedSession?.user?.email) {
+          setEmail(cachedSession.user.email);
+          console.log('[useBroadcastQuery] Using cached email:', cachedSession.user.email);
+          return;
+        }
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) throw error;
+        
+        // Cache the session
+        if (session) {
+          sessionCache.set('user-session', session);
+        }
+        
         setEmail(session?.user?.email);
-        console.log('[useBroadcastQuery] Fetched email:', session?.user?.email);
+        console.log('[useBroadcastQuery] Fetched and cached email:', session?.user?.email);
       } catch {
         console.error('[useBroadcastQuery] Error fetching email');
       }
@@ -71,17 +88,21 @@ export function useBroadcastQuery(
     // Credit validation removed - all queries are now free
 
     try {
+      // Get CSRF token if not provided
+      const csrfToken = options.csrfToken || await getCSRFToken();
+      
       const response = await fetch('/api/broadcast-query', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          ...(options.csrfToken && { 'X-CSRF-Token': options.csrfToken }),
+          ...(csrfToken && { 'X-CSRF-Token': csrfToken }),
         },
         body: JSON.stringify({
           queryText: query,
           queryMode: options.queryMode,
           queriesRequested,
           selectedLLMIds: options.selectedLLMIds,
+          philosophyMode: options.philosophyMode,
         }),
         credentials: 'include',
       });

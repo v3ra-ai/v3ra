@@ -1,21 +1,27 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { TruthResult } from "@/components/truth-market/truth-result";
-import { Sparkles, Loader2 } from "lucide-react";
-import Link from "next/link";
-import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import { supabase } from "@/lib/supabase-client";
 import { Navbar } from "@/components/shared/navbar";
 import { QueryModelSelector } from "@/components/ask/query/query-model-selector";
+import { SelectedModelsDisplay } from "@/components/ask/query/selected-models-display";
 import { useLLMStore } from "@/store/llm-store";
-import { LLMProvider } from "@/components/llm-provider";
 import { logger } from "@/lib/utils/client-logger";
+import { sessionCache } from "@/lib/utils/cache";
+
+// Dynamic imports for heavy components
+const TruthResult = dynamic(() => import("@/components/truth-market/truth-result").then(mod => ({ default: mod.TruthResult })), {
+  loading: () => <div className="animate-pulse h-96 bg-zinc-800/50 rounded-lg" />,
+});
+
+const LLMProvider = dynamic(() => import("@/components/llm-provider").then(mod => ({ default: mod.LLMProvider })), {
+  ssr: false,
+});
 
 function SimpleTruthMarketPageContent() {
   const [query, setQuery] = useState("");
@@ -36,23 +42,40 @@ function SimpleTruthMarketPageContent() {
   
   const fetchUserPoints = async () => {
     try {
-      // Check if user is authenticated
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        const response = await fetch(`/api/user/points?userId=${user.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setUserPoints(data.balance || 0);
-          setCanClaimBonus(false); // TODO: Implement daily bonus check
+      // Check cache first for user session
+      const cachedSession = sessionCache.get('user-session');
+      const user = cachedSession?.user;
+      
+      if (!user) {
+        // Fetch from Supabase if not cached
+        const { data: { user: freshUser } } = await supabase.auth.getUser();
+        if (freshUser) {
+          const response = await fetch(`/api/user/points?userId=${freshUser.id}`);
+          if (response.ok) {
+            const data = await response.json();
+            setUserPoints(data.balance || 0);
+            setCanClaimBonus(false); // TODO: Implement daily bonus check
+          } else {
+            // Fallback values
+            setUserPoints(1000);
+            setCanClaimBonus(true);
+          }
         } else {
-          // Fallback values
+          // Not authenticated - use demo values
           setUserPoints(1000);
           setCanClaimBonus(true);
         }
       } else {
-        // Not authenticated - use demo values
-        setUserPoints(1000);
-        setCanClaimBonus(true);
+        // Use cached user
+        const response = await fetch(`/api/user/points?userId=${user.id}`);
+        if (response.ok) {
+          const data = await response.json();
+          setUserPoints(data.balance || 0);
+          setCanClaimBonus(false);
+        } else {
+          setUserPoints(1000);
+          setCanClaimBonus(true);
+        }
       }
     } catch (error) {
       logger.error("Failed to fetch points:", error);
@@ -84,13 +107,21 @@ function SimpleTruthMarketPageContent() {
     setError(null);
     
     try {
+      // Get CSRF token
+      const csrfResponse = await fetch('/api/csrf-token');
+      const { token: csrfToken } = await csrfResponse.json();
+      
       const response = await fetch("/api/truth-market-v2", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          ...(csrfToken && { "X-CSRF-Token": csrfToken })
+        },
         body: JSON.stringify({
           query: query.trim(),
           selectedLLMIds: selectedLLMIds.length > 0 ? selectedLLMIds : undefined
         }),
+        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -134,34 +165,18 @@ function SimpleTruthMarketPageContent() {
       <div className="flex-1 flex items-center justify-center">
         <div className="container mx-auto px-4 py-8 max-w-4xl w-full">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8 mx-auto"
-        >
+        <div className="text-center mb-8 mx-auto">
           <h1 className="text-4xl font-bold text-zinc-100 mb-4 text-center">
             Truth Market
           </h1>
           <p className="text-lg text-zinc-400 text-center">
             Every question becomes a probability. Every AI is a trader.
           </p>
-        </motion.div>
+        </div>
         
         {/* Main Query Card */}
         <Card className="backdrop-blur-sm bg-gradient-to-br from-zinc-900/80 to-black/90 border border-cyan-500/30 shadow-[0_0_40px_rgba(6,182,212,0.25)] p-8 mb-8">
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Model Selector */}
-            <div className="mb-4">
-              <label className="text-sm font-medium text-zinc-300 mb-2 block">
-                Select AI Models
-              </label>
-              <QueryModelSelector />
-              {selectedLLMIds.length > 0 && (
-                <p className="text-xs text-zinc-500 mt-1">
-                  Querying {selectedLLMIds.length} model{selectedLLMIds.length > 1 ? 's' : ''}
-                </p>
-              )}
-            </div>
             <div>
               <label className="text-sm font-medium text-zinc-300 mb-2 block">
                 Ask anything - we'll assess its probability of being true
@@ -192,7 +207,15 @@ function SimpleTruthMarketPageContent() {
               </Button>
             </div>
           </form>
+          
+          {/* Model Selector - Below the form like in the second image */}
+          <div className="mt-6 flex flex-col items-center">
+            <QueryModelSelector />
+          </div>
         </Card>
+        
+        {/* Selected Models Display */}
+        <SelectedModelsDisplay />
         
         {/* Error Display */}
         {error && (
@@ -243,12 +266,7 @@ function SimpleTruthMarketPageContent() {
         
         {/* Quick Start Guide */}
         {!result && userPoints > 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mt-8 p-4 bg-zinc-900/50 border border-zinc-800/50 rounded-lg"
-          >
+          <div className="mt-8 p-4 bg-zinc-900/50 border border-zinc-800/50 rounded-lg">
             <h3 className="text-sm font-medium text-zinc-300 mb-2">🎲 How Prediction Markets Work:</h3>
             <ol className="text-xs text-zinc-500 space-y-1 list-decimal list-inside">
               <li>Ask any question about the future</li>
@@ -257,7 +275,7 @@ function SimpleTruthMarketPageContent() {
               <li>Bet on YES or NO outcomes</li>
               <li>Win V3RA when predictions resolve!</li>
             </ol>
-          </motion.div>
+          </div>
         )}
         </div>
       </div>

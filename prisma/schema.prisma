@@ -173,16 +173,20 @@ model Thread {
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model User {
-  id            String      @id
-  email         String      @unique
-  name          String
-  userCreditId  String?     @unique
-  freeCredits   Int         @default(10)
-  lastResetDate DateTime    @default(now())
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime
-  Feedback      Feedback[]
-  UserCredit    UserCredit?
+  id                 String              @id
+  email              String              @unique
+  name               String
+  userCreditId       String?             @unique
+  freeCredits        Int                 @default(10)
+  lastResetDate      DateTime            @default(now())
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime
+  Feedback           Feedback[]
+  MarketBets         MarketBet[]
+  PointsTransactions PointsTransaction[]
+  CreatedMarkets     PredictionMarket[]
+  UserCredit         UserCredit?
+  UserPoints         UserPoints?
 }
 
 model UserCredit {
@@ -280,10 +284,10 @@ model VoteSession {
   walletPublicKey    String?
   Favorite           Favorite[]
   GraphEdge          GraphEdge[]
+  Predictions        Prediction[]
   Thread             Thread[]
   ValidatorResponse  ValidatorResponse[]
   UserCredit         UserCredit?         @relation(fields: [userId], references: [id])
-  Predictions        Prediction[]
 
   @@index([consensusValue])
   @@index([isConsensusReached])
@@ -312,6 +316,189 @@ model credit_audit_log {
   @@index([created_at], map: "idx_credit_audit_created_at")
   @@index([operation], map: "idx_credit_audit_operation")
   @@index([user_id], map: "idx_credit_audit_user_id")
+}
+
+model Prediction {
+  id                String                 @id @default(dbgenerated("gen_random_uuid()"))
+  voteSessionId     String?
+  queryText         String
+  category          String?                @db.VarChar(50)
+  createdAt         DateTime               @default(now())
+  resolutionDate    DateTime?
+  resolutionStatus  ResolutionStatus       @default(pending)
+  createdBy         String?                @db.VarChar(100)
+  metadata          Json?
+  modelPredictions  ModelPrediction[]
+  VoteSession       VoteSession?           @relation(fields: [voteSessionId], references: [id])
+  market            PredictionMarket?
+  outcomes          PredictionOutcome[]
+  resolutions       PredictionResolution[]
+  verificationVotes VerificationVote[]
+
+  @@index([resolutionStatus])
+  @@index([resolutionDate])
+  @@index([category])
+}
+
+model PredictionOutcome {
+  id                   String     @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId         String
+  outcomeText          String
+  consensusProbability Decimal?   @db.Decimal(5, 4)
+  modelAgreement       Decimal?   @db.Decimal(5, 4)
+  modelCount           Int        @default(0)
+  createdAt            DateTime   @default(now())
+  Prediction           Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@index([predictionId])
+}
+
+model ModelPrediction {
+  id              String           @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId    String
+  modelName       String           @db.VarChar(100)
+  outcomeText     String
+  probability     Decimal?         @db.Decimal(5, 4)
+  confidenceLevel ConfidenceLevel?
+  reasoning       String?
+  createdAt       DateTime         @default(now())
+  Prediction      Prediction       @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@index([predictionId])
+}
+
+model PredictionResolution {
+  id                 String            @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId       String
+  actualOutcome      String
+  resolvedAt         DateTime          @default(now())
+  resolutionMethod   ResolutionMethod?
+  verificationSource String?
+  evidence           String?
+  resolverId         String?           @db.VarChar(100)
+  confidenceScore    Decimal?          @db.Decimal(3, 2)
+  disputeCount       Int               @default(0)
+  Prediction         Prediction        @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@index([predictionId])
+}
+
+model ModelPerformance {
+  modelName           String   @db.VarChar(100)
+  periodStart         DateTime @db.Date
+  periodEnd           DateTime @db.Date
+  totalPredictions    Int      @default(0)
+  accuratePredictions Int      @default(0)
+  brierScore          Decimal? @db.Decimal(5, 4)
+  calibrationScore    Decimal? @db.Decimal(5, 4)
+  logScore            Decimal? @db.Decimal(6, 4)
+  category            String   @default("general") @db.VarChar(50)
+  metadata            Json?
+
+  @@id([modelName, periodStart, category])
+  @@index([periodStart, periodEnd])
+}
+
+model VerificationVote {
+  id           String     @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId String
+  userId       String     @db.VarChar(100)
+  votedOutcome String
+  evidence     String?
+  createdAt    DateTime   @default(now())
+  Prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
+
+  @@unique([predictionId, userId])
+}
+
+model UserPoints {
+  id          String   @id @default(dbgenerated("gen_random_uuid()"))
+  userId      String   @unique
+  balance     Decimal  @default(1000.00) @db.Decimal(20, 2)
+  totalEarned Decimal  @default(1000.00) @db.Decimal(20, 2)
+  totalSpent  Decimal  @default(0.00) @db.Decimal(20, 2)
+  level       Int      @default(1)
+  streak      Int      @default(0)
+  version     Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PointsTransaction {
+  id          String                @id @default(dbgenerated("gen_random_uuid()"))
+  userId      String
+  type        PointsTransactionType
+  amount      Decimal               @db.Decimal(20, 2)
+  balance     Decimal               @db.Decimal(20, 2)
+  description String?
+  metadata    Json?
+  createdAt   DateTime              @default(now())
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, createdAt(sort: Desc)])
+}
+
+model PredictionMarket {
+  id                  String        @id @default(dbgenerated("gen_random_uuid()"))
+  predictionId        String        @unique
+  creatorId           String
+  status              MarketStatus  @default(PENDING)
+  activationThreshold Decimal       @default(100.00) @db.Decimal(20, 2)
+  currentStake        Decimal       @default(0.00) @db.Decimal(20, 2)
+  totalStake          Decimal       @default(0.00) @db.Decimal(20, 2)
+  yesPool             Decimal       @default(0.00) @db.Decimal(20, 2)
+  noPool              Decimal       @default(0.00) @db.Decimal(20, 2)
+  initialProbability  Decimal       @db.Decimal(5, 4)
+  currentProbability  Decimal       @db.Decimal(5, 4)
+  activatedAt         DateTime?
+  resolvedAt          DateTime?
+  isResolved          Boolean       @default(false)
+  winningOutcome      String?
+  finalOutcome        String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  bets                MarketBet[]
+  stakes              MarketStake[]
+  creator             User          @relation(fields: [creatorId], references: [id])
+  prediction          Prediction    @relation(fields: [predictionId], references: [id])
+
+  @@index([status])
+  @@index([creatorId])
+}
+
+model MarketBet {
+  id              String           @id @default(dbgenerated("gen_random_uuid()"))
+  marketId        String
+  userId          String
+  position        BetPosition
+  amount          Decimal          @db.Decimal(20, 2)
+  odds            Decimal          @db.Decimal(10, 4)
+  potentialReturn Decimal          @db.Decimal(20, 2)
+  status          BetStatus        @default(PENDING)
+  settledAt       DateTime?
+  payout          Decimal?         @db.Decimal(20, 2)
+  createdAt       DateTime         @default(now())
+  market          PredictionMarket @relation(fields: [marketId], references: [id])
+  user            User             @relation(fields: [userId], references: [id])
+
+  @@index([marketId])
+  @@index([userId])
+  @@index([status])
+}
+
+model MarketStake {
+  id        String           @id @default(dbgenerated("gen_random_uuid()"))
+  marketId  String
+  userId    String
+  amount    Decimal          @db.Decimal(20, 2)
+  createdAt DateTime         @default(now())
+  market    PredictionMarket @relation(fields: [marketId], references: [id])
+
+  @@index([marketId])
 }
 
 enum LLMHealthStatus {
@@ -355,193 +542,16 @@ enum ConfidenceLevel {
   HIGH
 }
 
-model Prediction {
-  id                String               @id @default(dbgenerated("gen_random_uuid()"))
-  voteSessionId     String?
-  queryText         String
-  category          String?              @db.VarChar(50)
-  createdAt         DateTime             @default(now())
-  resolutionDate    DateTime?
-  resolutionStatus  ResolutionStatus     @default(pending)
-  createdBy         String?              @db.VarChar(100)
-  metadata          Json?
-  VoteSession       VoteSession?         @relation(fields: [voteSessionId], references: [id])
-  outcomes          PredictionOutcome[]
-  modelPredictions  ModelPrediction[]
-  resolutions       PredictionResolution[]
-  verificationVotes VerificationVote[]
-  market            PredictionMarket?
-
-  @@index([resolutionStatus])
-  @@index([resolutionDate])
-  @@index([category])
-}
-
-model PredictionOutcome {
-  id                  String      @id @default(dbgenerated("gen_random_uuid()"))
-  predictionId        String
-  outcomeText         String
-  consensusProbability Decimal?    @db.Decimal(5, 4)
-  modelAgreement      Decimal?    @db.Decimal(5, 4)
-  modelCount          Int         @default(0)
-  createdAt           DateTime    @default(now())
-  Prediction          Prediction  @relation(fields: [predictionId], references: [id], onDelete: Cascade)
-
-  @@index([predictionId])
-}
-
-model ModelPrediction {
-  id              String           @id @default(dbgenerated("gen_random_uuid()"))
-  predictionId    String
-  modelName       String           @db.VarChar(100)
-  outcomeText     String
-  probability     Decimal?         @db.Decimal(5, 4)
-  confidenceLevel ConfidenceLevel?
-  reasoning       String?
-  createdAt       DateTime         @default(now())
-  Prediction      Prediction       @relation(fields: [predictionId], references: [id], onDelete: Cascade)
-
-  @@index([predictionId])
-}
-
-model PredictionResolution {
-  id                 String            @id @default(dbgenerated("gen_random_uuid()"))
-  predictionId       String
-  actualOutcome      String
-  resolvedAt         DateTime          @default(now())
-  resolutionMethod   ResolutionMethod?
-  verificationSource String?
-  evidence           String?
-  resolverId         String?           @db.VarChar(100)
-  confidenceScore    Decimal?          @db.Decimal(3, 2)
-  disputeCount       Int               @default(0)
-  Prediction         Prediction        @relation(fields: [predictionId], references: [id], onDelete: Cascade)
-
-  @@index([predictionId])
-}
-
-model ModelPerformance {
-  modelName           String    @db.VarChar(100)
-  periodStart         DateTime  @db.Date
-  periodEnd           DateTime  @db.Date
-  totalPredictions    Int       @default(0)
-  accuratePredictions Int       @default(0)
-  brierScore          Decimal?  @db.Decimal(5, 4)
-  calibrationScore    Decimal?  @db.Decimal(5, 4)
-  logScore            Decimal?  @db.Decimal(6, 4)
-  category            String    @db.VarChar(50) @default("general")
-  metadata            Json?
-
-  @@id([modelName, periodStart, category])
-  @@index([periodStart, periodEnd])
-}
-
-model VerificationVote {
-  id           String     @id @default(dbgenerated("gen_random_uuid()"))
-  predictionId String
-  userId       String     @db.VarChar(100)
-  votedOutcome String
-  evidence     String?
-  createdAt    DateTime   @default(now())
-  Prediction   Prediction @relation(fields: [predictionId], references: [id], onDelete: Cascade)
-
-  @@unique([predictionId, userId])
-}
-
-// ==================== V3RA Points System ====================
-
-model UserPoints {
-  id           String   @id @default(dbgenerated("gen_random_uuid()"))
-  userId       String   @unique
-  balance      Decimal  @default(1000.00) @db.Decimal(20, 2)
-  totalEarned  Decimal  @default(1000.00) @db.Decimal(20, 2)
-  totalSpent   Decimal  @default(0.00) @db.Decimal(20, 2)
-  level        Int      @default(1)
-  streak       Int      @default(0)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  
-  @@index([userId])
-}
-
-model PointsTransaction {
-  id          String   @id @default(dbgenerated("gen_random_uuid()"))
-  userId      String
-  type        PointsTransactionType
-  amount      Decimal  @db.Decimal(20, 2)
-  balance     Decimal  @db.Decimal(20, 2)
-  description String?
-  metadata    Json?
-  createdAt   DateTime @default(now())
-  
-  @@index([userId])
-}
-
-model PredictionMarket {
-  id                   String    @id @default(dbgenerated("gen_random_uuid()"))
-  predictionId         String    @unique
-  creatorId           String
-  status              MarketStatus @default(PENDING)
-  activationThreshold Decimal   @default(100.00) @db.Decimal(20, 2)
-  currentStake        Decimal   @default(0.00) @db.Decimal(20, 2)
-  yesPool             Decimal   @default(0.00) @db.Decimal(20, 2)
-  noPool              Decimal   @default(0.00) @db.Decimal(20, 2)
-  initialProbability  Decimal   @db.Decimal(5, 4)
-  currentProbability  Decimal   @db.Decimal(5, 4)
-  activatedAt         DateTime?
-  resolvedAt          DateTime?
-  winningOutcome      String?
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
-  
-  prediction   Prediction     @relation(fields: [predictionId], references: [id])
-  bets         MarketBet[]
-  stakes       MarketStake[]
-  
-  @@index([status])
-  @@index([creatorId])
-}
-
-model MarketBet {
-  id              String    @id @default(dbgenerated("gen_random_uuid()"))
-  marketId        String
-  userId          String
-  position        BetPosition
-  amount          Decimal   @db.Decimal(20, 2)
-  odds            Decimal   @db.Decimal(10, 4)
-  potentialReturn Decimal   @db.Decimal(20, 2)
-  status          BetStatus @default(PENDING)
-  settledAt       DateTime?
-  payout          Decimal?  @db.Decimal(20, 2)
-  createdAt       DateTime  @default(now())
-  
-  market          PredictionMarket @relation(fields: [marketId], references: [id])
-  
-  @@index([marketId])
-  @@index([userId])
-  @@index([status])
-}
-
-model MarketStake {
-  id        String   @id @default(dbgenerated("gen_random_uuid()"))
-  marketId  String
-  userId    String
-  amount    Decimal  @db.Decimal(20, 2)
-  createdAt DateTime @default(now())
-  
-  market    PredictionMarket @relation(fields: [marketId], references: [id])
-  
-  @@index([marketId])
-}
-
 enum PointsTransactionType {
   DAILY_BONUS
   BET_WIN
   BET_LOSS
+  BET_PLACED
   MARKET_CREATE
   VERIFICATION_REWARD
   STAKE_REFUND
   INITIAL_GRANT
+  PREDICTION_WIN
 }
 
 enum MarketStatus {
@@ -562,4 +572,3 @@ enum BetStatus {
   LOST
   CANCELLED
 }
-EOF < /dev/null

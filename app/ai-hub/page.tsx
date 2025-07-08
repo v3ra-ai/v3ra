@@ -1,16 +1,22 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
+import dynamic from "next/dynamic";
 import { useLLMStore } from "@/store/llm-store";
 import { useQueryStore } from "@/store/query-store";
 import { useSearchParams } from "next/navigation";
-import Navbar from "@/components/ask/navbar/navbar";
-import { ArrowLeft, Check, Zap, Brain, BookOpen, Sparkles, Filter, Calendar, Info } from "lucide-react";
-import Link from "next/link";
+import { Navbar } from "@/components/shared/navbar";
+import { ArrowLeft, Check, Zap, Brain, BookOpen, Sparkles, Filter, Calendar } from "lucide-react";
 import { motion } from "framer-motion";
+import Link from "next/link";
 import { KNOWLEDGE_MODEL_PRIORITY, REASONING_MODEL_PRIORITY } from "@/lib/model-presets";
+import { useUserPoints } from "@/hooks/useUserPoints";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { KnowledgeCutoffDisplay } from "@/components/ai-hub/knowledge-cutoff-display";
+
+// Dynamic import for heavy components
+const KnowledgeCutoffDisplay = dynamic(() => import("@/components/ai-hub/knowledge-cutoff-display").then(mod => ({ default: mod.KnowledgeCutoffDisplay })), {
+  loading: () => <div className="animate-pulse h-12 bg-zinc-800/50 rounded" />,
+});
 
 function AIHubContent() {
   const searchParams = useSearchParams();
@@ -26,6 +32,7 @@ function AIHubContent() {
   const [selectedProvider, setSelectedProvider] = useState<string | null>(null);
   const [activePreset, setActivePreset] = useState<'knowledge' | 'reasoning' | null>(null);
   const [activeTab, setActiveTab] = useState<string>("configure");
+  const { userPoints, canClaimBonus, claiming, claimDailyBonus } = useUserPoints();
 
   useEffect(() => {
     init();
@@ -119,7 +126,12 @@ function AIHubContent() {
 
   return (
     <div className="min-h-screen bg-zinc-950">
-      <Navbar />
+      <Navbar 
+        userPoints={userPoints}
+        canClaimBonus={canClaimBonus}
+        onClaimBonus={claimDailyBonus}
+        claiming={claiming}
+      />
       
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Header */}

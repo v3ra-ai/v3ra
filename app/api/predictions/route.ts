@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { PredictionTracker } from "@/lib/services/prediction-tracker";
+import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
 
-export async function GET(request: Request) {
+export const GET = rateLimitRelaxed(async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status") || "pending";
@@ -52,7 +53,7 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-}
+});
 
 function getDemoPredictions(status: string) {
   const pendingPredictions = [

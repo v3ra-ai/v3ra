@@ -1,3 +1,4 @@
+import { memo } from "react";
 import Image from "next/image";
 import { VoteResult } from "@/lib/types";
 import { parseRationale } from "@/lib/utils";
@@ -7,7 +8,7 @@ interface AskResultsStandardValidatorAvatarsProps {
   sanitizedQuery: VoteResult;
 }
 
-export function AskResultsStandardValidatorAvatars({
+export const AskResultsStandardValidatorAvatars = memo(function AskResultsStandardValidatorAvatars({
   sanitizedQuery,
 }: AskResultsStandardValidatorAvatarsProps) {
 
@@ -79,4 +80,4 @@ export function AskResultsStandardValidatorAvatars({
       )}
     </div>
   );
-}
+});

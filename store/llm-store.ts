@@ -55,10 +55,12 @@ export const useLLMStore = create<LLMStore>()(
 
       fetchAll: async () => {
         try {
-          const response = await fetch("/api/validators/active");
+          // Fetch first page with a higher limit to get most validators
+          const response = await fetch("/api/validators/active?page=1&limit=100");
           if (!response.ok) throw new Error("Failed to fetch validators");
           
-          const validators = await response.json();
+          const data = await response.json();
+          const validators = data.validators || data; // Handle both old and new API formats
           
           const { customSelection } = get();
           
@@ -95,10 +97,18 @@ export const useLLMStore = create<LLMStore>()(
         
         // Save to database if user is logged in
         try {
+          // Get CSRF token
+          const csrfResponse = await fetch('/api/csrf-token');
+          const { token: csrfToken } = await csrfResponse.json();
+          
           await fetch('/api/user/custom-llms', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+              'Content-Type': 'application/json',
+              ...(csrfToken && { 'X-CSRF-Token': csrfToken })
+            },
             body: JSON.stringify({ customLLMSelection: ids }),
+            credentials: 'include'
           });
         } catch (error) {
           // Failed to save custom LLM selection

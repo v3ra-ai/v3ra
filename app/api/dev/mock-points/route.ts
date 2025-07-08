@@ -1,68 +1,45 @@
 import { NextRequest, NextResponse } from "next/server";
 
-// Simple in-memory store for development
-const mockPointsStore = new Map<string, number>();
-
+// Mock endpoint for development
 export async function GET(request: NextRequest) {
-  // Only allow in development
   if (process.env.NODE_ENV !== 'development') {
-    return NextResponse.json(
-      { error: "This endpoint is only available in development" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
+  
   const { searchParams } = new URL(request.url);
-  const userId = searchParams.get("userId") || "demo-user";
+  const userId = searchParams.get('userId') || 'demo-user';
   
-  // Get or create mock balance
-  if (!mockPointsStore.has(userId)) {
-    mockPointsStore.set(userId, 1000); // Default balance
-  }
-  
-  const balance = mockPointsStore.get(userId) || 0;
-  
+  // Return mock user points
   return NextResponse.json({
     userId,
-    balance,
-    totalEarned: balance,
-    totalSpent: 0,
+    balance: 1000,
     streak: 1,
-    level: 1
+    totalEarned: 1000,
+    totalSpent: 0,
+    history: []
   });
 }
 
 export async function POST(request: NextRequest) {
-  // Only allow in development
   if (process.env.NODE_ENV !== 'development') {
-    return NextResponse.json(
-      { error: "This endpoint is only available in development" },
-      { status: 403 }
-    );
+    return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
-
+  
   try {
     const body = await request.json();
-    const { amount = 5000, userId = "demo-user" } = body;
+    const { amount, userId } = body;
     
-    // Get current balance
-    const currentBalance = mockPointsStore.get(userId) || 0;
-    const newBalance = currentBalance + amount;
-    
-    // Update balance
-    mockPointsStore.set(userId, newBalance);
-    
+    // Mock response
     return NextResponse.json({
       success: true,
-      newBalance,
-      awarded: amount,
-      message: `Added ${amount} V3RA to your account!`
+      userId: userId || 'demo-user',
+      amount: amount || 50,
+      newBalance: 1000 + (amount || 50),
+      message: `Added ${amount || 50} V3RA points`
     });
-    
   } catch (error) {
-    console.error("Mock add points error:", error);
     return NextResponse.json(
-      { error: "Failed to add points" },
+      { error: "Failed to process request" },
       { status: 500 }
     );
   }

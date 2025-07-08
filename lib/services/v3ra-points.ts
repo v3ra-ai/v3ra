@@ -12,6 +12,15 @@ export class V3RAPointsService {
 
     // Create account with initial grant if doesn't exist
     if (!userPoints) {
+      // First, verify that the user exists
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new Error(`User with ID ${userId} does not exist`);
+      }
+
       userPoints = await prisma.userPoints.create({
         data: { userId },
       });
@@ -146,24 +155,56 @@ export class V3RAPointsService {
       throw new Error("Daily bonus already claimed");
     }
 
-    const userPoints = await this.getUserPoints(userId);
-    const bonusAmount = 100; // Base bonus
-    const streakBonus = Math.min(userPoints.streak * 10, 100); // Up to 100 extra
-    const totalBonus = bonusAmount + streakBonus;
+    return await prisma.$transaction(async (tx) => {
+      const userPoints = await tx.userPoints.findUnique({
+        where: { userId },
+      });
 
-    await this.awardPoints(
-      userId,
-      totalBonus,
-      "DAILY_BONUS",
-      `Daily bonus claimed! Streak: ${userPoints.streak + 1}`
-    );
+      if (!userPoints) {
+        throw new Error("User points not found");
+      }
 
-    // Update streak
-    await prisma.userPoints.update({
-      where: { userId },
-      data: { streak: userPoints.streak + 1 },
+      const bonusAmount = 100; // Base bonus
+      const streakBonus = Math.min(userPoints.streak * 10, 100); // Up to 100 extra
+      const totalBonus = bonusAmount + streakBonus;
+      const newBalance = userPoints.balance.plus(totalBonus);
+      const newStreak = userPoints.streak + 1;
+
+      // Update points and streak atomically
+      const updated = await tx.userPoints.update({
+        where: { 
+          userId,
+          version: userPoints.version
+        },
+        data: {
+          balance: newBalance,
+          totalEarned: userPoints.totalEarned.plus(totalBonus),
+          streak: newStreak,
+          version: { increment: 1 }
+        },
+      });
+
+      // Record transaction
+      await tx.pointsTransaction.create({
+        data: {
+          userId,
+          type: "DAILY_BONUS",
+          amount: new Decimal(totalBonus),
+          balance: newBalance,
+          description: `Daily bonus claimed! Streak: ${newStreak}`,
+          metadata: {
+            bonusAmount,
+            streakBonus,
+            streak: newStreak,
+          },
+        },
+      });
+
+      return {
+        awarded: totalBonus,
+        newBalance: updated.balance,
+        streak: updated.streak,
+      };
     });
-
-    return totalBonus;
   }
 }

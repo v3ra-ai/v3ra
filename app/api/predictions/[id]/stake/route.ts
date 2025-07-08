@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
 import { PredictionMarketService } from "@/lib/services/prediction-market";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export async function POST(
+export const POST = rateLimitNormal(async (
   request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -68,4 +69,4 @@ export async function POST(
       { status: 400 }
     );
   }
-}
+});
