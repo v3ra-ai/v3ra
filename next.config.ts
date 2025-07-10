@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next';
-import { withSentryConfig } from '@sentry/nextjs';
+// import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   // Performance optimizations
@@ -56,7 +56,7 @@ const nextConfig: NextConfig = {
       "@": __dirname,
     };
 
-    // Exclude server-only modules from client bundle
+        // Exclude server-only modules from client bundle
     if (!isServer) {
       config.resolve.fallback = {
         ...config.resolve.fallback,
@@ -66,6 +66,39 @@ const nextConfig: NextConfig = {
         fs: false,
         child_process: false,
       };
+    }
+
+    // Fix 'self is not defined' error by excluding browser-specific dependencies from server bundle
+    if (isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        dns: false,
+        net: false,
+        tls: false,
+        fs: false,
+        child_process: false,
+      };
+
+      // Externalize problematic browser dependencies for server builds
+      const browserDependencies = [
+        '@solana/wallet-adapter-base',
+        '@solana/wallet-adapter-react',
+        '@solana/wallet-adapter-react-ui',
+        '@solana/wallet-adapter-wallets',
+        '@solana/web3.js',
+        '@tanstack/react-virtual',
+        'framer-motion',
+        'embla-carousel-react',
+      ];
+
+             config.externals = config.externals || [];
+       if (Array.isArray(config.externals)) {
+         browserDependencies.forEach(dep => {
+           (config.externals as any[]).push({
+             [dep]: dep
+           });
+         });
+       }
     }
 
     // Performance optimizations for production
@@ -136,25 +169,17 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Wrap the config with Sentry
-export default withSentryConfig(nextConfig, {
-  // For all available options, see:
-  // https://github.com/getsentry/sentry-webpack-plugin#options
+// Export the config without Sentry wrapper temporarily to fix build issues
+export default nextConfig;
 
-  // Suppresses source map uploading logs during build
-  silent: true,
-  
-  org: process.env.SENTRY_ORG,
-  project: process.env.SENTRY_PROJECT,
-
-  // Upload a larger set of source maps for prettier stack traces (increases build time)
-  widenClientFileUpload: true,
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-  
-  // Disable source maps in production
-  sourcemaps: {
-    disable: true,
-  },
-});
+// TODO: Re-enable Sentry after fixing the 'self is not defined' error
+// export default withSentryConfig(nextConfig, {
+//   silent: true,
+//   org: process.env.SENTRY_ORG,
+//   project: process.env.SENTRY_PROJECT,
+//   widenClientFileUpload: true,
+//   disableLogger: true,
+//   sourcemaps: {
+//     disable: true,
+//   },
+// });
