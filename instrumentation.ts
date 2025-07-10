@@ -1,4 +1,4 @@
-// import * as Sentry from '@sentry/nextjs';
+import * as Sentry from '@sentry/nextjs';
 
 // Add polyfills for server-side rendering to prevent browser API errors
 if (typeof self === 'undefined') {
@@ -6,14 +6,13 @@ if (typeof self === 'undefined') {
 }
 
 export async function register() {
-  // Temporarily disable Sentry to fix build issues
-  // if (process.env.NEXT_RUNTIME === 'nodejs') {
-  //   await import('./sentry.server.config')
-  // }
+  if (process.env.NEXT_RUNTIME === 'nodejs') {
+    await import('./sentry.server.config')
+  }
 
-  // if (process.env.NEXT_RUNTIME === 'edge') {
-  //   await import('./sentry.edge.config')
-  // }
+  if (process.env.NEXT_RUNTIME === 'edge') {
+    await import('./sentry.edge.config')
+  }
 }
 
-// export const onRequestError = Sentry.captureRequestError;
+export const onRequestError = Sentry.captureRequestError;

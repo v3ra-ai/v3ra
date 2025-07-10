@@ -1,5 +1,5 @@
 import type { NextConfig } from 'next';
-// import { withSentryConfig } from '@sentry/nextjs';
+import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
   // Performance optimizations
@@ -56,6 +56,23 @@ const nextConfig: NextConfig = {
       "@": __dirname,
     };
 
+    // Add polyfill for 'self' in server-side builds
+    if (isServer) {
+      const originalEntry = config.entry;
+      config.entry = async () => {
+        const entries = await originalEntry();
+        
+        // Inject polyfills at the top of every server entry
+        Object.keys(entries).forEach(key => {
+          if (Array.isArray(entries[key]) && !entries[key].includes('./lib/polyfills.js')) {
+            entries[key].unshift('./lib/polyfills.js');
+          }
+        });
+        
+        return entries;
+      };
+    }
+
         // Exclude server-only modules from client bundle
     if (!isServer) {
       config.resolve.fallback = {
@@ -94,9 +111,7 @@ const nextConfig: NextConfig = {
              config.externals = config.externals || [];
        if (Array.isArray(config.externals)) {
          browserDependencies.forEach(dep => {
-           (config.externals as any[]).push({
-             [dep]: dep
-           });
+           (config.externals as any[]).push(dep);
          });
        }
     }
@@ -169,17 +184,14 @@ const nextConfig: NextConfig = {
   },
 };
 
-// Export the config without Sentry wrapper temporarily to fix build issues
-export default nextConfig;
-
-// TODO: Re-enable Sentry after fixing the 'self is not defined' error
-// export default withSentryConfig(nextConfig, {
-//   silent: true,
-//   org: process.env.SENTRY_ORG,
-//   project: process.env.SENTRY_PROJECT,
-//   widenClientFileUpload: true,
-//   disableLogger: true,
-//   sourcemaps: {
-//     disable: true,
-//   },
-// });
+// Export the config with Sentry wrapper
+export default withSentryConfig(nextConfig, {
+  silent: true,
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  widenClientFileUpload: true,
+  disableLogger: true,
+  sourcemaps: {
+    disable: true,
+  },
+});

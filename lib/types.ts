@@ -4,7 +4,7 @@ import {
   QUERIES_COST_EACH_DEFAULT,
 } from "@/lib/constants";
 import { AIValidationResponse } from "./validators/types";
-import { Transaction } from "@solana/web3.js";
+import type { Transaction } from "@solana/web3.js";
 import { QueryClassification, ConsensusResult } from "./types/query-classifier";
 
 // Define interface for custom event attributes
