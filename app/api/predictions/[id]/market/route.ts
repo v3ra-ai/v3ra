@@ -5,10 +5,11 @@ import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
 async function getHandler(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const market = await PredictionMarketService.getMarketDetails(params.id);
+    const resolvedParams = await params;
+    const market = await PredictionMarketService.getMarketDetails(resolvedParams.id);
     
     // If no market exists yet, return null
     if (!market) {
@@ -27,7 +28,7 @@ async function getHandler(
 
 async function postHandler(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get authenticated user
@@ -41,12 +42,13 @@ async function postHandler(
       );
     }
     
+    const resolvedParams = await params;
     const body = await request.json();
     const { initialProbability } = body;
 
     // Create market if it doesn't exist
     const market = await PredictionMarketService.createMarket(
-      params.id,
+      resolvedParams.id,
       user.id,
       initialProbability
     );
@@ -63,10 +65,10 @@ async function postHandler(
 
 export const GET = (
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) => rateLimitNormal(() => getHandler(request, context))(request as any);
 
 export const POST = (
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) => rateLimitNormal(() => postHandler(request, context))(request as any);

@@ -285,7 +285,7 @@ export class PredictionMetrics {
       if (!resolution) continue;
 
       const highestProb = pred.outcomes.sort(
-        (a, b) => Number(b.consensusProbability) - Number(a.consensusProbability)
+        (a: any, b: any) => Number(b.consensusProbability) - Number(a.consensusProbability)
       )[0];
 
       if (highestProb?.outcomeText === resolution.actualOutcome) {

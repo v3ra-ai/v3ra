@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
             await tx.prediction.update({
               where: { id: prediction.id },
               data: {
-                resolutionStatus: resolution.outcome === 'UNRESOLVED' ? 'unresolved' : 'resolved',
+                resolutionStatus: resolution.outcome === 'UNRESOLVED' ? 'pending' : 'resolved',
                 resolutionDate: new Date(),
                 metadata: {
                   ...(prediction.metadata as any || {}),
@@ -74,17 +74,19 @@ export async function POST(request: NextRequest) {
             });
             
             // Update market
-            await tx.predictionMarket.update({
-              where: { id: prediction.market.id },
-              data: {
-                isResolved: true,
-                finalOutcome: resolution.outcome,
-                resolvedAt: new Date()
-              }
-            });
+            if (prediction.market) {
+              await tx.predictionMarket.update({
+                where: { id: prediction.market.id },
+                data: {
+                  isResolved: true,
+                  finalOutcome: resolution.outcome,
+                  resolvedAt: new Date()
+                }
+              });
+            }
             
             // Process payouts for resolved predictions
-            if (resolution.outcome !== 'UNRESOLVED') {
+            if (resolution.outcome !== 'UNRESOLVED' && prediction.market) {
               const winningBets = prediction.market.bets.filter(
                 bet => bet.position === resolution.outcome
               );
@@ -176,7 +178,7 @@ export async function POST(request: NextRequest) {
               predictionId: prediction.id,
               resolved: true,
               outcome: resolution.outcome,
-              payoutsProcessed: prediction.market.bets.length
+              payoutsProcessed: prediction.market?.bets.length || 0
             };
           });
           
@@ -240,7 +242,7 @@ export async function GET(_request: NextRequest) {
     const mockResolutions: ResolutionData[] = pendingPredictions.map(p => ({
       predictionId: p.id,
       // Random outcome weighted by AI consensus
-      outcome: Math.random() * 100 < (p.market?.currentProbability || 50) ? 'YES' : 'NO',
+      outcome: Math.random() * 100 < (Number(p.market?.currentProbability) || 50) ? 'YES' : 'NO',
       evidence: "Mock resolution for testing",
       confidence: 80 + Math.random() * 20
     }));

@@ -34,6 +34,9 @@ export default function AskResultsStandardCard({
   toggleItem,
   philosophyMode = false,
 }: AskResultsStandardCardProps) {
+  // React hooks must be called before any early returns
+  const { cleanText } = useCleanText();
+  
   // Debug log to check incoming query data
   if (process.env.NODE_ENV === "development") {
     console.log("AskResultsStandardCard received query:", {
@@ -121,7 +124,6 @@ export default function AskResultsStandardCard({
   const validatorProvider =
     longestRationaleResponse?.provider || "Unknown Provider";
 
-  const { cleanText } = useCleanText();
   const cleanedRationale = cleanText(displayRationale);
   const formattedDate = sanitizedQuery.timestamp
     ? formatDateTimeCards(sanitizedQuery.timestamp)

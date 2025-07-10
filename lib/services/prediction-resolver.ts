@@ -147,18 +147,22 @@ export class PredictionResolver {
     await this.recordResolution(predictionId, result);
     await this.updateModelPerformance(predictionId, outcome);
 
-    await prisma.predictionResolution.update({
+    const existingResolution = await prisma.predictionResolution.findFirst({
       where: { 
-        predictionId_actualOutcome: {
-          predictionId,
-          actualOutcome: outcome,
-        },
-      },
-      data: {
-        resolutionMethod: 'user_verified',
-        resolverId,
+        predictionId,
+        actualOutcome: outcome,
       },
     });
+    
+    if (existingResolution) {
+      await prisma.predictionResolution.update({
+        where: { id: existingResolution.id },
+        data: {
+          resolutionMethod: 'user_verified',
+          resolverId,
+        },
+      });
+    }
   }
 }
 

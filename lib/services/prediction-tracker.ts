@@ -49,7 +49,7 @@ export class PredictionTracker {
       // Save individual model predictions
       const modelPredictionPromises = adaptiveResponse.validatorResponses.flatMap(response => {
         const parsedResponse = this.parseValidatorResponse(response.rationale || "");
-        return parsedResponse.predictions?.map(pred =>
+        return parsedResponse.predictions?.map((pred: any) =>
           prisma.modelPrediction.create({
             data: {
               predictionId: prediction.id,

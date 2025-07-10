@@ -6,9 +6,9 @@ import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
 const handler = async (
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) => {
-  const { params } = await context;
+  const params = await context.params;
   try {
     // Get authenticated user
     const supabase = await createSupabaseServerClient();
@@ -21,7 +21,7 @@ const handler = async (
     const body = await request.json();
     
     // Validate inputs
-    const position = validate.enum(body.position, ['YES', 'NO'], 'position');
+    const position = validate.enum(body.position, ['YES', 'NO'], 'position') as 'YES' | 'NO';
     const amount = validate.positiveNumber(body.amount, 'amount');
 
     // Place bet
@@ -49,5 +49,5 @@ const handler = async (
 
 export const POST = (
   request: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) => rateLimitNormal(() => handler(request, context))(request);

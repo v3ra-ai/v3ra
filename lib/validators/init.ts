@@ -57,7 +57,7 @@ export async function initializeValidators() {
     name: "GPT-4o Validator",
     active: true,
   });
-  openaiValidator.avatarUrl = "/validators/openai.jpg";
+  (openaiValidator as any).avatarUrl = "/validators/openai.jpg";
   await validatorRegistry.addValidator(openaiValidator);
 
   const anthropicValidator = new AnthropicValidator({
@@ -66,11 +66,11 @@ export async function initializeValidators() {
     name: "Claude 3 Opus Validator",
     active: true,
   });
-  anthropicValidator.avatarUrl = "/validators/anthropic.jpg";
+  (anthropicValidator as any).avatarUrl = "/validators/anthropic.jpg";
   await validatorRegistry.addValidator(anthropicValidator);
 
   const elizaValidator = new ElizaValidator();
-  elizaValidator.avatarUrl = "/validators/eliza.jpg";
+  (elizaValidator as any).avatarUrl = "/validators/eliza.jpg";
   await validatorRegistry.addValidator(elizaValidator);
 
   const geminiValidator = new GeminiValidator({
@@ -79,7 +79,7 @@ export async function initializeValidators() {
     name: "Gemini 1.5 Flash Validator",
     active: true,
   });
-  geminiValidator.avatarUrl = "/validators/gemini.jpg";
+  (geminiValidator as any).avatarUrl = "/validators/gemini.jpg";
   await validatorRegistry.addValidator(geminiValidator);
 
   console.log('[initializeValidators] Built-in validators added successfully');

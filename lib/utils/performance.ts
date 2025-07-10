@@ -1,4 +1,19 @@
 // Performance monitoring utilities
+interface CoreWebVitals {
+  lcp?: number;
+  fid?: number;
+  cls?: number;
+  fcp?: number;
+  ttfb?: number;
+}
+
+interface PerformanceMetrics {
+  customMetrics: Record<string, number>;
+  coreWebVitals: CoreWebVitals;
+  userAgent: string;
+  isMobile: boolean;
+}
+
 export class PerformanceMonitor {
   private static instance: PerformanceMonitor;
   private metrics: Map<string, number> = new Map();
@@ -44,20 +59,14 @@ export class PerformanceMonitor {
   }
 
   // Get Core Web Vitals
-  getCoreWebVitals(): Promise<{
-    lcp?: number;
-    fid?: number;
-    cls?: number;
-    fcp?: number;
-    ttfb?: number;
-  }> {
+  getCoreWebVitals(): Promise<CoreWebVitals> {
     return new Promise((resolve) => {
       if (!this.isBrowser) {
         resolve({});
         return;
       }
 
-      const vitals: any = {};
+      const vitals: CoreWebVitals = {};
       
       // Get LCP (Largest Contentful Paint)
       if ('PerformanceObserver' in window) {
@@ -68,7 +77,7 @@ export class PerformanceMonitor {
             vitals.lcp = lcpEntry.startTime;
           });
           observer.observe({ type: 'largest-contentful-paint', buffered: true });
-        } catch (e) {
+        } catch (_error) {
           // LCP not supported
         }
       }
@@ -84,7 +93,7 @@ export class PerformanceMonitor {
             }
           });
           observer.observe({ type: 'paint', buffered: true });
-        } catch (e) {
+        } catch (_error) {
           // FCP not supported
         }
       }
@@ -96,7 +105,7 @@ export class PerformanceMonitor {
           if (navEntry) {
             vitals.ttfb = navEntry.responseStart - navEntry.requestStart;
           }
-        } catch (e) {
+        } catch (_error) {
           // Navigation timing not supported
         }
       }
@@ -116,12 +125,14 @@ export class PerformanceMonitor {
       const vitals = await this.getCoreWebVitals();
       
       // Log to console for debugging
-      console.log('Performance Metrics:', {
+      const metrics: PerformanceMetrics = {
         customMetrics: Object.fromEntries(this.metrics),
         coreWebVitals: vitals,
         userAgent: navigator?.userAgent || 'unknown',
         isMobile: this.isMobile()
-      });
+      };
+      
+      console.log('Performance Metrics:', metrics);
 
       // You can send these to an analytics service like Sentry or custom endpoint
       // await fetch('/api/performance', {
@@ -144,9 +155,9 @@ export class PerformanceMonitor {
   isSlowConnection(): boolean {
     if (!this.isBrowser || !('connection' in navigator)) return false;
     try {
-      const connection = (navigator as any).connection;
+      const connection = (navigator as unknown as { connection?: { effectiveType?: string } }).connection;
       return connection?.effectiveType === 'slow-2g' || connection?.effectiveType === '2g';
-    } catch (e) {
+    } catch (_error) {
       return false;
     }
   }
@@ -164,8 +175,8 @@ export class PerformanceMonitor {
         link.crossOrigin = 'anonymous';
       }
       document.head.appendChild(link);
-    } catch (e) {
-      console.warn('Failed to preload resource:', url, e);
+    } catch (_error) {
+      console.warn('Failed to preload resource:', url, _error);
     }
   }
 }

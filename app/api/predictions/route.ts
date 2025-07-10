@@ -32,7 +32,7 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
           consensusProbability: outcome.consensusProbability ? Number(outcome.consensusProbability) : 0,
           modelAgreement: outcome.modelAgreement ? Number(outcome.modelAgreement) : 0,
         })),
-        resolutions: pred.resolutions?.map(res => ({
+        resolutions: (pred as any).resolutions?.map((res: any) => ({
           ...res,
           confidenceScore: res.confidenceScore ? Number(res.confidenceScore) : null,
         })),

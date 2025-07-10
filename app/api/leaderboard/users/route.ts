@@ -43,7 +43,7 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
     }
 
     // Get user points and statistics
-    let users;
+    let users: any[] = [];
     try {
       users = await prisma.userPoints.findMany({
         orderBy: {

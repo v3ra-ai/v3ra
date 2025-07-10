@@ -5,7 +5,7 @@ import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
 async function stakeHandler(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     // Get authenticated user
@@ -19,6 +19,7 @@ async function stakeHandler(
       );
     }
     
+    const resolvedParams = await params;
     const { amount } = await request.json();
     
     if (!amount || amount <= 0) {
@@ -29,13 +30,13 @@ async function stakeHandler(
     }
 
     // First, ensure market exists
-    let market = await PredictionMarketService.getMarketDetails(params.id);
+    const market = await PredictionMarketService.getMarketDetails(resolvedParams.id);
     
     if (!market) {
       // Get the prediction to create market
       const { prisma } = await import("@/lib/db/client");
       const prediction = await prisma.prediction.findUnique({
-        where: { id: params.id },
+        where: { id: resolvedParams.id },
         include: { outcomes: true }
       });
       
@@ -48,12 +49,12 @@ async function stakeHandler(
       
       // Create market with initial probability
       const initialProb = (prediction.outcomes[0].consensusProbability?.toNumber() || 0.5) * 100;
-      await PredictionMarketService.createMarket(params.id, user.id, initialProb);
+      await PredictionMarketService.createMarket(resolvedParams.id, user.id, initialProb);
     }
 
     // Stake to market
     const updatedMarket = await PredictionMarketService.stakeToMarket(
-      params.id,
+      resolvedParams.id,
       user.id,
       amount
     );
@@ -73,5 +74,5 @@ async function stakeHandler(
 
 export const POST = (
   request: Request,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) => rateLimitNormal(() => stakeHandler(request, context))(request as any);
