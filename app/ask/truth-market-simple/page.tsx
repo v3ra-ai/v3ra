@@ -179,7 +179,7 @@ function SimpleTruthMarketPageContent() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="text-sm font-medium text-zinc-300 mb-2 block">
-                Ask anything - we'll assess its probability of being true
+                Ask anything - we&apos;ll assess its probability of being true
               </label>
               <Textarea
                 value={query}

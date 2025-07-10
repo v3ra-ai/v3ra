@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { motion, AnimatePresence, PanInfo } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,6 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { useRouter } from "next/navigation";
 import { getCSRFToken } from "@/lib/utils/csrf";
 import { supabase } from "@/lib/supabase-client";
 import { Navbar } from "@/components/shared/navbar";
@@ -31,7 +30,6 @@ interface Headline {
 }
 
 export default function HeadlinesPage() {
-  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [predictions, setPredictions] = useState<Headline[]>([]);
   const [userVotes, setUserVotes] = useState<Record<string, 'YES' | 'NO'>>({});
@@ -42,29 +40,17 @@ export default function HeadlinesPage() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isPlacingBet, setIsPlacingBet] = useState(false);
 
-  useEffect(() => {
-    // Initialize user session
-    initializeUser();
+  // Development helper to reset daily status
+  const resetDailyStatus = useCallback(async () => {
+    localStorage.removeItem('lastHeadlinesCompleted');
+    setHasCompletedToday(false);
+    setCurrentIndex(0);
+    setUserVotes({});
+    // Reload predictions
+    await initializeUser();
   }, []);
 
-  // Development keyboard shortcut
-  useEffect(() => {
-    if (process.env.NODE_ENV === 'development') {
-      const handleKeyPress = (e: KeyboardEvent) => {
-        // Press Ctrl/Cmd + Shift + R to reset
-        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
-          e.preventDefault();
-          resetDailyStatus();
-          console.log('Headlines daily status reset!');
-        }
-      };
-      
-      window.addEventListener('keydown', handleKeyPress);
-      return () => window.removeEventListener('keydown', handleKeyPress);
-    }
-  }, []);
-
-  const initializeUser = async () => {
+  const initializeUser = useCallback(async () => {
     try {
       // Get current user session
       const { data: { user } } = await supabase.auth.getUser();
@@ -102,7 +88,29 @@ export default function HeadlinesPage() {
         console.error(`Failed to ${taskNames[index]}:`, result.reason);
       }
     });
-  };
+  }, []);
+
+  useEffect(() => {
+    // Initialize user session
+    initializeUser();
+  }, [initializeUser]);
+
+  // Development keyboard shortcut
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development') {
+      const handleKeyPress = (e: KeyboardEvent) => {
+        // Press Ctrl/Cmd + Shift + R to reset
+        if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'R') {
+          e.preventDefault();
+          resetDailyStatus();
+          console.log('Headlines daily status reset!');
+        }
+      };
+      
+      window.addEventListener('keydown', handleKeyPress);
+      return () => window.removeEventListener('keydown', handleKeyPress);
+    }
+  }, [resetDailyStatus]);
 
   const loadUserPoints = async (userId: string) => {
     try {
@@ -185,15 +193,6 @@ export default function HeadlinesPage() {
       setStreak(1);
       localStorage.setItem('headlinesStreak', '1');
     }
-  };
-
-  // Development helper to reset daily status
-  const resetDailyStatus = () => {
-    localStorage.removeItem('lastHeadlinesCompleted');
-    setHasCompletedToday(false);
-    setCurrentIndex(0);
-    setUserVotes({});
-    loadDailyPredictions();
   };
 
   // Development helper to add points
@@ -324,7 +323,7 @@ export default function HeadlinesPage() {
       <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
         <div className="text-center">
           <Newspaper className="w-12 h-12 text-cyan-400 animate-pulse mx-auto mb-4" />
-          <p className="text-zinc-400">Loading today's headlines...</p>
+          <p className="text-zinc-400">Loading today&apos;s headlines...</p>
         </div>
       </div>
     );
@@ -351,7 +350,7 @@ export default function HeadlinesPage() {
             </motion.div>
             
             <h2 className="text-2xl font-bold text-zinc-100 mb-4">
-              Today's Predictions Complete! 
+              Today&apos;s Predictions Complete! 
             </h2>
             
             <div className="space-y-4 mb-6">
@@ -361,7 +360,7 @@ export default function HeadlinesPage() {
               </div>
               
               <div className="bg-black/50 rounded-lg p-4 border border-zinc-800">
-                <p className="text-sm text-zinc-400 mb-1">Today's Results</p>
+                <p className="text-sm text-zinc-400 mb-1">Today&apos;s Results</p>
                 <p className="text-sm font-medium text-zinc-300">Completion Bonus: <span className="text-yellow-400">+50 V3RA</span></p>
                 <p className="text-sm font-medium text-zinc-300">Predictions Made: <span className="text-cyan-400">3</span></p>
                 <p className="text-sm font-medium text-zinc-300">V3RA Wagered: <span className="text-zinc-400">30</span></p>
@@ -433,10 +432,10 @@ export default function HeadlinesPage() {
             className="text-center mb-8"
           >
             <h1 className="text-3xl font-bold text-zinc-100 mb-2">
-              Tomorrow's Headlines
+              Tomorrow&apos;s Headlines
             </h1>
             <p className="text-zinc-400 text-sm sm:text-base">
-              <span className="hidden sm:inline">Swipe right if you think it'll happen, left if not</span>
+              <span className="hidden sm:inline">Swipe right if you think it&apos;ll happen, left if not</span>
               <span className="sm:hidden">Tap Yes or No below</span>
             </p>
           </motion.div>
@@ -530,7 +529,7 @@ export default function HeadlinesPage() {
                       <div className="flex justify-between text-xs">
                         <div className="flex items-center gap-2 text-red-400">
                           <ChevronLeft className="w-4 h-4" />
-                          <span>Won't happen</span>
+                          <span>Won&apos;t happen</span>
                         </div>
                         <div className="flex items-center gap-2 text-green-400">
                           <span>Will happen</span>

@@ -1,5 +1,4 @@
 import { 
-  HelpCircle, 
   Brain, 
   Coins, 
   TrendingUp, 
@@ -9,7 +8,7 @@ import {
   Sparkles,
   Users
 } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function HelpPage() {
@@ -19,7 +18,7 @@ export default function HelpPage() {
         <div className="text-center">
           <h1 className="text-4xl font-bold mb-4">V3RA Help Center</h1>
           <p className="text-lg text-muted-foreground">
-            Everything you need to know about using V3RA's AI consensus platform
+            Everything you need to know about using V3RA&apos;s AI consensus platform
           </p>
         </div>
 
@@ -96,7 +95,7 @@ export default function HelpPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>
-              The Truth Market is V3RA's prediction market where you can bet on the likelihood 
+              The Truth Market is V3RA&apos;s prediction market where you can bet on the likelihood 
               of future events and outcomes.
             </p>
             <div className="space-y-3">
@@ -125,7 +124,7 @@ export default function HelpPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="w-5 h-5" />
-              Tomorrow's Headlines
+              Tomorrow&apos;s Headlines
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">

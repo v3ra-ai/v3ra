@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
       newBalance: 1000 + (amount || 50),
       message: `Added ${amount || 50} V3RA points`
     });
-  } catch (error) {
+  } catch (_error) {
     return NextResponse.json(
       { error: "Failed to process request" },
       { status: 500 }

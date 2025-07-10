@@ -85,7 +85,7 @@ export function parseMarketResponse(response: string): ParsedMarketResponse | nu
       confidence: confidence,
       reasoning: parsed.reasoning || 'No reasoning provided'
     };
-  } catch (error) {
+  } catch (_error) {
     // If JSON parsing fails, try to extract information from text
     return fallbackParse(response);
   }

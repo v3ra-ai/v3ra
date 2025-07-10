@@ -39,7 +39,7 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
       }));
 
       return NextResponse.json({ predictions: serializedPredictions });
-    } catch (dbError: any) {
+    } catch (_dbError: any) {
       // If database fails, return demo predictions
       console.log("Database unavailable, returning demo predictions");
       

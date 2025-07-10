@@ -151,7 +151,8 @@ function generateDailyPredictions(): PredictionTemplate[] {
       // Process dynamic values in statement
       let statement = selected.template.statement;
       statement = statement.replace(/\${(\w+)}/g, (match, key) => {
-        return DYNAMIC_VALUES[key as keyof typeof DYNAMIC_VALUES]?.() || match;
+        const value = DYNAMIC_VALUES[key as keyof typeof DYNAMIC_VALUES]?.();
+        return value ? String(value) : match;
       });
       
       predictions.push({
@@ -281,12 +282,12 @@ export const GET = rateLimitNormal(async (request: NextRequest) => {
           await prisma.predictionMarket.create({
             data: {
               predictionId: prediction.id,
+              creatorId: userId || 'system',
               initialProbability: aiConsensus,
               currentProbability: aiConsensus,
               yesPool: 100,
               noPool: 100,
-              totalStake: 200,
-              resolvedAt: new Date(Date.now() + template.resolutionTime * 60 * 60 * 1000)
+              totalStake: 200
             }
           });
           
@@ -402,8 +403,12 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
             });
           }
           
-          if (userPoints.balance < betAmount) {
+          if (Number(userPoints.balance) < betAmount) {
             throw new Error("Insufficient balance");
+          }
+          
+          if (!prediction.market) {
+            throw new Error("Market not found for prediction");
           }
           
           // Create bet and update user points in transaction
@@ -412,12 +417,13 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
             const bet = await tx.marketBet.create({
               data: {
                 userId,
-                marketId: prediction.market.id,
+                marketId: prediction.market!.id,
                 position: vote,
-                stake: betAmount,
-                potentialPayout: vote === 'YES' 
-                  ? betAmount * (100 / prediction.market.currentProbability)
-                  : betAmount * (100 / (100 - prediction.market.currentProbability))
+                amount: betAmount,
+                odds: 2.0,
+                potentialReturn: vote === 'YES' 
+                  ? betAmount * (100 / Number(prediction.market!.currentProbability))
+                  : betAmount * (100 / (100 - Number(prediction.market!.currentProbability)))
               }
             });
             
@@ -432,7 +438,8 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
               data: {
                 userId,
                 amount: -betAmount,
-                type: 'PREDICTION_BET',
+                balance: Number(userPoints.balance) - betAmount,
+                type: 'BET_PLACED',
                 description: `Bet on prediction: ${prediction.queryText.substring(0, 50)}...`,
                 metadata: {
                   predictionId: prediction.id,
@@ -445,7 +452,7 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
             // Update market pools
             if (vote === 'YES') {
               await tx.predictionMarket.update({
-                where: { id: prediction.market.id },
+                where: { id: prediction.market!.id },
                 data: {
                   yesPool: { increment: betAmount },
                   totalStake: { increment: betAmount }
@@ -453,7 +460,7 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
               });
             } else {
               await tx.predictionMarket.update({
-                where: { id: prediction.market.id },
+                where: { id: prediction.market!.id },
                 data: {
                   noPool: { increment: betAmount },
                   totalStake: { increment: betAmount }
@@ -478,7 +485,7 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
     
     if (successfulBets === 3) {
       // For development, just return mock bonus
-      if (process.env.NODE_ENV === 'development' && predictions.some(p => p.predictionId.startsWith('mock-'))) {
+      if (process.env.NODE_ENV === 'development' && predictions.some((p: any) => p.predictionId.startsWith('mock-'))) {
         bonusAwarded = 50;
       } else {
         try {
@@ -491,10 +498,16 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
               data: { balance: { increment: bonusAwarded } }
             });
             
+            // Get current balance for transaction record
+            const currentUserPoints = await tx.userPoints.findUnique({
+              where: { userId }
+            });
+            
             await tx.pointsTransaction.create({
               data: {
                 userId,
                 amount: bonusAwarded,
+                balance: Number(currentUserPoints?.balance || 0) + bonusAwarded,
                 type: 'DAILY_BONUS',
                 description: 'Daily predictions completion bonus',
                 metadata: {
@@ -520,7 +533,7 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
       const updatedUser = await prisma.userPoints.findUnique({
         where: { userId }
       });
-      newBalance = updatedUser?.balance || 0;
+      newBalance = Number(updatedUser?.balance || 0);
     }
     
     logger.info("Predictions processed successfully", { 

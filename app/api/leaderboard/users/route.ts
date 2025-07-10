@@ -16,7 +16,7 @@ interface UserStats {
   avatar?: string;
 }
 
-export const GET = rateLimitRelaxed(async (request: Request) {
+export const GET = rateLimitRelaxed(async (request: Request) => {
   try {
     const { searchParams } = new URL(request.url);
     const timeframe = searchParams.get("timeframe") || "weekly";
@@ -221,4 +221,4 @@ export const GET = rateLimitRelaxed(async (request: Request) {
       { status: 500 }
     );
   }
-}
+});

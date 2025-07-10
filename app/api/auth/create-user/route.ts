@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createOrGetUser } from "@/lib/auth-helpers";
 import { rateLimitAuth } from "@/lib/middleware/rate-limit";
 
-export const POST = rateLimitAuth(async (request: Request) {
+export const POST = rateLimitAuth(async (request: Request) => {
   try {
     const { userId, email, username } = await request.json();
 
@@ -31,4 +31,4 @@ export const POST = rateLimitAuth(async (request: Request) {
       { status: 500 }
     );
   }
-}
+});

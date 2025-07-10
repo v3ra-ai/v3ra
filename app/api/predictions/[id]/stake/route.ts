@@ -3,7 +3,7 @@ import { PredictionMarketService } from "@/lib/services/prediction-market";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export const POST = rateLimitNormal(async (
+async function stakeHandler(
   request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -69,4 +69,9 @@ export const POST = rateLimitNormal(async (
       { status: 400 }
     );
   }
-});
+}
+
+export const POST = (
+  request: Request,
+  context: { params: { id: string } }
+) => rateLimitNormal(() => stakeHandler(request, context))(request as any);

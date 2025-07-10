@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createServerClient } from "@/lib/supabase/server";
+import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { ErrorCode, createErrorResponse } from "@/lib/utils/api-errors";
 
 export interface AuthenticatedRequest extends NextRequest {
@@ -16,13 +16,14 @@ export async function requireAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    const supabase = await createServerClient();
+    const supabase = await createSupabaseServerClient();
     const { data: { user }, error } = await supabase.auth.getUser();
 
     if (error || !user) {
       return createErrorResponse(
+        "Authentication required",
         ErrorCode.UNAUTHORIZED,
-        "Authentication required"
+        401
       );
     }
 
@@ -34,8 +35,9 @@ export async function requireAuth(
     return handler(authenticatedRequest);
   } catch (error) {
     return createErrorResponse(
+      "Authentication check failed",
       ErrorCode.INTERNAL_ERROR,
-      "Authentication check failed"
+      500
     );
   }
 }
@@ -49,7 +51,7 @@ export async function optionalAuth(
   handler: (req: AuthenticatedRequest) => Promise<NextResponse>
 ): Promise<NextResponse> {
   try {
-    const supabase = await createServerClient();
+    const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
 
     const authenticatedRequest = request as AuthenticatedRequest;
@@ -77,8 +79,9 @@ export async function requireAdmin(
     
     if (!req.user?.email || !adminEmails.includes(req.user.email)) {
       return createErrorResponse(
+        "Admin access required",
         ErrorCode.FORBIDDEN,
-        "Admin access required"
+        403
       );
     }
 

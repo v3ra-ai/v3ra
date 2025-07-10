@@ -53,7 +53,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       // Try to save to database, but don't fail if it doesn't work
       try {
         await validatorService.addValidator(validator);
-      } catch (error) {
+      } catch (_error) {
         console.log('[ValidatorRegistry] Database not available, using in-memory storage');
       }
     }
@@ -246,7 +246,7 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
             
             return aiValidators;
           }
-        } catch (dbError) {
+        } catch (_dbError) {
           console.log('[ValidatorRegistry] Database not available, using in-memory validators');
         }
         
@@ -274,7 +274,6 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
   async getActiveValidators(page: number = 1, limit: number = 50): Promise<AIValidator[]> {
     try {
       if (isServer) {
-        const skip = (page - 1) * limit;
         const dbValidators = await validatorService.getActiveValidators(page, limit);
         
         if (dbValidators.length > 0) {

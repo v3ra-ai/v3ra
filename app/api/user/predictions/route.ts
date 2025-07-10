@@ -102,13 +102,13 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
         userBet: userBet ? {
           id: userBet.id,
           position: userBet.position,
-          stake: userBet.stake,
-          potentialPayout: userBet.potentialPayout,
+          stake: Number(userBet.amount),
+          potentialPayout: Number(userBet.potentialReturn),
           actualPayout: userBet.payout,
           isWinner,
-          profit: isWinner ? (userBet.payout || 0) - userBet.stake : -userBet.stake,
+          profit: isWinner ? Number(userBet.payout || 0) - Number(userBet.amount) : -Number(userBet.amount),
           createdAt: userBet.createdAt,
-          resolvedAt: userBet.resolvedAt
+          resolvedAt: userBet.settledAt
         } : null
       };
     });
@@ -122,7 +122,7 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
         p.status === 'resolved' && p.userBet && !p.userBet.isWinner
       ).length,
       totalStaked: formattedPredictions.reduce((sum, p) => sum + (p.userBet?.stake || 0), 0),
-      totalWinnings: formattedPredictions.reduce((sum, p) => sum + (p.userBet?.actualPayout || 0), 0),
+      totalWinnings: formattedPredictions.reduce((sum, p) => sum + Number(p.userBet?.actualPayout || 0), 0),
       netProfit: formattedPredictions.reduce((sum, p) => sum + (p.userBet?.profit || 0), 0),
       winRate: totalCount > 0 ? 
         (formattedPredictions.filter(p => p.userBet?.isWinner).length / 
@@ -225,13 +225,13 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
       if (metadata.resolution === userBet.position) {
         group.wins++;
         group.totalWon += userBet.payout || 0;
-        group.netProfit += (userBet.payout || 0) - userBet.stake;
+        group.netProfit += Number(userBet.payout || 0) - Number(userBet.amount);
       } else {
         group.losses++;
-        group.netProfit -= userBet.stake;
+        group.netProfit -= Number(userBet.amount);
       }
       
-      group.totalStaked += userBet.stake;
+      group.totalStaked += Number(userBet.amount);
     });
     
     // Convert to array and calculate win rates

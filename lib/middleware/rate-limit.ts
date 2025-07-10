@@ -47,8 +47,9 @@ export function withRateLimit(
       await limiter.check(identifier);
     } catch (error) {
       return createErrorResponse(
+        'Too many requests. Please try again later.',
         ErrorCode.RATE_LIMITED,
-        'Too many requests. Please try again later.'
+        429
       );
     }
     

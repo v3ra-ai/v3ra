@@ -638,17 +638,76 @@ body {
     height: auto !important;
     min-height: 300px;
     max-height: calc(100vh - 200px);
+    /* Performance optimizations for swipe cards */
+    transform: translateZ(0);
+    will-change: transform;
+    backface-visibility: hidden;
   }
-  
+
+  /* Optimize swipe performance */
+  .swipe-container {
+    transform: translateZ(0);
+    -webkit-perspective: 1000;
+    perspective: 1000;
+  }
+
+  /* Better mobile table handling */
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
+  }
+
+  .table-container::-webkit-scrollbar {
+    height: 6px;
+  }
+
+  .table-container::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 3px;
+  }
+
+  .table-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 3px;
+  }
+
+  /* Optimize animations for mobile */
+  @media (max-width: 768px) {
+    .animate-pulse {
+      animation-duration: 2s;
+    }
+    
+    .animate-spin {
+      animation-duration: 1s;
+    }
+    
+    /* Reduce complex animations on mobile */
+    .animate-bounce {
+      animation: none;
+    }
+  }
+
   /* Mobile-friendly padding */
   .px-4 {
     padding-left: 1rem;
     padding-right: 1rem;
   }
-  
+
   .py-8 {
     padding-top: 2rem;
     padding-bottom: 2rem;
+  }
+
+  /* Optimize modal performance */
+  [role="dialog"] {
+    contain: layout style paint;
+  }
+
+  /* Performance hint for complex components */
+  .complex-component {
+    contain: layout style paint;
+    content-visibility: auto;
   }
 }
 
@@ -661,5 +720,57 @@ body {
   
   .headline-card {
     max-height: calc(100vh - 120px);
+  }
+}
+
+/* Performance optimizations */
+@layer base {
+  /* Improve scroll performance */
+  * {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+
+  /* Reduce motion for accessibility and performance */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Optimize text rendering */
+  html {
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Improve touch responsiveness */
+  button,
+  [role="button"],
+  input[type="submit"],
+  input[type="button"] {
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent zoom on inputs while maintaining accessibility */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: max(16px, 1rem);
+  }
+
+  /* Optimize image loading */
+  img {
+    content-visibility: auto;
   }
 }

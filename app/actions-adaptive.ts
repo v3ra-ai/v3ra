@@ -1,7 +1,6 @@
 "use server";
 
 import type {
-  VoteResult,
   VoteValidatorResponse,
   QueryMode,
 } from "@/lib/types";
@@ -82,7 +81,7 @@ export async function broadcastAdaptiveQuery(
     const sessionId = uuidv4();
 
     // Step 3: Create vote session
-    const voteSession = await prisma.voteSession.create({
+    await prisma.voteSession.create({
       data: {
         id: sessionId,
         queryText: query,

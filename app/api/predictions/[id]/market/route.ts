@@ -1,9 +1,9 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PredictionMarketService } from "@/lib/services/prediction-market";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export const GET = rateLimitNormal(async (
+async function getHandler(
   request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -25,7 +25,7 @@ export const GET = rateLimitNormal(async (
   }
 }
 
-export const POST = rateLimitNormal(async (
+async function postHandler(
   request: Request,
   { params }: { params: { id: string } }
 ) {
@@ -59,4 +59,14 @@ export const POST = rateLimitNormal(async (
       { status: 400 }
     );
   }
-});
+}
+
+export const GET = (
+  request: Request,
+  context: { params: { id: string } }
+) => rateLimitNormal(() => getHandler(request, context))(request as any);
+
+export const POST = (
+  request: Request,
+  context: { params: { id: string } }
+) => rateLimitNormal(() => postHandler(request, context))(request as any);

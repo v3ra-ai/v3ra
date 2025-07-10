@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db/client";
-import { AdaptiveResponse, ConsensusResult, QueryCategory } from "@/lib/types/query-classifier";
-import { Prediction, PredictionOutcome, ModelPrediction, Prisma } from "@prisma/client";
+import { AdaptiveResponse, QueryCategory } from "@/lib/types/query-classifier";
+import { Prediction, Prisma } from "@prisma/client";
 
 export class PredictionTracker {
   async savePrediction(
@@ -34,7 +34,7 @@ export class PredictionTracker {
       });
 
       // Save prediction outcomes
-      const outcomePromises = consensus.predictions.map((pred, index) =>
+      const outcomePromises = consensus.predictions.map((pred) =>
         prisma.predictionOutcome.create({
           data: {
             predictionId: prediction.id,

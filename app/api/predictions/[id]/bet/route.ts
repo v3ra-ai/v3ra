@@ -1,13 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { PredictionMarketService } from "@/lib/services/prediction-market";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
-import { ApiError, errorResponse, validate } from "@/lib/utils/api-errors";
+import { ApiError, ErrorCode, errorResponse, validate } from "@/lib/utils/api-errors";
 import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export const POST = rateLimitNormal(async (
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+const handler = async (
+  request: NextRequest,
+  context: { params: { id: string } }
+) => {
+  const { params } = await context;
   try {
     // Get authenticated user
     const supabase = await createSupabaseServerClient();
@@ -42,6 +43,11 @@ export const POST = rateLimitNormal(async (
       }
     });
   } catch (error) {
-    return errorResponse(error);
+    return errorResponse("Internal server error", ErrorCode.INTERNAL_SERVER_ERROR, 500, error);
   }
-});
+};
+
+export const POST = (
+  request: NextRequest,
+  context: { params: { id: string } }
+) => rateLimitNormal(() => handler(request, context))(request);

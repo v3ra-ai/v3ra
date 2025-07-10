@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db/client";
-import { Prediction, ResolutionMethod, Prisma } from "@prisma/client";
+import { Prediction, Prisma } from "@prisma/client";
 
 export interface ResolutionResult {
   success: boolean;
@@ -202,7 +202,7 @@ class FinanceResolver implements ResolutionStrategy {
 }
 
 class ManualResolver implements ResolutionStrategy {
-  async resolve(prediction: Prediction): Promise<ResolutionResult> {
+  async resolve(_prediction: Prediction): Promise<ResolutionResult> {
     // Manual resolver always returns false, requiring human intervention
     return {
       success: false,

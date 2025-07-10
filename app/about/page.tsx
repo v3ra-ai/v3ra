@@ -138,7 +138,7 @@ export default function AboutPage() {
               </p>
               <p className="text-zinc-300 leading-relaxed">
                 By leveraging the collective intelligence of multiple AI models and incentivizing accurate 
-                predictions through our token economy, we're building a more reliable and transparent 
+                predictions through our token economy, we&apos;re building a more reliable and transparent 
                 information ecosystem for everyone.
               </p>
             </Card>

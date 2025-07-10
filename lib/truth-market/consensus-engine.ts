@@ -1,7 +1,6 @@
 import { 
   MarketPosition, 
   MarketConsensus, 
-  ConsensusStrength,
   getConsensusStrength,
   positionToValue,
   TraderPerformance 

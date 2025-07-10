@@ -102,8 +102,8 @@ export class TruthMarket {
    */
   static convertLegacyVote(
     vote: boolean | 'UNKNOWN',
-    confidence: number = 50,
-    rationale: string = ''
+    _confidence: number = 50,
+    _rationale: string = ''
   ): MarketPosition['position'] {
     if (vote === true) return 'YES';
     if (vote === false) return 'NO';

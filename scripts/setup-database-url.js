@@ -3,6 +3,10 @@
 // This script ensures DATABASE_URL is set for Prisma
 // It runs at build time to map Vercel's env vars to what Prisma expects
 
+// Load environment variables from .env files
+require('dotenv').config({ path: '.env.local' });
+require('dotenv').config({ path: '.env' });
+
 console.log('[Database Setup] Checking database environment variables...');
 
 // Check what we have

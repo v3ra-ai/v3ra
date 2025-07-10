@@ -99,7 +99,6 @@ export class StatementNormalizer {
       const match = query.match(/^what is (?:the )?(.+?)\??$/i);
       if (match) {
         // Try to infer a factual statement
-        const subject = match[1];
         return `The answer to '${query}' is correctly stated`;
       }
     }
