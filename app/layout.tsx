@@ -12,6 +12,8 @@ import { WelcomeModal } from "@/components/onboarding/welcome-modal";
 import { ClientScripts } from "@/components/client-scripts";
 import GlobalErrorBoundary from "./error-boundary";
 
+export const dynamic = 'force-dynamic';
+
 const inter = Inter({ 
   subsets: ["latin"],
   display: 'swap',
