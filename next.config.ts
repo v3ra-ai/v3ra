@@ -60,24 +60,27 @@ const nextConfig: NextConfig = {
     if (isServer) {
       const webpack = require('webpack');
       
-      // Provide global polyfills for browser APIs
+      // Define global variables for server builds
       config.plugins.push(
-        new webpack.ProvidePlugin({
-          self: ['global', 'globalThis'],
-          window: ['global', 'globalThis'],
-          document: ['global', 'globalThis'],
+        new webpack.DefinePlugin({
+          'typeof self': JSON.stringify('object'),
+          'typeof window': JSON.stringify('object'),
+          'typeof document': JSON.stringify('object'),
         })
       );
       
-      // Also add banner as backup
+      // Add banner to define globals at runtime
       config.plugins.push(
         new webpack.BannerPlugin({
           raw: true,
           entryOnly: false,
           banner: `
-            if(typeof self==='undefined'){global.self=global;}
-            if(typeof window==='undefined'){global.window=global;}
-            if(typeof document==='undefined'){global.document={};} 
+            if(typeof global !== 'undefined') {
+              if(typeof global.self === 'undefined') global.self = global;
+              if(typeof global.window === 'undefined') global.window = {};
+              if(typeof global.document === 'undefined') global.document = {};
+              if(typeof global.navigator === 'undefined') global.navigator = { userAgent: 'node' };
+            }
           `,
         })
       );
@@ -116,10 +119,14 @@ const nextConfig: NextConfig = {
         '@tanstack/react-virtual',
         'framer-motion',
         'embla-carousel-react',
+        'recharts',
+        'react-window',
+        'react-virtualized-auto-sizer',
       ];
 
       // Create empty module for browser dependencies
-      const emptyModule = require.resolve('./lib/empty-module.js');
+      const path = require('path');
+      const emptyModule = path.resolve(__dirname, './lib/empty-module.js');
       browserDependencies.forEach(dep => {
         config.resolve.alias[dep] = emptyModule;
       });

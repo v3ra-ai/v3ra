@@ -5,7 +5,6 @@ import type { VoteResult } from '@/lib/types';
 import { Dispatch, SetStateAction } from 'react';
 import { sanitizeError } from '@/utils/security-utils';
 import { RESULT_QUERIES_CARDS, QUERIES_COST_EACH_DEFAULT, QUERIES_REQUESTED_DEFAULT } from '@/lib/constants';
-import { useWallet } from '@solana/wallet-adapter-react';
 import { toast } from 'sonner';
 import { supabase } from '@/lib/supabase-client';
 import { sessionCache } from '@/lib/utils/cache';
@@ -39,7 +38,7 @@ export function useBroadcastQuery(
   refetchNetworkState?: () => Promise<void>,
   fetchVoteHistory?: () => Promise<void>,
 ): BroadcastQueryResult {
-  const { publicKey } = useWallet();
+  // Removed useWallet - not needed anymore
   const [email, setEmail] = useState<string | undefined>(undefined);
 
   // Fetch email on mount
