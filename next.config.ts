@@ -76,10 +76,27 @@ const nextConfig: NextConfig = {
           entryOnly: false,
           banner: `
             if(typeof global !== 'undefined') {
-              if(typeof global.self === 'undefined') global.self = global;
-              if(typeof global.window === 'undefined') global.window = {};
-              if(typeof global.document === 'undefined') global.document = {};
-              if(typeof global.navigator === 'undefined') global.navigator = { userAgent: 'node' };
+              if(!global.self) global.self = global;
+              if(!global.window) global.window = {
+                addEventListener: () => {},
+                removeEventListener: () => {},
+                location: { href: '', origin: '', pathname: '' },
+                requestAnimationFrame: (cb) => setTimeout(cb, 16),
+              };
+              if(!global.document) global.document = {
+                querySelector: () => null,
+                querySelectorAll: () => [],
+                getElementById: () => null,
+                getElementsByClassName: () => [],
+                getElementsByTagName: () => [],
+                createElement: () => ({}),
+                createTextNode: () => ({}),
+                addEventListener: () => {},
+                removeEventListener: () => {},
+                body: { appendChild: () => {}, removeChild: () => {} },
+                head: { appendChild: () => {}, removeChild: () => {} },
+              };
+              if(!global.navigator) global.navigator = { userAgent: 'node' };
             }
           `,
         })
