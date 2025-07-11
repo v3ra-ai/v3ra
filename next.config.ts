@@ -58,19 +58,29 @@ const nextConfig: NextConfig = {
 
     // Add polyfill for 'self' in server-side builds
     if (isServer) {
-      const originalEntry = config.entry;
-      config.entry = async () => {
-        const entries = await originalEntry();
-        
-        // Inject polyfills at the top of every server entry
-        Object.keys(entries).forEach(key => {
-          if (Array.isArray(entries[key]) && !entries[key].includes('./lib/polyfills.js')) {
-            entries[key].unshift('./lib/polyfills.js');
-          }
-        });
-        
-        return entries;
-      };
+      const webpack = require('webpack');
+      
+      // Provide global polyfills for browser APIs
+      config.plugins.push(
+        new webpack.ProvidePlugin({
+          self: ['global', 'globalThis'],
+          window: ['global', 'globalThis'],
+          document: ['global', 'globalThis'],
+        })
+      );
+      
+      // Also add banner as backup
+      config.plugins.push(
+        new webpack.BannerPlugin({
+          raw: true,
+          entryOnly: false,
+          banner: `
+            if(typeof self==='undefined'){global.self=global;}
+            if(typeof window==='undefined'){global.window=global;}
+            if(typeof document==='undefined'){global.document={};} 
+          `,
+        })
+      );
     }
 
         // Exclude server-only modules from client bundle
@@ -96,7 +106,7 @@ const nextConfig: NextConfig = {
         child_process: false,
       };
 
-      // Externalize problematic browser dependencies for server builds
+      // Alias browser-only dependencies to empty modules for server builds
       const browserDependencies = [
         '@solana/wallet-adapter-base',
         '@solana/wallet-adapter-react',
@@ -108,16 +118,16 @@ const nextConfig: NextConfig = {
         'embla-carousel-react',
       ];
 
-             config.externals = config.externals || [];
-       if (Array.isArray(config.externals)) {
-         browserDependencies.forEach(dep => {
-           (config.externals as any[]).push(dep);
-         });
-       }
+      // Create empty module for browser dependencies
+      const emptyModule = require.resolve('./lib/empty-module.js');
+      browserDependencies.forEach(dep => {
+        config.resolve.alias[dep] = emptyModule;
+      });
     }
 
     // Performance optimizations for production
-    if (!dev) {
+    if (!dev && !isServer) {
+      // Only apply chunk splitting for client builds
       config.optimization = {
         ...config.optimization,
         splitChunks: {
