@@ -4,7 +4,7 @@ import { withSentryConfig } from '@sentry/nextjs';
 const nextConfig: NextConfig = {
   // Performance optimizations
   experimental: {
-    optimizeCss: true,
+    optimizeCss: false, // Disabled to prevent critters issues
     optimizePackageImports: [
       '@radix-ui/react-icons',
       'lucide-react',
