@@ -69,13 +69,14 @@ const nextConfig: NextConfig = {
         })
       );
       
-      // Add banner to define globals at runtime
+      // Add banner to define globals at runtime (only for server chunks, not middleware)
       config.plugins.push(
         new webpack.BannerPlugin({
           raw: true,
           entryOnly: false,
+          test: /^(?!middleware).*\.js$/,
           banner: `
-            if(typeof global !== 'undefined') {
+            if(typeof global !== 'undefined' && typeof process !== 'undefined' && process.env.NEXT_RUNTIME !== 'edge') {
               if(!global.self) global.self = global;
               if(!global.window) global.window = {
                 addEventListener: () => {},

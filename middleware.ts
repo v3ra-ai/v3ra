@@ -24,80 +24,91 @@ const ADMIN_ROUTES = [
 const CSRF_PROTECTED_METHODS = ['POST', 'PUT', 'DELETE', 'PATCH'];
 
 export async function middleware(request: NextRequest) {
-  const pathname = request.nextUrl.pathname;
-  const method = request.method;
+  try {
+    const pathname = request.nextUrl.pathname;
+    const method = request.method;
 
-  // Clone the request headers
-  const requestHeaders = new Headers(request.headers);
-  
-  // Check if route requires authentication
-  const requiresAuth = PROTECTED_ROUTES.some(route => {
-    if (route.includes('*')) {
-      const pattern = new RegExp(route.replace('*', '.*'));
-      return pattern.test(pathname);
+    // Skip middleware for static assets and Next.js internals
+    if (
+      pathname.startsWith('/_next/') ||
+      pathname.startsWith('/favicon') ||
+      pathname.includes('.')
+    ) {
+      return NextResponse.next();
     }
-    return pathname.startsWith(route);
-  });
 
-  const requiresAdmin = ADMIN_ROUTES.some(route => pathname.startsWith(route));
-
-  // Handle authentication for protected routes
-  if (requiresAuth || requiresAdmin) {
-    try {
-      const supabase = await createSupabaseServerClient();
-      const { data: { user }, error } = await supabase.auth.getUser();
-
-      if (error || !user) {
-        return NextResponse.json(
-          { error: 'Authentication required' },
-          { status: 401 }
-        );
+    // Clone the request headers
+    const requestHeaders = new Headers(request.headers);
+    
+    // Check if route requires authentication
+    const requiresAuth = PROTECTED_ROUTES.some(route => {
+      if (route.includes('*')) {
+        const pattern = new RegExp(route.replace('*', '.*'));
+        return pattern.test(pathname);
       }
+      return pathname.startsWith(route);
+    });
 
-      // Check admin access
-      if (requiresAdmin) {
-        const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
-        if (!user.email || !adminEmails.includes(user.email)) {
+    const requiresAdmin = ADMIN_ROUTES.some(route => pathname.startsWith(route));
+
+    // Handle authentication for protected routes
+    if (requiresAuth || requiresAdmin) {
+      try {
+        const supabase = await createSupabaseServerClient();
+        const { data: { user }, error } = await supabase.auth.getUser();
+
+        if (error || !user) {
           return NextResponse.json(
-            { error: 'Admin access required' },
-            { status: 403 }
+            { error: 'Authentication required' },
+            { status: 401 }
           );
         }
+
+        // Check admin access
+        if (requiresAdmin) {
+          const adminEmails = process.env.ADMIN_EMAILS?.split(',') || [];
+          if (!user.email || !adminEmails.includes(user.email)) {
+            return NextResponse.json(
+              { error: 'Admin access required' },
+              { status: 403 }
+            );
+          }
+        }
+
+        // Add user ID to headers for downstream use
+        requestHeaders.set('x-user-id', user.id);
+        requestHeaders.set('x-user-email', user.email || '');
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        return NextResponse.json(
+          { error: 'Authentication check failed' },
+          { status: 500 }
+        );
       }
-
-      // Add user ID to headers for downstream use
-      requestHeaders.set('x-user-id', user.id);
-      requestHeaders.set('x-user-email', user.email || '');
-    } catch (error) {
-      return NextResponse.json(
-        { error: 'Authentication check failed' },
-        { status: 500 }
-      );
     }
-  }
 
-  // CSRF Protection for state-changing requests
-  if (pathname.startsWith('/api/') && CSRF_PROTECTED_METHODS.includes(method)) {
-    const csrfToken = request.headers.get('X-CSRF-Token');
-    const cookieToken = request.cookies.get('csrf-token')?.value;
+    // CSRF Protection for state-changing requests
+    if (pathname.startsWith('/api/') && CSRF_PROTECTED_METHODS.includes(method)) {
+      const csrfToken = request.headers.get('X-CSRF-Token');
+      const cookieToken = request.cookies.get('csrf-token')?.value;
 
-    // Skip CSRF check for certain endpoints (e.g., webhooks)
-    const skipCSRF = ['/api/cron/', '/api/headlines/resolve'].some(path => pathname.startsWith(path));
+      // Skip CSRF check for certain endpoints (e.g., webhooks)
+      const skipCSRF = ['/api/cron/', '/api/headlines/resolve'].some(path => pathname.startsWith(path));
 
-    if (!skipCSRF && (!csrfToken || csrfToken !== cookieToken)) {
-      return NextResponse.json(
-        { error: 'Invalid CSRF token' },
-        { status: 403 }
-      );
+      if (!skipCSRF && (!csrfToken || csrfToken !== cookieToken)) {
+        return NextResponse.json(
+          { error: 'Invalid CSRF token' },
+          { status: 403 }
+        );
+      }
     }
-  }
-  
-  // Create response
-  const response = NextResponse.next({
-    request: {
-      headers: requestHeaders,
-    },
-  });
+    
+    // Create response
+    const response = NextResponse.next({
+      request: {
+        headers: requestHeaders,
+      },
+    });
 
   // Add security headers
   response.headers.set('X-Content-Type-Options', 'nosniff');
@@ -124,7 +135,11 @@ export async function middleware(request: NextRequest) {
     response.headers.set('Access-Control-Allow-Credentials', 'true');
   }
 
-  return response;
+    return response;
+  } catch (error) {
+    console.error('Middleware error:', error);
+    return NextResponse.next();
+  }
 }
 
 export const config = {
