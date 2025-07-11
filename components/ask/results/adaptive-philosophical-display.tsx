@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Brain, ChevronDown, ChevronUp } from "lucide-react";
+import { Brain, ChevronDown, ChevronUp, Twitter, Copy, Star } from "lucide-react";
 import { formatDateTimeCards } from "@/utils/date-utils";
+import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { CURRENT_DOMAIN } from "@/lib/constants";
 
 interface PhilosophicalDisplayProps {
   query: string;
@@ -23,6 +25,7 @@ export function AdaptivePhilosophicalDisplay({
 }: PhilosophicalDisplayProps) {
   const formattedDate = formatDateTimeCards(timestamp);
   const [expandedResponses, setExpandedResponses] = useState<Set<number>>(new Set());
+  const { copyToClipboard } = useCopyToClipboard();
 
   const toggleExpanded = (index: number) => {
     const newExpanded = new Set(expandedResponses);
@@ -33,6 +36,29 @@ export function AdaptivePhilosophicalDisplay({
     }
     setExpandedResponses(newExpanded);
   };
+
+  // Generate share text
+  const shareText = useMemo(() => {
+    return encodeURIComponent(
+      `Philosophical question on v3ra: "${query}" - Explored by ${responses.length} AI models #v3ra #philosophy #AI`
+    );
+  }, [query, responses.length]);
+
+  const protocol = CURRENT_DOMAIN.includes("localhost") ? "http://" : "https://";
+  const shareUrl = `${protocol}${CURRENT_DOMAIN}/ask?category=philosophy`;
+
+  const twitterIntentUrl = useMemo(
+    () => `https://x.com/intent/tweet?text=${shareText}&url=${encodeURIComponent(shareUrl)}`,
+    [shareText, shareUrl]
+  );
+
+  const handleCopyLink = useCallback(() => {
+    const fullText = `${query}\n\n${responses.map(r => `${r.profileName}:\n${r.rationale}`).join('\n\n')}`;
+    copyToClipboard(
+      fullText,
+      "Philosophical inquiry copied to clipboard"
+    );
+  }, [query, responses, copyToClipboard]);
   
   return (
     <Card className="w-full sm:w-[90%] lg:w-4xl max-w-4xl mx-auto bg-gradient-to-br from-zinc-900/90 via-zinc-900/95 to-black/90 backdrop-blur-2xl border border-zinc-700/50 hover:border-purple-400/40 transition-all duration-300 hover:shadow-2xl">
@@ -45,7 +71,49 @@ export function AdaptivePhilosophicalDisplay({
             <Brain className="w-4 h-4 mr-1" />
             Philosophical Inquiry
           </Badge>
-          <span className="text-xs text-zinc-500">{formattedDate}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-zinc-500">{formattedDate}</span>
+            <div className="flex items-center text-sm text-zinc-500 space-x-2 ml-2">
+              <div className="relative group">
+                <a
+                  href={twitterIntentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:text-purple-400 transition-colors cursor-pointer inline-flex items-center"
+                  aria-label="Share on X"
+                >
+                  <Twitter className="h-4 w-4" />
+                </a>
+                <div className="absolute top-full right-0 mt-1 px-2 py-1 bg-zinc-800/90 rounded text-xs whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg border border-purple-500/30">
+                  <p className="text-purple-200">Share on X</p>
+                </div>
+              </div>
+              <div className="relative group">
+                <button
+                  onClick={handleCopyLink}
+                  className="hover:text-purple-400 transition-colors cursor-pointer inline-flex items-center"
+                  aria-label="Copy philosophical inquiry"
+                >
+                  <Copy className="h-4 w-4" />
+                </button>
+                <div className="absolute top-full right-0 mt-1 px-2 py-1 bg-zinc-800/90 rounded text-xs whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg border border-purple-500/30">
+                  <p className="text-purple-200">Copy full text</p>
+                </div>
+              </div>
+              <div className="relative group">
+                <button
+                  className="hover:text-yellow-400 transition-colors cursor-pointer inline-flex items-center opacity-50 cursor-not-allowed"
+                  aria-label="Favorite (coming soon)"
+                  disabled
+                >
+                  <Star className="h-4 w-4" />
+                </button>
+                <div className="absolute top-full right-0 mt-1 px-2 py-1 bg-zinc-800/90 rounded text-xs whitespace-nowrap pointer-events-none z-50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 shadow-lg border border-purple-500/30">
+                  <p className="text-purple-200">Favorite (coming soon)</p>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
         
         <h3 className="text-xl font-semibold text-zinc-100 mb-2">{query}</h3>
