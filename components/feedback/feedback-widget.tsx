@@ -53,9 +53,11 @@ const FeedbackWidgetComponent = () => {
       // Gather browser info
       const browserInfo = {
         userAgent: navigator.userAgent,
-        url: window.location.href,
+        platform: navigator.platform || 'Unknown',
+        language: navigator.language || 'en-US',
         screenResolution: `${window.screen.width}x${window.screen.height}`,
-        timestamp: new Date().toISOString(),
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone || 'UTC',
+        url: window.location.href,
       };
 
       // Get CSRF token
@@ -72,20 +74,23 @@ const FeedbackWidgetComponent = () => {
           type,
           message,
           email,
-          userId: user?.id,
           browserInfo,
         }),
         credentials: 'include'
       });
 
-      if (!response.ok) throw new Error("Failed to send feedback");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error('Feedback API error:', errorData);
+        throw new Error(errorData?.error || "Failed to send feedback");
+      }
 
       toast.success("Thank you for your feedback!");
       setIsOpen(false);
       setMessage("");
       setType("bug");
-    } catch {
-      toast.error("Failed to send feedback. Please try again.");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Failed to send feedback. Please try again.");
     } finally {
       setLoading(false);
     }
