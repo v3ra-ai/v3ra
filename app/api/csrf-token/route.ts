@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { randomBytes } from "crypto";
 import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 
-export const GET = rateLimitNormal(async () => {
+export const GET = rateLimitNormal(async (request) => {
   try {
     // Generate a simple CSRF token
     const csrfToken = randomBytes(32).toString("hex");

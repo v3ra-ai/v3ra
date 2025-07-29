@@ -43,9 +43,8 @@ export function withRateLimit(
     // Get identifier from request
     const identifier = getIdentifier(request);
     
-    try {
-      await limiter.check(identifier);
-    } catch (error) {
+    const allowed = await limiter.check(identifier);
+    if (!allowed) {
       return createErrorResponse(
         'Too many requests. Please try again later.',
         ErrorCode.RATE_LIMITED,

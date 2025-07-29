@@ -73,6 +73,11 @@ export function NavbarSitelinks({ isMobile = false }: NavbarSitelinksProps) {
       description: "Ask AI models questions and explore consensus"
     },
     {
+      href: "/ai-versus",
+      label: "AI Versus",
+      description: "Watch AI models compete head-to-head"
+    },
+    {
       href: "/ask/truth-market-simple",
       label: "Truth Market",
       description: "AI-powered prediction market for any question"

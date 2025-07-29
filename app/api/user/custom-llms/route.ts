@@ -7,7 +7,7 @@ import { rateLimitNormal } from "@/lib/middleware/rate-limit";
 // For now, this will reset on server restart
 const userPreferences = new Map<string, string[]>();
 
-export const GET = rateLimitNormal(async () => {
+export const GET = rateLimitNormal(async (request) => {
   try {
     const supabase = await createSupabaseServerClient();
     const { data: { user } } = await supabase.auth.getUser();
