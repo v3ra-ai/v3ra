@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import confetti from 'canvas-confetti'
+// canvas-confetti is browser-only; load it dynamically on the client
+
 
 interface ScratchCardRevealProps {
   reward: number
@@ -15,6 +16,16 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
   const [isScratched, setIsScratched] = useState(false)
   const [scratchProgress, setScratchProgress] = useState(0)
   const [isDrawing, setIsDrawing] = useState(false)
+
+  // Dynamically load canvas-confetti only on the client
+  const confettiRef = useRef<((opts: any) => void) | null>(null)
+  useEffect(() => {
+    import('canvas-confetti')
+      .then((mod) => {
+        confettiRef.current = mod.default ?? mod
+      })
+      .catch(() => {/* ignore */})
+  }, [])
 
   useEffect(() => {
     if (!canvasRef.current || !isOpen) return
@@ -87,8 +98,8 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
     setIsScratched(true)
     
     // Fire confetti for big wins
-    if (reward >= 100) {
-      confetti({
+      if (reward >= 100 && confettiRef.current) {
+      confettiRef.current({
         particleCount: 100,
         spread: 70,
         origin: { y: 0.6 }

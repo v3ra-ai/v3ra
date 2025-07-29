@@ -2,6 +2,9 @@ import type { NextConfig } from 'next';
 import { withSentryConfig } from '@sentry/nextjs';
 
 const nextConfig: NextConfig = {
+  // Ensure we're using the App Router
+  reactStrictMode: true,
+  
   // Performance optimizations
   experimental: {
     optimizeCss: false, // Disabled to prevent critters issues
@@ -17,6 +20,7 @@ const nextConfig: NextConfig = {
       },
     },
   },
+
 
   // Image optimization
   images: {
@@ -51,132 +55,18 @@ const nextConfig: NextConfig = {
 
   // Webpack optimizations
   webpack: (config, { isServer, dev }) => {
+    // Handle HMR issues in development
+    if (dev && !isServer) {
+      config.watchOptions = {
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
+
     config.resolve.alias = {
       ...config.resolve.alias,
       "@": __dirname,
     };
-
-    // Add polyfill for 'self' in server-side builds
-    if (isServer) {
-      const webpack = require('webpack');
-      
-      // Define global variables for server builds
-      config.plugins.push(
-        new webpack.DefinePlugin({
-          'typeof self': JSON.stringify('object'),
-          'typeof window': JSON.stringify('object'),
-          'typeof document': JSON.stringify('object'),
-        })
-      );
-      
-      // Add banner to define globals at runtime (only for server chunks, not middleware)
-      config.plugins.push(
-        new webpack.BannerPlugin({
-          raw: true,
-          entryOnly: false,
-          test: /^(?!middleware).*\.js$/,
-          banner: `
-            if(typeof global !== 'undefined' && typeof process !== 'undefined' && process.env.NEXT_RUNTIME !== 'edge') {
-              if(!global.self) global.self = global;
-              if(!global.window) global.window = {
-                addEventListener: () => {},
-                removeEventListener: () => {},
-                location: { href: '', origin: '', pathname: '' },
-                requestAnimationFrame: (cb) => setTimeout(cb, 16),
-              };
-              if(!global.document) global.document = {
-                querySelector: () => null,
-                querySelectorAll: () => [],
-                getElementById: () => null,
-                getElementsByClassName: () => [],
-                getElementsByTagName: () => [],
-                createElement: () => ({}),
-                createTextNode: () => ({}),
-                addEventListener: () => {},
-                removeEventListener: () => {},
-                body: { appendChild: () => {}, removeChild: () => {} },
-                head: { appendChild: () => {}, removeChild: () => {} },
-              };
-              if(!global.navigator) global.navigator = { userAgent: 'node' };
-            }
-          `,
-        })
-      );
-    }
-
-        // Exclude server-only modules from client bundle
-    if (!isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        dns: false,
-        net: false,
-        tls: false,
-        fs: false,
-        child_process: false,
-      };
-    }
-
-    // Fix 'self is not defined' error by excluding browser-specific dependencies from server bundle
-    if (isServer) {
-      config.resolve.fallback = {
-        ...config.resolve.fallback,
-        dns: false,
-        net: false,
-        tls: false,
-        fs: false,
-        child_process: false,
-      };
-
-      // Alias browser-only dependencies to empty modules for server builds
-      const browserDependencies = [
-        '@solana/wallet-adapter-base',
-        '@solana/wallet-adapter-react',
-        '@solana/wallet-adapter-react-ui',
-        '@solana/wallet-adapter-wallets',
-        '@solana/web3.js',
-        '@tanstack/react-virtual',
-        'framer-motion',
-        'embla-carousel-react',
-        'recharts',
-        'react-window',
-        'react-virtualized-auto-sizer',
-      ];
-
-      // Create empty module for browser dependencies
-      const path = require('path');
-      const emptyModule = path.resolve(__dirname, './lib/empty-module.js');
-      browserDependencies.forEach(dep => {
-        config.resolve.alias[dep] = emptyModule;
-      });
-    }
-
-    // Performance optimizations for production
-    if (!dev && !isServer) {
-      // Only apply chunk splitting for client builds
-      config.optimization = {
-        ...config.optimization,
-        splitChunks: {
-          chunks: 'all',
-          cacheGroups: {
-            vendor: {
-              test: /[\\/]node_modules[\\/]/,
-              name: 'vendors',
-              chunks: 'all',
-            },
-            radix: {
-              test: /[\\/]node_modules[\\/]@radix-ui[\\/]/,
-              name: 'radix',
-              chunks: 'all',
-            },
-            framer: {
-              test: /[\\/]node_modules[\\/]framer-motion[\\/]/,
-              name: 'framer',
-              chunks: 'all',
-            },
-          },
-        },
-      };
-    }
 
     return config;
   },

@@ -33,5 +33,5 @@
     "types/**/*",
     "utils/fetchOpenRouterUsage.js"
   ],
-  "exclude": ["node_modules", "scripts/**/*", "prisma/test-*.ts"]
+  "exclude": ["node_modules", "scripts/**/*", "prisma/test-*.ts", "pages/**/*"]
 }

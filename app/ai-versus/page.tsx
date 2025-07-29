@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Sparkles, Zap, Trophy } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { MODEL_PRESETS, REASONING_MODEL_PRIORITY } from '@/lib/model-presets'
+import { REASONING_MODEL_PRIORITY } from '@/lib/model-presets'
 
 interface AIBattle {
   prompt: string
@@ -47,7 +47,11 @@ export default function AIVersusPage() {
   const selectBattleModels = () => {
     const availableModels = REASONING_MODEL_PRIORITY.slice(0, 6) // Top 6 models
     const shuffled = [...availableModels].sort(() => 0.5 - Math.random())
-    return [shuffled[0], shuffled[1]]
+    // Create objects with id and name properties as expected by the API
+    return [
+      { id: shuffled[0], name: shuffled[0] },
+      { id: shuffled[1], name: shuffled[1] }
+    ]
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
