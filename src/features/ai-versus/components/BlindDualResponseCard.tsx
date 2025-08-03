@@ -210,7 +210,7 @@ export function BlindDualResponseCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="text-center mt-8 text-white/60 text-sm"
+            className="text-center mt-8 text-white text-sm font-medium"
           >
             Choose the better response without knowing which AI wrote it
           </motion.p>
@@ -221,12 +221,12 @@ export function BlindDualResponseCard({
             animate={{ opacity: 1, y: 0 }}
             className="text-center mt-8"
           >
-            <p className="text-white/80 text-lg">
+            <p className="text-white text-lg font-medium">
               You chose <span className="font-bold text-purple-400">
                 {modelAssignment[selectedCard!].name}
               </span>!
             </p>
-            <p className="text-white/60 text-sm mt-2">
+            <p className="text-white/90 text-sm mt-2">
               Revealing models in blind testing helps discover true preferences
             </p>
           </motion.div>
