@@ -4,8 +4,9 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "node scripts/setup-database-url.js && prisma generate && next build",
+    "build": "prisma generate && next build",
     "build:migrate": "node scripts/setup-database-url.js && prisma generate && prisma migrate deploy && next build",
+    "build:safe": "prisma generate && next build",
     "migrate:deploy": "prisma migrate deploy",
     "migrate:status": "prisma migrate status",
     "qa": "ts-node --project tsconfig.scripts.json test/test-qa.ts",
