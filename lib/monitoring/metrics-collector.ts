@@ -36,7 +36,7 @@ class MetricsCollector {
 
     // Log significant metrics
     if (name.includes('error') || name.includes('failure')) {
-      logger.warn({ metric }, 'Error metric recorded');
+      logger.warn('Error metric recorded', { metric });
     }
   }
 

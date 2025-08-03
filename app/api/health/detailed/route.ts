@@ -61,7 +61,7 @@ async function checkDatabase(): Promise<CheckResult> {
       },
     };
   } catch (error) {
-    logger.error({ error }, 'Database health check failed');
+    logger.error('Database health check failed', { error });
     return {
       status: 'unhealthy',
       responseTime: Date.now() - start,
@@ -83,7 +83,7 @@ async function checkSupabase(): Promise<CheckResult> {
       responseTime: Date.now() - start,
     };
   } catch (error) {
-    logger.error({ error }, 'Supabase health check failed');
+    logger.error('Supabase health check failed', { error });
     return {
       status: 'unhealthy',
       responseTime: Date.now() - start,
@@ -115,7 +115,7 @@ async function checkCache(): Promise<CheckResult> {
       details: stats,
     };
   } catch (error) {
-    logger.error({ error }, 'Cache health check failed');
+    logger.error('Cache health check failed', { error });
     return {
       status: 'unhealthy',
       responseTime: Date.now() - start,
@@ -150,7 +150,7 @@ async function checkRedis(): Promise<CheckResult | undefined> {
       },
     };
   } catch (error) {
-    logger.error({ error }, 'Redis health check failed');
+    logger.error('Redis health check failed', { error });
     return {
       status: 'unhealthy',
       responseTime: Date.now() - start,
@@ -220,21 +220,14 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
     };
     
     // Log health check completion
-    logger.info({
-      status,
-      duration: Date.now() - start,
-      checks: Object.entries(checks).reduce((acc, [key, value]) => {
-        acc[key] = value.status;
-        return acc;
-      }, {} as Record<string, string>),
-    }, 'Health check completed');
+    logger.info('Health check completed', {status, duration: Date.now() - start, checks: Object.entries(checks).reduce((acc, [key, value]) => { acc[key] = value.status; return acc; }, {} as Record<string, string>),});
     
     // Set appropriate status code
     const statusCode = status === 'healthy' ? 200 : status === 'degraded' ? 200 : 503;
     
     return NextResponse.json(health, { status: statusCode });
   } catch (error) {
-    logger.error({ error }, 'Health check failed');
+    logger.error('Health check failed', { error });
     
     return NextResponse.json(
       {

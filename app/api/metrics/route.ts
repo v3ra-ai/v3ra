@@ -81,7 +81,7 @@ export const GET = rateLimitModerate(async (request: NextRequest) => {
     });
     
   } catch (error) {
-    logger.error({ error }, 'Failed to retrieve metrics');
+    logger.error('Failed to retrieve metrics', { error });
     return NextResponse.json(
       { error: 'Failed to retrieve metrics' },
       { status: 500 }

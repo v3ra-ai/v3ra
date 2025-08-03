@@ -23,14 +23,14 @@ if (process.env.REDIS_URL) {
     });
     
     redis.on('error', (err) => {
-      logger.error({ error: err.message }, 'Redis error');
+      logger.error('Redis error', { error: err.message });
     });
     
     redis.on('connect', () => {
       logger.info('Redis connected for rate limiting');
     });
   } catch (error) {
-    logger.warn({ error }, 'Failed to initialize Redis, falling back to in-memory rate limiting');
+    logger.warn('Failed to initialize Redis, falling back to in-memory rate limiting', { error });
     redis = null;
   }
 }
@@ -152,7 +152,7 @@ export function withRateLimit(
       }
     } catch (error) {
       // Log error but don't block the request
-      logger.error({ error }, 'Rate limiting error, allowing request');
+      logger.error('Rate limiting error, allowing request', { error });
       return handler(request);
     }
   };
@@ -177,7 +177,7 @@ export async function resetRateLimit(key: string, path: string): Promise<void> {
     await rateLimiter.delete(key);
     logRateLimitEvent('reset', key, config, { path });
   } catch (error) {
-    logger.error({ error, key, path }, 'Failed to reset rate limit');
+    logger.error('Failed to reset rate limit', { error, key, path });
   }
 }
 

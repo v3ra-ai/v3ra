@@ -127,18 +127,18 @@ export function logRateLimitEvent(
   metadata?: Record<string, any>
 ) {
   if (event === 'blocked') {
-    logger.warn({
+    logger.warn('Rate limit exceeded', {
       event,
       key,
       config,
       ...metadata
-    }, 'Rate limit exceeded');
+    });
   } else if (process.env.NODE_ENV === 'development') {
-    logger.debug({
+    logger.debug('Rate limit event', {
       event,
       key,
       config,
       ...metadata
-    }, 'Rate limit event');
+    });
   }
 }

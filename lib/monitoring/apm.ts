@@ -16,11 +16,11 @@ export const APM = {
     
     // Log slow APIs
     if (duration > 1000) {
-      logger.warn({
+      logger.warn('Slow API response', {
         endpoint,
         duration,
         status,
-      }, 'Slow API response');
+      });
     }
   },
 
@@ -37,11 +37,11 @@ export const APM = {
     
     // Log slow queries
     if (duration > 100) {
-      logger.warn({
+      logger.warn('Slow database query', {
         operation,
         table,
         duration,
-      }, 'Slow database query');
+      });
     }
   },
 
@@ -67,11 +67,11 @@ export const APM = {
     }
     
     // Also send to logger for aggregation
-    logger.info({
+    logger.info('Business metric', {
       metric,
       value,
       unit,
-    }, 'Business metric');
+    });
   },
 
   // Track user actions
@@ -119,11 +119,11 @@ export const APM = {
         throw error;
       } finally {
         const duration = Date.now() - startTime;
-        logger.info({
+        logger.info('Operation completed', {
           operation: name,
           duration,
           ...metadata,
-        }, 'Operation completed');
+        });
       }
     });
   },

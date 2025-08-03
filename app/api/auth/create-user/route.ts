@@ -10,18 +10,18 @@ export const POST = rateLimitStrict(async (request: Request) => {
     const { userId, email, username } = await request.json();
 
     if (!userId || !email) {
-      logger.warn({ userId, email }, "Missing required fields");
+      logger.warn('Missing required fields', { userId, email });
       return NextResponse.json(
         { success: false, error: "Missing required fields" },
         { status: 400 }
       );
     }
 
-    logger.info({ userId, email, username }, "Creating or getting user");
+    logger.info('Creating or getting user', { userId, email, username });
     const result = await createOrGetUser(userId, email, username);
     
     if (!result.success) {
-      logger.error({ userId, error: result.error }, "Failed to create/get user");
+      logger.error('Failed to create/get user', { userId, error: result.error });
       
       // Handle duplicate user error
       if (result.error?.includes("already exists")) {
@@ -38,14 +38,14 @@ export const POST = rateLimitStrict(async (request: Request) => {
       );
     }
     
-    logger.info({ userId }, "User created/retrieved successfully");
+    logger.info('User created/retrieved successfully', { userId });
     return NextResponse.json({ success: true, user: result.user });
   } catch (error) {
     // Log the full error
-    logger.error({ 
+    logger.error('Failed to create/get user', { 
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
-    }, "Failed to create/get user");
+    });
 
     // Handle duplicate user error
     if (error instanceof Error && error.message.includes("already exists")) {
