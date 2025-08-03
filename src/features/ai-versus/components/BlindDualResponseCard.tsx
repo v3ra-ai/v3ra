@@ -157,7 +157,7 @@ export function BlindDualResponseCard({
           <EyeOff className="w-5 h-5 text-purple-400" />
           <span className="text-sm text-purple-400 font-medium">Blind Testing Mode</span>
         </div>
-        <p className="text-xl text-white/80 max-w-3xl mx-auto">
+        <p className="text-xl text-white font-medium max-w-3xl mx-auto px-4">
           "{prompt}"
         </p>
       </motion.div>
@@ -402,9 +402,11 @@ function BlindResponseCard({
               <div className="h-4 bg-white/10 rounded animate-pulse w-4/6" />
             </div>
           ) : (
-            <p className="text-zinc-200 leading-relaxed whitespace-pre-wrap">
-              {response}
-            </p>
+            <div className="max-h-[40vh] md:max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pr-2">
+              <p className="text-zinc-200 leading-relaxed whitespace-pre-wrap">
+                {response}
+              </p>
+            </div>
           )}
         </div>
 

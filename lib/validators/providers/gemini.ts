@@ -163,7 +163,13 @@ export class GeminiValidator implements AIValidator {
       // Get API key
       const apiKey = await this.getApiKey();
       if (!apiKey) {
-        throw new Error("No API key available for Gemini");
+        logger.error("No Gemini API key found. Check GEMINI_API_KEY environment variable.");
+        throw new Error("No API key available for Gemini. Please check GEMINI_API_KEY is set.");
+      }
+      
+      // Validate API key format
+      if (!apiKey.startsWith('AIza')) {
+        logger.warn('Gemini API key may be invalid - should start with AIza');
       }
 
       // Initialize the Google Generative AI client
@@ -276,6 +282,12 @@ export class GeminiValidator implements AIValidator {
         ) {
           message = String((apiError as { message: string }).message);
         }
+        
+        // Check for 404 errors which usually mean model not found
+        if (message.includes("404") || message.includes("Not Found")) {
+          message = `Model ${modelName} not found. Try gemini-1.5-flash or gemini-1.5-pro`;
+        }
+        
         throw new Error(`Gemini API error: ${message}`);
       }
     } catch (error) {
