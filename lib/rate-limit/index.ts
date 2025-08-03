@@ -64,16 +64,33 @@ function getRateLimiter(key: string, config: RateLimitConfig): RateLimiterRedis 
 
 // Extract identifier from request
 function getIdentifier(request: NextRequest): { key: string; ip: string; userId?: string } {
-  // Get IP address
+  // Get IP address - handle various proxy configurations
   const forwardedFor = request.headers.get('x-forwarded-for');
   const realIp = request.headers.get('x-real-ip');
-  const ip = forwardedFor?.split(',')[0].trim() || realIp || 'unknown';
-
+  const cfConnectingIp = request.headers.get('cf-connecting-ip');
+  const vercelForwardedFor = request.headers.get('x-vercel-forwarded-for');
+  
+  let ip = 'unknown';
+  
+  // Try different headers in order of preference
+  if (cfConnectingIp) {
+    ip = cfConnectingIp;
+  } else if (vercelForwardedFor) {
+    ip = vercelForwardedFor.split(',')[0].trim();
+  } else if (forwardedFor) {
+    // x-forwarded-for can contain multiple IPs
+    ip = forwardedFor.split(',')[0].trim();
+  } else if (realIp) {
+    ip = realIp;
+  }
+  
   // Get user ID if available
   const userId = request.headers.get('x-user-id') ?? undefined;
 
   // Use user ID if available, otherwise use IP
-  const key = userId || ip;
+  // Include path in key to prevent cross-endpoint rate limit sharing
+  const path = new URL(request.url).pathname;
+  const key = userId ? `user:${userId}` : `ip:${ip}:${path}`;
 
   return { key, ip, userId };
 }

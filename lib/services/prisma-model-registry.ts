@@ -32,6 +32,50 @@ class PrismaModelRegistry {
   private cacheExpiryMs = 5 * 60 * 1000; // 5 minutes
   private activeModelsCache: AIModel[] = [];
 
+  // Fallback models if database is not available
+  private fallbackModels: AIModel[] = [
+    {
+      id: 'openai/gpt-4o',
+      model_path: 'openai/gpt-4o',
+      name: 'GPT-4o',
+      provider: 'openai',
+      category: 'premium',
+      is_active: true
+    },
+    {
+      id: 'anthropic/claude-3.5-sonnet:beta',
+      model_path: 'anthropic/claude-3.5-sonnet:beta',
+      name: 'Claude 3.5 Sonnet',
+      provider: 'anthropic',
+      category: 'premium',
+      is_active: true
+    },
+    {
+      id: 'google/gemini-pro-1.5',
+      model_path: 'google/gemini-pro-1.5',
+      name: 'Gemini Pro 1.5',
+      provider: 'google',
+      category: 'premium',
+      is_active: true
+    },
+    {
+      id: 'meta-llama/llama-3-70b-instruct',
+      model_path: 'meta-llama/llama-3-70b-instruct',
+      name: 'Llama 3 70B',
+      provider: 'meta',
+      category: 'open-source',
+      is_active: true
+    },
+    {
+      id: 'mistralai/mixtral-8x7b-instruct',
+      model_path: 'mistralai/mixtral-8x7b-instruct',
+      name: 'Mixtral 8x7B',
+      provider: 'mistral',
+      category: 'open-source',
+      is_active: true
+    }
+  ];
+
   private constructor() {}
 
   static getInstance(): PrismaModelRegistry {
@@ -48,6 +92,16 @@ class PrismaModelRegistry {
 
   async getActiveModels(): Promise<AIModel[]> {
     await this.ensureCacheValid();
+    
+    // If cache is still empty, use fallback models
+    if (this.activeModelsCache.length === 0) {
+      logger.warn('No models in cache, initializing with fallback models');
+      this.activeModelsCache = [...this.fallbackModels];
+      this.fallbackModels.forEach(model => {
+        this.modelCache.set(model.model_path, model);
+      });
+    }
+    
     return this.activeModelsCache;
   }
 
@@ -174,8 +228,19 @@ class PrismaModelRegistry {
       }
 
       this.lastCacheUpdate = new Date();
+      logger.info('Model cache refreshed', { modelCount: this.activeModelsCache.length });
     } catch (error) {
-      logger.error('Error refreshing model cache', { error });
+      logger.error('Error refreshing model cache, using fallback models', { error });
+      
+      // Use fallback models if database is not available
+      this.modelCache.clear();
+      this.activeModelsCache = [...this.fallbackModels];
+      
+      this.fallbackModels.forEach(model => {
+        this.modelCache.set(model.model_path, model);
+      });
+      
+      this.lastCacheUpdate = new Date();
     }
   }
 
