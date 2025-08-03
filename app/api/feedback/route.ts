@@ -27,11 +27,11 @@ const feedbackSchema = z.object({
 });
 
 export const POST = rateLimitNormal(withCSRFProtection(async (request: NextRequest) => {
-  logger.debug("Request received", null, { context: "Feedback API" });
+  logger.debug("Request received", { context: "Feedback API" });
   
   // Check environment
   if (!process.env.DATABASE_URL) {
-    logger.error("DATABASE_URL not configured", null, { context: "Feedback API" });
+    logger.error("DATABASE_URL not configured", { context: "Feedback API" });
     return NextResponse.json(
       { error: "Server configuration error" },
       { status: 500 }
@@ -54,7 +54,7 @@ export const POST = rateLimitNormal(withCSRFProtection(async (request: NextReque
     }
     
     const { type, message, email, browserInfo } = validationResult.data;
-    logger.debug("Request body:", { type, email, hasMessage: !!message }, { context: "Feedback API" });
+    logger.debug("Request body:", { type, email, hasMessage: !!message, context: "Feedback API" });
 
     // First, ensure we have a system user for anonymous feedback
     let systemUser = await prisma.user.findFirst({
@@ -62,7 +62,7 @@ export const POST = rateLimitNormal(withCSRFProtection(async (request: NextReque
     });
 
     if (!systemUser) {
-      logger.debug("Creating system user for anonymous feedback", null, { context: "Feedback API" });
+      logger.debug("Creating system user for anonymous feedback", { context: "Feedback API" });
       systemUser = await prisma.user.create({
         data: {
           id: crypto.randomUUID(),
@@ -93,11 +93,11 @@ export const POST = rateLimitNormal(withCSRFProtection(async (request: NextReque
     };
 
     // Save to database
-    logger.debug("Creating feedback record...", null, { context: "Feedback API" });
+    logger.debug("Creating feedback record...", { context: "Feedback API" });
     const feedback = await prisma.feedback.create({
       data: feedbackData,
     });
-    logger.debug("Feedback created:", feedback.id, { context: "Feedback API" });
+    logger.debug("Feedback created:", { feedbackId: feedback.id, context: "Feedback API" });
 
     // Send to Slack if webhook is configured
     const slackWebhookUrl = process.env.SLACK_FEEDBACK_WEBHOOK_URL;
@@ -113,7 +113,7 @@ export const POST = rateLimitNormal(withCSRFProtection(async (request: NextReque
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    logger.error('Feedback submission error', error);
+    logger.error('Feedback submission error', { error });
     
     // Return more detailed error in development
     if (process.env.NODE_ENV === "development") {

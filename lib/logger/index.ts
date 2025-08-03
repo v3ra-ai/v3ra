@@ -78,3 +78,6 @@ export const logger = new Logger();
 
 // API logger instance for server-side logging
 export const apiLogger = new Logger({ namespace: 'api' });
+
+// Points logger instance for points-related operations
+export const pointsLogger = new Logger({ namespace: 'points' });
