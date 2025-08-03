@@ -57,17 +57,17 @@ export async function getBlindTestComparison(
     const sessionId = uuidv4();
     
     // For blind testing, we want the AI to respond to the query, not fact-check it
-    // So we'll use the rationale as the main response
+    // Get responses from both models - no fact-checking limitation
     const [response1, response2] = await Promise.all([
       validator1.validate({
         statement: queryText,
-        context: '',
-        queryMode: 'fact-check'
+        context: ''
+        // Remove queryMode to allow any type of question
       }),
       validator2.validate({
         statement: queryText,
-        context: '',
-        queryMode: 'fact-check'
+        context: ''
+        // Remove queryMode to allow any type of question
       })
     ]);
 

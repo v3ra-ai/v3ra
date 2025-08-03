@@ -44,6 +44,8 @@ export const CSRF_CONFIG = {
     process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : null,
     process.env.NODE_ENV === 'development' ? 'http://localhost:3001' : null,
     process.env.NEXT_PUBLIC_SITE_URL,
+    // Add Vercel preview URLs
+    process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null,
   ].filter(Boolean) as string[],
 } as const;
 

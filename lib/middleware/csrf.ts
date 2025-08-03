@@ -33,7 +33,10 @@ export async function validateCSRF(request: NextRequest): Promise<void> {
       origin === allowed || origin.startsWith(allowed)
     );
     
-    if (!isAllowedOrigin) {
+    // Also allow Vercel preview URLs
+    const isVercelPreview = origin.includes('.vercel.app');
+    
+    if (!isAllowedOrigin && !isVercelPreview) {
       throw new Error(`Invalid origin: ${origin}`);
     }
   }
