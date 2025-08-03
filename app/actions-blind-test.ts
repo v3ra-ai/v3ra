@@ -14,10 +14,20 @@ export async function getBlindTestComparison(
 ): Promise<VoteResult | { error: string }> {
   try {
     // Get a pair of models based on the strategy
-    const modelPair = await prismaModelRegistry.getRandomPair(pairingStrategy);
-    
-    if (!modelPair) {
-      return { error: 'Unable to find suitable AI models for comparison' };
+    let modelPair;
+    try {
+      modelPair = await prismaModelRegistry.getRandomPair(pairingStrategy);
+    } catch (err) {
+      logger.warn('Model registry unavailable, falling back to static models', { err });
+    }
+
+    if (!modelPair || modelPair.length < 2) {
+      // Hard-coded fallback pair if DB or registry is unavailable
+      modelPair = [
+        { name: 'GPT-4o', provider: 'OpenAI', model_path: 'openai/gpt-4o' },
+        { name: 'Claude 3 Sonnet', provider: 'Anthropic', model_path: 'anthropic/claude-3-sonnet' }
+      ];
+      logger.info('Using static fallback model pair for blind test');
     }
 
     const [model1, model2] = modelPair;
