@@ -77,7 +77,7 @@ export async function GET() {
         }
       },
       tokenInfo,
-      recommendations: []
+      recommendations: [] as string[]
     };
 
     // Add recommendations based on the state
