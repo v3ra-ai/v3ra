@@ -146,6 +146,7 @@ export class ModelManager {
     if (model.use_openrouter) {
       logger.info('Using OpenRouter for model', { model: model.name, provider: model.provider });
       return new OpenRouterValidator({
+        id: model.model_path,
         modelName: model.model_path,
         name: model.name,
         active: true
@@ -157,6 +158,7 @@ export class ModelManager {
       case 'OpenAI':
         logger.info('Using OpenAI direct for model', { model: model.name });
         return new OpenAIValidator({
+          id: model.model_path,
           modelName: modelName,
           name: model.name,
           active: true
@@ -165,6 +167,7 @@ export class ModelManager {
       case 'Anthropic':
         logger.info('Using Anthropic direct for model', { model: model.name });
         return new AnthropicValidator({
+          id: model.model_path,
           modelName: modelName,
           name: model.name,
           active: true
@@ -173,6 +176,7 @@ export class ModelManager {
       case 'Google':
         logger.info('Using Google/Gemini direct for model', { model: model.name });
         return new GeminiValidator({
+          id: model.model_path,
           modelName: modelName,
           name: model.name,
           active: true
@@ -182,6 +186,7 @@ export class ModelManager {
         // All other providers go through OpenRouter
         logger.info('Using OpenRouter for provider', { model: model.name, provider: model.provider });
         return new OpenRouterValidator({
+          id: model.model_path,
           modelName: model.model_path,
           name: model.name,
           active: true
