@@ -29,11 +29,7 @@ export async function GET() {
     const cookieDebugInfo = authCookies.map(c => ({
       name: c.name,
       valueLength: c.value?.length || 0,
-      valuePreview: c.value ? c.value.substring(0, 20) + '...' : 'empty',
-      isHttpOnly: c.httpOnly,
-      sameSite: c.sameSite,
-      secure: c.secure,
-      path: c.path
+      valuePreview: c.value ? c.value.substring(0, 20) + '...' : 'empty'
     }));
 
     // 5. Check if we can decode the JWT token
