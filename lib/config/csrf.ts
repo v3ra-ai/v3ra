@@ -24,7 +24,7 @@ export const CSRF_CONFIG = {
     name: 'csrf-token',
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
-    sameSite: 'strict' as const,
+    sameSite: 'lax' as const, // Changed from 'strict' to 'lax' to allow cookies on navigation
     path: '/',
     maxAge: 60 * 60 * 24, // 24 hours
   },

@@ -11,6 +11,7 @@ import { ErrorDisplay } from "@/components/error-display";
 import { AILoadingSpinner } from "@/components/ai-loading-spinner";
 import { toast } from "sonner";
 import { logger } from "@/lib/utils/client-logger";
+import { triggerPointsExplosion } from "@/components/effects/points-explosion";
 
 interface DualResponseResultsProps {
   philosophyMode?: boolean;
@@ -169,7 +170,10 @@ export default function DualResponseResults({ philosophyMode = false }: DualResp
     const pointsElement = document.querySelector('[data-points-display]');
     if (pointsElement) {
       const rect = pointsElement.getBoundingClientRect();
-      showPointsAnimation(rect.x + rect.width / 2, rect.y, scratchReward);
+      triggerPointsExplosion(scratchReward, {
+        clientX: rect.x + rect.width / 2,
+        clientY: rect.y
+      } as MouseEvent);
     }
   };
 

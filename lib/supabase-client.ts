@@ -33,7 +33,16 @@ const cookieStorage = {
       .split('; ')
       .find((row) => row.startsWith(`${key}=`))
       ?.split('=')[1];
-    return value || null;
+    
+    // Decode URI component if the value exists
+    if (value) {
+      try {
+        return decodeURIComponent(value);
+      } catch {
+        return value;
+      }
+    }
+    return null;
   },
   setItem(key: string, value: string) {
     if (typeof window === 'undefined') {
@@ -41,8 +50,9 @@ const cookieStorage = {
     }
     // Set secure cookies in production
     const isProduction = window.location.protocol === 'https:';
+    const encodedValue = encodeURIComponent(value);
     const cookieOptions = [
-      `${key}=${value}`,
+      `${key}=${encodedValue}`,
       'path=/',
       'max-age=31536000',
       'SameSite=Lax', // Allow cookies on navigation from external sites
@@ -85,6 +95,10 @@ export async function createSupabaseServerClient() {
       cookies: {
         getAll() {
           const cookiesList = cookieStore.getAll().map(({ name, value }) => ({ name, value }));
+          logger.debug('Getting all cookies for auth', { 
+            count: cookiesList.length,
+            authCookies: cookiesList.filter(c => c.name.includes('sb-')).map(c => c.name)
+          });
           return cookiesList;
         },
         setAll(cookiesToSet) {
@@ -96,11 +110,13 @@ export async function createSupabaseServerClient() {
                 httpOnly: true,
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax' as const,
+                path: '/', // Ensure path is set
               };
+              logger.debug('Setting cookie', { name, hasValue: !!value, options: secureOptions });
               cookieStore.set({ name, value, ...secureOptions });
             });
-          } catch {
-            // Handle cookie setting error silently
+          } catch (error) {
+            logger.error('Failed to set cookies', error);
           }
         },
       },

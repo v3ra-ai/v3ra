@@ -44,10 +44,16 @@ export default function LoginClient() {
         throw new Error("Password must be at least 6 characters.");
       }
 
+      // Get the current URL for redirect
+      const redirectTo = `${window.location.origin}/auth/callback`;
+      
       // Sign in with email and password
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
+        options: {
+          emailRedirectTo: redirectTo,
+        }
       });
 
       if (error) {
@@ -59,13 +65,35 @@ export default function LoginClient() {
         throw new Error("No user returned from login.");
       }
 
-      // Store the return URL if provided
-      if (returnTo) {
-        localStorage.setItem("authReturnTo", returnTo);
+      // Create or get user via API route directly
+      logger.info("Creating/getting user in database", { userId: data.user.id });
+      
+      const response = await fetch("/api/auth/create-user", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          userId: data.user.id,
+          email: data.user.email || "",
+          username: data.user.user_metadata?.username || data.user.email?.split("@")[0],
+        }),
+      });
+
+      const result = await response.json();
+
+      if (!result.success && result.code !== "USER_EXISTS") {
+        throw new Error(result.error || "Failed to create user");
       }
 
-      // Redirect to callback to handle user creation/retrieval
-      router.push("/auth/callback");
+      logger.info("Login successful, redirecting", { context: "login" });
+      
+      // Redirect to the return URL or /ask
+      if (returnTo) {
+        router.push(returnTo);
+      } else {
+        router.push("/ask");
+      }
     } catch (err) {
       const error = err as Error & { code?: string; status?: number };
 

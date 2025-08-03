@@ -130,7 +130,7 @@ class PrismaModelRegistry {
 
       const model1: AIModel = {
         id: model1Data.id,
-        model_path: model1Data.id, // The function uses 'id' for model_path
+        model_path: model1Data.model_path || model1Data.id, // Use model_path if available, otherwise id
         name: model1Data.name,
         provider: model1Data.provider,
         category: model1Data.category,
@@ -139,7 +139,7 @@ class PrismaModelRegistry {
 
       const model2: AIModel = {
         id: model2Data.id,
-        model_path: model2Data.id, // The function uses 'id' for model_path
+        model_path: model2Data.model_path || model2Data.id, // Use model_path if available, otherwise id
         name: model2Data.name,
         provider: model2Data.provider,
         category: model2Data.category,

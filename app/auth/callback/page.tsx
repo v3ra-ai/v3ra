@@ -82,16 +82,9 @@ export default function AuthCallback() {
       // Original OAuth/refresh flow
       while (attempts < maxAttempts) {
         try {
+          logger.info("Attempting to get session", { attempt: attempts + 1, context: "auth-callback" });
 
-          // Refresh session
-          const { error: refreshError } = await supabase.auth.refreshSession();
-
-          if (refreshError) {
-            throw new Error(refreshError.message || "Failed to refresh session.");
-          }
-
-
-          // Get session
+          // Get session first (don't refresh if we don't have one)
           const { data, error } = await supabase.auth.getSession();
 
           if (error) {
@@ -101,7 +94,56 @@ export default function AuthCallback() {
 
           const user = data.session?.user;
           if (!user) {
-            throw new Error("No user found in session.");
+            logger.warn("No session found, checking for auth code", { context: "auth-callback" });
+            
+            // Check if we're coming from a login redirect
+            const code = urlParams.get('code');
+            if (code) {
+              logger.info("Found auth code, exchanging for session", { context: "auth-callback" });
+              const { data: exchangeData, error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+              
+              if (exchangeError) {
+                throw new Error(exchangeError.message || "Failed to exchange code for session");
+              }
+              
+              if (!exchangeData.session?.user) {
+                throw new Error("No user in exchanged session");
+              }
+              
+              // Use the user from the exchanged session
+              const exchangedUser = exchangeData.session.user;
+              
+              // Create or get user via API route
+              const response = await fetch("/api/auth/create-user", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  userId: exchangedUser.id,
+                  email: exchangedUser.email || "",
+                  username: exchangedUser.user_metadata?.username || exchangedUser.email?.split("@")[0],
+                }),
+              });
+
+              const result = await response.json();
+
+              if (!result.success && result.code !== "USER_EXISTS") {
+                throw new Error(result.error || "Failed to create user");
+              }
+
+              // Check for stored return URL
+              const returnTo = localStorage.getItem("authReturnTo");
+              if (returnTo) {
+                localStorage.removeItem("authReturnTo");
+                router.push(returnTo);
+              } else {
+                router.push("/ask");
+              }
+              return;
+            }
+            
+            throw new Error("Auth session missing!");
           }
 
           // Create or get user via API route

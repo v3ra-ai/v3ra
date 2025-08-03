@@ -1,8 +1,8 @@
 'use server';
 
 import { v4 as uuidv4 } from 'uuid';
-import { validatorRegistry } from '@/lib/validators/registry';
 import { prismaModelRegistry } from '@/lib/services/prisma-model-registry';
+import { modelManager } from '@/lib/services/model-manager';
 import { createLogger } from '@/lib/logger';
 import type { VoteResult } from '@/lib/types';
 
@@ -32,11 +32,24 @@ export async function getBlindTestComparison(
 
     const [model1, model2] = modelPair;
     
-    // Create validators for these models
-    const validator1 = await validatorRegistry.getValidator(model1.model_path);
-    const validator2 = await validatorRegistry.getValidator(model2.model_path);
+    // Get validators dynamically from model manager
+    logger.info('Getting validators for models', { 
+      model1: model1.model_path, 
+      model2: model2.model_path 
+    });
+    
+    const [validator1, validator2] = await modelManager.getValidators([
+      model1.model_path,
+      model2.model_path
+    ]);
     
     if (!validator1 || !validator2) {
+      logger.error('Failed to get validators', { 
+        model1: model1.model_path, 
+        model2: model2.model_path,
+        validator1: !!validator1,
+        validator2: !!validator2
+      });
       return { error: 'Unable to initialize validators for selected models' };
     }
 
@@ -66,18 +79,20 @@ export async function getBlindTestComparison(
       consensusValue: null,
       validatorResponses: [
         {
-          id: uuidv4(),
+          id: model1.model_path || uuidv4(), // Use model_path as ID for blind testing
           profileName: model1.name,
           provider: model1.provider,
           vote: 'RESPONSE', // For blind testing, this isn't a YES/NO vote
-          rationale: response1.rationale // This is the actual AI response
+          rationale: response1.rationale, // This is the actual AI response
+          confidence: response1.confidence
         },
         {
-          id: uuidv4(),
+          id: model2.model_path || uuidv4(), // Use model_path as ID for blind testing
           profileName: model2.name,
           provider: model2.provider,
           vote: 'RESPONSE', // For blind testing, this isn't a YES/NO vote
-          rationale: response2.rationale // This is the actual AI response
+          rationale: response2.rationale, // This is the actual AI response
+          confidence: response2.confidence
         }
       ],
       votingResult: {
