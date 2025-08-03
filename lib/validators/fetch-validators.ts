@@ -1,4 +1,7 @@
 import { Validator } from "@/lib/types";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('fetch-validators');
 
 export async function fetchValidators(): Promise<Validator[]> {
   let apiUrl: string;
@@ -23,16 +26,16 @@ export async function fetchValidators(): Promise<Validator[]> {
     });
 
     if (!res.ok) {
-      console.error(`[fetchValidators] Failed to fetch validators: ${res.status} ${res.statusText}`);
+      logger.error('Failed to fetch validators', { status: res.status, statusText: res.statusText });
       const errorText = await res.text();
-      console.error("[fetchValidators] Error response:", errorText);
+      logger.error("[fetchValidators] Error response:", errorText);
       return [];
     }
 
     const data = await res.json();
     validators = Array.isArray(data) ? data : (data.validators || []);
   } catch (error) {
-    console.error("[fetchValidators] Error fetching validators:", error);
+    logger.error("[fetchValidators] Error fetching validators:", error);
   }
 
   return validators;

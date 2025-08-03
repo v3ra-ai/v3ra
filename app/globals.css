@@ -3,6 +3,18 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* V3RA Brand Colors */
+:root {
+  --v3ra-purple: #a855f7;
+  --v3ra-pink: #ec4899;
+  --v3ra-purple-light: #c084fc;
+  --v3ra-pink-light: #f472b6;
+  
+  /* Gradient */
+  --v3ra-gradient: linear-gradient(135deg, var(--v3ra-purple) 0%, var(--v3ra-pink) 100%);
+  --v3ra-gradient-hover: linear-gradient(135deg, var(--v3ra-purple-light) 0%, var(--v3ra-pink-light) 100%);
+}
+
 /* Custom animations */
 @keyframes slide-in {
   from {
@@ -17,6 +29,31 @@
 
 .animate-slide-in {
   animation: slide-in 0.3s ease-out;
+}
+
+@keyframes animate-gradient {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: animate-gradient 3s ease infinite;
+}
+
+/* Neon glow pulse animation */
+@keyframes neon-pulse {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(236, 72, 153, 0.8)) drop-shadow(0 0 16px rgba(168, 85, 247, 0.6));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(236, 72, 153, 1)) drop-shadow(0 0 24px rgba(168, 85, 247, 0.8));
+  }
+}
+
+.neon-glow {
+  animation: neon-pulse 2s ease-in-out infinite;
 }
 
 @theme inline {

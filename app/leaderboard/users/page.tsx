@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { Navbar } from "@/components/shared/navbar";
 import { supabase } from "@/lib/supabase-client";
+import { logger } from "@/lib/utils/client-logger";
 
 interface UserStats {
   userId: string;
@@ -65,7 +66,7 @@ export default function UserLeaderboardPage() {
         }
       }
     } catch (error) {
-      console.error('Failed to load user points:', error);
+      logger.error('Failed to load user points', error);
     }
   };
 
@@ -77,7 +78,7 @@ export default function UserLeaderboardPage() {
         setCurrentUserId(data.userId);
       }
     } catch (error) {
-      console.error('Failed to get current user:', error);
+      logger.error('Failed to get current user', error);
     }
   };
 
@@ -90,10 +91,10 @@ export default function UserLeaderboardPage() {
         setLeaderboard(data.leaderboard);
         setSummary(data.summary);
       } else {
-        console.error('Failed to load leaderboard');
+        logger.error('Failed to load leaderboard');
       }
     } catch (error) {
-      console.error('Failed to load leaderboard:', error);
+      logger.error('Failed to load leaderboard', error);
     } finally {
       setIsLoading(false);
     }

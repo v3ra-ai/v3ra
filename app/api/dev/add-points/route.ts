@@ -2,6 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { prisma } from "@/lib/db/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('dev-add-points');
 
 export async function POST(request: NextRequest) {
   // Only allow in development
@@ -72,7 +75,7 @@ export async function POST(request: NextRequest) {
     await prisma.pointsTransaction.create({
       data: {
         userId: user.id,
-        type: 'DEV_GRANT',
+        type: 'DAILY_BONUS',
         amount: new Decimal(amount),
         balance: userPoints.balance,
         description: `Development testing grant: ${amount} V3RA`
@@ -87,7 +90,7 @@ export async function POST(request: NextRequest) {
     });
     
   } catch (error) {
-    console.error("Dev add points error:", error);
+    logger.error('Dev add points error', error);
     return NextResponse.json(
       { error: "Failed to add points" },
       { status: 500 }

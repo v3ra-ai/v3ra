@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/client-logger";
+
 import { useEffect, useRef, useCallback } from "react";
 import { PRELOAD_THRESHOLD } from "@/lib/constants";
 
@@ -31,7 +33,7 @@ export function InfiniteScrollContainer({
       const [entry] = entries;
       
       if (entry.isIntersecting && hasMore && !loadingRef.current && !isLoadingMore) {
-        console.log("[InfiniteScroll] Sentinel visible, loading more...");
+        logger.debug("Sentinel visible, loading more", { context: "infinite-scroll" });
         loadingRef.current = true;
         await loadMore();
         loadingRef.current = false;

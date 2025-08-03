@@ -2,17 +2,27 @@
 
 import { useEffect } from 'react';
 import { performanceMonitor } from '@/lib/utils/performance';
+import { logger } from '@/lib/utils/client-logger';
 
 export function ClientScripts() {
   useEffect(() => {
-    // Service Worker Registration
-    if ('serviceWorker' in navigator) {
+    if (process.env.NODE_ENV !== 'production' && 'serviceWorker' in navigator) {
+      // Ensure no stale SW interferes during development
+      navigator.serviceWorker.getRegistrations().then((regs) => {
+        regs.forEach((r) => r.unregister());
+      });
+      // Also clear caches created by SW
+      caches.keys().then((keys) => keys.forEach((k) => caches.delete(k)));
+    }
+
+    // Service Worker Registration (only in production)
+    if (process.env.NODE_ENV === 'production' && 'serviceWorker' in navigator) {
       navigator.serviceWorker.register('/sw.js')
         .then(function(registration) {
-          console.log('SW registered: ', registration);
+          logger.info('Service worker registered', { registration });
         })
         .catch(function(registrationError) {
-          console.log('SW registration failed: ', registrationError);
+          logger.error('Service worker registration failed', registrationError);
         });
     }
 
@@ -20,7 +30,7 @@ export function ClientScripts() {
     if (typeof window !== 'undefined' && window.performance) {
       const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
       if (loadTime > 3000) {
-        console.warn('Slow page load:', loadTime + 'ms');
+        logger.warn('Slow page load detected', { loadTime: loadTime + 'ms' });
       }
 
       // Report performance metrics after a delay

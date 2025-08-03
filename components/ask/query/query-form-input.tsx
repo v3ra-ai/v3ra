@@ -1,17 +1,17 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Dispatch, SetStateAction } from "react";
 import { QueryMode } from "@/lib/types";
-import { useLLMStore } from "@/store/llm-store";
-import { useQueryStore } from "@/store/query-store";
 import { toast } from "sonner";
+import { motion } from "framer-motion";
+import { Send } from "lucide-react";
 
 interface QueryFormInputProps {
   queryText: string;
   setQueryText: Dispatch<SetStateAction<string>>;
-  placeholderText: string;
+  placeholderText?: string;
   handleSubmit: () => void;
   isSubmitting: boolean;
   isSubmitInteracted: boolean;
@@ -27,29 +27,9 @@ const QueryFormInputComponent = function QueryFormInput({
   isSubmitting,
   isSubmitInteracted: _isSubmitInteracted,
   queryMode: _queryMode,
-  queriesRequested,
+  queriesRequested: _queriesRequested,
 }: QueryFormInputProps) {
-  const { llms } = useLLMStore();
-  const { setQueriesRequested } = useQueryStore();
-
-  const selectedLLMCount = llms.filter((llm) => llm.enabled).length;
-  const hasSelectedLLMs = selectedLLMCount > 0;
-
-  // Sync queriesRequested with selectedLLMCount on mount
-  useEffect(() => {
-    if (hasSelectedLLMs && queriesRequested !== selectedLLMCount) {
-      setQueriesRequested(selectedLLMCount, 100);
-    }
-  }, [hasSelectedLLMs, selectedLLMCount, queriesRequested, setQueriesRequested]);
-
   const onSubmit = () => {
-    if (hasSelectedLLMs && queriesRequested > selectedLLMCount) {
-      toast.error(`Cannot query ${queriesRequested} AIs when only ${selectedLLMCount} are selected.`, {
-        style: { background: "#fee2e2", color: "#dc2626" },
-      });
-      return;
-    }
-
     try {
       handleSubmit();
     } catch {
@@ -60,44 +40,66 @@ const QueryFormInputComponent = function QueryFormInput({
   };
 
   const isSubmitDisabled = useMemo(
-    () => isSubmitting || !queryText.trim() || (hasSelectedLLMs && queriesRequested > selectedLLMCount),
-    [isSubmitting, queryText, hasSelectedLLMs, queriesRequested, selectedLLMCount]
+    () => isSubmitting || !queryText.trim(),
+    [isSubmitting, queryText]
   );
 
   return (
     <div className="space-y-6">
       <div className="relative">
         <textarea
-          className="w-full p-3 rounded-lg h-20 resize-none
-            bg-zinc-950/30
-            border border-cyan-500/20 
-            text-zinc-100 placeholder-zinc-600
-            focus:outline-none focus:border-cyan-500/40 focus:bg-zinc-950/50
-            transition-all duration-200
-            shadow-[0_0_15px_rgba(0,255,255,0.05)] focus:shadow-[0_0_20px_rgba(0,255,255,0.15)]"
-          placeholder={placeholderText}
+          className="w-full p-4 rounded-xl h-24 resize-none
+            bg-transparent
+            border-0
+            text-2xl text-white placeholder-white/50
+            focus:outline-none focus:placeholder-white/70
+            transition-all duration-300
+            font-medium"
+          placeholder={placeholderText || "Ask me anything..."}
           value={queryText}
           onChange={(e) => setQueryText(e.target.value)}
+          style={{
+            background: 'transparent',
+            boxShadow: 'none',
+          }}
         />
+        
+        {/* Subtle bottom border for definition */}
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
       </div>
       
       <div className="flex justify-center">
-        <Button
+        <motion.button
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
           onClick={onSubmit}
           disabled={isSubmitDisabled}
-          className="px-16 h-10 bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400
-            text-white font-medium rounded-lg transition-all duration-200 
-            disabled:opacity-30 disabled:cursor-not-allowed shadow-lg shadow-cyan-500/20"
+          className="relative group px-8 py-4 rounded-xl
+            bg-gradient-to-r from-purple-600 to-pink-600
+            text-white font-semibold text-lg
+            disabled:opacity-30 disabled:cursor-not-allowed
+            shadow-2xl shadow-purple-500/50
+            hover:shadow-purple-500/70
+            transition-all duration-300"
         >
-          {isSubmitting ? (
-            <div className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-              <span>Analyzing...</span>
-            </div>
-          ) : (
-            "Ask"
-          )}
-        </Button>
+          {/* Glow effect */}
+          <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 blur-lg opacity-50 group-hover:opacity-75 transition-opacity" />
+          
+          {/* Button content */}
+          <div className="relative flex items-center gap-2">
+            {isSubmitting ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                <span>Finding AI responses...</span>
+              </>
+            ) : (
+              <>
+                <span>Compare AI Responses</span>
+                <Send className="w-4 h-4" />
+              </>
+            )}
+          </div>
+        </motion.button>
       </div>
     </div>
   );

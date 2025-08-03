@@ -5,7 +5,7 @@ import { ViewMode } from "@/lib/types";
 interface NavbarScrollbarProps {
   mounted: boolean;
   showSearch: boolean;
-  viewMode: ViewMode;
+  viewMode?: ViewMode;
 }
 
 export function NavbarScrollbar({ mounted: _mounted, showSearch: _showSearch, viewMode: _viewMode }: NavbarScrollbarProps) {

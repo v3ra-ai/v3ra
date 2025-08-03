@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createLogger } from "@/lib/logger";
 import { prisma } from "@/lib/db/client";
 import crypto from "crypto";
-import { logger } from "@/lib/utils/logger";
 import { z } from "zod";
 import { rateLimitNormal } from "@/lib/middleware/rate-limit";
+import { withCSRFProtection } from "@/lib/middleware/csrf";
+
+const logger = createLogger('feedback');
 
 const feedbackSchema = z.object({
   type: z.enum(["bug", "feature", "ux", "other"]),
@@ -23,7 +26,7 @@ const feedbackSchema = z.object({
   url: z.string().url().optional(),
 });
 
-export const POST = rateLimitNormal(async (request: NextRequest) => {
+export const POST = rateLimitNormal(withCSRFProtection(async (request: NextRequest) => {
   logger.debug("Request received", null, { context: "Feedback API" });
   
   // Check environment
@@ -110,7 +113,7 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Feedback submission error:", error);
+    logger.error('Feedback submission error', error);
     
     // Return more detailed error in development
     if (process.env.NODE_ENV === "development") {
@@ -129,7 +132,7 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
       { status: 500 }
     );
   }
-});
+}));
 
 interface SlackFeedback {
   type: string;

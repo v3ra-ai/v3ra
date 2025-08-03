@@ -2,8 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { rateLimitNormal } from "@/lib/middleware/rate-limit";
+import { withCSRFProtection } from "@/lib/middleware/csrf";
+import { apiLogger } from "@/lib/logger";
 
-export const POST = rateLimitNormal(async (request: NextRequest) => {
+export const POST = rateLimitNormal(withCSRFProtection(async (request: NextRequest) => {
   try {
     const body = await request.json();
     const { userId, type, amount } = body;
@@ -58,10 +60,10 @@ export const POST = rateLimitNormal(async (request: NextRequest) => {
     }
     
   } catch (error) {
-    console.error("Daily bonus error:", error);
+    apiLogger.error({ error }, "Failed to process daily bonus");
     return NextResponse.json(
       { error: "Failed to process daily bonus" },
       { status: 500 }
     );
   }
-});
+}));

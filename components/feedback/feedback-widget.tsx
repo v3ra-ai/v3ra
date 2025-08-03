@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase-client";
+import { logger } from "@/lib/utils/client-logger";
 
 type FeedbackType = "bug" | "feature" | "ux" | "other";
 
@@ -81,7 +82,7 @@ const FeedbackWidgetComponent = () => {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => null);
-        console.error('Feedback API error:', errorData);
+        logger.error('Feedback API error', errorData);
         throw new Error(errorData?.error || "Failed to send feedback");
       }
 

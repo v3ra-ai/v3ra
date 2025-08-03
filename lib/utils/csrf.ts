@@ -1,50 +1,62 @@
-import { csrfCache } from './cache';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('csrf');
 
 /**
- * Gets or fetches a CSRF token for API requests
+ * Get CSRF token from the API
  */
 export async function getCSRFToken(): Promise<string | null> {
   try {
-    // Check cache first
-    const cached = csrfCache.get('token');
-    if (cached) {
-      return cached;
-    }
-
-    // Fetch new token
-    const response = await fetch('/api/csrf-token');
+    const response = await fetch('/api/csrf-token', {
+      method: 'GET',
+      credentials: 'include', // Changed to 'include' to ensure cookies are sent
+      headers: {
+        'Accept': 'application/json',
+      }
+    });
+    
     if (!response.ok) {
-      throw new Error('Failed to fetch CSRF token');
+      logger.error('Failed to fetch CSRF token', { status: response.status });
+      try {
+        const errorData = await response.json();
+        logger.error('CSRF token error', errorData);
+      } catch {
+        logger.error('CSRF token error: Unable to parse response');
+      }
+      return null;
     }
-
+    
     const data = await response.json();
-    const token = data.csrfToken || data.token;
-
-    // Cache for 30 minutes
-    if (token) {
-      csrfCache.set('token', token);
+    const token = data.csrfToken || data.token || null;
+    
+    if (!token) {
+      logger.error('CSRF token not found in response:', data);
     }
-
+    
     return token;
   } catch (error) {
-    console.error('Failed to get CSRF token:', error);
+    logger.error('Error fetching CSRF token:', error);
     return null;
   }
 }
 
 /**
- * Adds CSRF token to fetch headers
+ * Add CSRF token to fetch headers
  */
 export async function fetchWithCSRF(url: string, options: RequestInit = {}): Promise<Response> {
-  const token = await getCSRFToken();
+  const csrfToken = await getCSRFToken();
+  
+  if (!csrfToken) {
+    logger.error('CSRF token not available');
+    throw new Error('CSRF token not available');
+  }
   
   const headers = new Headers(options.headers);
-  if (token) {
-    headers.set('X-CSRF-Token', token);
-  }
-
+  headers.set('x-csrf-token', csrfToken);
+  
   return fetch(url, {
     ...options,
     headers,
+    credentials: 'include', // Changed to 'include' to ensure cookies are sent
   });
 }

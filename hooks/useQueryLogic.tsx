@@ -1,18 +1,15 @@
 "use client";
 
-import { useCallback, useState, useEffect, useRef, useMemo } from "react";
-import { useWallet } from "@solana/wallet-adapter-react";
+import { useCallback, useState, useEffect } from "react";
 import { useQueryStore } from "@/store/query-store";
 import { useVoteStore } from "@/store/vote-store";
-import { useBroadcastQuery } from "@/hooks/useBroadcastQuery";
+import { useBlindTestQuery } from "@/hooks/useBlindTestQuery";
 import { Dispatch, SetStateAction } from "react";
 import { getPlaceholderText } from "@/lib/query-utils";
 import { toast } from "sonner";
 import type { VoteResult } from "@/lib/types";
-import { ALLOWED_AMOUNT_QUERIES } from "@/lib/constants";
 import { sanitizeQueryText } from "@/utils/security-utils";
 import { supabase } from "@/lib/supabase-client";
-import { useLLMStore } from "@/store/llm-store";
 import { logger } from "@/lib/utils/client-logger";
 import { csrfCache, sessionCache, requestDeduplicator } from "@/lib/utils/cache";
 
@@ -35,18 +32,12 @@ export default function useQueryLogic({
   const [error, setError] = useState<string | null>(null);
   const [email, setEmail] = useState<string | undefined>(undefined);
 
-  const { publicKey } = useWallet();
   const {
-    queriesRequested,
     queryMode,
-    viewMode,
-    setQueriesRequested,
     resetAfterSubmission,
-    selectedLLMIds,
   } = useQueryStore();
   const { voteHistory, lastVoteResult, setVoteHistory, setLastVoteResult } =
     useVoteStore();
-  const { llms } = useLLMStore();
 
   const placeholderText = getPlaceholderText(queryMode);
 
@@ -195,58 +186,30 @@ export default function useQueryLogic({
     setLastVoteResult(result);
   };
 
-  const { broadcastQuery } = useBroadcastQuery(
+  const { broadcastQuery } = useBlindTestQuery(
     handleSetVoteHistory,
-    handleSetLastVoteResult,
-    undefined,
-    undefined
+    handleSetLastVoteResult
   );
 
   const handleQueryAmountChange = useCallback(
     (newAmount: number) => {
-      const clampedAmount = Math.max(
-        1,
-        Math.min(ALLOWED_AMOUNT_QUERIES, newAmount)
-      );
-      logger.debug("Updating queriesRequested:", {
-        clampedAmount,
+      // For blind testing, we always use 2 models
+      logger.debug("Blind testing always uses 2 models", {
         timestamp: new Date().toISOString(),
       }, { context: "useQueryLogic" });
-      setQueriesRequested(clampedAmount, 100); // Default credit amount
     },
-    [setQueriesRequested]
+    []
   );
 
   const handleSubmit = async () => {
-    logger.debug("handleSubmit called", {
+    logger.debug("handleSubmit called for blind test", {
       queryText,
-      queryMode,
-      queriesRequested,
-      selectedLLMIds,
       timestamp: new Date().toISOString(),
     }, { context: "useQueryLogic" });
-
-    let actualSelectedIds: string[] | undefined;
 
     try {
       if (!queryText.trim()) {
         toast.error("Query cannot be empty", {
-          style: { background: "#dc2626", color: "#fee2e2" },
-          duration: 5000,
-        });
-        return null;
-      }
-
-
-      const enabledLLMs = llms.filter((llm) => llm.enabled);
-      actualSelectedIds = enabledLLMs.map(llm => llm.id);
-      
-      if (enabledLLMs.length > 0 && queriesRequested > enabledLLMs.length) {
-        logger.debug("Blocked: Queries requested exceeds selected LLMs", {
-          queriesRequested,
-          selectedLLMCount: enabledLLMs.length,
-        }, { context: "useQueryLogic" });
-        toast.error(`Cannot query ${queriesRequested} AIs when only ${enabledLLMs.length} are selected.`, {
           style: { background: "#dc2626", color: "#fee2e2" },
           duration: 5000,
         });
@@ -267,23 +230,16 @@ export default function useQueryLogic({
     setError(null);
     try {
       const csrfToken = await fetchCsrfToken();
-      logger.debug("Processing query", {
-        queriesRequested,
-        publicKey: publicKey?.toBase58() || "none",
+      logger.debug("Processing blind test query", {
         email,
         csrfToken: csrfToken ? "[REDACTED]" : undefined,
-        selectedLLMIds,
         timestamp: new Date().toISOString(),
       }, { context: "useQueryLogic" });
       await broadcastQuery({
         query: queryText,
         options: {
           csrfToken,
-          queryMode,
-          queriesRequested,
-          isFreeQuery: true,
-          selectedLLMIds: actualSelectedIds || selectedLLMIds,
-          philosophyMode,
+          pairingStrategy: 'SMART', // Default to smart pairing for blind testing
         },
       });
       toast.success(
@@ -302,9 +258,6 @@ export default function useQueryLogic({
       logger.error("Submission failed:", {
         errorMessage,
         queryText,
-        queryMode,
-        queriesRequested,
-        selectedLLMIds,
         timestamp: new Date().toISOString(),
       }, { context: "useQueryLogic" });
       toast.error(errorMessage, {
@@ -317,7 +270,7 @@ export default function useQueryLogic({
   };
 
   return {
-    queriesRequested,
+    queriesRequested: 2, // Always 2 for blind testing
     queryText,
     setQueryText,
     isSubmitting,
@@ -326,7 +279,6 @@ export default function useQueryLogic({
     placeholderText,
     availableQueries: 100,
     queryMode,
-    viewMode,
     voteHistory,
     lastVoteResult,
     handleSubmit,

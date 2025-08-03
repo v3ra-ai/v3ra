@@ -11,6 +11,7 @@ import { NavbarSitelinks } from "@/components/ask/navbar/navbar-sitelinks";
 import { NavbarScrollbar } from "@/components/ask/navbar/navbar-scrollbar";
 import { NavbarSettings } from "@/components/ask/navbar/navbar-settings";
 import { V3raLogo } from "@/components/v3ra-logo";
+import { logger } from "@/lib/utils/client-logger";
 
 // Debounce utility with proper typing
 const debounce = <T extends unknown[]>(
@@ -26,7 +27,6 @@ const debounce = <T extends unknown[]>(
 
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
-  const { viewMode } = useQueryStore();
   const [mounted, setMounted] = useState(false);
   const [showSearch, setShowSearch] = useState(false);
   const [, setIsLoggedIn] = useState(false);
@@ -42,7 +42,7 @@ export default function Navbar() {
     const checkSession = async () => {
       const { data, error } = await supabase.auth.getSession();
       if (error) {
-        console.error("Error checking session:", error.message);
+        logger.error("Error checking session", { error: error.message });
         return;
       }
       setIsLoggedIn(!!data.session);
@@ -79,7 +79,7 @@ export default function Navbar() {
 
   // Toggle between light and dark themes
   const handleToggleTheme = () => {
-    console.log("Toggling theme from", theme);
+    logger.debug("Toggling theme", { from: theme });
     setTheme(theme === "light" ? "dark" : "light");
   };
 
@@ -131,7 +131,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      <NavbarScrollbar mounted={mounted} showSearch={showSearch} viewMode={viewMode} />
+      <NavbarScrollbar mounted={mounted} showSearch={showSearch} />
 
       {/* Mobile Menu Drawer */}
       <AnimatePresence>

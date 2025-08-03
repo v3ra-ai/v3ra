@@ -1,4 +1,7 @@
 import { AIValidator, ValidatorRegistry, ValidationRequest, AIValidationResponse } from "./types";
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('registry');
 import { dbValidatorToAIValidator } from "../db/validators";
 import { OpenAIValidator } from "./providers/openai";
 import { AnthropicValidator } from "./providers/anthropic";
@@ -54,7 +57,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       try {
         await validatorService.addValidator(validator);
       } catch {
-        console.log('[ValidatorRegistry] Database not available, using in-memory storage');
+        if (process.env.NODE_ENV === 'development') {
+          logger.info('[ValidatorRegistry] Database not available, using in-memory storage');
+        }
       }
     }
     
@@ -70,7 +75,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       }
       return true;
     } catch (error) {
-      console.error("Failed to remove validator:", error);
+      if (process.env.NODE_ENV === 'development') {
+        logger.error("Failed to remove validator:", error);
+      }
       return false;
     }
   }
@@ -91,7 +98,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
         return validators.find((v) => v.id === id);
       }
     } catch (error) {
-      console.error("Failed to get validator:", error);
+      if (process.env.NODE_ENV === 'development') {
+        logger.error("Failed to get validator:", error);
+      }
       return undefined;
     }
   }
@@ -247,7 +256,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
             return aiValidators;
           }
         } catch {
-          console.log('[ValidatorRegistry] Database not available, using in-memory validators');
+          if (process.env.NODE_ENV === 'development') {
+            logger.info('[ValidatorRegistry] Database not available, using in-memory validators');
+          }
         }
         
         // Fallback to in-memory validators
@@ -266,7 +277,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
         return Array.from(this.validators.values());
       }
     } catch (error) {
-      console.error("[ValidatorRegistry] Error getting all validators:", error);
+      if (process.env.NODE_ENV === 'development') {
+        logger.error("[ValidatorRegistry] Error getting all validators:", error);
+      }
       return Array.from(this.validators.values());
     }
   }
@@ -296,7 +309,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
       const start = (page - 1) * limit;
       return activeValidators.slice(start, start + limit);
     } catch (error) {
-      console.error("Failed to get active validators:", error);
+      if (process.env.NODE_ENV === 'development') {
+        logger.error("Failed to get active validators:", error);
+      }
       return [];
     }
   }
@@ -314,7 +329,9 @@ export class ValidatorRegistryImpl implements ValidatorRegistry {
         return true;
       }
     } catch (error) {
-      console.error("Failed to toggle validator:", error);
+      if (process.env.NODE_ENV === 'development') {
+        logger.error("Failed to toggle validator:", error);
+      }
       return false;
     }
   }

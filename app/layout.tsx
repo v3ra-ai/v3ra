@@ -32,29 +32,34 @@ const rajdhani = Rajdhani({
 });
 
 export const metadata: Metadata = {
-  title: "v3ra AI Consensus Network",
-  description: "v3ra - Distributed AI validation and consensus network",
-  keywords: "AI, consensus, prediction markets, truth verification, blockchain",
-  authors: [{ name: "v3ra Team" }],
-  creator: "v3ra",
-  publisher: "v3ra",
+  title: "V3RA - Which AI is smarter?",
+  description: "Compare AI responses. Win points. The ultimate AI intelligence game.",
+  keywords: "AI comparison, AI game, artificial intelligence, machine learning, AI battle",
+  authors: [{ name: "V3RA" }],
+  creator: "V3RA",
+  publisher: "V3RA",
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://v3ra.vercel.app'),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL || 'https://v3ra.ai'),
+  icons: {
+    icon: '/favicon.svg',
+    apple: '/apple-touch-icon.svg',
+    shortcut: '/v3ra-icon-32.svg',
+  },
   openGraph: {
-    title: "v3ra AI Consensus Network",
-    description: "Multi-AI consensus network for truth verification and prediction markets",
-    siteName: "v3ra",
+    title: "V3RA - Which AI is smarter?",
+    description: "Compare AI responses. Win points. The ultimate AI intelligence game.",
+    siteName: "V3RA",
     locale: "en_US",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "v3ra AI Consensus Network",
-    description: "Multi-AI consensus network for truth verification and prediction markets",
+    title: "V3RA - Which AI is smarter?",
+    description: "Compare AI responses. Win points. The ultimate AI intelligence game.",
   },
   manifest: "/site.webmanifest",
   appleWebApp: {

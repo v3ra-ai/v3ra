@@ -1,4 +1,7 @@
 // Performance monitoring utilities
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('performance');
 interface CoreWebVitals {
   lcp?: number;
   fid?: number;
@@ -132,7 +135,7 @@ export class PerformanceMonitor {
         isMobile: this.isMobile()
       };
       
-      console.log('Performance Metrics:', metrics);
+      logger.info('Performance Metrics', metrics);
 
       // You can send these to an analytics service like Sentry or custom endpoint
       // await fetch('/api/performance', {
@@ -141,7 +144,7 @@ export class PerformanceMonitor {
       //   headers: { 'Content-Type': 'application/json' }
       // });
     } catch (error) {
-      console.warn('Failed to report performance metrics:', error);
+      logger.warn('Failed to report performance metrics:', error);
     }
   }
 
@@ -176,7 +179,7 @@ export class PerformanceMonitor {
       }
       document.head.appendChild(link);
     } catch (_error) {
-      console.warn('Failed to preload resource:', url, _error);
+      logger.warn('Failed to preload resource:', url, _error);
     }
   }
 }
@@ -191,7 +194,7 @@ export function measureComponentRender<T>(componentName: string, renderFn: () =>
   const duration = performanceMonitor.measure(`component-${componentName}`);
   
   if (duration > 100) {
-    console.warn(`Slow component render: ${componentName} took ${duration}ms`);
+    logger.warn(`Slow component render: ${componentName} took ${duration}ms`);
   }
   
   return result;
@@ -211,7 +214,7 @@ export function usePerformanceTracking(componentName: string) {
     onUnmount: () => {
       const duration = Date.now() - startTime;
       if (duration > 5000) {
-        console.warn(`Component ${componentName} was mounted for ${duration}ms`);
+        logger.warn(`Component ${componentName} was mounted for ${duration}ms`);
       }
     }
   };

@@ -22,7 +22,7 @@ interface LoadingSpinnerProps {
 export const LoadingSpinner = ({
   type = "beat",
   message = "Loading...",
-  color = "#14b8a6",
+  color = "#a855f7", // Purple from our gradient theme
   size = 15,
   noWrapper = false, // Default to false
 }: LoadingSpinnerProps) => {
@@ -47,17 +47,17 @@ export const LoadingSpinner = ({
     return (
       <>
         {renderLoader()}
-        {message && <span className="text-lg font-light">{message}</span>}
+        {message && <span className="text-lg font-light text-white/60">{message}</span>}
       </>
     );
   }
 
   return (
     <div className="w-full flex justify-center items-center py-8">
-      <div className="flex justify-center items-center mr-2">
+      <div className="flex justify-center items-center mr-3">
         {renderLoader()}
       </div>
-      {message && <div className="text-lg font-light">{message}</div>}
+      {message && <div className="text-lg font-light text-white/60">{message}</div>}
     </div>
   );
 };

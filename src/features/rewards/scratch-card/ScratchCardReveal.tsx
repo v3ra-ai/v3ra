@@ -2,7 +2,10 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { createLogger } from '@/lib/logger'
 // canvas-confetti is browser-only; load it dynamically on the client
+
+const logger = createLogger('scratch-card');
 
 
 interface ScratchCardRevealProps {
@@ -118,7 +121,15 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-          onClick={(e) => e.target === e.currentTarget && isScratched && onComplete()}
+          onClick={(e) => {
+            if (e.target === e.currentTarget && isScratched) {
+              try {
+                onComplete();
+              } catch (error) {
+                logger.error('Error in scratch card onComplete:', error);
+              }
+            }
+          }}
         >
           <motion.div
             initial={{ scale: 0.9, opacity: 0 }}
@@ -130,7 +141,7 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
             {/* Card Container */}
             <div className="relative w-80 h-52 rounded-2xl overflow-hidden shadow-2xl">
               {/* Background - Reward Display */}
-              <div className="absolute inset-0 bg-gradient-to-br from-cyan-500 via-cyan-400 to-cyan-600 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gradient-to-br from-purple-600 via-purple-500 to-pink-600 flex items-center justify-center">
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={isScratched ? { scale: 1 } : { scale: 0 }}
@@ -165,13 +176,19 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
               />
 
               {/* Auto-reveal button */}
-              {!isScratched && scratchProgress < 10 && (
+              {!isScratched && (
                 <motion.button
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  transition={{ delay: 2 }}
-                  onClick={revealReward}
-                  className="absolute bottom-4 right-4 text-xs text-zinc-500 hover:text-zinc-400 transition-colors"
+                  transition={{ delay: 1 }}
+                  onClick={() => {
+                    try {
+                      revealReward();
+                    } catch (error) {
+                      logger.error('Error revealing reward:', error);
+                    }
+                  }}
+                  className="absolute bottom-4 right-4 text-xs text-white/50 hover:text-white/80 transition-colors"
                 >
                   Tap to reveal
                 </motion.button>
@@ -184,8 +201,14 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.5 }}
-                onClick={onComplete}
-                className="mt-4 w-full py-3 bg-zinc-800 hover:bg-zinc-700 text-white rounded-xl font-medium transition-colors"
+                onClick={() => {
+                  try {
+                    onComplete();
+                  } catch (error) {
+                    logger.error('Error completing scratch card:', error);
+                  }
+                }}
+                className="mt-4 w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white rounded-xl font-medium transition-all duration-200 shadow-lg"
               >
                 Continue
               </motion.button>

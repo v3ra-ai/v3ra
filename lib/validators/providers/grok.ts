@@ -1,4 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('validators:grok');
 import { AIValidator, AIValidationResponse, ValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
@@ -210,13 +213,13 @@ export class GrokValidator implements AIValidator {
 
         // Check if response is not OK
         if (!response.ok) {
-          console.error(`[Grok ${this.id}] API error with status ${response.status}`);
+          logger.error(`[Grok ${this.id}] API error with status ${response.status}`);
           let errorData;
           try {
             errorData = JSON.parse(rawData);
-            console.error(`[Grok ${this.id}] Grok API error details:`, errorData);
+            logger.error(`[Grok ${this.id}] Grok API error details:`, errorData);
           } catch {
-            console.error(`[Grok ${this.id}] Could not parse error response as JSON`);
+            logger.error(`[Grok ${this.id}] Could not parse error response as JSON`);
           }
 
           const errorMessage = `Grok API error: ${response.status} ${response.statusText}${errorData ? " - " + JSON.stringify(errorData) : ""}`;
@@ -257,7 +260,7 @@ export class GrokValidator implements AIValidator {
             parseError instanceof Error
               ? parseError.message
               : String(parseError);
-          console.error(`[Grok ${this.id}] Failed to parse response:`, parseError);
+          logger.error(`[Grok ${this.id}] Failed to parse response:`, parseError);
           throw new Error(`Failed to parse Grok API response: ${errorMessage}`);
         }
       } catch (error) {
@@ -266,7 +269,7 @@ export class GrokValidator implements AIValidator {
           error instanceof Error ? error.message : String(error);
 
         // Enhanced error logging
-        console.error(`[Grok ${this.id}] Error calling Grok: ${errorMessage}`);
+        logger.error(`[Grok ${this.id}] Error calling Grok: ${errorMessage}`);
 
         // Check if this is the first error after success
         if (errorTracking.consecutiveErrors === 0) {
@@ -288,7 +291,7 @@ export class GrokValidator implements AIValidator {
         error instanceof Error ? error.message : String(error);
 
       // Enhanced error logging
-      console.error(`[Grok ${this.id}] Error calling Grok: ${errorMessage}`);
+      logger.error(`[Grok ${this.id}] Error calling Grok: ${errorMessage}`);
 
       // Check if this is the first error after success
       if (errorTracking.consecutiveErrors === 0) {

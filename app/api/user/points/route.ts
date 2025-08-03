@@ -2,38 +2,33 @@ import { NextRequest, NextResponse } from "next/server";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { prisma } from "@/lib/db/client";
-import { rateLimitRelaxed } from "@/lib/middleware/rate-limit";
+import { rateLimitRelaxed } from "@/lib/rate-limit/index";
 import { ensureUserExists } from "@/lib/auth/ensure-user";
+import { isValidUUID } from "@/utils/security-utils";
+import { cache, getCacheKey } from "@/lib/cache/memory-cache";
+import { pointsLogger } from "@/lib/logger";
 
 export const GET = rateLimitRelaxed(async (request: NextRequest) => {
   try {
-    const { searchParams } = new URL(request.url);
-    let userId = searchParams.get("userId");
-    let userEmail = "";
+    // Always get user from Supabase session - never trust client-provided userId
+    const supabase = await createSupabaseServerClient();
+    const { data: { user } } = await supabase.auth.getUser();
     
-    // Check headers from middleware first
-    const headerUserId = request.headers.get('x-user-id');
-    const headerUserEmail = request.headers.get('x-user-email');
-    
-    if (!userId && headerUserId) {
-      userId = headerUserId;
-      userEmail = headerUserEmail || "";
+    if (!user) {
+      return NextResponse.json(
+        { error: "User not authenticated" },
+        { status: 401 }
+      );
     }
     
-    if (!userId) {
-      // Try to get from session
-      const supabase = await createSupabaseServerClient();
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      if (!user) {
-        return NextResponse.json(
-          { error: "User not authenticated" },
-          { status: 401 }
-        );
-      }
-      
-      userId = user.id;
-      userEmail = user.email || "";
+    const userId = user.id;
+    const userEmail = user.email || "";
+    
+    // Try cache first
+    const cacheKey = getCacheKey('points', userId);
+    const cached = cache.get('userPoints', cacheKey);
+    if (cached) {
+      return NextResponse.json(cached);
     }
     
     // Ensure user exists in database
@@ -47,7 +42,17 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
     }
     
     // Get user points
-    const userPoints = await V3RAPointsService.getUserPoints(userId);
+    let userPoints;
+    try {
+      userPoints = await V3RAPointsService.getUserPoints(userId);
+    } catch (error) {
+      pointsLogger.error({
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        userId
+      }, 'Failed to get user points from service');
+      throw error;
+    }
     
     // Get transaction history
     const transactions = await prisma.pointsTransaction.findMany({
@@ -71,7 +76,7 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
       type: tx.type
     }));
     
-    return NextResponse.json({
+    const response = {
       userId,
       balance: Number(userPoints.balance),
       totalEarned: Number(userPoints.totalEarned),
@@ -79,10 +84,19 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
       streak: userPoints.streak,
       level: userPoints.level,
       history
-    });
+    };
+    
+    // Cache the response
+    cache.set('userPoints', cacheKey, response);
+    
+    return NextResponse.json(response);
     
   } catch (error) {
-    console.error("Get user points error:", error);
+    pointsLogger.error({
+      error: error instanceof Error ? error.message : String(error),
+      stack: error instanceof Error ? error.stack : undefined,
+      path: '/api/user/points'
+    }, 'Failed to get user points');
     return NextResponse.json(
       { error: "Failed to get user points" },
       { status: 500 }

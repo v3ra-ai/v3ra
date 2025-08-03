@@ -1,4 +1,7 @@
 import { prisma } from "./client";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('db-setup');
 import crypto from "crypto";
 
 /**
@@ -9,14 +12,14 @@ export async function initializeDatabase() {
   try {
     // Test database connection
     await prisma.$connect();
-    console.log("🚀 Database connection established");
+    logger.info('Database connection established');
 
     // Check if we need to add any default records (for dev environment)
     await ensureDefaultApiKeys();
 
     return { success: true };
   } catch (error) {
-    console.error("❌ Database initialization failed:", error);
+    logger.error('Database initialization failed', error);
     return { success: false, error };
   }
 }
@@ -73,7 +76,7 @@ async function ensureDefaultApiKeys() {
           updatedAt: new Date(),
         },
       });
-      console.log(`✅ Created default ${keyData.provider} API key`);
+      logger.info(`✅ Created default ${keyData.provider} API key`);
     }
   }
 }
@@ -101,7 +104,7 @@ export function encryptApiKey(apiKey: string): string {
     // Prepend IV to encrypted data for decryption later
     return iv.toString("hex") + ":" + encrypted;
   } catch (error) {
-    console.error("Error encrypting API key:", error);
+    logger.error("Error encrypting API key:", error);
     return apiKey; // Fallback to unencrypted in case of error
   }
 }
@@ -132,7 +135,7 @@ export function decryptApiKey(encryptedKey: string): string {
 
     return decrypted;
   } catch (error) {
-    console.error("Error decrypting API key:", error);
+    logger.error("Error decrypting API key:", error);
     return encryptedKey; // Return encrypted version in case of error
   }
 }

@@ -1,6 +1,9 @@
 // lib/db/voteSessions.ts
 import { prisma } from "@/lib/db/client";
 import { updateValidatorMetrics } from "./validators";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('vote-sessions');
 
 // Example function (adjust based on your actual usage)
 export async function recordVoteSession(sessionId: string) {
@@ -22,7 +25,7 @@ export async function recordVoteSession(sessionId: string) {
       );
     }
   } catch (error) {
-    console.error("Error recording vote session:", error);
+    logger.error('Error recording vote session', error);
     throw error;
   }
 }

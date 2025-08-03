@@ -1,6 +1,16 @@
 // Utility for handling errors properly, especially Event objects
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('error-handler');
 
 export function formatError(error: unknown): string {
+  // Handle Event objects that might be thrown as errors
+  if (typeof error === 'object' && error !== null && 'isTrusted' in error) {
+    // This is likely a DOM Event object thrown as an error
+    logger.warn('Event object thrown as error. This usually indicates an async handler issue.');
+    return 'An unexpected event error occurred. Please try again.';
+  }
+  
   // Handle Event objects (like ErrorEvent)
   if (error instanceof Event && 'message' in error) {
     const errorEvent = error as ErrorEvent;
@@ -27,7 +37,12 @@ export function formatError(error: unknown): string {
     const str = error.toString();
     // Avoid [object Object] or [object Event]
     if (str === '[object Object]' || str === '[object Event]') {
-      return JSON.stringify(error);
+      // Try to extract meaningful info
+      try {
+        return JSON.stringify(error);
+      } catch {
+        return 'Unknown error object';
+      }
     }
     return str;
   }
@@ -37,10 +52,10 @@ export function formatError(error: unknown): string {
 
 export function logError(context: string, error: unknown) {
   const formattedError = formatError(error);
-  console.error(`[${context}]`, formattedError);
+  logger.error('Error occurred', { context, error: formattedError });
   
   // Log additional details in development
   if (process.env.NODE_ENV === 'development') {
-    console.error('Full error details:', error);
+    logger.error('Full error details:', error);
   }
 }

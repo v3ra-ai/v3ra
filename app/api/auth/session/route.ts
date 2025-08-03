@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
 import { rateLimitAuth } from "@/lib/middleware/rate-limit";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('auth-session');
 
 export const GET = rateLimitAuth(async () => {
   try {
@@ -18,7 +21,7 @@ export const GET = rateLimitAuth(async () => {
     });
     
   } catch (error) {
-    console.error("Session check error:", error);
+    logger.error('Session check error', error);
     return NextResponse.json({ userId: null, authenticated: false });
   }
 });

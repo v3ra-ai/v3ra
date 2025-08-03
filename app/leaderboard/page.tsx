@@ -4,259 +4,191 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Progress } from "@/components/ui/progress";
-import { Trophy, TrendingUp, Brain, Zap, Target, Activity, Home, Sparkles, Users, Bot } from "lucide-react";
+import { Trophy, Crown, Medal, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
 import { Navbar } from "@/components/shared/navbar";
 import { supabase } from "@/lib/supabase-client";
+import { AILoadingSpinner } from "@/components/ai-loading-spinner";
+import { logger } from "@/lib/utils/client-logger";
 
-interface ModelPerformance {
-  modelName: string;
-  totalPredictions: number;
-  correctPredictions: number;
-  accuracy: number;
-  brierScore: number;
-  calibrationScore: number;
-  avgConfidence: number;
-  bestCategory: string;
-  worstCategory: string;
+interface UserScore {
+  rank: number;
+  username: string;
+  userId: string;
+  totalPoints: number;
+  votesCount: number;
   streak: number;
+  isCurrentUser?: boolean;
 }
 
 export default function LeaderboardPage() {
-  const pathname = usePathname();
-  const router = useRouter();
-  const [models, setModels] = useState<ModelPerformance[]>([]);
+  const [users, setUsers] = useState<UserScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [timeframe, setTimeframe] = useState<"all" | "month" | "week">("all");
   const [userPoints, setUserPoints] = useState(0);
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
 
   useEffect(() => {
-    loadUserPoints();
+    loadUserData();
     fetchLeaderboard();
   }, [timeframe]);
   
-  const loadUserPoints = async () => {
+  const loadUserData = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const response = await fetch(`/api/user/points?userId=${user.id}`);
+        setCurrentUserId(user.id);
+        const response = await fetch('/api/user/points');
         if (response.ok) {
           const data = await response.json();
           setUserPoints(data.balance || 0);
         }
       }
     } catch (error) {
-      console.error('Failed to load user points:', error);
+      logger.error('Failed to load user data', error);
     }
   };
 
   const fetchLeaderboard = async () => {
     try {
-      const response = await fetch(`/api/predictions/metrics?timeframe=${timeframe}`);
-      const data = await response.json();
-      setModels(data.models || []);
+      const timeframeMap: Record<string, string> = {
+          week: 'weekly',
+          month: 'monthly',
+          all: 'alltime',
+        };
+        const apiTimeframe = timeframeMap[timeframe] ?? 'weekly';
+        const response = await fetch(`/api/leaderboard/users?timeframe=${apiTimeframe}&limit=10`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const leaderboardUsers: UserScore[] = data.leaderboard.map((user: any) => ({
+          rank: user.rank,
+          username: user.username,
+          userId: user.userId,
+          totalPoints: user.balance,
+          votesCount: user.totalBets, // This is now total votes
+          streak: user.streak,
+          isCurrentUser: user.userId === currentUserId
+        }));
+        
+        setUsers(leaderboardUsers);
+      } else {
+        logger.error("Failed to fetch leaderboard");
+      }
     } catch (error) {
-      console.error("Failed to fetch leaderboard:", error);
+      logger.error("Failed to fetch leaderboard", error);
     } finally {
       setLoading(false);
     }
   };
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return "🥇";
-    if (rank === 2) return "🥈";
-    if (rank === 3) return "🥉";
-    return `#${rank}`;
-  };
-
-  const getAccuracyColor = (accuracy: number) => {
-    if (accuracy >= 80) return "text-green-400";
-    if (accuracy >= 60) return "text-yellow-400";
-    return "text-red-400";
+    if (rank === 1) return <Crown className="w-6 h-6 text-yellow-400" />;
+    if (rank === 2) return <Medal className="w-6 h-6 text-gray-400" />;
+    if (rank === 3) return <Medal className="w-6 h-6 text-orange-600" />;
+    return <span className="text-white/40 font-bold">#{rank}</span>;
   };
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex flex-col">
+    <div className="min-h-screen bg-black flex flex-col">
       <Navbar userPoints={userPoints} />
       
       {/* Page Header */}
-      <div className="border-b border-zinc-800/50 bg-zinc-900/50 backdrop-blur-sm">
-        <div className="container mx-auto px-4 py-6">
-          <h1 className="text-2xl font-bold text-zinc-100">Leaderboard</h1>
-          <p className="text-sm text-zinc-400 mt-1">
-            Track performance rankings for AI models and human predictors
-          </p>
+      <div className="pt-20 pb-8 px-4">
+        <div className="container mx-auto max-w-4xl text-center">
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-4"
+          >
+            Leaderboard
+          </motion.h1>
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-white/60 text-lg"
+          >
+            Top AI evaluators earning the most points
+          </motion.p>
         </div>
       </div>
 
-      {/* Navigation Cards */}
-      <div className="container mx-auto px-4 py-6">
-        <div className="grid md:grid-cols-2 gap-6 max-w-4xl mx-auto mb-8">
-          <Card 
-            className="backdrop-blur-sm bg-gradient-to-br from-cyan-900/20 to-blue-900/20 border-cyan-500/30 p-6 cursor-pointer hover:shadow-[0_0_30px_rgba(6,182,212,0.3)] transition-all duration-200"
-            onClick={() => router.push('/leaderboard/users')}
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
-                <Users className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-zinc-100">User Rankings</h3>
-                <p className="text-sm text-zinc-400">Top predictors by V3RA earnings</p>
-              </div>
-              <Trophy className="w-5 h-5 text-yellow-400" />
-            </div>
-          </Card>
-          
-          <Card 
-            className="backdrop-blur-sm bg-gradient-to-br from-purple-900/20 to-pink-900/20 border-purple-500/30 p-6 opacity-100"
-          >
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                <Bot className="w-6 h-6 text-white" />
-              </div>
-              <div className="flex-1">
-                <h3 className="text-lg font-semibold text-zinc-100">AI Models</h3>
-                <p className="text-sm text-zinc-400">Model accuracy & performance</p>
-              </div>
-              <Brain className="w-5 h-5 text-purple-400" />
-            </div>
-          </Card>
-        </div>
-        
-        <h2 className="text-xl font-semibold text-zinc-100 mb-4">AI Model Performance</h2>
-        
-        {/* Timeframe Tabs */}
-        <Tabs value={timeframe} onValueChange={(v) => setTimeframe(v as any)}>
-          <TabsList className="bg-zinc-900/50 border border-zinc-800/50">
-            <TabsTrigger value="week">This Week</TabsTrigger>
-            <TabsTrigger value="month">This Month</TabsTrigger>
-            <TabsTrigger value="all">All Time</TabsTrigger>
+      {/* Timeframe Tabs */}
+      <div className="container mx-auto max-w-4xl px-4 mb-8">
+        <Tabs value={timeframe} onValueChange={(v) => setTimeframe(v as any)} className="w-full">
+          <TabsList className="bg-black/50 border border-white/10 backdrop-blur">
+            <TabsTrigger value="week" className="data-[state=active]:bg-purple-600/20 data-[state=active]:text-purple-400">
+              This Week
+            </TabsTrigger>
+            <TabsTrigger value="month" className="data-[state=active]:bg-purple-600/20 data-[state=active]:text-purple-400">
+              This Month
+            </TabsTrigger>
+            <TabsTrigger value="all" className="data-[state=active]:bg-purple-600/20 data-[state=active]:text-purple-400">
+              All Time
+            </TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
 
       {/* Leaderboard */}
-      <div className="container mx-auto px-4 pb-8">
+      <div className="container mx-auto max-w-4xl px-4 pb-8">
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Activity className="w-6 h-6 animate-spin text-cyan-400 mr-2" />
-            <span className="text-zinc-400">Loading leaderboard...</span>
+            <AILoadingSpinner message="Loading rankings..." />
           </div>
         ) : (
-          <div className="space-y-4 max-w-4xl mx-auto">
-            {models.map((model, index) => (
+          <div className="space-y-4">
+            {users.map((user, index) => (
               <motion.div
-                key={model.modelName}
+                key={user.userId}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
               >
                 <Card className={cn(
-                  "p-6 bg-zinc-900/50 border-zinc-800/50 transition-all duration-200",
+                  "p-6 bg-black/50 backdrop-blur border transition-all duration-200",
+                  user.isCurrentUser && "border-purple-500/50 bg-purple-600/10",
                   index === 0 && "border-yellow-500/30 shadow-lg shadow-yellow-500/10",
-                  index === 1 && "border-zinc-400/30",
-                  index === 2 && "border-orange-700/30"
+                  index === 1 && "border-gray-400/30",
+                  index === 2 && "border-orange-600/30",
+                  !user.isCurrentUser && index > 2 && "border-white/10"
                 )}>
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <div className="text-2xl font-bold">
-                        {getRankIcon(index + 1)}
+                        {getRankIcon(user.rank)}
                       </div>
                       <div>
-                        <h3 className="text-lg font-medium text-zinc-100 flex items-center gap-2">
-                          {model.modelName}
-                          {model.streak > 3 && (
+                        <h3 className="text-lg font-medium text-white flex items-center gap-2">
+                          {user.username}
+                          {user.isCurrentUser && (
+                            <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
+                              You
+                            </span>
+                          )}
+                          {user.streak >= 7 && (
                             <span className="text-xs bg-orange-500/20 text-orange-400 px-2 py-0.5 rounded-full">
-                              🔥 {model.streak} streak
+                              🔥 {user.streak} days
                             </span>
                           )}
                         </h3>
-                        <p className="text-sm text-zinc-500">
-                          {model.totalPredictions} predictions
+                        <p className="text-sm text-white/40">
+                          {user.votesCount} votes
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className={cn("text-2xl font-bold", getAccuracyColor(model.accuracy))}>
-                        {model.accuracy}%
+                      <div className="text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 flex items-center gap-2">
+                        {user.totalPoints.toLocaleString()}
+                        <Sparkles className="w-5 h-5 text-yellow-400" />
                       </div>
-                      <p className="text-xs text-zinc-500">accuracy</p>
-                    </div>
-                  </div>
-
-                  {/* Stats Grid */}
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                    <div className="bg-black/30 rounded-lg p-3">
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
-                        <Target className="w-3 h-3" />
-                        Calibration
-                      </div>
-                      <div className="text-sm font-medium text-zinc-300">
-                        {(model.calibrationScore * 100).toFixed(1)}%
-                      </div>
-                    </div>
-                    <div className="bg-black/30 rounded-lg p-3">
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
-                        <Brain className="w-3 h-3" />
-                        Brier Score
-                      </div>
-                      <div className="text-sm font-medium text-zinc-300">
-                        {model.brierScore.toFixed(3)}
-                      </div>
-                    </div>
-                    <div className="bg-black/30 rounded-lg p-3">
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
-                        <TrendingUp className="w-3 h-3" />
-                        Best Category
-                      </div>
-                      <div className="text-sm font-medium text-green-400">
-                        {model.bestCategory}
-                      </div>
-                    </div>
-                    <div className="bg-black/30 rounded-lg p-3">
-                      <div className="flex items-center gap-2 text-xs text-zinc-500 mb-1">
-                        <Zap className="w-3 h-3" />
-                        Avg Confidence
-                      </div>
-                      <div className="text-sm font-medium text-zinc-300">
-                        {model.avgConfidence}%
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Accuracy Bar */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between text-xs text-zinc-500">
-                      <span>Prediction Accuracy</span>
-                      <span>{model.correctPredictions} / {model.totalPredictions} correct</span>
-                    </div>
-                    <div className="relative h-3 bg-black/30 rounded-full overflow-hidden">
-                      <motion.div
-                        className={cn(
-                          "absolute inset-y-0 left-0 rounded-full",
-                          model.accuracy >= 80 ? "bg-gradient-to-r from-green-500 to-green-400" :
-                          model.accuracy >= 60 ? "bg-gradient-to-r from-yellow-500 to-yellow-400" :
-                          "bg-gradient-to-r from-red-500 to-red-400"
-                        )}
-                        initial={{ width: 0 }}
-                        animate={{ width: `${model.accuracy}%` }}
-                        transition={{ duration: 0.8, ease: "easeOut" }}
-                      />
+                      <p className="text-xs text-white/40">points</p>
                     </div>
                   </div>
                 </Card>
               </motion.div>
             ))}
-
-            {models.length === 0 && !loading && (
-              <div className="text-center py-12 text-zinc-500">
-                No model performance data available yet.
-              </div>
-            )}
           </div>
         )}
       </div>

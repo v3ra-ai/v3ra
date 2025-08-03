@@ -1,6 +1,5 @@
-import { useState, useEffect } from "react";
 import { VoteResult } from "@/lib/types";
-import { fetchVoteHistory } from "@/app/actions";
+import { useVoteStore } from "@/store/vote-store";
 
 interface UseVoteHistoryResult {
   voteHistory: VoteResult[];
@@ -10,36 +9,17 @@ interface UseVoteHistoryResult {
 }
 
 export function useVoteHistory(): UseVoteHistoryResult {
-  const [voteHistory, setVoteHistory] = useState<VoteResult[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  // Get vote history directly from the store
+  const { voteHistory } = useVoteStore();
 
-  const fetchHistory = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const history = await fetchVoteHistory();
-      
-      if (Array.isArray(history)) {
-        setVoteHistory(history);
-      } else {
-        throw new Error(history.error);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to fetch vote history"));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchHistory();
-  }, []);
-
+  // Since we're using the store, we don't need loading/error states
+  // The store is updated when queries are made
   return {
     voteHistory,
-    isLoading,
-    error,
-    refetch: fetchHistory,
+    isLoading: false,
+    error: null,
+    refetch: async () => {
+      // No-op since history is managed by the store
+    },
   };
 }

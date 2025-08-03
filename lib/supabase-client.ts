@@ -1,4 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('supabase-client');
 
 // Client-side Supabase client
 // Support both Vercel's env vars and traditional NEXT_PUBLIC_ prefixed ones
@@ -12,19 +15,12 @@ let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
 
 // Check if we have a valid Supabase URL
 if (!supabaseUrl) {
-  // In development, use the actual Supabase URL as fallback
-  if (process.env.NODE_ENV === 'development') {
-    supabaseUrl = 'https://rccfhomdmfbcywrlvgly.supabase.co';
-  } else {
-    // Use a placeholder URL to prevent build errors
-    supabaseUrl = 'https://placeholder.supabase.co';
-  }
+  throw new Error('NEXT_PUBLIC_SUPABASE_URL environment variable is required');
 }
 
-// Use a valid placeholder if no key is found to prevent runtime errors
+// Check if we have a valid anon key
 if (!supabaseAnonKey) {
-  // Use a properly formatted placeholder (base64 encoded JWT-like string)
-  supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDYyMzkwMjIsImV4cCI6MTk2MTgxNTAyMn0.placeholder-key-do-not-use-in-production';
+  throw new Error('NEXT_PUBLIC_SUPABASE_ANON_KEY environment variable is required');
 }
 
 // Custom storage to handle client-side cookies safely
@@ -43,7 +39,17 @@ const cookieStorage = {
     if (typeof window === 'undefined') {
       return;
     }
-    document.cookie = `${key}=${value}; path=/; max-age=31536000; SameSite=Lax`;
+    // Set secure cookies in production
+    const isProduction = window.location.protocol === 'https:';
+    const cookieOptions = [
+      `${key}=${value}`,
+      'path=/',
+      'max-age=31536000',
+      'SameSite=Lax', // Allow cookies on navigation from external sites
+      isProduction ? 'Secure' : ''
+    ].filter(Boolean).join('; ');
+    
+    document.cookie = cookieOptions;
   },
   removeItem(key: string) {
     if (typeof window === 'undefined') {
@@ -84,7 +90,14 @@ export async function createSupabaseServerClient() {
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, ...options }) => {
-              cookieStore.set({ name, value, ...options });
+              // Ensure secure cookie settings
+              const secureOptions = {
+                ...options,
+                httpOnly: true,
+                secure: process.env.NODE_ENV === 'production',
+                sameSite: 'lax' as const,
+              };
+              cookieStore.set({ name, value, ...secureOptions });
             });
           } catch {
             // Handle cookie setting error silently
@@ -93,7 +106,7 @@ export async function createSupabaseServerClient() {
       },
     });
   } catch (error) {
-    console.error('[Supabase] Failed to create server client:', error);
+    logger.error('Failed to create Supabase server client', error);
     throw error;
   }
 }

@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { supabase } from "@/lib/supabase-client";
 import { useRouter } from "next/navigation";
 import { LoadingSpinner } from "@/components/loading-spinner";
+import { logger } from "@/lib/utils/client-logger";
 
 export default function AuthCallback() {
   const router = useRouter();
@@ -21,7 +22,7 @@ export default function AuthCallback() {
       // If we have a token_hash, verify it first
       if (token_hash && type) {
         try {
-          console.log("[AuthCallback] Verifying email token...");
+          logger.info("Verifying email token", { context: "auth-callback" });
           
           // Exchange the token for a session
           const { data: { user }, error } = await supabase.auth.verifyOtp({
@@ -30,7 +31,7 @@ export default function AuthCallback() {
           });
 
           if (error) {
-            console.error("[AuthCallback] Token verification error:", error);
+            logger.error("Token verification error", error, { context: "auth-callback" });
             router.push(`/login?error=${encodeURIComponent(error.message || "Invalid or expired link")}`);
             return;
           }
@@ -40,7 +41,7 @@ export default function AuthCallback() {
             return;
           }
 
-          console.log("[AuthCallback] Email verified successfully");
+          logger.info("Email verified successfully", { context: "auth-callback" });
           
           // Create or get user via API route
           const response = await fetch("/api/auth/create-user", {
@@ -72,7 +73,7 @@ export default function AuthCallback() {
           return;
         } catch (err: unknown) {
           const error = err as Error;
-          console.error("[AuthCallback] Error:", error);
+          logger.error("AuthCallback error", error, { context: "auth-callback" });
           router.push(`/login?error=${encodeURIComponent(error.message || "Authentication failed")}`);
           return;
         }

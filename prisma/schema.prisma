@@ -7,6 +7,9 @@ datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("POSTGRES_URL_NON_POOLING")
+  // Connection pool configuration
+  // Limits concurrent connections to prevent exhaustion
+  connectionLimit = 20
 }
 
 model ApiKey {
@@ -181,6 +184,7 @@ model User {
   lastResetDate      DateTime            @default(now())
   createdAt          DateTime            @default(now())
   updatedAt          DateTime
+  username           String?             @unique
   Feedback           Feedback[]
   MarketBets         MarketBet[]
   PointsTransactions PointsTransaction[]
@@ -293,6 +297,8 @@ model VoteSession {
   @@index([isConsensusReached])
   @@index([timestamp])
   @@index([timestamp(sort: Desc)], map: "idx_vote_session_timestamp")
+  @@index([userId, timestamp(sort: Desc)])
+  @@index([mode])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -425,6 +431,9 @@ model UserPoints {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
+  @@index([balance(sort: Desc)])
+  @@index([totalEarned(sort: Desc)])
+  @@index([updatedAt(sort: Desc)])
 }
 
 model PointsTransaction {
@@ -440,6 +449,8 @@ model PointsTransaction {
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
+  @@index([type, createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)])
 }
 
 model PredictionMarket {
@@ -501,6 +512,85 @@ model MarketStake {
   @@index([marketId])
 }
 
+model UserDemographics {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id             String   @unique @db.Uuid
+  age_group           String?  @db.VarChar(20)
+  country             String?  @db.VarChar(2)
+  occupation_category String?  @db.VarChar(50)
+  ai_experience_level String?  @db.VarChar(20)
+  created_at          DateTime @default(now())
+  updated_at          DateTime @default(now())
+
+  @@map("user_demographics")
+}
+
+model VoteDetails {
+  id                   String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  vote_session_id      String
+  userId               String   @map("user_id")
+  winning_validator_id String
+  losing_validator_id  String
+  vote_reason          String   @db.VarChar(50)
+  vote_strength        Int
+  time_to_decide       Int
+  scratch_card_reward  Int
+  created_at           DateTime @default(now())
+
+  @@index([userId])
+  @@index([vote_reason])
+  @@index([vote_session_id])
+  @@map("vote_details")
+}
+
+model ModelMatchups {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  model_a           String   @db.VarChar(100)
+  model_b           String   @db.VarChar(100)
+  model_a_wins      Int      @default(0)
+  model_b_wins      Int      @default(0)
+  total_comparisons Int      @default(0)
+  category          String   @db.VarChar(50)
+  updated_at        DateTime @default(now())
+
+  @@unique([model_a, model_b, category])
+  @@map("model_matchups")
+}
+
+model ModelEloRatings {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  model_name   String   @db.VarChar(100)
+  provider     String   @db.VarChar(50)
+  elo_rating   Int      @default(1500)
+  games_played Int      @default(0)
+  peak_rating  Int      @default(1500)
+  category     String   @default("overall") @db.VarChar(50)
+  last_updated DateTime @default(now())
+
+  @@unique([model_name, provider, category])
+  @@index([elo_rating(sort: Desc)])
+  @@map("model_elo_ratings")
+}
+
+model ai_models {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  model_path          String    @unique @db.VarChar(255)
+  name                String    @db.VarChar(255)
+  provider            String    @db.VarChar(100)
+  category            String?   @db.VarChar(50)
+  is_active           Boolean?  @default(true)
+  capabilities        Json?     @default("[]")
+  strengths           Json?     @default("[]")
+  cost_per_comparison Decimal?  @db.Decimal(10, 4)
+  icon                String?   @db.VarChar(255)
+  created_at          DateTime? @default(now()) @db.Timestamptz(6)
+  updated_at          DateTime? @default(now()) @db.Timestamptz(6)
+
+  @@index([is_active], map: "idx_ai_models_active")
+  @@index([category], map: "idx_ai_models_category")
+  @@index([provider], map: "idx_ai_models_provider")
+}
+
 enum LLMHealthStatus {
   healthy
   degraded
@@ -527,7 +617,6 @@ enum ResolutionStatus {
   resolved
   disputed
   unresolvable
-  unresolved
 }
 
 enum ResolutionMethod {
@@ -553,8 +642,6 @@ enum PointsTransactionType {
   STAKE_REFUND
   INITIAL_GRANT
   PREDICTION_WIN
-  PREDICTION_BET
-  DEV_GRANT
 }
 
 enum MarketStatus {

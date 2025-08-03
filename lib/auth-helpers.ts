@@ -1,6 +1,9 @@
 import { NextRequest } from 'next/server';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('auth-helpers');
 import { createSupabaseServerClient } from '@/lib/supabase-client';
-import { prisma } from "@/lib/database";
+import { prisma } from "@/lib/db/client";
 import { V3RAPointsService } from "@/lib/services/v3ra-points";
 
 export interface AuthUser {
@@ -28,7 +31,7 @@ export async function validateAuth(request: NextRequest): Promise<AuthUser | nul
       isAdmin,
     };
   } catch (error) {
-    console.error('Auth validation failed:', error);
+    logger.error('Auth validation failed', error);
     return null;
   }
 }

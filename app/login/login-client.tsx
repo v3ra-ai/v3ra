@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
 import Link from "next/link";
+import { logger } from "@/lib/utils/client-logger";
 
 export default function LoginClient() {
   const [email, setEmail] = useState("");
@@ -50,7 +51,7 @@ export default function LoginClient() {
       });
 
       if (error) {
-        console.error("[login] Supabase auth error:", error);
+        logger.error("Supabase auth error", error, { context: "login" });
         throw error;
       }
 
@@ -84,66 +85,87 @@ export default function LoginClient() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto p-6">
-      <div className="p-12 bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded-lg shadow-sm">
-        <h1 className="text-4xl font-bold text-center text-zinc-800 dark:text-zinc-200 mb-8">
-          Log In
-        </h1>
-        {error && <p className="text-red-500 mb-4 text-center">{error}</p>}
-        <form onSubmit={handleLogin} className="space-y-6">
-          <div>
-            <Label htmlFor="email" className="text-zinc-800 dark:text-zinc-200">
-              Email
-            </Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
+    <div className="w-full max-w-md mx-auto p-6 relative z-10 mt-20">
+      <div className="relative">
+        {/* Glass morphism card with glow effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500 to-pink-500 rounded-2xl blur-xl opacity-30 animate-pulse" />
+        <div className="relative p-8 md:p-10 bg-black/60 backdrop-blur-xl border border-white/10 rounded-2xl shadow-2xl">
+          <h1 className="text-4xl font-bold text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent mb-8">
+            Log In
+          </h1>
+          {error && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+              <p className="text-red-400 text-sm text-center">{error}</p>
+            </div>
+          )}
+          <form onSubmit={handleLogin} className="space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="email" className="text-white/80 text-sm">
+                Email
+              </Label>
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                className="w-full px-4 py-3 bg-white/5 backdrop-blur border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:border-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all"
+                placeholder="you@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password" className="text-white/80 text-sm">
+                Password
+              </Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                className="w-full px-4 py-3 bg-white/5 backdrop-blur border border-white/10 rounded-lg text-white placeholder:text-white/30 focus:border-purple-500/50 focus:outline-none focus:ring-2 focus:ring-purple-500/20 transition-all"
+                placeholder="••••••••"
+              />
+            </div>
+            <Button
+              type="submit"
               disabled={loading}
-              className="mt-1 bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200"
-              placeholder="you@example.com"
-            />
-          </div>
-          <div>
-            <Label htmlFor="password" className="text-zinc-800 dark:text-zinc-200">
-              Password
-            </Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              disabled={loading}
-              className="mt-1 bg-white dark:bg-zinc-900 border-zinc-300 dark:border-zinc-600 text-zinc-800 dark:text-zinc-200"
-              placeholder="••••••••"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-teal-600 hover:bg-teal-700 dark:bg-teal-500 dark:hover:bg-teal-600 cursor-pointer"
-          >
-            {loading ? "Logging in..." : "Log In"}
-          </Button>
-        </form>
-        
-        <div className="mt-6 text-center space-y-2">
-          <Link 
-            href="/signup" 
-            className="text-sm text-teal-600 hover:text-teal-700 dark:text-teal-500 dark:hover:text-teal-400"
-          >
-            Don&apos;t have an account? Sign up
-          </Link>
-          <div>
-            <Link 
-              href="/forgot-password" 
-              className="text-sm text-zinc-600 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-300"
+              className="w-full py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white font-semibold rounded-lg transition-all duration-200 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100"
             >
-              Forgot your password?
-            </Link>
+              {loading ? (
+                <span className="flex items-center justify-center gap-2">
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                  </svg>
+                  Logging in...
+                </span>
+              ) : (
+                "Log In"
+              )}
+            </Button>
+          </form>
+          
+          <div className="mt-8 space-y-3">
+            <div className="text-center">
+              <Link 
+                href="/signup" 
+                className="text-sm text-white/60 hover:text-white transition-colors"
+              >
+                Don&apos;t have an account?{" "}
+                <span className="text-purple-400 hover:text-purple-300 font-medium">Sign up</span>
+              </Link>
+            </div>
+            <div className="text-center">
+              <Link 
+                href="/forgot-password" 
+                className="text-sm text-white/60 hover:text-white/80 transition-colors"
+              >
+                Forgot your password?
+              </Link>
+            </div>
           </div>
         </div>
       </div>

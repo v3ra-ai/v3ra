@@ -2,6 +2,9 @@ import { AIValidator, ValidationRequest, AIValidationResponse, AdaptiveValidatio
 import type { QueryMode } from "@/lib/types";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('openrouter-validator');
 import { keyService } from "../../services/keyService";
 
 export class OpenRouterValidator implements AIValidator {
@@ -58,7 +61,7 @@ export class OpenRouterValidator implements AIValidator {
     // Get API key dynamically
     const apiKey = await this.getApiKey();
     if (!apiKey) {
-      console.error(
+      logger.error(
         "OpenRouterValidator: API key is missing. Cannot validate."
       );
       return {
@@ -92,35 +95,40 @@ export class OpenRouterValidator implements AIValidator {
         userMessage = prompt.userMessage;
       }
 
-      const response = await fetch(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            // Optional: Add other headers OpenRouter might recommend
-            // "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL, // Your site URL
-            // "X-Title": process.env.NEXT_PUBLIC_APP_NAME, // Your app name
-          },
-          body: JSON.stringify({
-            model: this.modelName, // e.g., "openai/gpt-3.5-turbo"
-            messages: [
-              // Basic system prompt for validation, can be enhanced
-              { role: "system", content: systemMessage },
-              { role: "user", content: userMessage },
-            ],
-            // temperature: 0.3, // Example: make it less random
-            // max_tokens: 50,   // Example: limit response length for validation
-            temperature: 0.3,
-            max_tokens: 1000
-          }),
-        }
-      );
+      // Create an AbortController for timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-      if (!response.ok) {
-        const errorBody = await response.text();
-        console.error(
+      try {
+        const response = await fetch(
+          "https://openrouter.ai/api/v1/chat/completions",
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${apiKey}`,
+              "Content-Type": "application/json",
+              "HTTP-Referer": process.env.NEXT_PUBLIC_SITE_URL || "https://v3ra.app",
+              "X-Title": "V3RA Blind Testing",
+            },
+            body: JSON.stringify({
+              model: this.modelName,
+              messages: [
+                { role: "system", content: systemMessage },
+                { role: "user", content: userMessage },
+              ],
+              temperature: 0.3,
+              max_tokens: 500, // Reduced for faster responses
+              stream: false,
+            }),
+            signal: controller.signal,
+          }
+        );
+        
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+        logger.error(
           `OpenRouter API error: ${response.status} ${response.statusText}`,
           errorBody
         );
@@ -169,8 +177,23 @@ export class OpenRouterValidator implements AIValidator {
         modelName: this.modelName,
         latency,
       };
+      } catch (fetchError) {
+        clearTimeout(timeoutId);
+        if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+          logger.error('OpenRouter API timeout after 15 seconds');
+          return {
+            vote: false,
+            confidence: 0,
+            rationale: "Request timed out after 15 seconds",
+            providerName: this.provider,
+            modelName: this.modelName,
+            latency: 15000,
+          };
+        }
+        throw fetchError;
+      }
     } catch (error) {
-      console.error("Error in OpenRouterValidator validate method:", error);
+      logger.error('Error in OpenRouterValidator validate method', error);
       const errorMessage =
         error instanceof Error ? error.message : "Unknown validation error";
       return {

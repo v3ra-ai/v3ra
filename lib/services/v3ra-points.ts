@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db/client";
 import { Decimal } from "@prisma/client/runtime/library";
+import { Prisma, PointsTransactionType } from "@prisma/client";
 
 export class V3RAPointsService {
   /**
@@ -12,80 +13,110 @@ export class V3RAPointsService {
 
     // Create account with initial grant if doesn't exist
     if (!userPoints) {
-      // First, verify that the user exists
-      const user = await prisma.user.findUnique({
-        where: { id: userId },
+      // Use transaction to ensure atomicity
+      return await prisma.$transaction(async (tx) => {
+        // First, verify that the user exists
+        const user = await tx.user.findUnique({
+          where: { id: userId },
+        });
+
+        if (!user) {
+          throw new Error(`User with ID ${userId} does not exist`);
+        }
+
+        // Create user points with initial balance
+        const newUserPoints = await tx.userPoints.create({
+          data: { 
+            userId,
+            balance: new Decimal(1000) // Initial grant
+          },
+        });
+
+        // Record initial grant transaction
+        await tx.pointsTransaction.create({
+          data: {
+            userId,
+            type: PointsTransactionType.INITIAL_GRANT,
+            amount: new Decimal(1000),
+            balance: new Decimal(1000),
+            description: "Welcome to V3RA! Here's 1000 points to get started"
+          }
+        });
+
+        return newUserPoints;
       });
-
-      if (!user) {
-        throw new Error(`User with ID ${userId} does not exist`);
-      }
-
-      userPoints = await prisma.userPoints.create({
-        data: { userId },
-      });
-
-      // Record initial grant transaction
-      await this.recordTransaction(
-        userId,
-        "INITIAL_GRANT",
-        new Decimal(1000),
-        new Decimal(1000),
-        "Welcome to V3RA! Here's 1000 points to get started"
-      );
     }
 
     return userPoints;
   }
 
   /**
-   * Record a points transaction
+   * Transfer points for betting - FIXED with proper transaction
    */
-  static async recordTransaction(
-    userId: string,
-    type: string,
-    amount: Decimal,
-    balance: Decimal,
-    description?: string,
-    metadata?: any
-  ) {
-    return prisma.pointsTransaction.create({
-      data: {
-        userId,
-        type: type as any,
-        amount,
-        balance,
-        description,
-        metadata,
-      },
-    });
-  }
-
-  /**
-   * Transfer points for betting
-   */
-  static async deductPoints(userId: string, amount: number) {
-    const userPoints = await this.getUserPoints(userId);
-    
-    if (userPoints.balance.lessThan(amount)) {
-      throw new Error("Insufficient V3RA points");
+  static async deductPoints(userId: string, amount: number, description?: string) {
+    if (amount <= 0) {
+      throw new Error("Amount must be positive");
     }
 
-    const newBalance = userPoints.balance.minus(amount);
-    
-    const updated = await prisma.userPoints.update({
-      where: { userId },
-      data: {
-        balance: newBalance,
-        totalSpent: userPoints.totalSpent.plus(amount),
-      },
-    });
+    return await prisma.$transaction(async (tx) => {
+      // Use SELECT FOR UPDATE to lock the row
+      const userPoints = await tx.$queryRaw<Array<{
+        userId: string;
+        balance: Decimal;
+        totalSpent: Decimal;
+        version: number;
+      }>>`
+        SELECT "userId", balance, "totalSpent", version
+        FROM "UserPoints"
+        WHERE "userId" = ${userId}
+        FOR UPDATE
+      `;
 
-    return updated;
+      if (!userPoints.length) {
+        throw new Error("User points not found");
+      }
+
+      const currentPoints = userPoints[0];
+      
+      if (currentPoints.balance.lessThan(amount)) {
+        throw new Error("Insufficient V3RA points");
+      }
+
+      const newBalance = currentPoints.balance.minus(amount);
+      const newTotalSpent = currentPoints.totalSpent.plus(amount);
+      
+      // Update balance atomically
+      const updated = await tx.userPoints.update({
+        where: { 
+          userId,
+          version: currentPoints.version // Optimistic locking
+        },
+        data: {
+          balance: newBalance,
+          totalSpent: newTotalSpent,
+          version: { increment: 1 }
+        },
+      });
+
+      // Record transaction
+      await tx.pointsTransaction.create({
+        data: {
+          userId,
+          type: PointsTransactionType.BET_PLACED,
+          amount: new Decimal(-amount), // Negative for deductions
+          balance: newBalance,
+          description: description || "Points deducted",
+        },
+      });
+
+      return updated;
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable
+    });
   }
 
   /**
-   * Award points for winning
+   * Award points for winning - FIXED with proper transaction
    */
   static async awardPoints(
     userId: string,
@@ -93,26 +124,145 @@ export class V3RAPointsService {
     type: string,
     description: string
   ) {
-    const userPoints = await this.getUserPoints(userId);
-    const newBalance = userPoints.balance.plus(amount);
+    if (amount <= 0) {
+      throw new Error("Amount must be positive");
+    }
 
-    const updated = await prisma.userPoints.update({
-      where: { userId },
-      data: {
-        balance: newBalance,
-        totalEarned: userPoints.totalEarned.plus(amount),
-      },
+    return await prisma.$transaction(async (tx) => {
+      // Use SELECT FOR UPDATE to lock the row
+      const userPoints = await tx.$queryRaw<Array<{
+        userId: string;
+        balance: Decimal;
+        totalEarned: Decimal;
+        version: number;
+      }>>`
+        SELECT "userId", balance, "totalEarned", version
+        FROM "UserPoints"
+        WHERE "userId" = ${userId}
+        FOR UPDATE
+      `;
+
+      if (!userPoints.length) {
+        throw new Error("User points not found");
+      }
+
+      const currentPoints = userPoints[0];
+      const newBalance = currentPoints.balance.plus(amount);
+      const newTotalEarned = currentPoints.totalEarned.plus(amount);
+
+      // Update balance atomically
+      const updated = await tx.userPoints.update({
+        where: { 
+          userId,
+          version: currentPoints.version // Optimistic locking
+        },
+        data: {
+          balance: newBalance,
+          totalEarned: newTotalEarned,
+          version: { increment: 1 }
+        },
+      });
+
+      // Record transaction
+      await tx.pointsTransaction.create({
+        data: {
+          userId,
+          type: type as PointsTransactionType,
+          amount: new Decimal(amount),
+          balance: newBalance,
+          description
+        },
+      });
+
+      return updated;
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable
     });
+  }
 
-    await this.recordTransaction(
-      userId,
-      type as any,
-      new Decimal(amount),
-      newBalance,
-      description
-    );
+  /**
+   * Atomic balance update using single UPDATE query
+   * More efficient for high-contention scenarios
+   */
+  static async updateBalanceAtomic(
+    userId: string, 
+    amount: number, 
+    type: 'deduct' | 'award',
+    description: string
+  ) {
+    const amountDecimal = new Decimal(amount);
+    
+    if (type === 'deduct') {
+      // Use UPDATE ... WHERE balance >= amount for atomic deduction
+      const result = await prisma.$queryRaw<Array<{
+        userId: string;
+        balance: Decimal;
+        totalSpent: Decimal;
+        totalEarned: Decimal;
+      }>>`
+        UPDATE "UserPoints"
+        SET 
+          balance = balance - ${amountDecimal},
+          "totalSpent" = "totalSpent" + ${amountDecimal},
+          version = version + 1,
+          "updatedAt" = CURRENT_TIMESTAMP
+        WHERE 
+          "userId" = ${userId} 
+          AND balance >= ${amountDecimal}
+        RETURNING "userId", balance, "totalSpent", "totalEarned"
+      `;
 
-    return updated;
+      if (!result.length) {
+        throw new Error("Insufficient balance or user not found");
+      }
+
+      // Record transaction
+      await prisma.pointsTransaction.create({
+        data: {
+          userId,
+          type: PointsTransactionType.BET_PLACED,
+          amount: new Decimal(-amount),
+          balance: result[0].balance,
+          description
+        }
+      });
+
+      return result[0];
+    } else {
+      // Award points atomically
+      const result = await prisma.$queryRaw<Array<{
+        userId: string;
+        balance: Decimal;
+        totalSpent: Decimal;
+        totalEarned: Decimal;
+      }>>`
+        UPDATE "UserPoints"
+        SET 
+          balance = balance + ${amountDecimal},
+          "totalEarned" = "totalEarned" + ${amountDecimal},
+          version = version + 1,
+          "updatedAt" = CURRENT_TIMESTAMP
+        WHERE "userId" = ${userId}
+        RETURNING "userId", balance, "totalSpent", "totalEarned"
+      `;
+
+      if (!result.length) {
+        throw new Error("User not found");
+      }
+
+      // Record transaction
+      await prisma.pointsTransaction.create({
+        data: {
+          userId,
+          type: type === 'award' ? PointsTransactionType.BET_WIN : PointsTransactionType.BET_PLACED,
+          amount: amountDecimal,
+          balance: result[0].balance,
+          description
+        }
+      });
+
+      return result[0];
+    }
   }
 
   /**
@@ -133,7 +283,7 @@ export class V3RAPointsService {
     const lastBonus = await prisma.pointsTransaction.findFirst({
       where: {
         userId,
-        type: "DAILY_BONUS",
+        type: PointsTransactionType.DAILY_BONUS,
       },
       orderBy: { createdAt: "desc" },
     });
@@ -147,7 +297,7 @@ export class V3RAPointsService {
   }
 
   /**
-   * Claim daily bonus
+   * Claim daily bonus - Already properly transactional
    */
   static async claimDailyBonus(userId: string) {
     const eligible = await this.checkDailyBonus(userId);
@@ -156,29 +306,40 @@ export class V3RAPointsService {
     }
 
     return await prisma.$transaction(async (tx) => {
-      const userPoints = await tx.userPoints.findUnique({
-        where: { userId },
-      });
+      // Lock the row for update
+      const userPoints = await tx.$queryRaw<Array<{
+        userId: string;
+        balance: Decimal;
+        totalEarned: Decimal;
+        streak: number;
+        version: number;
+      }>>`
+        SELECT "userId", balance, "totalEarned", streak, version
+        FROM "UserPoints"
+        WHERE "userId" = ${userId}
+        FOR UPDATE
+      `;
 
-      if (!userPoints) {
+      if (!userPoints.length) {
         throw new Error("User points not found");
       }
 
+      const currentPoints = userPoints[0];
       const bonusAmount = 100; // Base bonus
-      const streakBonus = Math.min(userPoints.streak * 10, 100); // Up to 100 extra
+      const streakBonus = Math.min(currentPoints.streak * 10, 100); // Up to 100 extra
       const totalBonus = bonusAmount + streakBonus;
-      const newBalance = userPoints.balance.plus(totalBonus);
-      const newStreak = userPoints.streak + 1;
+      const newBalance = currentPoints.balance.plus(totalBonus);
+      const newStreak = currentPoints.streak + 1;
 
       // Update points and streak atomically
       const updated = await tx.userPoints.update({
         where: { 
           userId,
-          version: userPoints.version
+          version: currentPoints.version
         },
         data: {
           balance: newBalance,
-          totalEarned: userPoints.totalEarned.plus(totalBonus),
+          totalEarned: currentPoints.totalEarned.plus(totalBonus),
           streak: newStreak,
           version: { increment: 1 }
         },
@@ -188,7 +349,7 @@ export class V3RAPointsService {
       await tx.pointsTransaction.create({
         data: {
           userId,
-          type: "DAILY_BONUS",
+          type: PointsTransactionType.DAILY_BONUS,
           amount: new Decimal(totalBonus),
           balance: newBalance,
           description: `Daily bonus claimed! Streak: ${newStreak}`,
@@ -205,6 +366,8 @@ export class V3RAPointsService {
         newBalance: updated.balance,
         streak: updated.streak,
       };
+    }, {
+      isolationLevel: Prisma.TransactionIsolationLevel.Serializable
     });
   }
 }

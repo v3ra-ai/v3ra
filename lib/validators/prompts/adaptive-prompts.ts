@@ -1,6 +1,6 @@
 import { QueryCategory, CategoryPromptConfig } from "@/lib/types/query-classifier";
 
-export const CATEGORY_PROMPTS: Record<QueryCategory, CategoryPromptConfig> = {
+export const CATEGORY_PROMPTS: Partial<Record<QueryCategory, CategoryPromptConfig>> = {
   [QueryCategory.FACT_CHECK]: {
     systemMessage: `You are a fact-checker. Respond with YES, NO, or UNKNOWN followed by a brief explanation. Use UNKNOWN for unverifiable claims, matters of belief, or topics lacking scientific consensus.`,
     
@@ -164,5 +164,5 @@ Resolution date: [When this can be verified]`,
 };
 
 export function getPromptForCategory(category: QueryCategory): CategoryPromptConfig {
-  return CATEGORY_PROMPTS[category];
+  return CATEGORY_PROMPTS[category] || CATEGORY_PROMPTS[QueryCategory.UNKNOWN]!;
 }

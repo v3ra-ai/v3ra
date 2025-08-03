@@ -1,290 +1,211 @@
 import { v4 as uuidv4 } from "uuid";
 import { AIValidator, AIValidationResponse, ValidationRequest, AdaptiveValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
-import { validatorService } from "../../services/validatorService";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('openai-validator');
 
 // Simple in-memory rate limiting
 const rateLimits = {
   requestsPerMinute: 20,
-  requestCounter: 0,
-  lastResetTime: Date.now(),
+  window: 60 * 1000, // 1 minute in milliseconds
 };
 
-// Error tracking
-const errorTracking = {
-  consecutiveErrors: 0,
-  lastErrorTime: 0,
-  backoffTime: 1000, // Initial backoff time (1 second)
-};
+const requestLog: { [key: string]: number[] } = {};
 
-/**
- * OpenAI-based validator implementation with improved error handling and rate limiting
- */
+function checkRateLimit(modelName: string): boolean {
+  const now = Date.now();
+  const key = `openai-${modelName}`;
+  
+  if (!requestLog[key]) {
+    requestLog[key] = [];
+  }
+  
+  // Remove timestamps older than the window
+  requestLog[key] = requestLog[key].filter(timestamp => now - timestamp < rateLimits.window);
+  
+  if (requestLog[key].length >= rateLimits.requestsPerMinute) {
+    return false;
+  }
+  
+  requestLog[key].push(now);
+  return true;
+}
+
 export class OpenAIValidator implements AIValidator {
   id: string;
   name: string;
-  description?: string;
-  provider: string;
+  provider = "OpenAI";
   modelName: string;
-  validatorType?: string;
   active: boolean;
   keyId?: string;
 
-  constructor(options: {
+  constructor(opts: {
     id?: string;
-    name?: string;
-    keyId?: string;
-    modelName?: string;
+    name: string;
+    modelName: string;
     active?: boolean;
+    keyId?: string;
   }) {
-    this.id = options.id || uuidv4();
-    this.modelName = options.modelName || "gpt-4o";
-    this.name = options.name || `${this.modelName.toUpperCase()} Validator`;
-    this.provider = "OpenAI";
-    this.description = `This validator uses OpenAI's ${this.modelName} model, which excels at balanced decision-making based on multiple perspectives and ethical considerations.`;
-    this.validatorType = "Multimodal Reasoning Engine";
-    this.active = options.active !== undefined ? options.active : true;
-    this.keyId = options.keyId;
+    this.id = opts.id || uuidv4();
+    this.name = opts.name;
+    this.modelName = opts.modelName;
+    this.active = opts.active ?? true;
+    this.keyId = opts.keyId;
   }
 
-  /**
-   * Check and update rate limits
-   * @returns Whether we're within rate limits
-   */
-  private checkRateLimit(): boolean {
-    const now = Date.now();
-
-    // Reset counter if a minute has passed
-    if (now - rateLimits.lastResetTime > 60000) {
-      rateLimits.requestCounter = 0;
-      rateLimits.lastResetTime = now;
-    }
-
-    // Check if we're over the limit
-    if (rateLimits.requestCounter >= rateLimits.requestsPerMinute) {
-      return false;
-    }
-
-    // Increment counter
-    rateLimits.requestCounter++;
-    return true;
-  }
-
-  /**
-   * Apply exponential backoff for errors
-   */
-  private shouldBackoff(): { shouldWait: boolean; waitTime: number } {
-    const now = Date.now();
-
-    // If we've had consecutive errors, calculate backoff
-    if (errorTracking.consecutiveErrors > 0) {
-      const waitTime = Math.min(
-        errorTracking.backoffTime *
-          Math.pow(2, errorTracking.consecutiveErrors - 1),
-        30000
-      );
-      const timeElapsed = now - errorTracking.lastErrorTime;
-
-      if (timeElapsed < waitTime) {
-        return { shouldWait: true, waitTime: waitTime - timeElapsed };
-      }
-    }
-
-    return { shouldWait: false, waitTime: 0 };
-  }
-
-  /**
-   * Get an API key for this validator
-   */
-  private async getApiKey(): Promise<string | null> {
-    // Use environment variable directly instead of key service
+  private getApiKey = async (): Promise<string | null> => {
+    // First try environment variable
     const envKey = process.env.OPENAI_API_KEY;
     if (envKey) {
       return envKey;
     }
 
-
-    // Fall back to key service only if env variable isn't available
+    // Then try key service if keyId is provided
     if (this.keyId) {
       const key = await keyService.getDecryptedKey(this.keyId);
       if (key) return key;
     }
 
+    // Finally try to get any OpenAI key from key service
     const keyData = await keyService.getFirstActiveKeyForProvider("OpenAI");
     if (keyData) {
       this.keyId = keyData.id;
       return keyData.key;
     }
+
+    logger.error('OpenAI API key not found');
     return null;
-  }
+  };
 
-  /**
-   * Validate a statement using OpenAI's API
-   */
-  async validate(request: ValidationRequest | AdaptiveValidationRequest): Promise<AIValidationResponse> {
-    const startTime = Date.now();
-
+  async validate(req: ValidationRequest | AdaptiveValidationRequest): Promise<AIValidationResponse> {
     try {
-      // Check rate limiting
-      if (!this.checkRateLimit()) {
+      // Check rate limit
+      if (!checkRateLimit(this.modelName)) {
         return {
           vote: false,
           confidence: 0,
-          rationale: "Rate limit exceeded for OpenAI API",
-          error: "RATE_LIMIT_EXCEEDED",
-          latency: Date.now() - startTime,
+          rationale: "Rate limit exceeded. Please try again later.",
+          providerName: this.provider,
+          modelName: this.modelName,
         };
       }
 
-      // Check backoff status
-      const backoffStatus = this.shouldBackoff();
-      if (backoffStatus.shouldWait) {
-        return {
-          vote: false,
-          confidence: 0,
-          rationale: `Service temporarily unavailable (${Math.round(backoffStatus.waitTime / 1000)}s backoff)`,
-          error: "SERVICE_BACKOFF",
-          latency: Date.now() - startTime,
-        };
-      }
-
-      // Get API key
       const apiKey = await this.getApiKey();
       if (!apiKey) {
-        throw new Error("No API key available for OpenAI");
+        return {
+          vote: false,
+          confidence: 0,
+          rationale: "No API key configured for OpenAI",
+          providerName: this.provider,
+          modelName: this.modelName,
+        };
       }
+
+      const startTime = Date.now();
 
       // Determine prompts based on request type
       let systemMessage: string;
       let userMessage: string;
       
-      if ('systemMessage' in request) {
+      if ('systemMessage' in req) {
         // Adaptive request
-        systemMessage = request.systemMessage;
-        userMessage = request.userMessage;
+        systemMessage = req.systemMessage;
+        userMessage = req.userMessage;
       } else {
-        // Regular request - use default prompts
+        // Regular request
         const prompt = generatePrompt(
-          request.queryMode,
-          request.statement,
-          request.context
+          req.queryMode,
+          req.statement,
+          req.context
         );
         systemMessage = prompt.systemMessage;
         userMessage = prompt.userMessage;
       }
 
-      const response = await fetch(
-        "https://api.openai.com/v1/chat/completions",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-          },
-          body: JSON.stringify({
-            model: this.modelName,
-            messages: [
-              { role: "system", content: systemMessage },
-              { role: "user", content: userMessage },
-            ],
-            temperature: 0.3,
-            max_tokens: 500,
-          }),
-          signal: AbortSignal.timeout(15000), // 15-second timeout
-        }
-      );
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: this.modelName,
+          messages: [
+            { role: "system", content: systemMessage },
+            { role: "user", content: userMessage },
+          ],
+          temperature: 0.7,
+          max_tokens: 500,
+        }),
+      });
+
+      const latency = Date.now() - startTime;
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => null);
-        const errorMessage = `OpenAI API error: ${response.status} ${response.statusText}${errorData ? " - " + JSON.stringify(errorData) : ""}`;
-
-        // Track consecutive errors for backoff
-        errorTracking.consecutiveErrors++;
-        errorTracking.lastErrorTime = Date.now();
-        if (errorTracking.consecutiveErrors === 1) {
-          errorTracking.backoffTime = 1000; // Reset backoff time on first error
-        }
-
-        throw new Error(errorMessage);
-      }
-
-      // Reset error tracking on success
-      errorTracking.consecutiveErrors = 0;
-
-      const data = await response.json();
-      const reply = data.choices[0].message.content;
-      const endTime = Date.now();
-
-      // For adaptive requests, return raw response
-      if ('systemMessage' in request) {
-        const upperReply = reply.toUpperCase();
-        let vote = false;
-        if (upperReply.startsWith("YES")) {
-          vote = true;
-        } else if (upperReply.startsWith("UNKNOWN")) {
-          // For UNKNOWN, we still need a boolean vote, so use false
-          // The rationale will contain the UNKNOWN explanation
-          vote = false;
-        }
+        const errorData = await response.json().catch(() => ({}));
+        logger.error(`OpenAI API error: ${response.status}`, errorData);
         
         return {
+          vote: false,
+          confidence: 0,
+          rationale: `OpenAI API error: ${response.status} - ${errorData.error?.message || response.statusText}`,
+          providerName: this.provider,
+          modelName: this.modelName,
+          latency,
+        };
+      }
+
+      const data = await response.json();
+      
+      if (!data.choices || data.choices.length === 0) {
+        return {
+          vote: false,
+          confidence: 0,
+          rationale: "No response from OpenAI model",
+          providerName: this.provider,
+          modelName: this.modelName,
+          latency,
+        };
+      }
+
+      const content = data.choices[0].message.content;
+      
+      // For adaptive requests, return raw response
+      if ('systemMessage' in req) {
+        const vote = content.toUpperCase().startsWith("YES");
+        return {
           vote,
-          confidence: 0.85,
-          rationale: reply,
-          latency: endTime - startTime,
+          confidence: vote ? 0.85 : 0.75,
+          rationale: content,
+          providerName: this.provider,
+          modelName: this.modelName,
+          latency,
         };
       }
       
-      // For regular requests, parse structured response
-      const parsed = parseVote(reply);
-      const { decision: vote, confidence = 0.8, rationale } = parsed;
-
+      // For regular requests, parse the vote
+      const parsed = parseVote(content);
+      
       return {
-        vote,
-        confidence,
-        rationale,
-        latency: endTime - startTime,
+        vote: parsed.decision,
+        confidence: parsed.confidence || 0.8,
+        rationale: parsed.rationale,
+        providerName: this.provider,
+        modelName: this.modelName,
+        latency,
       };
     } catch (error) {
-      const endTime = Date.now();
-      const errorMessage =
-        error instanceof Error ? error.message : String(error);
-      console.error(`Error calling OpenAI: ${errorMessage}`);
-
-      // Check if this is the first error after success
-      if (errorTracking.consecutiveErrors === 0) {
-        errorTracking.consecutiveErrors = 1;
-        errorTracking.lastErrorTime = Date.now();
-      }
-
+      logger.error("OpenAIValidator error:", error);
       return {
         vote: false,
         confidence: 0,
-        rationale: `Error: ${errorMessage}`,
-        error: errorMessage,
-        latency: endTime - startTime,
+        rationale: `Validation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        providerName: this.provider,
+        modelName: this.modelName,
       };
     }
-  }
-
-
-  /**
-   * Create and save this validator in the database
-   */
-  static async create(options: {
-    name?: string;
-    keyId?: string;
-    modelName?: string;
-    active?: boolean;
-  }): Promise<OpenAIValidator> {
-    // Create the validator instance
-    const validator = new OpenAIValidator(options);
-
-    // Save to database
-    await validatorService.addValidator(validator);
-
-    return validator;
   }
 }

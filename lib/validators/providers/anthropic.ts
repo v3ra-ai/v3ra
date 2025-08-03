@@ -1,4 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('validators:anthropic');
 import { AIValidator, AIValidationResponse, ValidationRequest, AdaptiveValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
 import { validatorService } from "../../services/validatorService";
@@ -186,13 +189,13 @@ export class AnthropicValidator implements AIValidator {
       const rawData = await response.text();
 
       if (!response.ok) {
-        console.error(`[Anthropic ${this.id}] API error with status ${response.status}`);
+        logger.error(`[Anthropic ${this.id}] API error with status ${response.status}`);
         let errorData;
         try {
           errorData = JSON.parse(rawData);
-          console.error(`[Anthropic ${this.id}] Anthropic API error details:`, errorData);
+          logger.error(`[Anthropic ${this.id}] Anthropic API error details:`, errorData);
         } catch {
-          console.error(`[Anthropic ${this.id}] Could not parse error response as JSON`);
+          logger.error(`[Anthropic ${this.id}] Could not parse error response as JSON`);
         }
 
         const errorMessage = `Anthropic API error: ${response.status} ${response.statusText}${errorData ? " - " + JSON.stringify(errorData) : ""}`;
@@ -229,7 +232,7 @@ export class AnthropicValidator implements AIValidator {
         } else if (data.completion) {
           reply = data.completion;
         } else {
-          console.error(`[Anthropic ${this.id}] Unexpected Anthropic API response structure:`, data);
+          logger.error(`[Anthropic ${this.id}] Unexpected Anthropic API response structure:`, data);
           reply = "";
         }
 
@@ -258,7 +261,7 @@ export class AnthropicValidator implements AIValidator {
       } catch (parseError: unknown) {
         const errorMessage =
           parseError instanceof Error ? parseError.message : String(parseError);
-        console.error(`[Anthropic ${this.id}] Failed to parse response:`, parseError);
+        logger.error(`[Anthropic ${this.id}] Failed to parse response:`, parseError);
         throw new Error(
           `Failed to parse Anthropic API response: ${errorMessage}`
         );
@@ -267,7 +270,7 @@ export class AnthropicValidator implements AIValidator {
       const endTime = Date.now();
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error(`[Anthropic ${this.id}] Validation error:`, error);
+      logger.error(`[Anthropic ${this.id}] Validation error:`, error);
 
       if (errorTracking.consecutiveErrors === 0) {
         errorTracking.consecutiveErrors = 1;

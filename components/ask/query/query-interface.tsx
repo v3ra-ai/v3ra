@@ -4,14 +4,10 @@ import { useState } from "react";
 import { QueryForm } from "@/components/ask/query/query-form";
 import QueryResults from "@/components/ask/query/query-results";
 import useQueryLogic from "@/hooks/useQueryLogic";
-import { QueryModelSelector } from "@/components/ask/query/query-model-selector";
-import { PopularQuestions } from "@/components/ask/query/popular-questions";
-import { SelectedModelsDisplay } from "@/components/ask/query/selected-models-display";
 
 export default function QueryInterface() {
   const [isSubmitInteracted] = useState(false);
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [philosophyMode, setPhilosophyMode] = useState(false);
+  const [philosophyMode] = useState(false);
 
   const {
     queriesRequested,
@@ -21,7 +17,6 @@ export default function QueryInterface() {
     error,
     placeholderText,
     queryMode,
-    viewMode,
     handleSubmit,
   } = useQueryLogic({ 
     payWithWallet: false, 
@@ -29,33 +24,35 @@ export default function QueryInterface() {
     philosophyMode 
   });
 
-  const handleSelectPopularQuestion = (question: string) => {
-    setQueryText(question);
-  };
+
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col pt-20">
       <div className="flex-1 flex items-center justify-center px-4 py-8">
         <div className="w-full max-w-2xl">
           <div className="text-center mb-12">
-            <h1 className="text-zinc-900 dark:text-zinc-50 text-4xl sm:text-5xl font-medium tracking-tight mb-2">
-              AI Consensus
+            <h1 className="text-5xl sm:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-300 to-pink-300 mb-4 drop-shadow-[0_0_30px_rgba(168,85,247,0.5)]">
+              Which AI is smarter?
             </h1>
-            <p className="text-zinc-600 dark:text-zinc-400 text-sm">
-              Multiple AI models. One truth.
+            <p className="text-white/80 text-xl font-medium drop-shadow-lg">
+              Ask anything. Pick the best answer. Earn rewards.
             </p>
           </div>
           
-          <div className="relative rounded-xl border-2 border-zinc-200 dark:border-cyan-500/20 bg-white/80 dark:bg-zinc-950/40 p-6 backdrop-blur-sm shadow-lg dark:shadow-[0_0_30px_rgba(0,255,255,0.1)]">
+          {/* Premium glass morphism container */}
+          <div className="relative group">
+            {/* Animated gradient border */}
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200 animate-gradient" />
+            
+            {/* Glass container */}
+            <div className="relative px-8 py-8 bg-black/50 backdrop-blur-xl rounded-2xl border border-white/10 hover:border-white/20 transition-all shadow-2xl">
             {error && (
               <p className="text-red-400 text-sm mb-6 text-center" role="alert">
                 {error}
               </p>
             )}
             
-            {!queryText && (
-              <PopularQuestions onSelectQuestion={handleSelectPopularQuestion} />
-            )}
+
             
             <QueryForm
               queryText={queryText}
@@ -68,19 +65,13 @@ export default function QueryInterface() {
               isSubmitInteracted={isSubmitInteracted}
             />
 
-            <div className="mt-6 sm:mt-8 space-y-2 -mx-2 px-2 sm:mx-0 sm:px-0">
-              <QueryModelSelector 
-                onDropdownChange={setIsDropdownOpen} 
-                onPhilosophyModeChange={setPhilosophyMode}
-                showPhilosophy={true}
-              />
-              <SelectedModelsDisplay hide={isDropdownOpen} />
+
             </div>
           </div>
         </div>
       </div>
       
-      <QueryResults viewMode={viewMode} philosophyMode={philosophyMode} />
+      <QueryResults philosophyMode={philosophyMode} />
     </div>
   );
 }

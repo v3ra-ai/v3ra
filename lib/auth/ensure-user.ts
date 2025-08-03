@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db/client";
 import { createSupabaseServerClient } from "@/lib/supabase-client";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('ensure-user');
 
 export async function ensureUserExists(userId?: string, email?: string) {
   try {
@@ -69,7 +72,7 @@ export async function ensureUserExists(userId?: string, email?: string) {
     
     return { success: true, user: newUser };
   } catch (error) {
-    console.error("Error ensuring user exists:", error);
+    logger.error('Error ensuring user exists', error);
     return { 
       success: false, 
       error: error instanceof Error ? error.message : "Unknown error" 

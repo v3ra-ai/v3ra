@@ -1,4 +1,7 @@
 import { prisma } from './client';
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('query-wrapper');
 
 // Wrapper to add timeout to queries
 export async function withTimeout<T>(
@@ -23,7 +26,7 @@ export async function safeQuery<T>(
   try {
     return await withTimeout(queryFn(), timeoutMs);
   } catch (error) {
-    console.error('[safeQuery] Database query failed:', error);
+    logger.error('Database query failed', error);
     return fallback;
   }
 }

@@ -6,9 +6,15 @@ import {
 } from "./providers";
 import { v4 as uuidv4 } from "uuid";
 import { ValidationRequest, AIValidationResponse } from "./types";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('validators-init');
 
 // Custom validator for our existing Eliza validator in mock data
 class ElizaValidator extends OpenAIValidator {
+  description?: string;
+  validatorType?: string;
+
   constructor() {
     super({
       modelName: "gpt-4o",
@@ -48,7 +54,7 @@ class ElizaValidator extends OpenAIValidator {
 
 // Initialize the registry with default validators
 export async function initializeValidators() {
-  console.log('[initializeValidators] Adding built-in validators...');
+  logger.info('Adding built-in validators');
   
   // Add our default validators
   const openaiValidator = new OpenAIValidator({
@@ -82,6 +88,6 @@ export async function initializeValidators() {
   (geminiValidator as any).avatarUrl = "/validators/gemini.jpg";
   await validatorRegistry.addValidator(geminiValidator);
 
-  console.log('[initializeValidators] Built-in validators added successfully');
+  logger.info('[initializeValidators] Built-in validators added successfully');
   return validatorRegistry;
 }

@@ -1,4 +1,7 @@
 import { v4 as uuidv4 } from "uuid";
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('validators:gemini');
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { AIValidator, AIValidationResponse, ValidationRequest, AdaptiveValidationRequest } from "../types";
 import { keyService } from "../../services/keyService";
@@ -243,7 +246,7 @@ export class GeminiValidator implements AIValidator {
           latency: endTime - startTime,
         };
       } catch (apiError: unknown) {
-        console.error("[GEMINI] API error:", apiError);
+        logger.error("[GEMINI] API error:", apiError);
 
         // Track consecutive errors for backoff
         errorTracking.consecutiveErrors++;
@@ -266,7 +269,7 @@ export class GeminiValidator implements AIValidator {
       const endTime = Date.now();
       const errorMessage =
         error instanceof Error ? error.message : String(error);
-      console.error(`[GEMINI] Error in validate method: ${errorMessage}`);
+      logger.error(`[GEMINI] Error in validate method: ${errorMessage}`);
 
       // Check if this is the first error after success
       if (errorTracking.consecutiveErrors === 0) {

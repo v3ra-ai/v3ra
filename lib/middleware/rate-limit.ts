@@ -1,90 +1,45 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { RateLimiter } from '@/lib/rate-limiter';
-import { ErrorCode, createErrorResponse } from '@/lib/utils/api-errors';
+// Re-export from new rate limiting system for backward compatibility
+export { 
+  withRateLimit,
+  rateLimitStrict,
+  rateLimitModerate,
+  rateLimitRelaxed,
+  resetRateLimit
+} from '@/lib/rate-limit/index';
 
-// Different rate limiters for different endpoints
-const rateLimiters = {
-  // Strict limit for expensive operations
-  strict: new RateLimiter({
-    interval: 60 * 1000, // 1 minute
-    tokensPerInterval: 5,
-  }),
-  // Normal limit for regular API calls
-  normal: new RateLimiter({
-    interval: 60 * 1000, // 1 minute
-    tokensPerInterval: 30,
-  }),
-  // Relaxed limit for read operations
-  relaxed: new RateLimiter({
-    interval: 60 * 1000, // 1 minute
-    tokensPerInterval: 100,
-  }),
-  // Authentication endpoints
-  auth: new RateLimiter({
-    interval: 15 * 60 * 1000, // 15 minutes
-    tokensPerInterval: 10,
-  }),
+// Legacy support for old imports
+import { NextRequest, NextResponse } from 'next/server';
+import { withRateLimit as newWithRateLimit } from '@/lib/rate-limit/index';
+
+// Map old tier names to new configs
+const tierToConfig = {
+  strict: { points: 10, duration: 60 },
+  normal: { points: 30, duration: 60 },
+  relaxed: { points: 60, duration: 60 },
+  auth: { points: 5, duration: 900 },
+  vote: { points: 30, duration: 60 },
 };
 
-export type RateLimitTier = keyof typeof rateLimiters;
+export type RateLimitTier = keyof typeof tierToConfig;
 
 /**
- * Rate limiting middleware
- * @param tier - The rate limit tier to apply
- * @param handler - The handler function to execute if rate limit passes
+ * Legacy rate limiting middleware (deprecated)
+ * @deprecated Use rateLimitStrict, rateLimitModerate, or rateLimitRelaxed instead
  */
-export function withRateLimit(
+export function withRateLimitLegacy(
   tier: RateLimitTier,
   handler: (req: NextRequest) => Promise<NextResponse>
 ): (req: NextRequest) => Promise<NextResponse> {
-  return async (request: NextRequest) => {
-    const limiter = rateLimiters[tier];
-    
-    // Get identifier from request
-    const identifier = getIdentifier(request);
-    
-    const allowed = await limiter.check(identifier);
-    if (!allowed) {
-      return createErrorResponse(
-        'Too many requests. Please try again later.',
-        ErrorCode.RATE_LIMITED,
-        429
-      );
-    }
-    
-    return handler(request);
-  };
+  const config = tierToConfig[tier];
+  return newWithRateLimit(handler, config);
 }
 
-/**
- * Get a unique identifier for rate limiting
- * Uses user ID if authenticated, otherwise uses IP address
- */
-function getIdentifier(request: NextRequest): string {
-  // Check for user ID from auth middleware
-  const userId = request.headers.get('x-user-id');
-  if (userId) {
-    return `user:${userId}`;
-  }
-  
-  // Fall back to IP address
-  const forwarded = request.headers.get('x-forwarded-for');
-  const ip = forwarded ? forwarded.split(',')[0] : request.headers.get('x-real-ip');
-  
-  return `ip:${ip || 'unknown'}`;
-}
+// Legacy convenience functions for old tier names
+export const rateLimitAuth = (handler: (req: NextRequest) => Promise<NextResponse>) => 
+  withRateLimitLegacy('auth', handler);
 
-/**
- * Convenience functions for common rate limit tiers
- */
-export const rateLimitStrict = (handler: (req: NextRequest) => Promise<NextResponse>) => 
-  withRateLimit('strict', handler);
+export const rateLimitVote = (handler: (req: NextRequest) => Promise<NextResponse>) => 
+  withRateLimitLegacy('vote', handler);
 
 export const rateLimitNormal = (handler: (req: NextRequest) => Promise<NextResponse>) => 
-  withRateLimit('normal', handler);
-
-export const rateLimitRelaxed = (handler: (req: NextRequest) => Promise<NextResponse>) => 
-  withRateLimit('relaxed', handler);
-
-export const rateLimitAuth = (handler: (req: NextRequest) => Promise<NextResponse>) => 
-  withRateLimit('auth', handler);
+  withRateLimitLegacy('normal', handler);

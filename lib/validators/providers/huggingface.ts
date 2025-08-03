@@ -1,4 +1,7 @@
 import { AIValidator, ValidationRequest, AIValidationResponse } from "../types";
+import { createLogger } from '@/lib/logger';
+
+const logger = createLogger('validators:huggingface');
 import type { QueryMode } from "@/lib/types";
 import { generatePrompt } from "../utils";
 import { parseLLMReply as parseVote } from "../responseParser";
@@ -28,7 +31,7 @@ export class HuggingFaceValidator implements AIValidator {
 
     const envApiKey = process.env.HUGGING_FACE_API_KEY;
     if (!envApiKey) {
-      console.error(
+      logger.error(
         "CRITICAL: HUGGING_FACE_API_KEY is not set in environment variables."
       );
       throw new Error(
@@ -40,7 +43,7 @@ export class HuggingFaceValidator implements AIValidator {
 
   async validate(req: ValidationRequest): Promise<AIValidationResponse> {
     if (!this.apiKey) {
-      console.error(
+      logger.error(
         "HuggingFaceValidator: API key is missing. Cannot validate."
       );
       return {
@@ -182,7 +185,7 @@ export class HuggingFaceValidator implements AIValidator {
               // Reconstruct the JSON with the cleaned rationale
               rawContent = JSON.stringify(jsonData);
             } catch (e) {
-              console.error(`[HuggingFace - ${this.modelName}] Error parsing JSON:`, e);
+              logger.error(`[HuggingFace - ${this.modelName}] Error parsing JSON:`, e);
               // If JSON parsing fails, continue with the raw content
             }
           }
@@ -219,7 +222,7 @@ export class HuggingFaceValidator implements AIValidator {
       }
 
       // All retries failed
-      console.error(
+      logger.error(
         `Hugging Face API error after ${maxRetries} attempts:`,
         lastError?.status || 'Unknown',
         lastError?.statusText || '',
@@ -235,7 +238,7 @@ export class HuggingFaceValidator implements AIValidator {
 
       // This section was moved into the retry loop above
     } catch (error) {
-      console.error(`[HuggingFace - ${this.modelName}] Validation error:`, error);
+      logger.error(`[HuggingFace - ${this.modelName}] Validation error:`, error);
       return {
         vote: false,
         confidence: 0,

@@ -103,21 +103,127 @@ The app uses Supabase with PostgreSQL. Key tables:
 
 ### Vercel Deployment
 
-1. Push to GitHub
-2. Connect repository to Vercel
-3. Configure environment variables
-4. Deploy
+1. **Push to GitHub**:
+```bash
+git add .
+git commit -m "Prepare for deployment"
+git push origin main
+```
+
+2. **Connect repository to Vercel**:
+   - Import project in Vercel dashboard
+   - Select the repository
+   - Configure build settings (auto-detected)
+
+3. **Configure environment variables**:
+   - Add all required env vars in Vercel dashboard
+   - Ensure DATABASE_URL uses pooled connection
+   - Set NODE_ENV=production
+
+4. **Deploy**:
+   - Click "Deploy"
+   - Wait for build to complete
+   - Verify deployment at provided URL
+
+### Database Migrations
+
+1. **Apply migrations locally**:
+```bash
+npx prisma migrate dev
+```
+
+2. **Apply migrations in production**:
+```bash
+npx prisma migrate deploy
+```
+
+3. **Check migration status**:
+```bash
+npx prisma migrate status
+```
+
+### Post-Deployment Checklist
+
+- [ ] Verify all API endpoints are accessible
+- [ ] Test authentication flow
+- [ ] Check rate limiting is working
+- [ ] Verify CSRF protection is active
+- [ ] Test LLM queries are functioning
+- [ ] Monitor error logs in Sentry
 
 ### Environment Variables
 
-Required environment variables:
+Complete list of required and optional environment variables:
+
+#### Database & Auth (Required)
 ```env
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_SERVICE_KEY=
-OPENAI_API_KEY=
-ANTHROPIC_API_KEY=
-# ... other LLM keys
+# Supabase configuration
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+# Database URLs (auto-configured by Supabase)
+DATABASE_URL=your-pooled-connection-url
+POSTGRES_URL_NON_POOLING=your-direct-connection-url
+```
+
+#### LLM API Keys (At least one required)
+```env
+# OpenAI
+OPENAI_API_KEY=sk-...
+
+# Anthropic
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Google
+GOOGLE_API_KEY=...
+
+# Mistral
+MISTRAL_API_KEY=...
+
+# Groq
+GROQ_API_KEY=...
+
+# OpenRouter (for additional models)
+OPENROUTER_API_KEY=sk-or-...
+```
+
+#### Monitoring & Analytics (Optional)
+```env
+# Sentry error tracking
+NEXT_PUBLIC_SENTRY_DSN=https://...@sentry.io/...
+SENTRY_AUTH_TOKEN=...
+
+# Google Analytics
+NEXT_PUBLIC_GA_MEASUREMENT_ID=G-...
+
+# Hotjar
+NEXT_PUBLIC_HOTJAR_SITE_ID=...
+NEXT_PUBLIC_HOTJAR_VERSION=6
+```
+
+#### Security (Auto-generated if not set)
+```env
+# CSRF Protection
+CSRF_SECRET=32-character-random-string
+```
+
+#### Application Settings (Optional)
+```env
+# Node environment
+NODE_ENV=production
+
+# Application version
+NEXT_PUBLIC_APP_VERSION=1.0.0
+
+# Logging level
+LOG_LEVEL=info
+```
+
+#### Rate Limiting (Optional)
+```env
+# Redis URL for distributed rate limiting
+REDIS_URL=redis://...
 ```
 
 ## Contributing

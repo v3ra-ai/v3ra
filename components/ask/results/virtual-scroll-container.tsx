@@ -1,5 +1,7 @@
 "use client";
 
+import { logger } from "@/lib/utils/client-logger";
+
 import { useEffect, useRef, useCallback, useMemo } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { PRELOAD_THRESHOLD } from "@/lib/constants";
@@ -59,7 +61,7 @@ export function VirtualScrollContainer<T>({
     const isNearBottom = lastItem.index >= items.length - 5;
     
     if (isNearBottom) {
-      console.log("[VirtualScroll] Near bottom, loading more...");
+      logger.debug("Near bottom, loading more", { context: "virtual-scroll" });
       loadingRef.current = true;
       loadMore().finally(() => {
         loadingRef.current = false;

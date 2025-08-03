@@ -1,5 +1,8 @@
 import { prisma } from "@/lib/db/client";
 import crypto from "crypto";
+import { createLogger } from "@/lib/logger";
+
+const logger = createLogger('key-service');
 
 class KeyService {
   private algorithm = "aes-256-gcm";
@@ -63,7 +66,7 @@ class KeyService {
       // For now, return the key directly - in production, implement proper decryption
       return apiKey.key;
     } catch (error) {
-      console.error("Error getting decrypted key:", error);
+      logger.error('Error getting decrypted key', error);
       return null;
     }
   }
@@ -89,7 +92,7 @@ class KeyService {
         key: apiKey.key
       };
     } catch (error) {
-      console.error("Error getting first active key for provider:", error);
+      logger.error('Error getting first active key for provider', error);
       return null;
     }
   }
