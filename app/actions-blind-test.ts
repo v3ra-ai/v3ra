@@ -55,32 +55,23 @@ export async function getBlindTestComparison(
           id: uuidv4(),
           profileName: model1.name,
           provider: model1.provider,
-          modelName: model1.model_path,
-          vote: response1.vote,
-          rationale: response1.rationale,
-          confidence: response1.confidence,
-          latency: response1.latency,
-          validatorId: model1.id,
-          avatarUrl: model1.icon
+          vote: response1.vote ? 'YES' : 'NO',
+          rationale: response1.rationale
         },
         {
           id: uuidv4(),
           profileName: model2.name,
           provider: model2.provider,
-          modelName: model2.model_path,
-          vote: response2.vote,
-          rationale: response2.rationale,
-          confidence: response2.confidence,
-          latency: response2.latency,
-          validatorId: model2.id,
-          avatarUrl: model2.icon
+          vote: response2.vote ? 'YES' : 'NO',
+          rationale: response2.rationale
         }
       ],
-      timestamp: new Date(),
-      votesYes: 0,
-      votesNo: 0,
-      notVoted: 0,
-      mode: 'factCheck'
+      votingResult: {
+        yes: 0,
+        no: 0,
+        notVoted: 0
+      },
+      timestamp: new Date().toISOString()
     };
 
     return result;

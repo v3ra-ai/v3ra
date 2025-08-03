@@ -75,3 +75,6 @@ export function createLogger(namespace: string): Logger {
 
 // Default logger instance
 export const logger = new Logger();
+
+// API logger instance for server-side logging
+export const apiLogger = new Logger({ namespace: 'api' });
