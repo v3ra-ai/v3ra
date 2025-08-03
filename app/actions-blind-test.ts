@@ -83,16 +83,14 @@ export async function getBlindTestComparison(
           profileName: model1.name,
           provider: model1.provider,
           vote: 'RESPONSE', // For blind testing, this isn't a YES/NO vote
-          rationale: response1.rationale, // This is the actual AI response
-          confidence: response1.confidence
+          rationale: response1.rationale // This is the actual AI response
         },
         {
           id: model2.model_path || uuidv4(), // Use model_path as ID for blind testing
           profileName: model2.name,
           provider: model2.provider,
           vote: 'RESPONSE', // For blind testing, this isn't a YES/NO vote
-          rationale: response2.rationale, // This is the actual AI response
-          confidence: response2.confidence
+          rationale: response2.rationale // This is the actual AI response
         }
       ],
       votingResult: {
