@@ -89,10 +89,10 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
         take: limit,
       });
     } catch (error) {
-      apiLogger.error({ 
+      apiLogger.error("Error fetching user points from database", { 
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined
-      }, "Error fetching user points from database");
+      });
       throw error; // Re-throw to be caught by outer try-catch
     }
 
@@ -126,7 +126,7 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
             select: { username: true, name: true, email: true },
           });
         } catch (error) {
-          apiLogger.error({ error, userId: userPoints.userId }, "Error fetching user");
+          apiLogger.error("Error fetching user", { error, userId: userPoints.userId });
           user = null;
         }
 
@@ -155,7 +155,7 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
             select: { created_at: true }
           });
         } catch (error) {
-          apiLogger.error({ error, userId: userPoints.userId }, "Error fetching vote statistics");
+          apiLogger.error("Error fetching vote statistics", { error, userId: userPoints.userId });
           totalVotes = 0;
           recentVotes = [];
         }
@@ -215,7 +215,7 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
         }),
       ]);
     } catch (error) {
-      apiLogger.error({ error }, "Error fetching summary statistics");
+      apiLogger.error("Error fetching summary statistics", { error });
       totalV3RAInPlay = { _sum: { balance: null } };
       activeUsers = userStats.length;
     }
@@ -250,7 +250,7 @@ export const GET = rateLimitRelaxed(async (request: Request) => {
       },
     });
   } catch (error) {
-    apiLogger.error({ error }, "Failed to fetch leaderboard data");
+    apiLogger.error("Failed to fetch leaderboard data", { error });
     return NextResponse.json(
       { error: "Failed to fetch leaderboard data" },
       { status: 500 }

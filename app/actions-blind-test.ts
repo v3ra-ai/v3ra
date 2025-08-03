@@ -30,7 +30,8 @@ export async function getBlindTestComparison(
     // Generate session ID
     const sessionId = uuidv4();
     
-    // Get responses from both validators
+    // For blind testing, we want the AI to respond to the query, not fact-check it
+    // So we'll use the rationale as the main response
     const [response1, response2] = await Promise.all([
       validator1.validate({
         statement: queryText,
@@ -55,15 +56,15 @@ export async function getBlindTestComparison(
           id: uuidv4(),
           profileName: model1.name,
           provider: model1.provider,
-          vote: response1.vote ? 'YES' : 'NO',
-          rationale: response1.rationale
+          vote: 'RESPONSE', // For blind testing, this isn't a YES/NO vote
+          rationale: response1.rationale // This is the actual AI response
         },
         {
           id: uuidv4(),
           profileName: model2.name,
           provider: model2.provider,
-          vote: response2.vote ? 'YES' : 'NO',
-          rationale: response2.rationale
+          vote: 'RESPONSE', // For blind testing, this isn't a YES/NO vote
+          rationale: response2.rationale // This is the actual AI response
         }
       ],
       votingResult: {

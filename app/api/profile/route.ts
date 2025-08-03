@@ -37,7 +37,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ user: userData });
     
   } catch (error) {
-    apiLogger.error({ error }, "Failed to get profile");
+    apiLogger.error("Failed to get profile", { error });
     return NextResponse.json(
       { error: "Failed to get profile" },
       { status: 500 }

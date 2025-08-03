@@ -60,7 +60,7 @@ export const POST = rateLimitNormal(withCSRFProtection(async (request: NextReque
     }
     
   } catch (error) {
-    apiLogger.error({ error }, "Failed to process daily bonus");
+    apiLogger.error("Failed to process daily bonus", { error });
     return NextResponse.json(
       { error: "Failed to process daily bonus" },
       { status: 500 }

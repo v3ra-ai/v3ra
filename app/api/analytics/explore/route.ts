@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
       .limit(20);
 
     if (rankingsError && !rankingsError.message?.includes('relation') && !rankingsError.message?.includes('does not exist')) {
-      apiLogger.warn({ error: rankingsError.message, category }, 'Rankings table not found');
+      apiLogger.warn('Rankings table not found', { error: rankingsError.message, category });
     }
 
     // Get comprehensive vote statistics with model performance
@@ -97,11 +97,11 @@ export async function GET(request: NextRequest) {
       });
       
     } catch (error) {
-      apiLogger.error({
+      apiLogger.error('Error fetching vote details', {
         error: error instanceof Error ? error.message : String(error),
         timeframe,
         category
-      }, 'Error fetching vote details');
+      });
     }
 
     // Get head to head matchups from vote_details
@@ -153,11 +153,11 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => b.total_comparisons - a.total_comparisons)
         .slice(0, 10);
     } catch (error) {
-      apiLogger.error({
+      apiLogger.error('Error processing matchups', {
         error: error instanceof Error ? error.message : String(error),
         timeframe,
         category
-      }, 'Error processing matchups');
+      });
     }
     
     // Try to get data from model_matchups table as fallback
@@ -170,7 +170,7 @@ export async function GET(request: NextRequest) {
         .limit(10);
 
       if (matchupsError && !matchupsError.message?.includes('relation') && !matchupsError.message?.includes('does not exist')) {
-        apiLogger.warn({ error: matchupsError.message, category }, 'Matchups table not found');
+        apiLogger.warn('Matchups table not found', { error: matchupsError.message, category });
       } else if (supabaseMatchups) {
         matchups = supabaseMatchups;
       }
@@ -193,10 +193,10 @@ export async function GET(request: NextRequest) {
         return acc;
       }, {});
     } catch (error) {
-      apiLogger.error({
+      apiLogger.error('Error fetching vote reasons', {
         error: error instanceof Error ? error.message : String(error),
         timeframe
-      }, 'Error fetching vote reasons');
+      });
     }
     
     // Since we don't have ELO rankings, create rankings from vote performance
@@ -250,9 +250,9 @@ export async function GET(request: NextRequest) {
         .sort((a, b) => b.recentWins - a.recentWins)
         .slice(0, 5);
     } catch (error) {
-      apiLogger.error({
+      apiLogger.error('Error calculating trending models', {
         error: error instanceof Error ? error.message : String(error)
-      }, 'Error calculating trending models');
+      });
     }
     
     const response = {
@@ -275,11 +275,11 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(response);
 
   } catch (error) {
-    apiLogger.error({
+    apiLogger.error('Analytics endpoint failed', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       path: '/api/analytics/explore'
-    }, 'Analytics endpoint failed');
+    });
     return NextResponse.json(
       { error: 'Failed to fetch analytics' },
       { status: 500 }

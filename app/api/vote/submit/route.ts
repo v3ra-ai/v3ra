@@ -58,7 +58,7 @@ export const POST = rateLimitModerate(withCSRFProtection(async (request: NextReq
 
     if (voteError) {
       // Log detailed error information
-      apiLogger.error({
+      apiLogger.error('Vote submission RPC error', {
         error: voteError.message,
         code: voteError.code,
         details: voteError.details,
@@ -72,7 +72,7 @@ export const POST = rateLimitModerate(withCSRFProtection(async (request: NextReq
           p_vote_strength: voteStrength,
           p_time_to_decide: timeToDecide || 0
         }
-      }, 'Vote submission RPC error');
+      });
       
       // Check for duplicate vote error
       if (voteError.message?.includes('already voted')) {
@@ -115,13 +115,13 @@ export const POST = rateLimitModerate(withCSRFProtection(async (request: NextReq
     if (matchupError) {
       // Only ignore if function doesn't exist (backwards compatibility)
       if (!matchupError.message?.includes('function does not exist')) {
-        apiLogger.error({
+        apiLogger.error('Critical: Matchup update failed', {
           error: matchupError.message,
           code: matchupError.code,
           winningModel: winningValidatorId,
           losingModel: losingValidatorId,
           category: voteReason
-        }, 'Critical: Matchup update failed');
+        });
         // Note: Sentry should be configured server-side, not using window object
         // Don't fail the entire request, but log this critical error
       }
@@ -139,13 +139,13 @@ export const POST = rateLimitModerate(withCSRFProtection(async (request: NextReq
     if (eloError) {
       // Only ignore if function doesn't exist (backwards compatibility)
       if (!eloError.message?.includes('function does not exist')) {
-        apiLogger.error({
+        apiLogger.error('Critical: Elo update failed', {
           error: eloError.message,
           code: eloError.code,
           winningModel: winningValidatorId,
           losingModel: losingValidatorId,
           category: voteReason
-        }, 'Critical: Elo update failed');
+        });
         // Note: Sentry should be configured server-side, not using window object
         // Continue without Elo data rather than failing the entire request
       }
@@ -175,11 +175,11 @@ export const POST = rateLimitModerate(withCSRFProtection(async (request: NextReq
     return NextResponse.json(responseBody);
 
   } catch (error) {
-    apiLogger.error({
+    apiLogger.error('Vote submission failed', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       path: '/api/vote/submit'
-    }, 'Vote submission failed');
+    });
     
     // Provide more detailed error information in development
     const errorMessage = error instanceof Error ? error.message : 'Failed to submit vote';
