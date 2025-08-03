@@ -8,6 +8,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from '@/components/ui/dialog';
 
 export function WelcomeModal() {
@@ -63,6 +64,9 @@ export function WelcomeModal() {
           <DialogTitle className="text-3xl font-bold text-center bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
             Welcome to V3RA Beta! 🎉
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Welcome modal for V3RA Beta introduction
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6 py-4">

@@ -3,7 +3,10 @@
 import { v4 as uuidv4 } from 'uuid';
 import { validatorRegistry } from '@/lib/validators/registry';
 import { prismaModelRegistry } from '@/lib/services/prisma-model-registry';
+import { createLogger } from '@/lib/logger';
 import type { VoteResult } from '@/lib/types';
+
+const logger = createLogger('blind-test');
 
 export async function getBlindTestComparison(
   queryText: string,
@@ -77,7 +80,7 @@ export async function getBlindTestComparison(
 
     return result;
   } catch (error) {
-    console.error('Error in getBlindTestComparison:', error);
+    logger.error('Error in getBlindTestComparison', { error });
     return { error: error instanceof Error ? error.message : 'Failed to get AI responses' };
   }
 }

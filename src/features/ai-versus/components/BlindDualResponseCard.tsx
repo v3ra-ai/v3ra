@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { toast } from 'sonner'
 import { Lightbulb, Target, Sparkles, Zap, Layers, Trophy, Eye, EyeOff } from 'lucide-react'
@@ -252,6 +252,9 @@ export function BlindDualResponseCard({
             <DialogTitle className="text-xl font-bold text-white">
               Why did Response {selectedCard} stand out?
             </DialogTitle>
+            <DialogDescription className="sr-only">
+              Select a reason why this response stood out to you
+            </DialogDescription>
           </DialogHeader>
           
           <div className="grid grid-cols-2 gap-3 mt-6">

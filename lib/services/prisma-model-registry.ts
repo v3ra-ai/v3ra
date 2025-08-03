@@ -70,9 +70,31 @@ class PrismaModelRegistry {
         return null;
       }
 
-      return [result[0].model1 as AIModel, result[0].model2 as AIModel];
+      // The SQL function returns JSONB objects, we need to construct proper AIModel objects
+      const model1Data = result[0].model1;
+      const model2Data = result[0].model2;
+
+      const model1: AIModel = {
+        id: model1Data.id,
+        model_path: model1Data.id, // The function uses 'id' for model_path
+        name: model1Data.name,
+        provider: model1Data.provider,
+        category: model1Data.category,
+        is_active: true
+      };
+
+      const model2: AIModel = {
+        id: model2Data.id,
+        model_path: model2Data.id, // The function uses 'id' for model_path
+        name: model2Data.name,
+        provider: model2Data.provider,
+        category: model2Data.category,
+        is_active: true
+      };
+
+      return [model1, model2];
     } catch (error) {
-      logger.error('Error in getRandomPair', error);
+      logger.error('Error in getRandomPair', { error });
       // Fallback to manual selection
       await this.ensureCacheValid();
       
@@ -153,7 +175,7 @@ class PrismaModelRegistry {
 
       this.lastCacheUpdate = new Date();
     } catch (error) {
-      logger.error('Error refreshing model cache:', error);
+      logger.error('Error refreshing model cache', { error });
     }
   }
 
