@@ -226,7 +226,7 @@ export function BlindDualResponseCard({
                 {modelAssignment[selectedCard!].name}
               </span>!
             </p>
-            <p className="text-white/90 text-sm mt-2">
+            <p className="text-white text-sm mt-2">
               Revealing models in blind testing helps discover true preferences
             </p>
           </motion.div>
@@ -403,7 +403,7 @@ function BlindResponseCard({
             </div>
           ) : (
             <div className="max-h-[40vh] md:max-h-[60vh] overflow-y-auto scrollbar-thin scrollbar-thumb-white/20 scrollbar-track-transparent pr-2">
-              <p className="text-zinc-200 leading-relaxed whitespace-pre-wrap">
+              <p className="text-white leading-relaxed whitespace-pre-wrap">
                 {response}
               </p>
             </div>
