@@ -25,6 +25,7 @@ export function middleware(request: NextRequest) {
     "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openrouter.ai https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://vitals.vercel-insights.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.hotjar.com https://vc.hotjar.io wss://*.hotjar.com https://vercel.live wss://vercel.live https://*.vercel.live",
     "worker-src 'self' blob:",
+    "frame-src 'self' https://vercel.live", // Allow Vercel Live iframe
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'"

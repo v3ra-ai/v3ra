@@ -19,7 +19,7 @@ const productionConfig: Prisma.PrismaClientOptions = {
   // Connection pool settings for production
   datasources: {
     db: {
-      url: getDatabaseUrl() + '?connection_limit=20&pool_timeout=10',
+      url: getDatabaseUrl(), // getDatabaseUrl already handles parameters
     },
   },
 };
