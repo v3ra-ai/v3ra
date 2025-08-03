@@ -179,7 +179,7 @@ export class PerformanceMonitor {
       }
       document.head.appendChild(link);
     } catch (_error) {
-      logger.warn('Failed to preload resource:', url, _error);
+      logger.warn(`Failed to preload resource: ${url}`, { error: _error });
     }
   }
 }

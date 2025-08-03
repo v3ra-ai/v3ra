@@ -223,10 +223,8 @@ export class HuggingFaceValidator implements AIValidator {
 
       // All retries failed
       logger.error(
-        `Hugging Face API error after ${maxRetries} attempts:`,
-        lastError?.status || 'Unknown',
-        lastError?.statusText || '',
-        lastError?.body || lastError
+        `Hugging Face API error after ${maxRetries} attempts: ${lastError?.status || 'Unknown'} ${lastError?.statusText || ''}`,
+        { body: lastError?.body || lastError }
       );
       return {
         vote: false,

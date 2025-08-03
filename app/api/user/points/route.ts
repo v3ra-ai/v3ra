@@ -46,11 +46,11 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
     try {
       userPoints = await V3RAPointsService.getUserPoints(userId);
     } catch (error) {
-      pointsLogger.error({
+      pointsLogger.error('Failed to get user points from service', {
         error: error instanceof Error ? error.message : String(error),
         stack: error instanceof Error ? error.stack : undefined,
         userId
-      }, 'Failed to get user points from service');
+      });
       throw error;
     }
     
@@ -92,11 +92,11 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
     return NextResponse.json(response);
     
   } catch (error) {
-    pointsLogger.error({
+    pointsLogger.error('Failed to get user points', {
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
       path: '/api/user/points'
-    }, 'Failed to get user points');
+    });
     return NextResponse.json(
       { error: "Failed to get user points" },
       { status: 500 }

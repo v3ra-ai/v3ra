@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { logRequest, createLogger } from '@/lib/logger';
+import { createLogger } from '@/lib/logger';
 
 const logger = createLogger('middleware');
 
@@ -24,7 +24,7 @@ export function withLogging(
 
       // Log the request
       const duration = Date.now() - start;
-      logRequest(method, path, statusCode, duration, userId);
+      logger.info(`${method} ${path} ${statusCode} ${duration}ms`, { userId });
 
       return response;
     } catch (err) {
@@ -33,7 +33,11 @@ export function withLogging(
       
       // Log the error
       const duration = Date.now() - start;
-      logRequest(method, path, statusCode, duration, userId, error);
+      logger.error(`${method} ${path} ${statusCode} ${duration}ms - Error`, { 
+        userId, 
+        error: error.message,
+        stack: error.stack 
+      });
 
       // Return error response
       return NextResponse.json(
