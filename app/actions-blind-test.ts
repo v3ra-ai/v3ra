@@ -35,12 +35,12 @@ export async function getBlindTestComparison(
       validator1.validate({
         statement: queryText,
         context: '',
-        queryMode: 'factCheck' as const
+        queryMode: 'fact-check'
       }),
       validator2.validate({
         statement: queryText,
         context: '',
-        queryMode: 'factCheck' as const
+        queryMode: 'fact-check'
       })
     ]);
 
