@@ -174,6 +174,19 @@ export class GeminiValidator implements AIValidator {
       if (!modelName || modelName === "gemini") {
         modelName = "gemini-1.5-flash";
       }
+      
+      // Fix common incorrect model names
+      if (modelName.includes("2.5")) {
+        modelName = modelName.replace("2.5", "1.5");
+        logger.warn(`Corrected invalid model name from ${this.modelName} to ${modelName}`);
+      }
+      
+      // Ensure we have a valid Gemini model
+      const validModels = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-pro-vision"];
+      if (!validModels.some(valid => modelName.includes(valid.replace("gemini-", "")))) {
+        logger.warn(`Unknown Gemini model: ${modelName}, defaulting to gemini-1.5-flash`);
+        modelName = "gemini-1.5-flash";
+      }
 
       const model = genAI.getGenerativeModel({ model: modelName });
 
