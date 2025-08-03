@@ -45,7 +45,7 @@ export class GeminiValidator implements AIValidator {
   }) {
     this.id = options.id || uuidv4();
     // Use a standard Gemini model that's widely available
-    this.modelName = options.modelName || "gemini-1.5-flash";
+    this.modelName = options.modelName || "gemini-2.0-flash";
     this.name = options.name || `${this.modelName.toUpperCase()} Validator`;
     this.provider = "Google";
     this.description = `This validator uses Google's ${this.modelName} model, which provides efficient and reliable responses for general reasoning tasks.`;
@@ -175,23 +175,35 @@ export class GeminiValidator implements AIValidator {
       // Initialize the Google Generative AI client
       const genAI = new GoogleGenerativeAI(apiKey);
 
-      // Make sure we're using a valid model name, defaulting to gemini-1.5-flash if necessary
+      // Make sure we're using a valid model name, defaulting to gemini-2.0-flash if necessary
       let modelName = this.modelName;
       if (!modelName || modelName === "gemini") {
-        modelName = "gemini-1.5-flash";
+        modelName = "gemini-2.0-flash";
       }
       
-      // Fix common incorrect model names
-      if (modelName.includes("2.5")) {
-        modelName = modelName.replace("2.5", "1.5");
-        logger.warn(`Corrected invalid model name from ${this.modelName} to ${modelName}`);
+      
+      // Ensure we have a valid Gemini model - Updated for 2025
+      const validModels = [
+        "gemini-2.0-flash", 
+        "gemini-2.5-flash", 
+        "gemini-2.5-pro",
+        "gemini-1.5-flash", // Legacy, may not work for new projects
+        "gemini-1.5-pro",   // Legacy, may not work for new projects
+        "gemini-pro"
+      ];
+      
+      // Map old model names to new ones
+      if (modelName === "gemini-1.5-flash") {
+        modelName = "gemini-2.0-flash";
+        logger.info(`Mapped gemini-1.5-flash to ${modelName}`);
+      } else if (modelName === "gemini-1.5-pro") {
+        modelName = "gemini-2.5-pro";
+        logger.info(`Mapped gemini-1.5-pro to ${modelName}`);
       }
       
-      // Ensure we have a valid Gemini model
-      const validModels = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-pro", "gemini-pro-vision"];
-      if (!validModels.some(valid => modelName.includes(valid.replace("gemini-", "")))) {
-        logger.warn(`Unknown Gemini model: ${modelName}, defaulting to gemini-1.5-flash`);
-        modelName = "gemini-1.5-flash";
+      if (!validModels.some(valid => modelName === valid)) {
+        logger.warn(`Unknown Gemini model: ${modelName}, defaulting to gemini-2.0-flash`);
+        modelName = "gemini-2.0-flash";
       }
 
       const model = genAI.getGenerativeModel({ model: modelName });

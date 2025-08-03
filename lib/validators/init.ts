@@ -81,8 +81,8 @@ export async function initializeValidators() {
 
   const geminiValidator = new GeminiValidator({
     id: uuidv4(),
-    modelName: "gemini-1.5-flash",
-    name: "Gemini 1.5 Flash Validator",
+    modelName: "gemini-2.0-flash",
+    name: "Gemini 2.0 Flash Validator",
     active: true,
   });
   (geminiValidator as any).avatarUrl = "/validators/gemini.jpg";
