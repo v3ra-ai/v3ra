@@ -30,10 +30,10 @@ export async function GET() {
       
       // Test 4: Test function
       try {
-        const functionTest = await prisma.$queryRaw`
+        const functionTest = await prisma.$queryRaw<any[]>`
           SELECT * FROM get_blind_test_pair('SMART');
         `;
-        functionWorks = !!functionTest[0];
+        functionWorks = Array.isArray(functionTest) && functionTest.length > 0;
       } catch (err) {
         logger.error('Function test failed', { error: err });
       }
