@@ -19,11 +19,11 @@ export function middleware(request: NextRequest) {
   // Content Security Policy
   const csp = [
     "default-src 'self'",
-    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vitals.vercel-insights.com https://www.googletagmanager.com https://www.google-analytics.com https://static.hotjar.com https://script.hotjar.com", // Added Hotjar domains
+    "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://vitals.vercel-insights.com https://www.googletagmanager.com https://www.google-analytics.com https://static.hotjar.com https://script.hotjar.com https://vercel.live", // Added Vercel Live
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https: blob:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openrouter.ai https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://vitals.vercel-insights.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.hotjar.com https://vc.hotjar.io wss://*.hotjar.com",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openrouter.ai https://*.ingest.sentry.io https://*.ingest.us.sentry.io https://vitals.vercel-insights.com https://www.google-analytics.com https://*.google-analytics.com https://www.googletagmanager.com https://*.hotjar.com https://vc.hotjar.io wss://*.hotjar.com https://vercel.live wss://vercel.live https://*.vercel.live",
     "worker-src 'self' blob:",
     "frame-ancestors 'none'",
     "base-uri 'self'",

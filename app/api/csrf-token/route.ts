@@ -26,30 +26,37 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
     // Same-origin requests from the browser often don't include the origin header
     // This is expected behavior, so we should allow it
     const host = request.headers.get('host');
-    const isLocalRequest = host && (host.includes('localhost') || host.includes('127.0.0.1'));
+    const xForwardedHost = request.headers.get('x-forwarded-host');
+    const actualHost = xForwardedHost || host;
     
-    if (!origin && !referer && !isLocalRequest) {
+    const isLocalRequest = host && (host.includes('localhost') || host.includes('127.0.0.1'));
+    const isV3raRequest = actualHost && (actualHost.includes('v3ra.ai') || actualHost.includes('v3ra.app'));
+    const isVercelRequest = actualHost && actualHost.includes('.vercel.app');
+    
+    // For same-origin requests from our domains, we can trust them
+    if (!origin && !referer && !isLocalRequest && !isV3raRequest && !isVercelRequest) {
+      logger.warn('Missing origin or referer header', { host, xForwardedHost, actualHost });
       return NextResponse.json({ error: "Missing origin or referer header" }, { status: 403 });
     }
     
     // Check if origin is allowed (if provided)
-    if (origin && !isLocalRequest) {
+    if (origin && !isLocalRequest && !isV3raRequest && !isVercelRequest) {
       const isAllowedOrigin = CSRF_CONFIG.allowedOrigins.some(allowed => 
         origin === allowed || origin.startsWith(allowed)
-      );
+      ) || origin.includes('v3ra.ai') || origin.includes('v3ra.app') || origin.includes('.vercel.app');
       
       if (!isAllowedOrigin) {
-        logger.error('Invalid origin', { origin });
+        logger.error('Invalid origin', { origin, allowedOrigins: CSRF_CONFIG.allowedOrigins });
         return NextResponse.json({ error: "Invalid origin" }, { status: 403 });
       }
-    } else if (referer && !isLocalRequest) {
+    } else if (referer && !isLocalRequest && !isV3raRequest && !isVercelRequest) {
       // If no origin, check referer
       const isAllowedReferer = CSRF_CONFIG.allowedOrigins.some(allowed => 
         referer.startsWith(allowed)
-      );
+      ) || referer.includes('v3ra.ai') || referer.includes('v3ra.app') || referer.includes('.vercel.app');
       
       if (!isAllowedReferer) {
-        logger.error('Invalid referer', { referer });
+        logger.error('Invalid referer', { referer, allowedOrigins: CSRF_CONFIG.allowedOrigins });
         return NextResponse.json({ error: "Invalid referer" }, { status: 403 });
       }
     }
@@ -57,7 +64,21 @@ export const GET = rateLimitRelaxed(async (request: NextRequest) => {
     const csrfToken = generateCSRFToken();
     
     // Create response with token (include legacy 'token' field for compatibility)
-    const responseOrigin = origin || (isLocalRequest ? `http://${host}` : CSRF_CONFIG.allowedOrigins[0]);
+    let responseOrigin = origin;
+    if (!responseOrigin) {
+      if (isLocalRequest) {
+        responseOrigin = `http://${host}`;
+      } else if (isV3raRequest || isVercelRequest) {
+        responseOrigin = `https://${actualHost}`;
+      } else if (referer) {
+        // Extract origin from referer
+        const refererUrl = new URL(referer);
+        responseOrigin = refererUrl.origin;
+      } else {
+        responseOrigin = CSRF_CONFIG.allowedOrigins[0];
+      }
+    }
+    
     const response = NextResponse.json({ csrfToken, token: csrfToken }, { 
       status: 200,
       headers: {
