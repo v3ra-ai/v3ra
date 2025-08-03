@@ -1,5 +1,4 @@
 import type { QueryMode } from "@/lib/types";
-import { getFactCheckPrompt } from "@/lib/validators/prompts/fact-check";
 
 export function generatePrompt(
   queryMode: QueryMode | undefined,
@@ -7,9 +6,15 @@ export function generatePrompt(
   context?: string
 ): { systemMessage: string; userMessage: string } {
 
-  // Always use fact-check mode
-  const { systemMessage, userMessage } = getFactCheckPrompt(statement, context);
+  // Open-ended response mode - no fact checking
+  const systemMessage = `You are a helpful AI assistant. Provide thoughtful, nuanced responses to any question or topic. 
+Be informative, balanced, and engaging. You can discuss any topic including creative, philosophical, technical, or general questions.`;
 
+  let userMessage = statement;
+  
+  if (context) {
+    userMessage += `\n\nContext: ${context}`;
+  }
 
   return { systemMessage, userMessage };
 }
