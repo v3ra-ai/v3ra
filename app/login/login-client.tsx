@@ -44,16 +44,10 @@ export default function LoginClient() {
         throw new Error("Password must be at least 6 characters.");
       }
 
-      // Get the current URL for redirect
-      const redirectTo = `${window.location.origin}/auth/callback`;
-      
       // Sign in with email and password
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
-        options: {
-          emailRedirectTo: redirectTo,
-        }
+        password
       });
 
       if (error) {
