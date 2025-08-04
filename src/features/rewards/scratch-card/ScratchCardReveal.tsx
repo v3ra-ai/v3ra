@@ -97,7 +97,7 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
     }
   }
 
-  const revealReward = () => {
+  const revealReward = (autoClose = true) => {
     setIsScratched(true)
     
     // Fire confetti for big wins
@@ -109,8 +109,10 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
       })
     }
 
-    // Complete after animation
-    setTimeout(onComplete, 2000)
+    // Only auto-close if scratched (not tapped)
+    if (autoClose) {
+      setTimeout(onComplete, 2000)
+    }
   }
 
   return (
@@ -183,7 +185,7 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
                   transition={{ delay: 1 }}
                   onClick={() => {
                     try {
-                      revealReward();
+                      revealReward(false); // Don't auto-close when tapped
                     } catch (error) {
                       logger.error('Error revealing reward:', error);
                     }
