@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase-client';
 import { withCSRFProtection } from '@/lib/middleware/csrf';
+import { withAuthRefresh } from '@/lib/middleware/auth-refresh';
 import { rateLimitModerate } from '@/lib/rate-limit/index';
 import { voteSubmitSchema, validateRequestBody } from '@/lib/validation/schemas';
 import { invalidateUserCache, invalidateAnalyticsCache, invalidateLeaderboardCache } from '@/lib/cache/cache-utils';
@@ -13,7 +14,7 @@ function serializeBigInt<T>(obj: T): T {
   );
 }
 
-export const POST = rateLimitModerate(withCSRFProtection(async (request: NextRequest) => {
+export const POST = rateLimitModerate(withAuthRefresh(withCSRFProtection(async (request: NextRequest) => {
   try {
     const supabase = await createSupabaseServerClient();
     
@@ -230,4 +231,4 @@ export const POST = rateLimitModerate(withCSRFProtection(async (request: NextReq
       { status: 500 }
     );
   }
-}));
+})));

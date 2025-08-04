@@ -54,12 +54,13 @@ const cookieStorage = {
     const cookieOptions = [
       `${key}=${encodedValue}`,
       'path=/',
-      'max-age=31536000',
+      'max-age=31536000', // 1 year
       'SameSite=Lax', // Allow cookies on navigation from external sites
       isProduction ? 'Secure' : ''
     ].filter(Boolean).join('; ');
     
     document.cookie = cookieOptions;
+    logger.debug('Client-side cookie set', { key, hasValue: !!value, isProduction });
   },
   removeItem(key: string) {
     if (typeof window === 'undefined') {
@@ -111,6 +112,8 @@ export async function createSupabaseServerClient() {
                 secure: process.env.NODE_ENV === 'production',
                 sameSite: 'lax' as const,
                 path: '/', // Ensure path is set
+                // Important: preserve maxAge from Supabase
+                maxAge: options.maxAge || 60 * 60 * 24 * 365 // Default to 1 year if not specified
               };
               logger.debug('Setting cookie', { name, hasValue: !!value, options: secureOptions });
               cookieStore.set({ name, value, ...secureOptions });
