@@ -16,11 +16,33 @@ function serializeBigInt<T>(obj: T): T {
 export const POST = rateLimitModerate(withCSRFProtection(async (request: NextRequest) => {
   try {
     const supabase = await createSupabaseServerClient();
-    const { data: { user } } = await supabase.auth.getUser();
     
-    if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    // First check the session
+    const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+    if (sessionError) {
+      apiLogger.error('Session retrieval error', { error: sessionError.message });
     }
+    
+    // Then get the user
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    
+    if (userError) {
+      apiLogger.error('User retrieval error', { error: userError.message });
+    }
+    
+    // Log authentication state for debugging
+    apiLogger.info('Auth state in vote submission', {
+      hasSession: !!session,
+      hasUser: !!user,
+      userId: user?.id,
+      sessionUser: session?.user?.id,
+      cookies: request.cookies.getAll().filter(c => c.name.includes('sb-')).map(c => ({ name: c.name, hasValue: !!c.value }))
+    });
+    
+    // For now, create a guest user ID if not authenticated
+    // This allows voting without login but won't persist points
+    const userId = user?.id || `guest-${request.headers.get('x-forwarded-for') || 'anonymous'}`;
+    const isGuest = !user;
 
     // Validate request body with Zod
     const { data: validatedData, error: validationError } = await validateRequestBody(
@@ -44,11 +66,24 @@ export const POST = rateLimitModerate(withCSRFProtection(async (request: NextReq
       timeToDecide
     } = validatedData!;
 
-    // Use secure server-side function for vote submission
+    // Check if authentication is required (for now, require auth)
+    if (isGuest) {
+      apiLogger.warn('Unauthenticated vote attempt', {
+        headers: Object.fromEntries(request.headers.entries()),
+        hasCSRFToken: !!request.headers.get('x-csrf-token')
+      });
+      
+      return NextResponse.json(
+        { error: 'Authentication required to vote' },
+        { status: 401 }
+      );
+    }
+
+    // Use secure server-side function for vote submission (authenticated users only)
     const { data: voteResult, error: voteError } = await supabase
       .rpc('submit_vote_with_reward', {
         p_vote_session_id: voteSessionId,
-        p_user_id: user.id,
+        p_user_id: user!.id,
         p_winning_validator_id: winningValidatorId,
         p_losing_validator_id: losingValidatorId,
         p_vote_reason: voteReason,
