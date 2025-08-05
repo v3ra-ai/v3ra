@@ -100,8 +100,17 @@ export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRev
   const revealReward = (autoClose = true) => {
     setIsScratched(true)
     
+    // Clear the canvas to reveal the reward
+    if (canvasRef.current) {
+      const canvas = canvasRef.current
+      const ctx = canvas.getContext('2d')
+      if (ctx) {
+        ctx.clearRect(0, 0, canvas.width, canvas.height)
+      }
+    }
+    
     // Fire confetti for big wins
-      if (reward >= 100 && confettiRef.current) {
+    if (reward >= 100 && confettiRef.current) {
       confettiRef.current({
         particleCount: 100,
         spread: 70,
