@@ -11,6 +11,21 @@ type ValidatorApiResponse = Omit<AIValidator, "validate"> & { id: string };
 const MOCK_VALIDATORS: AIValidator[] = [
   {
     id: "1",
+    name: "GPT-5",
+    provider: "OpenAI",
+    modelName: "gpt-5",
+    description:
+      "OpenAI's most advanced next-generation AI with groundbreaking reasoning and multimodal capabilities.",
+    validatorType: "Next-Gen Intelligence Engine",
+    active: true,
+    validate: async () => ({
+      vote: true,
+      confidence: 0.98,
+      rationale: "Response from GPT-5",
+    }),
+  },
+  {
+    id: "1a",
     name: "GPT-4o",
     provider: "OpenAI",
     modelName: "gpt-4o",

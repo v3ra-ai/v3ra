@@ -14,6 +14,9 @@ import {
 import { clusterApiUrl } from "@solana/web3.js";
 
 // WalletModalProvider requires its default styles
+import { CURRENT_SOLANA_NETWORK_NAME, DEV_SOLANA_NETWORK_RPC, MAINNET_SOLANA_NETWORK_RPC } from "@/lib/constants";
+
+// WalletModalProvider requires its default styles
 import "@solana/wallet-adapter-react-ui/styles.css";
 
 interface SolanaProviderProps {
@@ -24,16 +27,18 @@ export const SolanaProvider: FC<SolanaProviderProps> = ({ children }) => {
   // Choose network via env or default to mainnet-beta
   const network: WalletAdapterNetwork =
     (process.env.NEXT_PUBLIC_SOLANA_NETWORK as WalletAdapterNetwork) ||
-    (process.env.CURRENT_SOLANA_NETWORK?.toLowerCase() === 'devnet' ? WalletAdapterNetwork.Devnet : WalletAdapterNetwork.Mainnet);
+    (CURRENT_SOLANA_NETWORK_NAME === "Devnet"
+      ? WalletAdapterNetwork.Devnet
+      : WalletAdapterNetwork.Mainnet);
 
   // RPC endpoint can be overridden via env; otherwise use clusterApiUrl
   const endpoint = useMemo<string>(() => {
     if (process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT)
       return process.env.NEXT_PUBLIC_SOLANA_RPC_ENDPOINT;
-    if (network === WalletAdapterNetwork.Devnet && process.env.DEVNET_SOLANA_NETWORK_RPC)
-      return process.env.DEVNET_SOLANA_NETWORK_RPC;
-    if (network === WalletAdapterNetwork.Mainnet && process.env.MAINNET_SOLANA_NETWORK_RPC)
-      return process.env.MAINNET_SOLANA_NETWORK_RPC;
+    if (network === WalletAdapterNetwork.Devnet && DEV_SOLANA_NETWORK_RPC)
+      return DEV_SOLANA_NETWORK_RPC!;
+    if (network === WalletAdapterNetwork.Mainnet && MAINNET_SOLANA_NETWORK_RPC)
+      return MAINNET_SOLANA_NETWORK_RPC!;
     return clusterApiUrl(network);
   }, [network]);
 

@@ -2,9 +2,12 @@
 # set your current db url (prod): export DATABASE_URL=$REMOTE_DATABASE_URL
 # verify your current db url (if blank uses default local): echo $DATABASE_URL
 
-CURRENT_SOLANA_NETWORK="Devnet"
-DEVNET_SOLANA_NETWORK_RPC=""
-MAINNET_SOLANA_NETWORK_RPC=""
+# Solana Network Configuration (client-exposed)
+NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME="Devnet"   # "Devnet" or "Mainnet"
+NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC=""           # optional, custom devnet RPC
+NEXT_PUBLIC_MAINNET_SOLANA_NETWORK_RPC=""         # optional, custom mainnet RPC
+# Optional single-endpoint override (takes precedence if set)
+NEXT_PUBLIC_SOLANA_RPC_ENDPOINT=""
 
 LOCAL_DATABASE_URL="postgresql://postgres:postgres@localhost:54322/postgres"
 REMOTE_DATABASE_URL=postgresql://postgres:[your-db-password]@db.[project id].supabase.co:6543/postgres?pgbouncer=true

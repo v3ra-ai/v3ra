@@ -20,6 +20,13 @@ const newFlagshipModels = [
   },
   {
     provider: 'OpenAI',
+    modelName: 'gpt-5',
+    name: 'GPT-5',
+    description: 'OpenAI\'s most advanced next-generation AI model',
+    type: 'Flagship'
+  },
+  {
+    provider: 'OpenAI',
     modelName: 'o1-preview',
     name: 'o1',
     description: 'OpenAI\'s advanced reasoning model',

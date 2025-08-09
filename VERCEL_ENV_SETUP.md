@@ -36,6 +36,21 @@ ENCRYPTION_KEY=[YOUR-32-CHAR-HEX-KEY]
 ENCRYPTION_IV=[YOUR-16-CHAR-HEX-IV]
 ```
 
+### Solana Wallet and Network (if using Solana integration)
+```bash
+# Wallet addresses
+NEXT_PUBLIC_V3RA_WALLET_PUBLIC_KEY=[YOUR-SOLANA-PUBLIC-KEY]
+V3RA_WALLET_PUBLIC_KEY=[YOUR-SOLANA-PUBLIC-KEY]
+
+# Network selection
+NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME=Mainnet   # use Devnet for testing
+
+# Optional RPC overrides (set one or more as needed)
+NEXT_PUBLIC_SOLANA_RPC_ENDPOINT=""               # single endpoint override (takes precedence)
+NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC=""        # custom Devnet RPC
+NEXT_PUBLIC_MAINNET_SOLANA_NETWORK_RPC=""      # custom Mainnet RPC
+```
+
 ## Common Issues
 
 1. **Wrong Database URL Format**

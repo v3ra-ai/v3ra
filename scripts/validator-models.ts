@@ -14,6 +14,16 @@ export interface ValidatorModel {
 // OpenAI Models
 export const openaiModels: ValidatorModel[] = [
   {
+    name: "GPT-5",
+    provider: "OpenAI",
+    model_id: "gpt-5",
+  },
+  {
+    name: "GPT-4o",
+    provider: "OpenAI",
+    model_id: "gpt-4o",
+  },
+  {
     name: "GPT-4 Turbo",
     provider: "OpenAI",
     model_id: "gpt-4-1106-preview",

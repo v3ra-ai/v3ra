@@ -61,12 +61,17 @@ interface NavbarSitelinksProps {
 export function NavbarSitelinks({ isMobile = false }: NavbarSitelinksProps) {
   const { user } = useAuth();
   
-  // Only show navigation links if user is authenticated
-  if (!user) {
-    return null;
-  }
+  // Always show public links
+  const publicLinks = [
+    {
+      href: "/blind-test/gpt-challenge",
+      label: "GPT Challenge 🔥",
+      description: "Blind test GPT-4o vs GPT-5 and win rewards"
+    },
+  ];
   
-  const links = [
+  // Links that require authentication
+  const authLinks = [
     {
       href: "/ask",
       label: "Ask",
@@ -103,6 +108,9 @@ export function NavbarSitelinks({ isMobile = false }: NavbarSitelinksProps) {
       description: "Learn how to use V3RA and get support"
     }
   ];
+  
+  // Combine public links with auth-required links (if user is authenticated)
+  const links = user ? [...publicLinks, ...authLinks] : publicLinks;
 
   if (isMobile) {
     return (

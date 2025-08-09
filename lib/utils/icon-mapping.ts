@@ -33,10 +33,12 @@ export function getModelIconPath(
 
   // OpenAI models
   if (
+    modelNameLower.includes("gpt-5") ||
     modelNameLower.includes("gpt-4") ||
     modelNameLower.includes("gpt-3.5") ||
     modelNameLower.includes("openai") ||
-    modelNameLower.includes("gpt-40") // Handle legacy gpt-40 naming
+    modelNameLower.includes("gpt-40") || // Handle legacy gpt-40 naming
+    modelNameLower.includes("o1") // OpenAI o1 models
   ) {
     return "/icons/chatgpt.png";
   }

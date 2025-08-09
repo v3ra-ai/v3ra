@@ -59,6 +59,21 @@ export default function LoginClient() {
         throw new Error("No user returned from login.");
       }
 
+      // The session is returned in the sign-in response
+      logger.info("Login successful", { 
+        userId: data.user.id,
+        email: data.user.email,
+        hasSession: !!data.session,
+        sessionExpiry: data.session?.expires_at
+      });
+      
+      // Check if the session was actually set
+      const { data: sessionCheck } = await supabase.auth.getSession();
+      logger.info("Session check after login", {
+        hasSession: !!sessionCheck.session,
+        userId: sessionCheck.session?.user?.id
+      });
+
       // Create or get user via API route directly
       logger.info("Creating/getting user in database", { userId: data.user.id });
       
@@ -82,12 +97,13 @@ export default function LoginClient() {
 
       logger.info("Login successful, redirecting", { context: "login" });
       
-      // Redirect to the return URL or /ask
-      if (returnTo) {
-        router.push(returnTo);
-      } else {
-        router.push("/ask");
-      }
+      // Navigate to the return URL or /ask
+      router.push(returnTo || "/ask");
+      
+      // Refresh the page after navigation to ensure auth state is updated
+      setTimeout(() => {
+        router.refresh();
+      }, 100);
     } catch (err) {
       const error = err as Error & { code?: string; status?: number };
 

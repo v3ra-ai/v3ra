@@ -75,7 +75,13 @@ ENCRYPTION_IV=your_generated_16_char_iv
 # Payments (optional)
 NEXT_PUBLIC_V3RA_WALLET_PUBLIC_KEY=your_solana_wallet_address
 V3RA_WALLET_PUBLIC_KEY=your_solana_wallet_address
-CURRENT_SOLANA_NETWORK=Devnet
+
+# Solana Network (client-exposed)
+NEXT_PUBLIC_CURRENT_SOLANA_NETWORK_NAME=Devnet   # or Mainnet
+# Optional RPC overrides
+NEXT_PUBLIC_SOLANA_RPC_ENDPOINT=""               # single endpoint override
+NEXT_PUBLIC_DEVNET_SOLANA_NETWORK_RPC=""        # custom Devnet RPC
+NEXT_PUBLIC_MAINNET_SOLANA_NETWORK_RPC=""      # custom Mainnet RPC
 ```
 
 ## Step 3: Configure Validators

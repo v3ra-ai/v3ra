@@ -49,12 +49,17 @@ export default function ProfilePage() {
   const [savingUsername, setSavingUsername] = useState(false);
 
   useEffect(() => {
+    let isMounted = true;
     const initializeUser = async () => {
-      await checkUser();
+      setLoading(true);
+      const ok = await checkUser();
+      if (!ok) return;
       await loadUserData();
+      if (isMounted) setLoading(false);
     };
-    
+
     initializeUser();
+    return () => { isMounted = false; };
   }, []);
   
   const loadUserData = async () => {
@@ -94,20 +99,20 @@ export default function ProfilePage() {
     }
   };
 
-  const checkUser = async () => {
+  const checkUser = async (): Promise<boolean> => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      
+
       if (!user) {
         router.push('/login');
-        return;
+        return false;
       }
-      
+
       setUser(user);
+      return true;
     } catch {
       router.push('/login');
-    } finally {
-      setLoading(false);
+      return false;
     }
   };
 

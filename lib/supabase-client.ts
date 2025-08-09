@@ -29,6 +29,10 @@ const cookieStorage = {
     if (typeof window === 'undefined') {
       return null;
     }
+    
+    // Log for debugging
+    logger.debug('Getting cookie', { key, allCookies: document.cookie });
+    
     const value = document.cookie
       .split('; ')
       .find((row) => row.startsWith(`${key}=`))
@@ -37,11 +41,15 @@ const cookieStorage = {
     // Decode URI component if the value exists
     if (value) {
       try {
-        return decodeURIComponent(value);
+        const decoded = decodeURIComponent(value);
+        logger.debug('Retrieved cookie value', { key, hasValue: true, length: decoded.length });
+        return decoded;
       } catch {
+        logger.debug('Retrieved cookie value (not URI encoded)', { key, hasValue: true });
         return value;
       }
     }
+    logger.debug('Cookie not found', { key });
     return null;
   },
   setItem(key: string, value: string) {
@@ -60,12 +68,14 @@ const cookieStorage = {
     ].filter(Boolean).join('; ');
     
     document.cookie = cookieOptions;
+    logger.debug('Set cookie', { key, isProduction, cookieOptions });
   },
   removeItem(key: string) {
     if (typeof window === 'undefined') {
       return;
     }
     document.cookie = `${key}=; path=/; max-age=0; SameSite=Lax`;
+    logger.debug('Removed cookie', { key });
   },
 };
 

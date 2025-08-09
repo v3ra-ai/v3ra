@@ -50,7 +50,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (!loading && !user && !PUBLIC_ROUTES.includes(pathname)) {
       // Store the attempted URL to redirect back after login
-      localStorage.setItem("authReturnTo", pathname);
+      document.cookie = `authReturnTo=${pathname}; path=/; max-age=600; SameSite=Lax`;
       router.replace("/login");
     }
   }, [user, loading, pathname, router]);

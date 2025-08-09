@@ -41,6 +41,16 @@ const curatedValidators = [
   {
     id: uuidv4(),
     provider: "OpenAI",
+    profileName: "GPT-5",
+    modelName: "gpt-5",
+    description: "OpenAI's most advanced next-generation AI with groundbreaking capabilities",
+    validatorType: "Next-Gen Intelligence",
+    avatarUrl: "/validators/openai.jpg",
+    active: true
+  },
+  {
+    id: uuidv4(),
+    provider: "OpenAI",
     profileName: "GPT-4o",
     modelName: "gpt-4o",
     description: "OpenAI's flagship omnimodal model with vision and advanced reasoning",

@@ -294,8 +294,6 @@ model VoteSession {
   @@index([isConsensusReached])
   @@index([timestamp])
   @@index([timestamp(sort: Desc)], map: "idx_vote_session_timestamp")
-  @@index([userId, timestamp(sort: Desc)])
-  @@index([mode])
 }
 
 /// This table contains check constraints and requires additional setup for migrations. Visit https://pris.ly/d/check-constraints for more info.
@@ -428,9 +426,9 @@ model UserPoints {
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
-  @@index([balance(sort: Desc)])
-  @@index([totalEarned(sort: Desc)])
-  @@index([updatedAt(sort: Desc)])
+  @@index([balance(sort: Desc)], map: "idx_userpoints_balance")
+  @@index([totalEarned(sort: Desc)], map: "idx_userpoints_totalearned")
+  @@index([updatedAt(sort: Desc)], map: "idx_userpoints_updatedat")
 }
 
 model PointsTransaction {
@@ -446,8 +444,9 @@ model PointsTransaction {
 
   @@index([userId])
   @@index([userId, createdAt(sort: Desc)])
-  @@index([type, createdAt(sort: Desc)])
-  @@index([createdAt(sort: Desc)])
+  @@index([createdAt(sort: Desc)], map: "idx_pointstransaction_createdat")
+  @@index([type, createdAt(sort: Desc)], map: "idx_pointstransaction_type_createdat")
+  @@index([userId, createdAt(sort: Desc)], map: "idx_pointstransaction_userid_createdat")
 }
 
 model PredictionMarket {
@@ -537,6 +536,8 @@ model VoteDetails {
   @@index([userId])
   @@index([vote_reason])
   @@index([vote_session_id])
+  @@index([userId, created_at(sort: Desc)], map: "idx_votedetails_userid_createdat")
+  @@index([vote_session_id], map: "idx_votedetails_votesessionid")
   @@map("vote_details")
 }
 

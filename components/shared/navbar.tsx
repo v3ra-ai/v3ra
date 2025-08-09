@@ -26,6 +26,11 @@ export function Navbar({
       icon: Sparkles,
     },
     {
+      href: "/blind-test/gpt-challenge",
+      label: "GPT Challenge 🔥",
+      icon: Sparkles,
+    },
+    {
       href: "/explore",
       label: "Explore",
       icon: BarChart3,

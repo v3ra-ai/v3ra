@@ -57,16 +57,13 @@ export function BlindDualResponseCard({
   const [modelsRevealed, setModelsRevealed] = useState(false)
   const [selectedModelId, setSelectedModelId] = useState<string | null>(null)
 
-  // Randomly assign models to A/B positions
-  const [modelAssignment] = useState(() => {
-    const randomize = Math.random() > 0.5
-    return {
-      A: randomize ? leftModel : rightModel,
-      B: randomize ? rightModel : leftModel,
-      responseA: randomize ? leftResponse : rightResponse,
-      responseB: randomize ? rightResponse : leftResponse
-    }
-  })
+  // Models are already randomized on the server
+  const modelAssignment = {
+    A: leftModel,
+    B: rightModel,
+    responseA: leftResponse,
+    responseB: rightResponse
+  }
 
   const handleCardSelect = (position: 'A' | 'B') => {
     // Prevent selection if already voted, loading, submitting, or modal is open
@@ -92,11 +89,10 @@ export function BlindDualResponseCard({
 
     try {
       const timeToDecide = decisionStartTime ? Date.now() - decisionStartTime : 0
-      const selectedModel = modelAssignment[selectedCard]
-      setSelectedModelId(selectedModel.id)
+      setSelectedModelId(selectedCard)
       
-      // Call the parent's onVote function
-      await onVote(selectedModel.id, reasonId, timeToDecide)
+      // Call the parent's onVote function with the position (A or B)
+      await onVote(selectedCard, reasonId, timeToDecide)
       
       setHasVoted(true)
       
