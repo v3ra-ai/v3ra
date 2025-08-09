@@ -238,7 +238,6 @@ async function getNextQuestion(sessionId: string, questionNumber: number) {
     const endTime = Date.now();
 
     return await saveAndReturnResponse(sessionId, question, questionNumber, response4o, response5, startTime, endTime);
-    return await saveAndReturnResponse(sessionId, question, questionNumber, response4o, response5, startTime, endTime);
   } catch (error) {
     logger.error('Error getting next question:', error);
     throw error;

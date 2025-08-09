@@ -17,11 +17,11 @@ interface ScratchCardRevealProps {
 export function ScratchCardReveal({ reward, onComplete, isOpen }: ScratchCardRevealProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [isScratched, setIsScratched] = useState(false)
-  const [scratchProgress, setScratchProgress] = useState(0)
+  const [_scratchProgress, setScratchProgress] = useState(0)
   const [isDrawing, setIsDrawing] = useState(false)
 
   // Dynamically load canvas-confetti only on the client
-  const confettiRef = useRef<((opts: any) => void) | null>(null)
+  const confettiRef = useRef<((opts: Record<string, unknown>) => void) | null>(null)
   useEffect(() => {
     import('canvas-confetti')
       .then((mod) => {
