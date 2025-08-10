@@ -502,21 +502,49 @@ async function updateAnalytics(selectedModel: string, notSelectedModel: string, 
 
 export async function GET(req: NextRequest) {
   try {
-    // Get overall statistics
-    const stats = await prisma.$queryRaw`
+    // Get overall statistics - handle bigint conversion
+    const stats = await prisma.$queryRaw<Array<{
+      model_id: string;
+      total_wins: bigint;
+      total_losses: bigint;
+      overall_win_rate: number;
+      avg_decision_time: number | null;
+    }>>`
       SELECT 
         model_id,
-        SUM(wins) as total_wins,
-        SUM(losses) as total_losses,
-        AVG(win_rate) as overall_win_rate,
+        COALESCE(SUM(wins), 0) as total_wins,
+        COALESCE(SUM(losses), 0) as total_losses,
+        COALESCE(AVG(win_rate), 0) as overall_win_rate,
         AVG(avg_time_to_decide) as avg_decision_time
       FROM blind_test_analytics
       WHERE model_id IN ('gpt-4o', 'gpt-5')
       GROUP BY model_id
     `;
 
+    // Convert bigints to numbers for JSON serialization
+    const formattedStats = stats.map(stat => ({
+      model_id: stat.model_id,
+      total_wins: Number(stat.total_wins),
+      total_losses: Number(stat.total_losses),
+      overall_win_rate: stat.overall_win_rate || 0,
+      avg_decision_time: stat.avg_decision_time || 0
+    }));
+
+    // Ensure both models are represented even if no data
+    const models = ['gpt-4o', 'gpt-5'];
+    const completeStats = models.map(modelId => {
+      const existing = formattedStats.find(s => s.model_id === modelId);
+      return existing || {
+        model_id: modelId,
+        total_wins: 0,
+        total_losses: 0,
+        overall_win_rate: 0,
+        avg_decision_time: 0
+      };
+    });
+
     return NextResponse.json({
-      statistics: stats
+      statistics: completeStats
     });
   } catch (error) {
     logger.error('Error getting statistics:', error);
