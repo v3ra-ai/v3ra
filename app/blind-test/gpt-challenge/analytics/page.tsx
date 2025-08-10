@@ -53,10 +53,28 @@ export default function GPTChallengeAnalytics() {
     avg_decision_time: 0
   }
 
-  const totalTests = Math.max(
-    gpt4oStats.total_wins + gpt4oStats.total_losses,
-    gpt5Stats.total_wins + gpt5Stats.total_losses
-  ) / 2
+  // Calculate total completed tests from total votes (each test has multiple questions)
+  // Since we're showing head-to-head stats, the total comparisons represents individual votes
+  // not full test sessions. We need to fetch the actual completed session count.
+  const [completedTests, setCompletedTests] = useState(0)
+  
+  useEffect(() => {
+    // Fetch actual completed test count
+    const fetchCompletedTests = async () => {
+      try {
+        const response = await fetch('/api/blind-test/gpt-challenge/stats')
+        if (response.ok) {
+          const data = await response.json()
+          setCompletedTests(data.completedTests || 0)
+        }
+      } catch (error) {
+        console.error('Error fetching test count:', error)
+      }
+    }
+    fetchCompletedTests()
+  }, [])
+
+  const totalTests = completedTests || Math.floor((gpt4oStats.total_wins + gpt5Stats.total_wins) / 5)
 
   const chartData = [
     {

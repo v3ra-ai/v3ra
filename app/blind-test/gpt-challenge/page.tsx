@@ -72,7 +72,18 @@ export default function GPTChallengePage() {
         body: JSON.stringify({ action: 'start_session' })
       })
 
-      if (!response.ok) throw new Error('Failed to start test')
+      if (!response.ok) {
+        const errorData = await response.json()
+        if (errorData.error && errorData.error.includes('already completed')) {
+          toast.error('You have already completed this test. Each user can only take it once.')
+          // Optionally redirect to analytics
+          setTimeout(() => {
+            router.push('/blind-test/gpt-challenge/analytics')
+          }, 2000)
+          return
+        }
+        throw new Error(errorData.error || 'Failed to start test')
+      }
 
       const data = await response.json()
       setSession(data)

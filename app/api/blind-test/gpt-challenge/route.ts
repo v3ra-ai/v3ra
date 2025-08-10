@@ -108,6 +108,27 @@ export const POST = rateLimitModerate(async (req: NextRequest) => {
 
 async function startBlindTestSession(userId: string) {
   try {
+    // Check if user has already completed a test
+    const existingSession = await prisma.$queryRaw<Array<{
+      id: string;
+      status: string;
+    }>>`
+      SELECT id, status
+      FROM blind_test_sessions
+      WHERE user_id = ${userId}
+        AND session_type = 'gpt_comparison'
+        AND status = 'completed'
+      LIMIT 1
+    `;
+
+    if (existingSession && existingSession.length > 0) {
+      logger.info('User has already completed a blind test', { userId });
+      return NextResponse.json(
+        { error: 'You have already completed the blind test. Each user can only take it once.' },
+        { status: 400 }
+      );
+    }
+
     // Get the pre-selected questions first to ensure we have them
     const questions = await prisma.$queryRaw<Array<{
       id: string;
