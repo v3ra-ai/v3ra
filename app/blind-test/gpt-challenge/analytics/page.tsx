@@ -251,30 +251,32 @@ export default function GPTChallengeAnalytics() {
                   <CardTitle className="text-white">Overall Preference Distribution</CardTitle>
                   <CardDescription>Percentage of users preferring each model</CardDescription>
                 </CardHeader>
-                <CardContent>
-                  <ResponsiveContainer width="100%" height={300}>
-                    <PieChart>
-                      <Pie
-                        data={pieData}
-                        cx="50%"
-                        cy="50%"
-                        labelLine={false}
-                        label={({ name, value, percent }) => 
-                          `${name}: ${(percent * 100).toFixed(1)}%`
-                        }
-                        outerRadius={80}
-                        fill="#8884d8"
-                        dataKey="value"
-                      >
-                        {pieData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip 
-                        contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }}
-                      />
-                    </PieChart>
-                  </ResponsiveContainer>
+                <CardContent className="flex items-center justify-center">
+                  <div className="w-full max-w-md">
+                    <ResponsiveContainer width="100%" height={350}>
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          cx="50%"
+                          cy="45%"
+                          labelLine={false}
+                          label={({ name, value, percent }) => 
+                            `${name}: ${(percent * 100).toFixed(1)}%`
+                          }
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="value"
+                        >
+                          {pieData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={entry.color} />
+                          ))}
+                        </Pie>
+                        <Tooltip 
+                          contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
                 </CardContent>
               </Card>
             </motion.div>
