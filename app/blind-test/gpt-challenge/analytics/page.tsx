@@ -229,7 +229,11 @@ export default function GPTChallengeAnalytics() {
                         contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }}
                         labelStyle={{ color: '#fff' }}
                       />
-                      <Bar dataKey="wins" fill="#a855f7" />
+                      <Bar dataKey="wins">
+                        {chartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.name === 'GPT-4o' ? '#3b82f6' : '#a855f7'} />
+                        ))}
+                      </Bar>
                     </BarChart>
                   </ResponsiveContainer>
                 </CardContent>
@@ -299,7 +303,11 @@ export default function GPTChallengeAnalytics() {
                       contentStyle={{ backgroundColor: '#000', border: '1px solid #333' }}
                       formatter={(value) => `${value}s`}
                     />
-                    <Bar dataKey="avgTime" fill="#f59e0b" />
+                    <Bar dataKey="avgTime">
+                      {chartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.name === 'GPT-4o' ? '#3b82f6' : '#a855f7'} />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </CardContent>
