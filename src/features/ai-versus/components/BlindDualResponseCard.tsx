@@ -24,7 +24,7 @@ interface BlindDualResponseProps {
   rightModel: AIModel
   leftResponse: string
   rightResponse: string
-  onVote: (winnerId: string, voteReason: string, timeToDecide: number) => void
+  onVote: (position: 'A' | 'B', voteReason: string, timeToDecide: number) => void
   voteSessionId: string
   isLoading?: boolean
 }

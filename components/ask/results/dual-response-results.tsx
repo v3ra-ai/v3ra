@@ -78,14 +78,19 @@ export default function DualResponseResults({ philosophyMode = false }: DualResp
   }, [mostRecentQuery?.id]);
 
   const handleVote = async (winnerId: string, voteReason: string, timeToDecide: number) => {
-    if (hasVotedOnCurrent || !mostRecentQuery) return;
+    if (hasVotedOnCurrent || !mostRecentQuery || !selectedPair) return;
     
     try {
-      // Determine winner and loser
+      // Determine winner and loser from the selected pair
       const winningValidatorId = winnerId;
-      const losingValidatorId = mostRecentQuery.validatorResponses.find(
-        r => r.id !== winnerId
-      )?.id;
+      const responses = mostRecentQuery.validatorResponses;
+      const leftIndex = selectedPair[0];
+      const rightIndex = selectedPair[1];
+      
+      // The loser is the other model in the current pair
+      const losingValidatorId = winnerId === responses[leftIndex].id 
+        ? responses[rightIndex].id 
+        : responses[leftIndex].id;
       
       if (!losingValidatorId) {
         logger.error('Could not determine losing validator');
@@ -93,9 +98,13 @@ export default function DualResponseResults({ philosophyMode = false }: DualResp
       }
       
       // Debug log to see what IDs we're working with
-      logger.debug('Vote submission', {
+      logger.info('Vote submission IDs', {
         winningValidatorId,
         losingValidatorId,
+        voteReason,
+        winnerId,
+        leftId: responses[leftIndex].id,
+        rightId: responses[rightIndex].id,
         availableResponses: mostRecentQuery.validatorResponses.map(r => ({
           id: r.id,
           profileName: r.profileName
@@ -239,7 +248,14 @@ export default function DualResponseResults({ philosophyMode = false }: DualResp
               rightModel={rightModel}
               leftResponse={responses[leftIndex].rationale}
               rightResponse={responses[rightIndex].rationale}
-              onVote={handleVote}
+              onVote={(position: 'A' | 'B', voteReason: string, timeToDecide: number) => {
+                // Translate position to actual model ID
+                if (!selectedPair) return;
+                const winnerId = position === 'A' 
+                  ? responses[selectedPair[0]].id 
+                  : responses[selectedPair[1]].id;
+                handleVote(winnerId, voteReason, timeToDecide);
+              }}
               voteSessionId={mostRecentQuery.id}
               isLoading={false}
             />
