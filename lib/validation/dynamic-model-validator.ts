@@ -39,9 +39,14 @@ export const modelFormatValidator = z.string()
 export const voteModelValidator = z.string()
   .min(1, 'Model ID is required')
   .refine((modelId) => {
-    // For voting, we accept UUIDs or properly formatted model paths
+    // For voting, we accept:
+    // 1. UUIDs (for normal ask page validators)
+    // 2. Provider/model format (e.g., "openai/gpt-4")
+    // 3. Simple model names for blind tests (e.g., "gpt-4o", "gpt-5", "claude-3-opus")
     // We don't validate against the database here to avoid async in voting flow
-    return isValidUUID(modelId) || /^[a-zA-Z0-9-]+\/[a-zA-Z0-9.-]+$/.test(modelId);
+    return isValidUUID(modelId) || 
+           /^[a-zA-Z0-9-]+\/[a-zA-Z0-9.-]+$/.test(modelId) ||
+           /^(gpt-[45][a-z0-9-]*|claude-[0-9]+-[a-z]+|gemini-[a-z0-9-]+|llama-[0-9]+[a-z0-9-]*)$/i.test(modelId); // Known model name patterns
   }, 'Invalid model ID format');
 
 // Helper function to validate a model exists in the registry
